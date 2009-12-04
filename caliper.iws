@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ChangeListManager" verified="true">
-    <list default="true" id="c78c00bf-b622-4c40-9807-77b0398e7493" name="Default" comment="" />
+<project relativePaths="false" version="4">
+  <component name="ChangeListManager">
+    <list default="true" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/caliper/BenchmarkSuite.java" afterPath="$PROJECT_DIR$/src/com/google/caliper/BenchmarkSuite.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/caliper/Parameter.java" afterPath="$PROJECT_DIR$/src/com/google/caliper/Parameter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/core.iml" afterPath="$PROJECT_DIR$/core.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/caliper/SortBenchmarkSuite.java" afterPath="$PROJECT_DIR$/test/com/google/caliper/SortBenchmarkSuite.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/caliper/Runner.java" afterPath="$PROJECT_DIR$/src/com/google/caliper/Runner.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper.ipr" afterPath="$PROJECT_DIR$/caliper.ipr" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/lib/google-collect-1.0-rc4.jar" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/google/caliper/TypeConverter.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java" afterPath="$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper.iws" afterPath="$PROJECT_DIR$/caliper.iws" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/caliper/DefaultBenchmarkSuite.java" afterPath="$PROJECT_DIR$/src/com/google/caliper/DefaultBenchmarkSuite.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/google/caliper/Run.java" afterPath="$PROJECT_DIR$/src/com/google/caliper/Run.java" />
+    </list>
     <ignored path=".idea/workspace.xml" />
     <ignored path="caliper.iws" />
-    <option name="TRACKING_ENABLED" value="true" />
-    <option name="SHOW_DIALOG" value="false" />
-    <option name="HIGHLIGHT_CONFLICTS" value="true" />
-    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
-    <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
   <component name="ChangesViewManager" flattened_view="true" show_ignored="false" />
   <component name="CreatePatchCommitExecutor">
@@ -60,59 +69,10 @@
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="Benchmark.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Benchmark.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="18" column="22" selection-start="647" selection-end="647" vertical-scroll-proportion="-30.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Run.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Run.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="19" selection-start="739" selection-end="739" vertical-scroll-proportion="-75.0">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="Runner.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Runner.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="55" column="0" selection-start="1776" selection-end="1776" vertical-scroll-proportion="-184.0">
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="SortBenchmarkSuite.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/test/com/google/caliper/SortBenchmarkSuite.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="13" selection-start="715" selection-end="715" vertical-scroll-proportion="-45.0">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="DoubleToStringBenchmarkSuite.java" pinned="false" current="true" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="13" selection-start="664" selection-end="664" vertical-scroll-proportion="0.13782541">
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="BenchmarkSuite.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/caliper/BenchmarkSuite.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="20" column="22" selection-start="677" selection-end="677" vertical-scroll-proportion="-45.0">
+            <state line="24" column="22" selection-start="776" selection-end="776" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -121,8 +81,22 @@
       <file leaf-file-name="ConfigurationException.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ConfigurationException.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="21" column="19" selection-start="704" selection-end="704" vertical-scroll-proportion="-52.5">
+            <state line="21" column="19" selection-start="704" selection-end="704" vertical-scroll-proportion="0.0">
               <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DefaultBenchmarkSuite.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/DefaultBenchmarkSuite.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="53" column="22" selection-start="2052" selection-end="2052" vertical-scroll-proportion="0.0">
+              <folding>
+                <marker date="1259958509000" expanded="true" signature="2323:2580" placeholder="{...}" />
+                <marker date="1259958509000" expanded="true" signature="2645:2690" placeholder="{...}" />
+                <marker date="1259958509000" expanded="true" signature="2733:2770" placeholder="{...}" />
+                <marker date="1259958509000" expanded="true" signature="2834:3392" placeholder="{...}" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -130,7 +104,7 @@
       <file leaf-file-name="ExecutionException.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ExecutionException.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="22" column="19" selection-start="741" selection-end="741" vertical-scroll-proportion="-60.0">
+            <state line="22" column="19" selection-start="741" selection-end="741" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -139,19 +113,57 @@
       <file leaf-file-name="Param.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Param.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="24" column="48" selection-start="839" selection-end="839" vertical-scroll-proportion="-52.5">
+            <state line="28" column="18" selection-start="957" selection-end="957" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Parameter.java" pinned="false" current="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Parameter.java">
+      <file leaf-file-name="Runner.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Runner.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="25" column="0" selection-start="705" selection-end="772" vertical-scroll-proportion="-82.5">
+            <state line="199" column="21" selection-start="6238" selection-end="6238" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="TypeConverter.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/TypeConverter.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="23" column="13" selection-start="719" selection-end="719" vertical-scroll-proportion="0.0">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="DoubleToStringBenchmarkSuite.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="21" column="13" selection-start="693" selection-end="693" vertical-scroll-proportion="0.0">
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="SortBenchmarkSuite.java" pinned="false" current="true" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/test/com/google/caliper/SortBenchmarkSuite.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="23" column="13" selection-start="744" selection-end="744" vertical-scroll-proportion="0.19067797">
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Benchmark.java" pinned="false" current="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Benchmark.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state line="18" column="22" selection-start="647" selection-end="647" vertical-scroll-proportion="0.0">
+              <folding />
             </state>
           </provider>
         </entry>
@@ -189,11 +201,6 @@
     <option name="LAST_EDITED_MODULE_NAME" />
     <option name="LAST_EDITED_TAB_NAME" />
   </component>
-  <component name="ProjectInspectionProfilesVisibleTreeState">
-    <entry key="Project Default">
-      <profile-state />
-    </entry>
-  </component>
   <component name="ProjectLevelVcsManager">
     <OptionsSetting value="true" id="Add" />
     <OptionsSetting value="true" id="Remove" />
@@ -204,100 +211,131 @@
     <ConfirmationsSetting value="0" id="Add" />
     <ConfirmationsSetting value="0" id="Remove" />
   </component>
+  <component name="ProjectPane">
+    <subPane>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="core" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="core" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="Caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="core" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="Caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="test" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="core" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="Caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="src" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+      <PATH>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="core" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewModuleNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="Caliper" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+        <PATH_ELEMENT>
+          <option name="myItemId" value="lib" />
+          <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+        </PATH_ELEMENT>
+      </PATH>
+    </subPane>
+  </component>
   <component name="ProjectReloadState">
     <option name="STATE" value="0" />
   </component>
   <component name="ProjectView">
-    <navigator currentView="ProjectPane" proportions="" version="1" splitterProportion="0.5">
+    <navigator currentView="ProjectPane" proportions="0.5" version="1" splitterProportion="0.5">
       <flattenPackages />
       <showMembers />
       <showModules />
       <showLibraryContents />
       <hideEmptyPackages />
       <abbreviatePackageNames />
+      <showStructure ProjectPane="false" />
       <autoscrollToSource />
       <autoscrollFromSource />
       <sortByType />
     </navigator>
-    <panes>
-      <pane id="Favorites" />
-      <pane id="ProjectPane">
-        <subPane>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="test" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-          <PATH>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="src" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-            <PATH_ELEMENT>
-              <option name="myItemId" value="caliper" />
-              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
-            </PATH_ELEMENT>
-          </PATH>
-        </subPane>
-      </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
-    </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="GoToFile.includeJavaFiles" value="false" />
+    <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.last.edited" value="Modules" />
-    <property name="project.structure.proportion" value="0.0" />
-    <property name="OverrideImplement.combined" value="true" />
-    <property name="options.splitter.main.proportions" value="0.3" />
-    <property name="recentsLimit" value="5" />
-    <property name="MemberChooser.sorted" value="false" />
-    <property name="options.lastSelected" value="preferences.sourceCode.General" />
-    <property name="project.structure.side.proportion" value="0.0" />
     <property name="MemberChooser.copyJavadoc" value="false" />
-    <property name="GoToClass.toSaveIncludeLibraries" value="false" />
-    <property name="MemberChooser.showClasses" value="true" />
+    <property name="options.splitter.main.proportions" value="0.3" />
+    <property name="options.searchVisible" value="true" />
+    <property name="MemberChooser.sorted" value="false" />
+    <property name="GoToFile.includeJavaFiles" value="false" />
+    <property name="recentsLimit" value="5" />
+    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="dynamic.classpath" value="false" />
-    <property name="options.searchVisible" value="true" />
-    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="MemberChooser.showClasses" value="true" />
+    <property name="project.structure.side.proportion" value="0.2" />
+    <property name="options.lastSelected" value="project.propVCSSupport.Mappings" />
+    <property name="GoToClass.toSaveIncludeLibraries" value="false" />
+    <property name="OverrideImplement.combined" value="true" />
+    <property name="RunManagerConfig.showSettingsBeforeRunnig" value="false" />
   </component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
@@ -305,31 +343,13 @@
     </key>
   </component>
   <component name="RunManager" selected="Application.SortBenchmarkSuite">
-    <configuration default="false" name="IntegerToStringBenchmark" type="Application" factoryName="Application" temporary="true">
-      <extension name="snapshooter" />
-      <option name="MAIN_CLASS_NAME" value="com.google.caliper.IntegerToStringBenchmark" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="core" />
-      <envs />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="SortBenchmarkSuite" type="Application" factoryName="Application" temporary="true">
-      <extension name="snapshooter" />
+    <tempConfiguration default="false" name="SortBenchmarkSuite" type="Application" factoryName="Application" enabled="false" merge="false" sample_coverage="true" runner="emma">
       <option name="MAIN_CLASS_NAME" value="com.google.caliper.SortBenchmarkSuite" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="VM_PARAMETERS" value="" />
+      <option name="PROGRAM_PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
       <option name="ENABLE_SWING_INSPECTOR" value="false" />
       <option name="ENV_VARIABLES" />
       <option name="PASS_PARENT_ENVS" value="true" />
@@ -337,25 +357,13 @@
       <envs />
       <RunnerSettings RunnerId="Run" />
       <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="DoubleToStringBenchmarkSuite" type="Application" factoryName="Application" temporary="true">
-      <extension name="snapshooter" />
-      <option name="MAIN_CLASS_NAME" value="com.google.caliper.DoubleToStringBenchmarkSuite" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="core" />
-      <envs />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
+      <method>
+        <option name="AntTarget" value="false" />
+        <option name="Maven.BeforeRunTask" value="false" />
+        <option name="Make" value="true" />
+        <option name="BuildArtifacts" value="false" />
+      </method>
+    </tempConfiguration>
     <configuration default="true" type="Remote" factoryName="Remote">
       <option name="USE_SOCKET_TRANSPORT" value="true" />
       <option name="SERVER_MODE" value="false" />
@@ -363,11 +371,76 @@
       <option name="HOST" value="localhost" />
       <option name="PORT" value="5005" />
       <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
+        <option name="AntTarget" value="false" />
+        <option name="Maven.BeforeRunTask" value="false" />
+        <option name="BuildArtifacts" value="false" />
       </method>
     </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <method>
+        <option name="AntTarget" value="false" />
+        <option name="Maven.BeforeRunTask" value="false" />
+        <option name="Make" value="false" />
+        <option name="BuildArtifacts" value="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JUnit" factoryName="JUnit" enabled="false" merge="false" runner="emma">
+      <module name="" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="ADDITIONAL_CLASS_PATH" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <method>
+        <option name="AntTarget" value="false" />
+        <option name="Maven.BeforeRunTask" value="false" />
+        <option name="Make" value="false" />
+        <option name="BuildArtifacts" value="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Application" factoryName="Application" enabled="false" merge="false" runner="emma">
+      <option name="MAIN_CLASS_NAME" />
+      <option name="VM_PARAMETERS" />
+      <option name="PROGRAM_PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="ENABLE_SWING_INSPECTOR" value="false" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <module name="" />
+      <envs />
+      <method>
+        <option name="AntTarget" value="false" />
+        <option name="Maven.BeforeRunTask" value="false" />
+        <option name="Make" value="false" />
+        <option name="BuildArtifacts" value="false" />
+      </method>
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Application.SortBenchmarkSuite" />
+    </list>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <extension name="snapshooter" />
       <module name="" />
@@ -400,80 +473,17 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
-    <configuration default="true" type="Application" factoryName="Application">
-      <extension name="snapshooter" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="VM_PARAMETERS" />
-      <option name="PROGRAM_PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="ENABLE_SWING_INSPECTOR" value="false" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <module name="" />
-      <envs />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
-    <configuration default="true" type="JUnit" factoryName="JUnit">
-      <extension name="snapshooter" />
-      <module name="" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
-    <list size="3">
-      <item index="0" class="java.lang.String" itemvalue="Application.IntegerToStringBenchmark" />
-      <item index="1" class="java.lang.String" itemvalue="Application.SortBenchmarkSuite" />
-      <item index="2" class="java.lang.String" itemvalue="Application.DoubleToStringBenchmarkSuite" />
-    </list>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
       <Host>localhost</Host>
       <Port>5050</Port>
     </configuration>
   </component>
   <component name="ShelveChangesManager" show_recycled="false" />
+  <component name="StructureViewFactory">
+    <option name="AUTOSCROLL_MODE" value="true" />
+    <option name="AUTOSCROLL_FROM_SOURCE" value="false" />
+    <option name="ACTIVE_ACTIONS" value="" />
+  </component>
   <component name="SvnConfiguration">
     <option name="USER" value="" />
     <option name="PASSWORD" value="" />
@@ -483,35 +493,58 @@
     <option name="MERGE_DIFF_USE_ANCESTRY" value="true" />
     <option name="UPDATE_LOCK_ON_DEMAND" value="false" />
     <option name="IGNORE_SPACES_IN_MERGE" value="false" />
-    <option name="DETECT_NESTED_COPIES" value="false" />
-    <option name="IGNORE_SPACES_IN_ANNOTATE" value="true" />
-    <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true" />
-    <configuration useDefault="true">$PROJECT_DIR$/../../.subversion</configuration>
+    <configuration useDefault="true">/Users/jessewilson/.subversion</configuration>
     <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
-    <supportedVersion>125</supportedVersion>
+  </component>
+  <component name="TodoView" selected-index="0">
+    <todo-panel id="selected-file">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="default-changelist">
+      <are-packages-shown value="false" />
+      <are-modules-shown value="false" />
+      <flatten-packages value="false" />
+      <is-autoscroll-to-source value="false" />
+    </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="25" width="1440" height="850" extended-state="0" />
-    <editor active="true" />
+    <frame x="5" y="22" width="1436" height="878" extended-state="0" />
+    <editor active="false" />
     <layout>
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32954547" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32954547" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299639" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28303248" sideWeight="0.484375" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5056818" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
-      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Web Preview" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" />
+      <window_info id="Dataflow to this" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="12" side_tool="false" />
+      <window_info id="Graphical Navigator" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Data Sources" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="7" side_tool="false" />
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.28242075" sideWeight="0.6619898" order="0" side_tool="false" x="527" y="69" width="392" height="784" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32908162" sideWeight="0.5" order="1" side_tool="false" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="6" side_tool="false" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32908162" sideWeight="0.5" order="8" side_tool="false" />
+      <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" />
+      <window_info id="UML Diagrams" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" />
+      <window_info id="Changes" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32853025" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.50510204" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" />
+      <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299639" sideWeight="0.5" order="3" side_tool="false" />
+      <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="EJB" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" />
     </layout>
   </component>
   <component name="VcsManagerConfiguration">
@@ -522,13 +555,9 @@
     <option name="PERFORM_EDIT_IN_BACKGROUND" value="true" />
     <option name="PERFORM_CHECKOUT_IN_BACKGROUND" value="true" />
     <option name="PERFORM_ADD_REMOVE_IN_BACKGROUND" value="true" />
-    <option name="PERFORM_ROLLBACK_IN_BACKGROUND" value="false" />
-    <option name="CHECK_LOCALLY_CHANGED_CONFLICTS_IN_BACKGROUND" value="true" />
     <option name="FORCE_NON_EMPTY_COMMENT" value="false" />
     <option name="LAST_COMMIT_MESSAGE" />
-    <option name="MAKE_NEW_CHANGELIST_ACTIVE" value="true" />
     <option name="OPTIMIZE_IMPORTS_BEFORE_PROJECT_COMMIT" value="false" />
-    <option name="CHECK_FILES_UP_TO_DATE_BEFORE_COMMIT" value="false" />
     <option name="REFORMAT_BEFORE_PROJECT_COMMIT" value="false" />
     <option name="REFORMAT_BEFORE_FILE_COMMIT" value="false" />
     <option name="FILE_HISTORY_DIALOG_COMMENTS_SPLITTER_PROPORTION" value="0.8" />
@@ -547,76 +576,23 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="jar:///usr/lib/jvm/java-6-sun/jre/lib/rt.jar!/java/lang/reflect/Field.class">
+    <entry file="jar:///System/Library/Frameworks/JavaVM.framework/Versions/1.6.0/Home/../Classes/classes.jar!/java/net/URLClassLoader.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="19" selection-start="161" selection-end="161" vertical-scroll-proportion="-30.0">
+        <state line="36" column="0" selection-start="1891" selection-end="1891" vertical-scroll-proportion="0.0">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/lib/jvm/java-6-sun/jre/lib/rt.jar!/java/lang/Class.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="11" selection-start="2793" selection-end="2793" vertical-scroll-proportion="-105.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/DefaultBenchmarkSuite.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="62" column="29" selection-start="2361" selection-end="2361" vertical-scroll-proportion="-108.5">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Parameter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="0" selection-start="705" selection-end="772" vertical-scroll-proportion="-82.5">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Param.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="48" selection-start="839" selection-end="839" vertical-scroll-proportion="-52.5">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ExecutionException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="19" selection-start="741" selection-end="741" vertical-scroll-proportion="-60.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ConfigurationException.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="19" selection-start="704" selection-end="704" vertical-scroll-proportion="-52.5">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/BenchmarkSuite.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="22" selection-start="677" selection-end="677" vertical-scroll-proportion="-45.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Benchmark.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="18" column="22" selection-start="647" selection-end="647" vertical-scroll-proportion="-30.0">
+        <state line="22" column="50" selection-start="728" selection-end="728" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Run.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="19" selection-start="739" selection-end="739" vertical-scroll-proportion="-75.0">
+        <state line="45" column="0" selection-start="1285" selection-end="1285" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -625,7 +601,70 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Runner.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="55" column="0" selection-start="1776" selection-end="1776" vertical-scroll-proportion="-184.0">
+        <state line="199" column="21" selection-start="6238" selection-end="6238" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Param.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="28" column="18" selection-start="957" selection-end="957" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ExecutionException.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="19" selection-start="741" selection-end="741" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/DefaultBenchmarkSuite.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="53" column="22" selection-start="2052" selection-end="2052" vertical-scroll-proportion="0.0">
+          <folding>
+            <marker date="1259958509000" expanded="true" signature="2323:2580" placeholder="{...}" />
+            <marker date="1259958509000" expanded="true" signature="2645:2690" placeholder="{...}" />
+            <marker date="1259958509000" expanded="true" signature="2733:2770" placeholder="{...}" />
+            <marker date="1259958509000" expanded="true" signature="2834:3392" placeholder="{...}" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/ConfigurationException.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="19" selection-start="704" selection-end="704" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/BenchmarkSuite.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="22" selection-start="776" selection-end="776" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/Benchmark.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="22" selection-start="647" selection-end="647" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/google/caliper/TypeConverter.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="13" selection-start="719" selection-end="719" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="13" selection-start="693" selection-end="693" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -634,65 +673,89 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test/com/google/caliper/SortBenchmarkSuite.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="22" column="13" selection-start="715" selection-end="715" vertical-scroll-proportion="-45.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/test/com/google/caliper/DoubleToStringBenchmarkSuite.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="20" column="13" selection-start="664" selection-end="664" vertical-scroll-proportion="0.13782541">
+        <state line="23" column="13" selection-start="744" selection-end="744" vertical-scroll-proportion="0.19067797">
           <folding />
         </state>
       </provider>
     </entry>
   </component>
   <component name="masterDetails">
-    <states>
-      <state key="ArtifactsStructureConfigurable.UI">
-        <UIState>
-          <splitter-proportions>
-            <SplitterProportionsDataImpl>
+    <option name="states">
+      <map>
+        <entry key="Copyright.UI">
+          <value>
+            <UIState>
               <option name="proportions">
-                <list>
-                  <option value="0.2" />
-                </list>
+                <SplitterProportionsDataImpl />
               </option>
-            </SplitterProportionsDataImpl>
-          </splitter-proportions>
-          <settings />
-        </UIState>
-      </state>
-      <state key="Copyright.UI">
-        <UIState>
-          <splitter-proportions>
-            <SplitterProportionsDataImpl />
-          </splitter-proportions>
-        </UIState>
-      </state>
-      <state key="ProjectJDKs.UI">
-        <UIState>
-          <splitter-proportions>
-            <SplitterProportionsDataImpl>
+            </UIState>
+          </value>
+        </entry>
+        <entry key="Errors.UI">
+          <value>
+            <UIState>
               <option name="proportions">
-                <list>
-                  <option value="0.2" />
-                </list>
+                <SplitterProportionsDataImpl>
+                  <option name="proportions">
+                    <list>
+                      <option value="0.2" />
+                    </list>
+                  </option>
+                </SplitterProportionsDataImpl>
               </option>
-            </SplitterProportionsDataImpl>
-          </splitter-proportions>
-          <last-edited>1.6</last-edited>
-        </UIState>
-      </state>
-      <state key="ScopeChooserConfigurable.UI">
-        <UIState>
-          <splitter-proportions>
-            <SplitterProportionsDataImpl />
-          </splitter-proportions>
-          <settings />
-        </UIState>
-      </state>
-    </states>
+              <option name="lastEditedConfigurable" value="Default|IDE Profiles" />
+            </UIState>
+          </value>
+        </entry>
+        <entry key="ScopeChooserConfigurable.UI">
+          <value>
+            <UIState>
+              <option name="proportions">
+                <SplitterProportionsDataImpl />
+              </option>
+            </UIState>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="myStates">
+      <map>
+        <entry key="Copyright.UI">
+          <value>
+            <UIState>
+              <option name="proportions">
+                <SplitterProportionsDataImpl />
+              </option>
+            </UIState>
+          </value>
+        </entry>
+        <entry key="Errors.UI">
+          <value>
+            <UIState>
+              <option name="proportions">
+                <SplitterProportionsDataImpl>
+                  <option name="proportions">
+                    <list>
+                      <option value="0.2" />
+                    </list>
+                  </option>
+                </SplitterProportionsDataImpl>
+              </option>
+              <option name="lastEditedConfigurable" value="Default|IDE Profiles" />
+            </UIState>
+          </value>
+        </entry>
+        <entry key="ScopeChooserConfigurable.UI">
+          <value>
+            <UIState>
+              <option name="proportions">
+                <SplitterProportionsDataImpl />
+              </option>
+            </UIState>
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>
 

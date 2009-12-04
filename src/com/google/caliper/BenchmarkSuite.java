@@ -16,11 +16,20 @@
 
 package com.google.caliper;
 
-import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * A collection of benchmarks that share a set of configuration parameters.
+ */
 public abstract class BenchmarkSuite {
 
-  protected void setUp() throws Exception {}
+  protected abstract Set<Class<? extends Benchmark>> benchmarkClasses();
 
-  protected abstract Collection<Run> createRuns();
+  protected abstract Set<String> parameterNames();
+
+  protected abstract Set<String> parameterValues(String parameterName);
+
+  protected abstract Benchmark createBenchmark(
+      Class<? extends Benchmark> benchmark, Map<String, String> parameterValues);
 }

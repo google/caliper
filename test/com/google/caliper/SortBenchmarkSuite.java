@@ -19,16 +19,17 @@ package com.google.caliper;
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;
+import java.util.Collection;
 
 public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
 
   @Param Distribution distribution;
 
-  static Iterable<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
+  static Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
 
   @Param int length;
 
-  static Iterable<Integer> lengthValues = Arrays.asList(10, 100, 1000, 10000);
+  static Collection<Integer> lengthValues = Arrays.asList(10, 100, 1000, 10000);
 
   int[] values;
   int[] copy;
@@ -94,6 +95,6 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
   }
 
   public static void main(String[] args) {
-    Runner.main(SortBenchmarkSuite.class.getName());
+    Runner.main(SortBenchmarkSuite.class, args);
   }
 }

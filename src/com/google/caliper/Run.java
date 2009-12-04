@@ -16,33 +16,33 @@
 
 package com.google.caliper;
 
-import java.util.LinkedHashMap;
+import com.google.common.collect.ImmutableMap;
+
 import java.util.Map;
 
 /**
- * An execution of a benchmark.
+ * A configured benchmark.
  */
 public final class Run {
 
-  private final Benchmark benchmark;
-  private final BenchmarkSuite benchmarkSuite;
-  private final Map<String, String> parameters;
+  private final Class<? extends Benchmark> benchmarkClass;
+  private final ImmutableMap<String, String> parameters;
 
-  public Run(BenchmarkSuite benchmarkSuite, Benchmark benchmark, Map<String, String> parameters) {
-    this.benchmark = benchmark;
-    this.benchmarkSuite = benchmarkSuite;
-    this.parameters = new LinkedHashMap<String, String>(parameters);
+  public Run(Class<? extends Benchmark> benchmarkClass,
+      Map<String, String> parameters) {
+    this.benchmarkClass = benchmarkClass;
+    this.parameters = ImmutableMap.copyOf(parameters);
   }
 
-  public Benchmark getBenchmark() {
-    return benchmark;
+  public Class<? extends Benchmark> getBenchmarkClass() {
+    return benchmarkClass;
   }
 
-  public BenchmarkSuite getBenchmarkSuite() {
-    return benchmarkSuite;
+  public ImmutableMap<String, String> getParameters() {
+    return parameters;
   }
 
   @Override public String toString() {
-    return benchmark + " " + parameters;
+    return benchmarkClass.getSimpleName() + " " + parameters;
   }
 }

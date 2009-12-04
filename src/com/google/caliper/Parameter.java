@@ -17,11 +17,10 @@
 package com.google.caliper;
 
 import java.lang.reflect.*;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
- * Adapts a parameter for a {@link DefaultBenchmarkSuite}.
+ * A parameter in a {@link DefaultBenchmarkSuite}.
  */
 abstract class Parameter<T> {
 
@@ -34,12 +33,13 @@ abstract class Parameter<T> {
   /**
    * Returns all properties for the given class.
    */
-  public static List<Parameter<?>> forClass(Class<? extends BenchmarkSuite> suiteClass) {
-    List<Parameter<?>> parameters = new ArrayList<Parameter<?>>();
+  public static Map<String, Parameter<?>> forClass(Class<? extends BenchmarkSuite> suiteClass) {
+    Map<String, Parameter<?>> parameters = new TreeMap<String, Parameter<?>>();
     for (final Field field : suiteClass.getDeclaredFields()) {
       if (field.isAnnotationPresent(Param.class)) {
         field.setAccessible(true);
-        parameters.add(Parameter.forField(suiteClass, field));
+        Parameter parameter = Parameter.forField(suiteClass, field);
+        parameters.put(parameter.getName(), parameter);
       }
     }
     return parameters;
@@ -58,8 +58,8 @@ abstract class Parameter<T> {
       returnType = valuesMethod.getGenericReturnType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        public Iterable<Object> values() throws Exception {
-          return (Iterable<Object>) valuesMethod.invoke(null);
+        public Collection<Object> values() throws Exception {
+          return (Collection<Object>) valuesMethod.invoke(null);
         }
       };
     } catch (NoSuchMethodException ignored) {
@@ -75,8 +75,8 @@ abstract class Parameter<T> {
       returnType = valuesField.getGenericType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        public Iterable<Object> values() throws Exception {
-          return (Iterable<Object>) valuesField.get(null);
+        public Collection<Object> values() throws Exception {
+          return (Collection<Object>) valuesField.get(null);
         }
       };
     } catch (NoSuchFieldException ignored) {
@@ -94,14 +94,14 @@ abstract class Parameter<T> {
     boolean valid = false;
     if (returnType instanceof ParameterizedType) {
       ParameterizedType type = (ParameterizedType) returnType;
-      if (type.getRawType() == Iterable.class) {
+      if (type.getRawType() == Collection.class) {
         valid = true;
       }
     }
 
     if (!valid) {
       throw new ConfigurationException("Invalid return type " + returnType
-          + " for values member " + member + "; must be Iterable");
+          + " for values member " + member + "; must be Collection");
     }
 
     return result;
@@ -117,7 +117,14 @@ abstract class Parameter<T> {
   /**
    * Returns the available values of the property as specified by the suite.
    */
-  public abstract Iterable<T> values() throws Exception;
+  public abstract Collection<T> values() throws Exception;
+
+  /**
+   * Returns the parameter's type, such as double.class.
+   */
+  public Type getType() {
+    return field.getGenericType();
+  }
 
   /**
    * Returns the field's name.

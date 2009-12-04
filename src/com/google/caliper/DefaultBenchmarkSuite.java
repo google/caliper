@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -52,91 +53,76 @@ import java.util.*;
  */
 public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
 
-  /**
-   * Combines parameter values and code to build a benchmark instance.
-   */
-  static abstract class Spec implements Cloneable {
-    List<Object> paramValues = new ArrayList<Object>();
+  private final Map<String, Parameter<?>> parameters;
+  private final Map<Class<? extends Benchmark>, BenchmarkFactory> benchmarkFactories;
 
-    abstract Benchmark create(BenchmarkSuite suite) throws Exception;
+  protected void setUp() throws Exception {}
 
-    @Override protected Spec clone() {
-      try {
-        Spec result = (Spec) super.clone();
-        result.paramValues = new ArrayList<Object>(paramValues);
-        return result;
-      } catch (CloneNotSupportedException e) {
-        throw new AssertionError(e);
-      }
+  protected DefaultBenchmarkSuite() {
+    parameters = Parameter.forClass(getClass());
+    benchmarkFactories = createBenchmarkFactories();
+
+    if (benchmarkFactories.isEmpty()) {
+      throw new ConfigurationException(
+          "No benchmarks defined in " + getClass().getName());
     }
   }
 
-  @Override protected Collection<Run> createRuns() {
-    Class<? extends BenchmarkSuite> suiteClass = getClass();
-    List<Spec> specs = createSpecs(suiteClass);
+  protected Set<Class<? extends Benchmark>> benchmarkClasses() {
+    return benchmarkFactories.keySet();
+  }
 
-    // prepare the parameters
-    List<Parameter<?>> parameters = Parameter.forClass(suiteClass);
+  protected Set<String> parameterNames() {
+    return parameters.keySet();
+  }
+
+  protected Set<String> parameterValues(String parameterName) {
     try {
-      specCartesianProduct(specs, parameters);
+      TypeConverter typeConverter = new TypeConverter();
+      Parameter<?> parameter = parameters.get(parameterName);
+      if (parameter == null) {
+        throw new IllegalArgumentException();
+      }
+      Collection<?> values = parameter.values();
+      Type type = parameter.getType();
+      Set<String> result = new LinkedHashSet<String>();
+      for (Object value : values) {
+        result.add(typeConverter.toString(value, type));
+      }
+      return result;
     } catch (Exception e) {
       throw new ExecutionException(e);
     }
-
-    // use the parameters to create runs
-    List<Run> runs = new ArrayList<Run>();
-    for (Spec spec : specs) {
-      try {
-        BenchmarkSuite suite = suiteClass.newInstance();
-        Map<String, String> parametersForRun = new LinkedHashMap<String, String>();
-
-        for (int i = 0; i < parameters.size(); i++) {
-          @SuppressWarnings("unchecked") // guarded by parameter setup
-          Parameter<Object> parameter = (Parameter<Object>) parameters.get(i);
-          Object value = spec.paramValues.get(i);
-          parameter.set(suite, value);
-          parametersForRun.put(parameter.getName(), String.valueOf(value));
-        }
-
-        Benchmark benchmark = spec.create(suite);
-        runs.add(new Run(suite, benchmark, parametersForRun));
-      } catch (Exception e) {
-        throw new ExecutionException(e);
-      }
-    }
-    return runs;
   }
 
-  /**
-   * Grows the specs list and the parameters list in each spec, until a spec
-   * with every complete combination of parameter values is included in the
-   * list.
-   */
-  private void specCartesianProduct(List<Spec> specs, List<Parameter<?>> parameters)
-      throws Exception {
-    for (int p = 0, parametersSize = parameters.size(); p < parametersSize; p++) {
-      Parameter<?> parameter = parameters.get(p);
-      Iterator<?> values = parameter.values().iterator();
-      if (!values.hasNext()) {
-        throw new ConfigurationException("Not enough values for " + parameter);
+  protected Benchmark createBenchmark(Class<? extends Benchmark> benchmarkClass,
+      Map<String, String> parameterValues) {
+    TypeConverter typeConverter = new TypeConverter();
+
+    BenchmarkFactory benchmarkFactory = benchmarkFactories.get(benchmarkClass);
+    if (benchmarkFactory == null) {
+      throw new IllegalArgumentException();
+    }
+
+    if (!parameters.keySet().equals(parameterValues.keySet())) {
+      throw new IllegalArgumentException("Invalid parameters specified. Expected "
+          + parameters.keySet() + " but was " + parameterValues.keySet());
+    }
+
+    try {
+      DefaultBenchmarkSuite copyOfSelf = getClass().newInstance();
+      Benchmark benchmark = benchmarkFactory.create(copyOfSelf);
+      for (Map.Entry<String, String> entry : parameterValues.entrySet()) {
+        Parameter parameter = parameters.get(entry.getKey());
+        Object value = typeConverter.fromString(entry.getValue(), parameter.getType());
+        parameter.set(copyOfSelf, value);
       }
 
-      // add the first value to all specs
-      Object value = values.next();
-      for (Spec run : specs) {
-        run.paramValues.add(p, value);
-      }
+      copyOfSelf.setUp();
+      return benchmark;
 
-      // multiply the size of the specs by the number of alternate values
-      int length = specs.size();
-      while (values.hasNext()) {
-        Object alternate = values.next();
-        for (int s = 0; s < length; s++) {
-          Spec copy = specs.get(s).clone();
-          copy.paramValues.set(p, alternate);
-          specs.add(copy);
-        }
-      }
+    } catch (Exception e) {
+      throw new ExecutionException(e);
     }
   }
 
@@ -144,19 +130,20 @@ public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
    * Returns a spec for each benchmark defined in the specified class. The
    * returned specs have no parameter values; those must be added separately.
    */
-  private List<Spec> createSpecs(Class<? extends BenchmarkSuite> suiteClass) {
-    List<Spec> result = new ArrayList<Spec>();
-    for (Class<?> c : suiteClass.getDeclaredClasses()) {
+  private Map<Class<? extends Benchmark>, BenchmarkFactory> createBenchmarkFactories() {
+    Map<Class<? extends Benchmark>, BenchmarkFactory> result
+        = new LinkedHashMap<Class<? extends Benchmark>, BenchmarkFactory>();
+    for (Class<?> c : getClass().getDeclaredClasses()) {
       if (!Benchmark.class.isAssignableFrom(c) || c.isInterface()) {
         continue;
       }
 
       @SuppressWarnings("unchecked") // guarded by isAssignableFrom
-      Class<? extends Benchmark> driverClass = (Class<? extends Benchmark>) c;
+      Class<? extends Benchmark> benchmarkClass = (Class<? extends Benchmark>) c;
 
       try {
-        final Constructor<? extends Benchmark> constructor = driverClass.getDeclaredConstructor();
-        result.add(new Spec() {
+        final Constructor<? extends Benchmark> constructor = benchmarkClass.getDeclaredConstructor();
+        result.put(benchmarkClass, new BenchmarkFactory() {
           public Benchmark create(BenchmarkSuite suite) throws Exception {
             return constructor.newInstance();
           }
@@ -166,8 +153,9 @@ public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
       }
 
       try {
-        final Constructor<? extends Benchmark> constructor = driverClass.getDeclaredConstructor(suiteClass);
-        result.add(new Spec() {
+        final Constructor<? extends Benchmark> constructor
+            = benchmarkClass.getDeclaredConstructor(getClass());
+        result.put(benchmarkClass, new BenchmarkFactory() {
           public Benchmark create(BenchmarkSuite suite) throws Exception {
             return constructor.newInstance(suite);
           }
@@ -177,13 +165,13 @@ public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
       }
 
       throw new ConfigurationException("No usable constructor for "
-          + driverClass.getName() + "\n  Drivers may only use no arguments constructors.");
-    }
-
-    if (result.isEmpty()) {
-      throw new ConfigurationException("No drivers defined in " + suiteClass);
+          + benchmarkClass.getName() + "\n  Benchmarks may only use no arguments constructors.");
     }
 
     return result;
+  }
+
+  interface BenchmarkFactory {
+    Benchmark create(BenchmarkSuite suite) throws Exception;
   }
 }

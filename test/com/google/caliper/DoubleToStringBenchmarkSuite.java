@@ -17,12 +17,13 @@
 package com.google.caliper;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 public class DoubleToStringBenchmarkSuite extends DefaultBenchmarkSuite {
 
   @Param private Double d;
 
-  private static Iterable<Double> dValues = Arrays.asList(
+  private static Collection<Double> dValues = Arrays.asList(
       0.0d,
       Double.NEGATIVE_INFINITY,
       Double.NaN,
@@ -57,6 +58,6 @@ public class DoubleToStringBenchmarkSuite extends DefaultBenchmarkSuite {
   }
 
   public static void main(String[] args) {
-    Runner.main(DoubleToStringBenchmarkSuite.class.getName());
+    Runner.main(DoubleToStringBenchmarkSuite.class, args);
   }
 }
