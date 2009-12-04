@@ -16,9 +16,12 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.Multimap;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -31,15 +34,25 @@ public final class Runner {
   private String suiteClassName;
   private BenchmarkSuite suite;
 
+  /** Effective parameters to run in the benchmark. */
+  private Multimap<String, String> parameters = LinkedHashMultimap.create();
+
   /**
-   * Parameter values specified by the user on the command line.
+   * Parameter values specified by the user on the command line. Parameters with
+   * no value in this multimap will get their values from the benchmark suite.
    */
   private Multimap<String, String> userParameters = LinkedHashMultimap.create();
 
   /**
-   * Effective parameters to run in the benchmark.
+   * Benchmark class specified by the user on the command line; or null to run
+   * the complete set of benchmark classes.
    */
-  private Multimap<String, String> parameters = LinkedHashMultimap.create();
+  private Class<? extends Benchmark> userBenchmarkClass;
+
+  /**
+   * True if each benchmark should run in process.
+   */
+  private boolean inProcess;
 
   /**
    * Sets the named parameter to the specified value. This value will replace
@@ -94,7 +107,6 @@ public final class Runner {
       throw new ExecutionException(e);
     }
 
-    System.out.println(runs.size() + " runs...");
     for (Run run : runs) {
       execute(run);
     }
@@ -106,9 +118,18 @@ public final class Runner {
    */
   private List<Run> createRuns() throws Exception {
     List<RunBuilder> builders = new ArrayList<RunBuilder>();
-    for (Class<? extends Benchmark> benchmarkClass : suite.benchmarkClasses()) {
+    if (userBenchmarkClass == null) {
+      for (Class<? extends Benchmark> benchmarkClass : suite.benchmarkClasses()) {
+        RunBuilder builder = new RunBuilder();
+        builder.benchmarkClass = benchmarkClass;
+        builders.add(builder);
+      }
+    } else {
+      if (!suite.benchmarkClasses().contains(userBenchmarkClass)) {
+        throw new ConfigurationException("Unexpected benchmark class " + userBenchmarkClass);
+      }
       RunBuilder builder = new RunBuilder();
-      builder.benchmarkClass = benchmarkClass;
+      builder.benchmarkClass = userBenchmarkClass;
       builders.add(builder);
     }
 
@@ -162,9 +183,13 @@ public final class Runner {
   }
 
   private void execute(Run run) {
+    if (!inProcess) {
+      fork(run);
+      return;
+    }
+
     Benchmark benchmark = suite.createBenchmark(
         run.getBenchmarkClass(), run.getParameters());
-
     try {
       System.out.println(run);
       long start = System.nanoTime();
@@ -177,10 +202,68 @@ public final class Runner {
     }
   }
 
+  private void fork(Run run) {
+    // TODO: figure out a better way to feed output back
+    ProcessBuilder builder = new ProcessBuilder();
+    List<String> command = builder.command();
+    command.add("java");
+    command.add("-cp");
+    command.add(System.getProperty("java.class.path"));
+    command.add(Runner.class.getName());
+    command.add("--inProcess");
+    command.add("--benchmark");
+    command.add(run.getBenchmarkClass().getName());
+    for (Map.Entry<String, String> entry : run.getParameters().entrySet()) {
+      command.add("-D" + entry.getKey() + "=" + entry.getValue());
+    }
+    command.add(suiteClassName);
+
+    try {
+      builder.redirectErrorStream(true);
+      builder.directory(new File(System.getProperty("user.dir")));
+      Process process = builder.start();
+      InputStream in = process.getInputStream();
+
+      byte[] buffer = new byte[1024];
+      int count;
+      while ((count = in.read(buffer)) != -1) {
+        System.out.write(buffer, 0, count);
+      }
+
+      if (process.waitFor() != 0) {
+        StringBuilder failedCommand = new StringBuilder();
+        for (String arg : command) {
+          failedCommand.append(arg).append(" ");
+        }
+        throw new ConfigurationException("Failed to exec " + failedCommand);
+      }
+    } catch (IOException e) {
+      throw new ExecutionException(e);
+    } catch (InterruptedException e) {
+      throw new ExecutionException(e);
+    }
+  }
+
   private boolean parseArgs(String[] args) {
     for (int i = 0; i < args.length; i++) {
       if ("--help".equals(args[i])) {
         return false;
+
+      } else if ("--benchmark".equals(args[i])) {
+        try {
+          @SuppressWarnings("unchecked") // guarded immediately afterwards!
+          Class<? extends Benchmark> c = (Class<? extends Benchmark>) Class.forName(args[++i]);
+          if (!Benchmark.class.isAssignableFrom(c)) {
+            System.out.println("Not a benchmark class: " + c);
+            return false;
+          }
+          userBenchmarkClass = c;
+        } catch (ClassNotFoundException e) {
+          throw new RuntimeException(e);
+        }
+
+      } else if ("--inProcess".equals(args[i])) {
+          inProcess = true;
 
       } else if (args[i].startsWith("-D")) {
         int equalsSign = args[i].indexOf('=');
@@ -221,7 +304,15 @@ public final class Runner {
     System.out.println();
     System.out.println("OPTIONS");
     System.out.println();
-    System.out.println("  --D<param>=<value>: fix a benchmark parameter to a given value");
+    System.out.println("  --D<param>=<value>: fix a benchmark parameter to a given value.");
+    System.out.println("        When multiple values for the same parameter are given (via");
+    System.out.println("        multiple --Dx=y args), all supplied values are used.");
+    System.out.println();
+    System.out.println("  --benchmark <class>: fix a benchmark executable to the named class");
+    System.out.println();
+    System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
+    System.out.println("        another with the same classpath. By default each benchmark is");
+    System.out.println("        run in a separate VM");
   }
 
   public static void main(String... args) {
