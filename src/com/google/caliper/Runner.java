@@ -19,9 +19,7 @@ package com.google.caliper;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -172,42 +170,7 @@ public final class Runner {
     }
   }
 
-  private void runAll() {
-    List<Run> runs;
-    try {
-      runs = createRuns();
-    } catch (Exception e) {
-      throw new ExecutionException(e);
-    }
-
-    for (Run run : runs) {
-      execute(run);
-    }
-  }
-
-  private void execute(Run run) {
-    if (!inProcess) {
-      fork(run);
-      return;
-    }
-
-    Benchmark benchmark = suite.createBenchmark(
-        run.getBenchmarkClass(), run.getParameters());
-
-    Caliper caliper = new Caliper(warmupMillis, runMillis);
-
-    try {
-      System.out.println(run);
-      double warmupNanosPerTrial = caliper.warmUp(benchmark);
-      double runNanosPerTrial = caliper.run(benchmark, warmupNanosPerTrial);
-      System.out.println(runNanosPerTrial + "ns per trial");
-    } catch (Exception e) {
-      throw new ExecutionException(e);
-    }
-  }
-
-  private void fork(Run run) {
-    // TODO: figure out a better way to feed output back
+  private double executeForked(Run run) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
     command.add("java");
@@ -226,28 +189,70 @@ public final class Runner {
     }
     command.add(suiteClassName);
 
+    BufferedReader reader = null;
     try {
       builder.redirectErrorStream(true);
       builder.directory(new File(System.getProperty("user.dir")));
       Process process = builder.start();
-      InputStream in = process.getInputStream();
 
-      byte[] buffer = new byte[1024];
-      int count;
-      while ((count = in.read(buffer)) != -1) {
-        System.out.write(buffer, 0, count);
+      reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+      String firstLine = reader.readLine();
+      Double nanosPerTrial = null;
+      try {
+        nanosPerTrial = Double.valueOf(firstLine);
+      } catch (NumberFormatException e) {
       }
 
-      if (process.waitFor() != 0) {
-        StringBuilder failedCommand = new StringBuilder();
-        for (String arg : command) {
-          failedCommand.append(arg).append(" ");
-        }
-        throw new ConfigurationException("Failed to exec " + failedCommand);
+      String anotherLine = reader.readLine();
+      if (nanosPerTrial != null && anotherLine == null) {
+        return nanosPerTrial;
       }
+
+      String message = "Failed to execute " + command;
+      System.err.println(message);
+      System.err.println("  " + firstLine);
+      do {
+        System.err.println("  " + anotherLine);
+      } while ((anotherLine = reader.readLine()) != null);
+      throw new ConfigurationException(message);
     } catch (IOException e) {
+      throw new ConfigurationException(e);
+    } finally {
+      if (reader != null) {
+        try {
+          reader.close();
+        } catch (IOException ignored) {
+        }
+      }
+    }
+  }
+
+  private void runOutOfProcess() {
+    try {
+      for (Run run : createRuns()) {
+        System.out.println(run);
+        double nanosPerTrial = executeForked(run);
+        System.out.println(nanosPerTrial + "ns");
+      }
+    } catch (Exception e) {
       throw new ExecutionException(e);
-    } catch (InterruptedException e) {
+    }
+  }
+
+  private void runInProcess() {
+    try {
+      Caliper caliper = new Caliper(warmupMillis, runMillis);
+
+      for (Run run : createRuns()) {
+        double result;
+        Benchmark benchmark = suite.createBenchmark(
+            run.getBenchmarkClass(), run.getParameters());
+        double warmupNanosPerTrial = caliper.warmUp(benchmark);
+        result = caliper.run(benchmark, warmupNanosPerTrial);
+        double nanosPerTrial = result;
+        System.out.println(nanosPerTrial);
+      }
+    } catch (Exception e) {
       throw new ExecutionException(e);
     }
   }
@@ -332,7 +337,7 @@ public final class Runner {
     System.out.println();
     System.out.println("  --runMillis <millis>: duration to execute each benchmark");
 
-    // adding new options? don't forget to update fork()
+    // adding new options? don't forget to update executeForked()
   }
 
   public static void main(String... args) {
@@ -344,7 +349,11 @@ public final class Runner {
 
     runner.prepareSuite();
     runner.prepareParameters();
-    runner.runAll();
+    if (runner.inProcess) {
+      runner.runInProcess();
+    } else {
+      runner.runOutOfProcess();
+    }
   }
 
   public static void main(Class<? extends BenchmarkSuite> suite, String... args) {
