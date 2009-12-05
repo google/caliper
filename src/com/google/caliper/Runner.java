@@ -54,6 +54,9 @@ public final class Runner {
    */
   private boolean inProcess;
 
+  private long warmupMillis = 5000;
+  private long runMillis = 5000;
+
   /**
    * Sets the named parameter to the specified value. This value will replace
    * the benchmark suite's default values for the parameter. Multiple calls to
@@ -96,19 +99,6 @@ public final class Runner {
         }
         parameters.putAll(key, values);
       }
-    }
-  }
-
-  private void run() {
-    List<Run> runs;
-    try {
-      runs = createRuns();
-    } catch (Exception e) {
-      throw new ExecutionException(e);
-    }
-
-    for (Run run : runs) {
-      execute(run);
     }
   }
 
@@ -182,6 +172,19 @@ public final class Runner {
     }
   }
 
+  private void runAll() {
+    List<Run> runs;
+    try {
+      runs = createRuns();
+    } catch (Exception e) {
+      throw new ExecutionException(e);
+    }
+
+    for (Run run : runs) {
+      execute(run);
+    }
+  }
+
   private void execute(Run run) {
     if (!inProcess) {
       fork(run);
@@ -190,13 +193,14 @@ public final class Runner {
 
     Benchmark benchmark = suite.createBenchmark(
         run.getBenchmarkClass(), run.getParameters());
+
+    Caliper caliper = new Caliper(warmupMillis, runMillis);
+
     try {
       System.out.println(run);
-      long start = System.nanoTime();
-      benchmark.run(10000);
-      long finish = System.nanoTime();
-      long duration = finish - start;
-      System.out.println(((duration + 500000) / 1000000) + "ms");
+      double warmupNanosPerTrial = caliper.warmUp(benchmark);
+      double runNanosPerTrial = caliper.run(benchmark, warmupNanosPerTrial);
+      System.out.println(runNanosPerTrial + "ns per trial");
     } catch (Exception e) {
       throw new ExecutionException(e);
     }
@@ -210,6 +214,10 @@ public final class Runner {
     command.add("-cp");
     command.add(System.getProperty("java.class.path"));
     command.add(Runner.class.getName());
+    command.add("--warmupMillis");
+    command.add(String.valueOf(warmupMillis));
+    command.add("--runMillis");
+    command.add(String.valueOf(runMillis));
     command.add("--inProcess");
     command.add("--benchmark");
     command.add(run.getBenchmarkClass().getName());
@@ -275,6 +283,12 @@ public final class Runner {
         String value = args[i].substring(equalsSign + 1);
         setParameter(name, value);
 
+      } else if ("--warmupMillis".equals(args[i])) {
+        warmupMillis = Long.parseLong(args[++i]);
+
+      } else if ("--runMillis".equals(args[i])) {
+        runMillis = Long.parseLong(args[++i]);
+
       } else if (args[i].startsWith("-")) {
         System.out.println("Unrecognized option: " + args[i]);
 
@@ -313,6 +327,12 @@ public final class Runner {
     System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
     System.out.println("        another with the same classpath. By default each benchmark is");
     System.out.println("        run in a separate VM");
+    System.out.println();
+    System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
+    System.out.println();
+    System.out.println("  --runMillis <millis>: duration to execute each benchmark");
+
+    // adding new options? don't forget to update fork()
   }
 
   public static void main(String... args) {
@@ -324,7 +344,7 @@ public final class Runner {
 
     runner.prepareSuite();
     runner.prepareParameters();
-    runner.run();
+    runner.runAll();
   }
 
   public static void main(Class<? extends BenchmarkSuite> suite, String... args) {
