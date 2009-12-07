@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,22 +16,13 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.ImmutableMap;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-import java.util.Map;
-
-/**
- * The complete result of a benchmark suite run.
- */
-final class Result {
-
-  private final ImmutableMap<Run, Double> measurements;
-
-  public Result(Map<Run, Double> measurements) {
-    this.measurements = ImmutableMap.copyOf(measurements);
-  }
-
-  public ImmutableMap<Run, Double> getMeasurements() {
-    return measurements;
-  }
+public final class AllTests {
+    public static Test suite() {
+        TestSuite suite = new TestSuite();
+        suite.addTestSuite(DefaultBenchmarkSuiteTest.class);
+        return suite;
+    }
 }

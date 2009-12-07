@@ -64,7 +64,7 @@ public final class Runner {
    * the benchmark suite's default values for the parameter. Multiple calls to
    * this method will cause benchmarks for each value to be run.
    */
-  public void setParameter(String name, String value) {
+  void setParameter(String name, String value) {
     userParameters.put(name, value);
   }
 

@@ -21,13 +21,15 @@ import java.lang.reflect.Type;
 /**
  * Convert objects to and from Strings.
  */
-public class TypeConverter {
+class TypeConverter {
 
+  // the enum to strings conversion is manually checked
+  @SuppressWarnings("unchecked")
   public Object fromString(String value, Type type) {
     if (type instanceof Class) {
       Class<?> c = (Class<?>) type;
       if (c.isEnum()) {
-        return Enum.valueOf((Class) c, value);
+          return Enum.valueOf((Class) c, value);
       } else if (type == Double.class || type == double.class) {
         return Double.valueOf(value);
       } else if (type == Integer.class || type == int.class) {

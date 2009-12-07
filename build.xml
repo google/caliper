@@ -1,0 +1,114 @@
+<?xml version="1.0"?>
+
+<project name="caliper" default="compile">
+
+    <property environment="env"/>
+
+    <!-- can be overridden at the command line with -Dversion=
+         or in IDEA, in the ant properties dialog -->
+    <property name="version" value="snapshot"/>
+
+    <path id="compile.classpath">
+        <pathelement location="lib/google-collect-1.0-rc4.jar"/>
+    </path>
+
+    <target name="compile" description="Compile Java source.">
+        <mkdir dir="build/classes"/>
+        <javac srcdir="src"
+               debug="on"
+               destdir="build/classes"
+               source="1.5"
+               target="1.5">
+            <classpath refid="compile.classpath"/>
+        </javac>
+        <copy toDir="build/classes">
+            <fileset dir="src" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="test.compile"
+            depends="compile"
+            description="Compile test source.">
+        <mkdir dir="build/test"/>
+        <javac srcdir="test"
+               debug="on"
+               destdir="build/test"
+               source="1.5"
+               target="1.5">
+            <classpath>
+                <pathelement location="build/classes"/>
+                <pathelement location="lib/google-collect-1.0-rc4.jar"/>
+                <pathelement location="lib/junit.jar"/>
+            </classpath>
+        </javac>
+        <copy toDir="build/test">
+            <fileset dir="test" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="test"
+            depends="test.compile"
+            description="Execute JUnit tests.">
+        <java fork="true"
+              classname="junit.textui.TestRunner"
+              failonerror="true"
+              taskname="junit">
+            <classpath>
+                <pathelement location="build/test"/>
+                <pathelement location="build/classes"/>
+                <pathelement location="lib/junit.jar"/>
+                <pathelement location="lib/google-collect-1.0-rc4.jar"/>
+            </classpath>
+            <arg value="com.google.caliper.AllTests" />
+        </java>
+    </target>
+
+    <target name="clean"
+            description="Remove generated files.">
+        <delete dir="build"/>
+    </target>
+
+    <target name="jar" depends="compile" description="Build jars.">
+        <mkdir dir="build/dist"/>
+        <mkdir dir="build/dist/caliper-${version}"/>
+        <jar jarfile="build/dist/caliper-${version}/caliper-${version}.jar">
+            <fileset dir="build/classes"/>
+        </jar>
+    </target>
+
+    <target name="jarsrc" description="Build jar of source.">
+        <jar jarfile="build/dist/caliper-${version}/src-${version}.zip">
+            <fileset dir="src"/>
+        </jar>
+    </target>
+
+    <target name="dist" depends="jar, jarsrc, javadoc"
+            description="Build entire distribution.">
+        <copy toDir="build/dist/caliper-${version}" file="COPYING"/>
+        <copy toDir="build/dist/caliper-${version}">
+            <fileset dir="build" includes="javadoc/**/*"/>
+        </copy>
+
+        <zip destfile="build/caliper-${version}.zip"
+             basedir="build/dist"/>
+    </target>
+
+    <target name="javadoc"
+            description="Generate Javadocs.">
+        <delete dir="build/javadoc"/>
+        <mkdir dir="build/javadoc"/>
+        <javadoc packagenames="com.google.caliper"
+                 destdir="build/javadoc"
+                 use="true"
+                 author="true"
+                 protected="true"
+                 windowtitle="Caliper ${version}">
+            <sourcepath>
+                <pathelement location="src"/>
+            </sourcepath>
+            <classpath refid="compile.classpath"/>
+            <link href="http://google-collections.googlecode.com/svn/trunk/javadoc/"/>
+            <link href="http://java.sun.com/javase/6/docs/api"/>
+        </javadoc>
+    </target>
+</project>

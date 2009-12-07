@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * A configured benchmark.
  */
-public final class Run {
+final class Run {
 
   private final Class<? extends Benchmark> benchmarkClass;
   private final ImmutableMap<String, String> parameters;

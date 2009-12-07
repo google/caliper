@@ -33,23 +33,23 @@ import java.util.*;
  * Implementing classes may be configured using parameters. Each parameter is a
  * property of a benchmark, plus the default values that fulfill it. Parameters
  * are specified by annotated fields:
- * <pre>{@code
- *   &#64;Param int length;
- * }</pre>
+ * <pre>
+ *   {@literal @}Param int length;
+ * </pre>
  * The available values for a parameter are specified by another field with the
  * same name plus the {@code Values} suffix. The type of this field must be an
  * {@code Iterable} of the parameter's type.
- * <pre>{@code
- *   Iterable<Integer> lengthValues = Arrays.asList(10, 100, 1000, 10000);
- * }</pre>
+ * <pre>
+ *   Iterable&lt;Integer&gt; lengthValues = Arrays.asList(10, 100, 1000, 10000);
+ * </pre>
  * Alternatively, the available values may be specified with a method. The
  * method's name follows the same naming convention and returns the same type.
  * Such methods may not accept parameters of their own.
- * <pre>{@code
- *   Iterable<Integer> lengthValues() {
+ * <pre>
+ *   Iterable&lt;Integer&gt; lengthValues() {
  *     return Arrays.asList(10, 100, 1000, 10000);
  *   }
- * }</pre>
+ * </pre>
  */
 public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
 
