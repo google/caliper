@@ -18,8 +18,12 @@ package com.google.caliper;
 
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.ImmutableMap;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -227,16 +231,37 @@ public final class Runner {
     }
   }
 
-  private void runOutOfProcess() {
+  private Result runOutOfProcess() {
+    ImmutableMap.Builder<Run, Double> resultsBuilder = ImmutableMap.builder();
+
     try {
-      for (Run run : createRuns()) {
-        System.out.println(run);
+      List<Run> runs = createRuns();
+      int i = 0;
+      for (Run run : runs) {
+        beforeRun(i++, runs.size(), run);
         double nanosPerTrial = executeForked(run);
-        System.out.println(nanosPerTrial + "ns");
+        afterRun(nanosPerTrial);
+        resultsBuilder.put(run, nanosPerTrial);
       }
+      return new Result(resultsBuilder.build());
     } catch (Exception e) {
       throw new ExecutionException(e);
     }
+  }
+
+  private void beforeRun(int index, int total, Run run) {
+    double percentDone = (double) index / total;
+    int runStringLength = 63; // so the total line length is 80
+    String runString = String.valueOf(run);
+    if (runString.length() > runStringLength) {
+      runString = runString.substring(0, runStringLength);
+    }
+    System.out.printf("%2.0f%% %-" + runStringLength + "s",
+        percentDone * 100, runString);
+  }
+
+  private void afterRun(double nanosPerTrial) {
+    System.out.printf(" %10.0fns%n", nanosPerTrial);
   }
 
   private void runInProcess() {
@@ -296,6 +321,7 @@ public final class Runner {
 
       } else if (args[i].startsWith("-")) {
         System.out.println("Unrecognized option: " + args[i]);
+        return false;
 
       } else {
         if (suiteClassName != null) {
@@ -351,9 +377,12 @@ public final class Runner {
     runner.prepareParameters();
     if (runner.inProcess) {
       runner.runInProcess();
-    } else {
-      runner.runOutOfProcess();
+      return;
     }
+
+    Result result = runner.runOutOfProcess();
+    System.out.println();
+    new ConsoleReport(result).displayResults();
   }
 
   public static void main(Class<? extends BenchmarkSuite> suite, String... args) {
