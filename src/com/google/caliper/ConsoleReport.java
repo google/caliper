@@ -82,9 +82,15 @@ final class ConsoleReport {
         Run run = entry.getKey();
         measurements[parameter.index(run)] += entry.getValue();
       }
+      double total = 0;
+      for (double value : measurements) {
+        total += value;
+      }
+      double mean = total / measurements.length;
       double sum = 0;
       for (double value : measurements) {
-        sum += value;
+        double distance = value - mean;
+        sum += distance * distance;
       }
       parameter.stdDeviation = Math.sqrt(sum / measurements.length);
     }
