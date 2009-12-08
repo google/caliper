@@ -91,7 +91,6 @@ final class ConsoleReport {
     for (double measurement : result.getMeasurements().values()) {
       sumOfAllMeasurements += measurement;
     }
-    double mean = sumOfAllMeasurements / result.getMeasurements().size();
     for (Parameter parameter : parametersBuilder) {
       int numValues = parameter.values.size();
       double[] sumForValue = new double[numValues];
@@ -99,6 +98,7 @@ final class ConsoleReport {
         Run run = entry.getKey();
         sumForValue[parameter.index(run)] += entry.getValue();
       }
+      double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
       for (double value : sumForValue) {
         double distance = value - mean;
