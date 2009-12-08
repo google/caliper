@@ -19,6 +19,7 @@ package com.google.caliper;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -38,6 +39,9 @@ public final class Runner {
 
   /** Effective parameters to run in the benchmark. */
   private Multimap<String, String> parameters = LinkedHashMultimap.create();
+
+  /** JVMs to run in the benchmark */
+  private Set<String> userVms = new LinkedHashSet<String>();
 
   /**
    * Parameter values specified by the user on the command line. Parameters with
@@ -110,19 +114,34 @@ public final class Runner {
    */
   private List<Run> createRuns() throws Exception {
     List<RunBuilder> builders = new ArrayList<RunBuilder>();
-    if (userBenchmarkClass == null) {
-      for (Class<? extends Benchmark> benchmarkClass : suite.benchmarkClasses()) {
-        RunBuilder builder = new RunBuilder();
-        builder.benchmarkClass = benchmarkClass;
-        builders.add(builder);
-      }
-    } else {
-      if (!suite.benchmarkClasses().contains(userBenchmarkClass)) {
-        throw new ConfigurationException("Unexpected benchmark class " + userBenchmarkClass);
-      }
+
+    // create runs for each benchmark class
+    Set<Class<? extends Benchmark>> benchmarkClasses = (userBenchmarkClass != null)
+        ? ImmutableSet.<Class<? extends Benchmark>>of(userBenchmarkClass)
+        : suite.benchmarkClasses();
+    for (Class<? extends Benchmark> benchmarkClass : benchmarkClasses) {
       RunBuilder builder = new RunBuilder();
-      builder.benchmarkClass = userBenchmarkClass;
+      builder.benchmarkClass = benchmarkClass;
       builders.add(builder);
+    }
+
+    // multiply the runs by the number of VMs
+    Set<String> vms = userVms.isEmpty()
+        ? ImmutableSet.of("java")
+        : userVms;
+    Iterator<String> vmIterator = vms.iterator();
+    String firstVm = vmIterator.next();
+    for (RunBuilder builder : builders) {
+      builder.vm = firstVm;
+    }
+    int length = builders.size();
+    while (vmIterator.hasNext()) {
+      String alternateVm = vmIterator.next();
+      for (int s = 0; s < length; s++) {
+        RunBuilder copy = builders.get(s).copy();
+        copy.vm = alternateVm;
+        builders.add(copy);
+      }
     }
 
     for (Map.Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
@@ -139,7 +158,7 @@ public final class Runner {
       }
 
       // multiply the size of the specs by the number of alternate values
-      int length = builders.size();
+      length = builders.size();
       while (values.hasNext()) {
         String alternate = values.next();
         for (int s = 0; s < length; s++) {
@@ -159,25 +178,27 @@ public final class Runner {
   }
 
   static class RunBuilder {
-    Class<? extends Benchmark> benchmarkClass;
     Map<String, String> parameters = new LinkedHashMap<String, String>();
+    Class<? extends Benchmark> benchmarkClass;
+    String vm;
 
     RunBuilder copy() {
       RunBuilder result = new RunBuilder();
-      result.benchmarkClass = benchmarkClass;
       result.parameters.putAll(parameters);
+      result.benchmarkClass = benchmarkClass;
+      result.vm = vm;
       return result;
     }
 
     public Run build() {
-      return new Run(benchmarkClass, parameters);
+      return new Run(parameters, benchmarkClass, vm);
     }
   }
 
   private double executeForked(Run run) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
-    command.add("java");
+    command.addAll(Arrays.asList(run.getVm().split("\\s+")));
     command.add("-cp");
     command.add(System.getProperty("java.class.path"));
     command.add(Runner.class.getName());
@@ -319,6 +340,9 @@ public final class Runner {
       } else if ("--runMillis".equals(args[i])) {
         runMillis = Long.parseLong(args[++i]);
 
+      } else if ("--vm".equals(args[i])) {
+        userVms.add(args[++i]);
+
       } else if (args[i].startsWith("-")) {
         System.out.println("Unrecognized option: " + args[i]);
         return false;
@@ -332,6 +356,11 @@ public final class Runner {
         suiteClassName = args[i];
 
       }
+    }
+
+    if (inProcess && !userVms.isEmpty()) {
+      System.out.println("Cannot customize VM when running in process");
+      return false;
     }
 
     if (suiteClassName == null) {
@@ -362,6 +391,8 @@ public final class Runner {
     System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
     System.out.println();
     System.out.println("  --runMillis <millis>: duration to execute each benchmark");
+    System.out.println();
+    System.out.println("  --vm <vm>: executable to test benchmark on");
 
     // adding new options? don't forget to update executeForked()
   }

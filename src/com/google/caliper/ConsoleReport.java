@@ -37,6 +37,7 @@ final class ConsoleReport {
 
   private static final int bargraphWidth = 30;
   private static final String benchmarkKey = "benchmark";
+  private static final String vmKey = "vm";
 
   private final List<Parameter> parameters;
   private final Result result;
@@ -69,6 +70,7 @@ final class ConsoleReport {
       }
 
       nameToValues.put(benchmarkKey, run.getBenchmarkClass().getSimpleName());
+      nameToValues.put(vmKey, run.getVm());
     }
 
     for (Map.Entry<String, Collection<String>> entry : nameToValues.asMap().entrySet()) {
@@ -151,9 +153,13 @@ final class ConsoleReport {
     }
 
     String get(Run run) {
-      return benchmarkKey.equals(name)
-          ? run.getBenchmarkClass().getSimpleName()
-          : run.getParameters().get(name);
+      if (benchmarkKey.equals(name)) {
+        return run.getBenchmarkClass().getSimpleName();
+      } else if (vmKey.equals(name)) {
+        return run.getVm();
+      } else {
+        return run.getParameters().get(name);
+      }
     }
 
     int index(Run run) {

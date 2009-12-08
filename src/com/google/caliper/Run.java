@@ -25,21 +25,28 @@ import java.util.Map;
  */
 final class Run {
 
-  private final Class<? extends Benchmark> benchmarkClass;
   private final ImmutableMap<String, String> parameters;
+  private final Class<? extends Benchmark> benchmarkClass;
+  private final String vm;
 
-  public Run(Class<? extends Benchmark> benchmarkClass,
-      Map<String, String> parameters) {
+  public Run(Map<String, String> parameters,
+      Class<? extends Benchmark> benchmarkClass,
+      String vm) {
     this.benchmarkClass = benchmarkClass;
     this.parameters = ImmutableMap.copyOf(parameters);
+    this.vm = vm;
+  }
+
+  public ImmutableMap<String, String> getParameters() {
+    return parameters;
   }
 
   public Class<? extends Benchmark> getBenchmarkClass() {
     return benchmarkClass;
   }
 
-  public ImmutableMap<String, String> getParameters() {
-    return parameters;
+  public String getVm() {
+    return vm;
   }
 
   @Override public String toString() {
