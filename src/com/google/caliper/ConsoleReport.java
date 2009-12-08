@@ -76,23 +76,33 @@ final class ConsoleReport {
       parametersBuilder.add(parameter);
     }
 
+    /*
+     * Figure out how much influence each parameter has on the measured value.
+     * We sum the measurements taken with each value of each parameter. For
+     * parameters that have influence on the measurement, the sums will differ
+     * by value. If the parameter has little influence, the sums will be similar
+     * to one another and close to the overall average. We take the standard
+     * deviation across each parameters collection of sums. Higher standard
+     * deviation implies higher influence on the measured result.
+     */
+    double sumOfAllMeasurements = 0;
+    for (double measurement : result.getMeasurements().values()) {
+      sumOfAllMeasurements += measurement;
+    }
+    double mean = sumOfAllMeasurements / result.getMeasurements().size();
     for (Parameter parameter : parametersBuilder) {
-      double[] measurements = new double[parameter.values.size()];
+      int numValues = parameter.values.size();
+      double[] sumForValue = new double[numValues];
       for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
         Run run = entry.getKey();
-        measurements[parameter.index(run)] += entry.getValue();
+        sumForValue[parameter.index(run)] += entry.getValue();
       }
-      double total = 0;
-      for (double value : measurements) {
-        total += value;
-      }
-      double mean = total / measurements.length;
-      double sum = 0;
-      for (double value : measurements) {
+      double stdDeviationSquared = 0;
+      for (double value : sumForValue) {
         double distance = value - mean;
-        sum += distance * distance;
+        stdDeviationSquared += distance * distance;
       }
-      parameter.stdDeviation = Math.sqrt(sum / measurements.length);
+      parameter.stdDeviation = Math.sqrt(stdDeviationSquared / numValues);
     }
 
     this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
