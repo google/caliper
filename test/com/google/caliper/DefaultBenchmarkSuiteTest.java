@@ -26,64 +26,66 @@ import java.util.Collection;
 
 public class DefaultBenchmarkSuiteTest extends TestCase {
 
-    public void testIntrospection() {
-        SampleBenchmarkSuite suite = new SampleBenchmarkSuite();
-        assertEquals(ImmutableSet.of("a", "b"), suite.parameterNames());
-        assertEquals(ImmutableSet.of("1", "2", "3"), suite.parameterValues("a"));
-        assertEquals(ImmutableSet.of("4"), suite.parameterValues("b"));
-        assertEquals(ImmutableSet.of(
-                SampleBenchmarkSuite.MultiplyBenchmark.class,
-                SampleBenchmarkSuite.DivideBenchmark.class),
-                suite.benchmarkClasses());
+  public void testIntrospection() {
+    SampleBenchmarkSuite suite = new SampleBenchmarkSuite();
+    assertEquals(ImmutableSet.of("a", "b"), suite.parameterNames());
+    assertEquals(ImmutableSet.of("1", "2", "3"), suite.parameterValues("a"));
+    assertEquals(ImmutableSet.of("4"), suite.parameterValues("b"));
+    assertEquals(ImmutableSet.of(
+        SampleBenchmarkSuite.MultiplyBenchmark.class,
+        SampleBenchmarkSuite.DivideBenchmark.class),
+        suite.benchmarkClasses());
 
-    }
-    
-    public void testCreateBenchmark() {
-        SampleBenchmarkSuite originalSuite = new SampleBenchmarkSuite();
-        Benchmark benchmark = originalSuite.createBenchmark(
-                SampleBenchmarkSuite.MultiplyBenchmark.class,
-                ImmutableMap.of("a", "2", "b", "4"));
+  }
 
-        SampleBenchmarkSuite.MultiplyBenchmark multiplyBenchmark
-                = (SampleBenchmarkSuite.MultiplyBenchmark) benchmark;
+  public void testCreateBenchmark() {
+    SampleBenchmarkSuite originalSuite = new SampleBenchmarkSuite();
+    Benchmark benchmark = originalSuite.createBenchmark(
+        SampleBenchmarkSuite.MultiplyBenchmark.class,
+        ImmutableMap.of("a", "2", "b", "4"));
 
-        SampleBenchmarkSuite multiplySuite = multiplyBenchmark.suite();
-        assertNotSame(originalSuite, multiplySuite);
-        assertEquals(2, multiplySuite.a);
-        assertEquals(4, multiplySuite.b);
-    }
+    SampleBenchmarkSuite.MultiplyBenchmark multiplyBenchmark
+        = (SampleBenchmarkSuite.MultiplyBenchmark) benchmark;
 
-    static class SampleBenchmarkSuite extends DefaultBenchmarkSuite {
-        @Param int a;
+    SampleBenchmarkSuite multiplySuite = multiplyBenchmark.suite();
+    assertNotSame(originalSuite, multiplySuite);
+    assertEquals(2, multiplySuite.a);
+    assertEquals(4, multiplySuite.b);
+  }
 
-        private static Collection<Integer> aValues = Arrays.asList(1, 2, 3);
+  static class SampleBenchmarkSuite extends DefaultBenchmarkSuite {
+    @Param int a;
 
-        @Param int b;
+    private static Collection<Integer> aValues = Arrays.asList(1, 2, 3);
 
-        private static Collection<Integer> bValues() {
-            return Arrays.asList(4);
-        }
+    @Param int b;
 
-        class MultiplyBenchmark extends Benchmark {
-            @Override public void run(int trials) throws Exception {
-                for (int i = 0; i < trials; i ++) {
-                    int foo = a * b;
-                }
-            }
-
-            SampleBenchmarkSuite suite() {
-                return SampleBenchmarkSuite.this;
-            }
-        }
-
-        class DivideBenchmark extends Benchmark {
-            @Override public void run(int trials) throws Exception {
-                for (int i = 0; i < trials; i ++) {
-                    int foo = a / b;
-                }
-            }
-        }
-
+    private static Collection<Integer> bValues() {
+      return Arrays.asList(4);
     }
 
+    class MultiplyBenchmark extends Benchmark {
+      @Override public Object run(int trials) throws Exception {
+        int result = 0;
+        for (int i = 0; i < trials; i++) {
+          result ^= a * b;
+        }
+        return result;
+      }
+
+      SampleBenchmarkSuite suite() {
+        return SampleBenchmarkSuite.this;
+      }
+    }
+
+    class DivideBenchmark extends Benchmark {
+      @Override public Object run(int trials) throws Exception {
+        int result = 0;
+        for (int i = 0; i < trials; i++) {
+          result ^= a / b;
+        }
+        return result;
+      }
+    }
+  }
 }

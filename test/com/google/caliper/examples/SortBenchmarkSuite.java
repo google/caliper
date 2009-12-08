@@ -14,22 +14,30 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.examples;
+
+import com.google.caliper.Benchmark;
+import com.google.caliper.DefaultBenchmarkSuite;
+import com.google.caliper.Param;
+import com.google.caliper.Runner;
 
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Random;
 import java.util.Collection;
 
+/**
+ * Measures sorting on different distributions of integers.
+ */
 public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
-
-  @Param Distribution distribution;
-
-  static Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
 
   @Param int length;
 
   static Collection<Integer> lengthValues = Arrays.asList(10, 100, 1000, 10000);
+
+  @Param Distribution distribution;
+
+  static Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
 
   int[] values;
   int[] copy;
@@ -40,30 +48,35 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
   }
 
   class ArraysSortBenchmark extends Benchmark {
-    public void run(int trials) throws Exception {
+    public Object run(int trials) throws Exception {
+      int result = 0;
       for (int i = 0; i < trials; i++) {
         System.arraycopy(values, 0, copy, 0, values.length);
         Arrays.sort(copy);
+        result ^= copy[0];
       }
+      return result;
     }
   }
 
   enum Distribution {
     SAWTOOTH {
-      @Override int[] create(int length) {
+      @Override
+      int[] create(int length) {
         int[] result = new int[length];
-        for (int i = 0; i < length; i+=5) {
+        for (int i = 0; i < length; i += 5) {
           result[i] = 0;
-          result[i+1] = 1;
-          result[i+2] = 2;
-          result[i+3] = 3;
-          result[i+4] = 4;
+          result[i + 1] = 1;
+          result[i + 2] = 2;
+          result[i + 3] = 3;
+          result[i + 4] = 4;
         }
         return result;
       }
     },
     INCREASING {
-      @Override int[] create(int length) {
+      @Override
+      int[] create(int length) {
         int[] result = new int[length];
         for (int i = 0; i < length; i++) {
           result[i] = i;
@@ -72,7 +85,8 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
       }
     },
     DECREASING {
-      @Override int[] create(int length) {
+      @Override
+      int[] create(int length) {
         int[] result = new int[length];
         for (int i = 0; i < length; i++) {
           result[i] = length - i;
@@ -81,7 +95,8 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
       }
     },
     RANDOM {
-      @Override int[] create(int length) {
+      @Override
+      int[] create(int length) {
         Random random = new Random();
         int[] result = new int[length];
         for (int i = 0; i < length; i++) {

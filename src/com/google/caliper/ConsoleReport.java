@@ -18,129 +18,201 @@ package com.google.caliper;
 
 import com.google.common.collect.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
- * Prints a report containing the tested values and the correspdonding
+ * Prints a report containing the tested values and the corresponding
  * measurements. Measurements are grouped by variable using indentation.
- * Alongside numeric values, quick-glance "bar charts" are printed. Sample
- * output:
+ * Alongside numeric values, quick-glance ascii art bar charts are printed.
+ * Sample output:
  * <pre>
- * ConcatenationBenchmark
- *     -Infinity  350ns ||
- *          -0.0  389ns ||
- * FormatterBenchmark
- *     -Infinity 2918ns |||||||||||||||||
- *          -0.0 4257ns ||||||||||||||||||||||||
+ *              benchmark                 d     ns logarithmic runtime
+ * ConcatenationBenchmark 3.141592653589793   4397 ||||||||||||||||||||||||
+ * ConcatenationBenchmark              -0.0    223 |||||||||||||||
+ *     FormatterBenchmark 3.141592653589793  33999 ||||||||||||||||||||||||||||||
+ *     FormatterBenchmark              -0.0  26399 |||||||||||||||||||||||||||||
  * </pre>
  */
 final class ConsoleReport {
 
-  private final int bargraphWidth = 30;
-  private final int wordWidth = 20;
+  private static final int bargraphWidth = 30;
+  private static final String benchmarkKey = "benchmark";
 
-  /**
-   * Maps the list of values for each parameter to the corresponding result.
-   */
-  private final ImmutableMap<List<String>, Double> parametersToMeasurement;
+  private final List<Parameter> parameters;
+  private final Result result;
+  private final List<Run> runs;
 
-  /**
-   * Maps each parameter to its values.
-   */
-  private final ImmutableMultimap<String, String> parameters;
-
-  private final ImmutableList<String> parameterNames;
-
-  private final double maxValue;
+  private final double logMaxValue;
+  private final int decimalDigits;
   private final double divideBy;
   private final String units;
-  private final int length;
+  private final int measurementColumnLength;
 
   public ConsoleReport(Result result) {
-    // figure out the full set of parameters
-    Multimap<String, String> parametersBuilder = LinkedHashMultimap.create();
-    for (Run run : result.getMeasurements().keySet()) {
-      parametersBuilder.put("Benchmark", run.getBenchmarkClass().getSimpleName());
-      for (Map.Entry<String, String> entry : run.getParameters().entrySet()) {
-        parametersBuilder.put(entry.getKey(), entry.getValue());
-      }
-    }
-    this.parameters = ImmutableMultimap.copyOf(parametersBuilder);
-    this.parameterNames = ImmutableList.copyOf(parameters.keySet());
-
-    ImmutableMap.Builder<List<String>, Double> parametersToMeasurementBuilder
-        = ImmutableMap.builder();
-    for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
-      Run run = entry.getKey();
-      ImmutableList.Builder<String> parametersAsKeyBuilder = ImmutableList.builder();
-      // the first parameter is the benchmark class name
-      parametersAsKeyBuilder.add(run.getBenchmarkClass().getSimpleName());
-      for (int i = 1; i < parameterNames.size(); i++) {
-        parametersAsKeyBuilder.add(run.getParameters().get(parameterNames.get(i)));
-      }
-      parametersToMeasurementBuilder.put(parametersAsKeyBuilder.build(), entry.getValue());
-    }
-
-    parametersToMeasurement = parametersToMeasurementBuilder.build();
+    this.result = result;
 
     double minValue = Double.POSITIVE_INFINITY;
     double maxValue = 0;
-    for (double d : result.getMeasurements().values()) {
+
+    Multimap<String, String> nameToValues = LinkedHashMultimap.create();
+    List<Parameter> parametersBuilder = new ArrayList<Parameter>();
+    for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
+      Run run = entry.getKey();
+      double d = entry.getValue();
+
       minValue = minValue < d ? minValue : d;
       maxValue = maxValue > d ? maxValue : d;
-    }
-    this.maxValue = maxValue;
 
-    if (minValue > 1000000000) {
+      for (Map.Entry<String, String> parameter : run.getParameters().entrySet()) {
+        String name = parameter.getKey();
+        nameToValues.put(name, parameter.getValue());
+      }
+
+      nameToValues.put(benchmarkKey, run.getBenchmarkClass().getSimpleName());
+    }
+
+    for (Map.Entry<String, Collection<String>> entry : nameToValues.asMap().entrySet()) {
+      Parameter parameter = new Parameter(entry.getKey(), entry.getValue());
+      parametersBuilder.add(parameter);
+    }
+
+    for (Parameter parameter : parametersBuilder) {
+      double[] measurements = new double[parameter.values.size()];
+      for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
+        Run run = entry.getKey();
+        measurements[parameter.index(run)] += entry.getValue();
+      }
+      double sum = 0;
+      for (double value : measurements) {
+        sum += value;
+      }
+      parameter.stdDeviation = Math.sqrt(sum / measurements.length);
+    }
+
+    this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
+    this.runs = new ByParametersOrdering().sortedCopy(result.getMeasurements().keySet());
+    this.logMaxValue = Math.log(maxValue);
+
+    int numDigitsInMin = (int) Math.ceil(Math.log10(minValue));
+    if (numDigitsInMin > 9) {
       divideBy = 1000000000;
+      decimalDigits = Math.max(0, 9 + 3 - numDigitsInMin);
       units = "s";
-    } else if (minValue > 1000000) {
+    } else if (numDigitsInMin > 6) {
       divideBy = 1000000;
+      decimalDigits = Math.max(0, 6 + 3 - numDigitsInMin);
       units = "ms";
-    } else if (minValue > 1000) {
+    } else if (numDigitsInMin > 3) {
       divideBy = 1000;
+      decimalDigits = Math.max(0, 3 + 3 - numDigitsInMin);
       units = "us";
     } else {
       divideBy = 1;
+      decimalDigits = 0;
       units = "ns";
     }
-    length = (int) Math.ceil(Math.log10(maxValue / divideBy));
+    measurementColumnLength = (int) Math.ceil(Math.log10(maxValue / divideBy)) + decimalDigits + 1;
+  }
+
+  /**
+   * A parameter plus all of its values.
+   */
+  static class Parameter {
+    final String name;
+    final ImmutableList<String> values;
+    final int maxLength;
+    double stdDeviation;
+
+    public Parameter(String name, Collection<String> values) {
+      this.name = name;
+      this.values = ImmutableList.copyOf(values);
+
+      int maxLength = name.length();
+      for (String value : values) {
+        maxLength = Math.max(maxLength, value.length());
+      }
+      this.maxLength = maxLength;
+    }
+
+    String get(Run run) {
+      return benchmarkKey.equals(name)
+          ? run.getBenchmarkClass().getSimpleName()
+          : run.getParameters().get(name);
+    }
+
+    int index(Run run) {
+      return values.indexOf(get(run));
+    }
+
+    boolean isInteresting() {
+      return values.size() > 1;
+    }
+  }
+
+  /**
+   * Orders the different parameters by their standard deviation. This results
+   * in an appropriate grouping of output values.
+   */
+  static class StandardDeviationOrdering extends Ordering<Parameter> {
+    public int compare(Parameter a, Parameter b) {
+      return Double.compare(a.stdDeviation, b.stdDeviation);
+    }
+  }
+
+  /**
+   * Orders runs by the parameters.
+   */
+  class ByParametersOrdering extends Ordering<Run> {
+    public int compare(Run a, Run b) {
+      for (Parameter parameter : parameters) {
+        int aValue = parameter.values.indexOf(parameter.get(a));
+        int bValue = parameter.values.indexOf(parameter.get(b));
+        int diff = aValue - bValue;
+        if (diff != 0) {
+          return diff;
+        }
+      }
+      return 0;
+    }
   }
 
   void displayResults() {
-    List<String> key = new ArrayList<String>();
-    displayRecursively(key, 0);
+    printValues();
+    System.out.println();
+    printUninterestingParameters();
   }
 
-  private void displayRecursively(List<String> key, int indentationLevel) {
-    String parameterName = parameterNames.get(key.size());
-    int index = key.size();
-
-    ImmutableCollection<String> parameterValues = parameters.get(parameterName);
-    String formatString = "%" + wordWidth + "s %" + length + ".0f%s %s%n";
-
-    for (String parameterValue : parameterValues) {
-      key.add(index, parameterValue);
-      if (key.size() == parameterNames.size()) {
-        indent(indentationLevel);
-        Double measurement = parametersToMeasurement.get(key);
-        double unitsPerTrial = measurement / divideBy;
-        System.out.printf(formatString, parameterValue, unitsPerTrial, units, bargraph(measurement));
-
-      } else {
-        indent(indentationLevel);
-        System.out.println(parameterValue);
-        displayRecursively(key, indentationLevel + 1);
+  /**
+   * Prints a table of values.
+   */
+  private void printValues() {
+    for (Parameter parameter : parameters) {
+      if (parameter.isInteresting()) {
+        System.out.printf("%" + parameter.maxLength + "s ", parameter.name);
       }
-      key.remove(index);
+    }
+    System.out.printf("%" + measurementColumnLength + "s logarithmic runtime%n", units);
+
+    String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f %s%n";
+    for (Run run : runs) {
+      for (Parameter parameter : parameters) {
+        if (parameter.isInteresting()) {
+          System.out.printf("%" + parameter.maxLength + "s ", parameter.get(run));
+        }
+      }
+      double measurement = result.getMeasurements().get(run);
+      System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
     }
   }
 
-  private void indent(int indentationLevel) {
-    for (int i = 0; i < indentationLevel; i++) {
-      System.out.print("  ");
+  /**
+   * Prints parameters with only one unique value.
+   */
+  private void printUninterestingParameters() {
+    for (Parameter parameter : parameters) {
+      if (!parameter.isInteresting()) {
+        System.out.println(parameter.name + ": " + Iterables.getOnlyElement(parameter.values));
+      }
     }
   }
 
@@ -149,7 +221,8 @@ final class ConsoleReport {
    * value.
    */
   private String bargraph(double value) {
-    int numChars = (int) ((value / maxValue) * bargraphWidth);
+    double logValue = Math.log(value);
+    int numChars = (int) ((logValue / logMaxValue) * bargraphWidth);
     StringBuilder result = new StringBuilder(numChars);
     for (int i = 0; i < numChars; i++) {
       result.append("|");

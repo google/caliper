@@ -18,7 +18,14 @@ package com.google.caliper;
 
 public abstract class Benchmark {
 
-  public abstract void run(int trials) throws Exception;
+  /**
+   * Runs the benchmark through {@code trials} iterations.
+   *
+   * @return any object or null. Benchmark implementors may keep an accumulating
+   *      value to prevent the runtime from optimizing away the code under test.
+   *      Such an accumulator value can be returned here.
+   */
+  public abstract Object run(int trials) throws Exception;
 
   @Override public String toString() {
     return getClass().getSimpleName();

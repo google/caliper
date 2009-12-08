@@ -142,7 +142,9 @@ public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
       Class<? extends Benchmark> benchmarkClass = (Class<? extends Benchmark>) c;
 
       try {
-        final Constructor<? extends Benchmark> constructor = benchmarkClass.getDeclaredConstructor();
+        final Constructor<? extends Benchmark> constructor
+            = benchmarkClass.getDeclaredConstructor();
+        constructor.setAccessible(true);
         result.put(benchmarkClass, new BenchmarkFactory() {
           public Benchmark create(BenchmarkSuite suite) throws Exception {
             return constructor.newInstance();
@@ -155,6 +157,7 @@ public abstract class DefaultBenchmarkSuite extends BenchmarkSuite {
       try {
         final Constructor<? extends Benchmark> constructor
             = benchmarkClass.getDeclaredConstructor(getClass());
+        constructor.setAccessible(true);
         result.put(benchmarkClass, new BenchmarkFactory() {
           public Benchmark create(BenchmarkSuite suite) throws Exception {
             return constructor.newInstance(suite);

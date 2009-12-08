@@ -14,46 +14,60 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.examples;
+
+import com.google.caliper.Benchmark;
+import com.google.caliper.DefaultBenchmarkSuite;
+import com.google.caliper.Param;
+import com.google.caliper.Runner;
 
 import java.util.Arrays;
 import java.util.Collection;
 
+/**
+ * Measures the various ways the JDK converts doubles to Strings.
+ */
 public class DoubleToStringBenchmarkSuite extends DefaultBenchmarkSuite {
 
   @Param private Double d;
 
   private static Collection<Double> dValues = Arrays.asList(
-      0.0d,
+      Math.PI,
+      -0.0d,
       Double.NEGATIVE_INFINITY,
-      Double.NaN,
-      Math.PI
+      Double.NaN
   );
 
   class FormatterBenchmark extends Benchmark {
-    public void run(int trials) {
+    public Object run(int trials) {
       Double value = d;
+      String result = null;
       for (int i = 0; i < trials; i++) {
-        String.format("%f", value);
+        result = String.format("%f", value);
       }
+      return result;
     }
   }
 
   class ToStringBenchmark extends Benchmark {
-    public void run(int trials) {
+    public Object run(int trials) {
       Double value = d;
+      String result = null;
       for (int i = 0; i < trials; i++) {
-        value.toString();
+        result = value.toString();
       }
+      return result;
     }
   }
 
   class ConcatenationBenchmark extends Benchmark {
-    public void run(int trials) {
+    public Object run(int trials) {
       Double value = d;
+      String result = null;
       for (int i = 0; i < trials; i++) {
-        String s = "" + value;
+        result = "" + value;
       }
+      return result;
     }
   }
 
