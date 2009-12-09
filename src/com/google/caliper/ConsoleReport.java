@@ -129,7 +129,9 @@ final class ConsoleReport {
       decimalDigits = 0;
       units = "ns";
     }
-    measurementColumnLength = (int) Math.ceil(Math.log10(maxValue / divideBy)) + decimalDigits + 1;
+    measurementColumnLength = maxValue > 0
+        ? (int) Math.ceil(Math.log10(maxValue / divideBy)) + decimalDigits + 1
+        : 1;
   }
 
   /**
