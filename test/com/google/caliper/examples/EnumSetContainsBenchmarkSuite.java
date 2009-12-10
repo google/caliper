@@ -26,7 +26,7 @@ import java.util.EnumSet;
 import java.util.Set;
 
 /**
- * Measures the various ways the JDK converts doubles to Strings.
+ * Measures EnumSet#contains().
  */
 public class EnumSetContainsBenchmarkSuite extends DefaultBenchmarkSuite {
 
