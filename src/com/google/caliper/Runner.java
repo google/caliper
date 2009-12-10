@@ -108,6 +108,12 @@ public final class Runner {
     }
   }
 
+  private ImmutableSet<String> defaultVms() {
+    return "Dalvik".equals(System.getProperty("java.vm.name"))
+        ? ImmutableSet.of("dalvikvm")
+        : ImmutableSet.of("java");
+  }
+
   /**
    * Returns a complete set of runs with every combination of values and
    * benchmark classes.
@@ -127,7 +133,7 @@ public final class Runner {
 
     // multiply the runs by the number of VMs
     Set<String> vms = userVms.isEmpty()
-        ? ImmutableSet.of("java")
+        ? defaultVms()
         : userVms;
     Iterator<String> vmIterator = vms.iterator();
     String firstVm = vmIterator.next();
