@@ -16,10 +16,9 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.DefaultBenchmarkSuite;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
 import java.util.Collection;
 import java.util.EnumSet;
@@ -28,11 +27,11 @@ import java.util.Set;
 /**
  * Measures EnumSet#contains().
  */
-public class EnumSetContainsBenchmarkSuite extends DefaultBenchmarkSuite {
+public class EnumSetContainsBenchmark extends SimpleBenchmark {
 
   @Param private SetMaker setMaker;
 
-  private static Collection<SetMaker> setMakerValues = EnumSet.allOf(SetMaker.class);
+  private static final Collection<SetMaker> setMakerValues = EnumSet.allOf(SetMaker.class);
 
   enum SetMaker {
     ENUM_SET {
@@ -85,19 +84,15 @@ public class EnumSetContainsBenchmarkSuite extends DefaultBenchmarkSuite {
     this.testValues = setMaker.testValues();
   }
 
-  class ContainsBenchmark extends Benchmark {
-    @Override public Object run(int trials) throws Exception {
-      int count = 0;
-      for (int i = 0; i < trials; i++) {
-        for (Object value : testValues) {
-          count ^= (set.contains(value) ? i : 0);
-        }
-      }
-      return count > 0;
+  public int timeContains(int reps) throws Exception {
+    int dummy = 0;
+    for (int i = 0; i < reps; i++) {
+      dummy ^= (set.contains(testValues[i % testValues.length]) ? i : 0);
     }
+    return dummy;
   }
 
-  public static void main(String[] args) {
-    Runner.main(EnumSetContainsBenchmarkSuite.class, args);
+  public static void main(String[] args) throws Exception {
+    Runner.main(EnumSetContainsBenchmark.class, args);
   }
 }

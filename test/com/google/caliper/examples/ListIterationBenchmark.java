@@ -16,26 +16,27 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.DefaultBenchmarkSuite;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
-import java.util.*;
+import java.util.AbstractList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * Measures iterating through list elements.
  */
-public class ListIterationBenchmarkSuite extends DefaultBenchmarkSuite {
-
+public class ListIterationBenchmark extends SimpleBenchmark {
   @Param private int length;
 
-  private static Collection<Integer> lengthValues = Arrays.asList(0, 10, 100, 1000);
+  private static final Collection<Integer> lengthValues = Arrays.asList(0, 10, 100, 1000);
 
   private List<Object> list;
   private Object[] array;
 
-  @Override protected void setUp() throws Exception {
+  @Override protected void setUp() {
     array = new Object[length];
     for (int i = 0; i < length; i++) {
       array[i] = new Object();
@@ -52,31 +53,28 @@ public class ListIterationBenchmarkSuite extends DefaultBenchmarkSuite {
     };
   }
 
-  class ListIterateBenchmark extends Benchmark {
-    @Override public Object run(int trials) throws Exception {
-      int count = 0;
-      for (int i = 0; i < trials; i++) {
-        for (Object value : list) {
-          count ^= (value == Boolean.TRUE) ? i : 0;
-        }
+  public int timeListIteration(int reps) {
+    int count = 0;
+    for (int i = 0; i < reps; i++) {
+      for (Object value : list) {
+        count ^= value.hashCode(); // prevent overoptimization
       }
-      return count > 0;
     }
+    return count; // ignored
   }
 
-  class ArrayIterateBenchmark extends Benchmark {
-    @Override public Object run(int trials) throws Exception {
-      int count = 0;
-      for (int i = 0; i < trials; i++) {
-        for (Object value : array) {
-          count ^= (value == Boolean.TRUE) ? i : 0;
-        }
+  public int timeArrayIteration(int reps) {
+    int count = 0;
+    for (int i = 0; i < reps; i++) {
+      for (Object value : array) {
+        count ^= value.hashCode(); // prevent overoptimization
       }
-      return count > 0;
     }
+    return count; // ignored
   }
 
-  public static void main(String[] args) {
-    Runner.main(ListIterationBenchmarkSuite.class, args);
+  // TODO: remove this from all examples when IDE plugins are ready
+  public static void main(String[] args) throws Exception {
+    Runner.main(ListIterationBenchmark.class, args);
   }
 }

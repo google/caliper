@@ -16,20 +16,19 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.DefaultBenchmarkSuite;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Random;
-import java.util.Collection;
 
 /**
  * Measures sorting on different distributions of integers.
  */
-public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
+public class ArraySortBenchmark extends SimpleBenchmark {
 
   @Param int length;
 
@@ -37,7 +36,7 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
 
   @Param Distribution distribution;
 
-  static Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
+  static final Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
 
   int[] values;
   int[] copy;
@@ -47,16 +46,14 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
     copy = new int[length];
   }
 
-  class ArraysSortBenchmark extends Benchmark {
-    public Object run(int trials) throws Exception {
-      int result = 0;
-      for (int i = 0; i < trials; i++) {
-        System.arraycopy(values, 0, copy, 0, values.length);
-        Arrays.sort(copy);
-        result ^= copy[0];
-      }
-      return result;
+  public int timeSort(int reps) {
+    int dummy = 0;
+    for (int i = 0; i < reps; i++) {
+      System.arraycopy(values, 0, copy, 0, values.length);
+      Arrays.sort(copy);
+      dummy ^= copy[0];
     }
+    return dummy;
   }
 
   enum Distribution {
@@ -109,7 +106,7 @@ public class SortBenchmarkSuite extends DefaultBenchmarkSuite {
     abstract int[] create(int length);
   }
 
-  public static void main(String[] args) {
-    Runner.main(SortBenchmarkSuite.class, args);
+  public static void main(String[] args) throws Exception {
+    Runner.main(ArraySortBenchmark.class, args);
   }
 }

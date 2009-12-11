@@ -61,15 +61,15 @@ final class ConsoleReport {
       Run run = entry.getKey();
       double d = entry.getValue();
 
-      minValue = minValue < d ? minValue : d;
-      maxValue = maxValue > d ? maxValue : d;
+      minValue = Math.min(minValue, d);
+      maxValue = Math.max(maxValue, d);
 
       for (Map.Entry<String, String> parameter : run.getParameters().entrySet()) {
         String name = parameter.getKey();
         nameToValues.put(name, parameter.getValue());
       }
 
-      nameToValues.put(benchmarkKey, run.getBenchmarkClass().getSimpleName());
+      nameToValues.put(benchmarkKey, run.getBenchmarkMethod().getName());
       nameToValues.put(vmKey, run.getVm());
     }
 
@@ -156,7 +156,7 @@ final class ConsoleReport {
 
     String get(Run run) {
       if (benchmarkKey.equals(name)) {
-        return run.getBenchmarkClass().getSimpleName();
+        return run.getBenchmarkMethod().getName();
       } else if (vmKey.equals(name)) {
         return run.getVm();
       } else {

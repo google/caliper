@@ -16,83 +16,62 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.DefaultBenchmarkSuite;
-import com.google.caliper.Param;
 import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
 import java.util.Formatter;
 
 /**
  * Compares Formatter against hand-written StringBuilder code.
  */
-public class FormatterBenchmarkSuite extends DefaultBenchmarkSuite {
-
-  class Formatter_NoFormatting extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        Formatter f = new Formatter();
-        f.format("this is a reasonably short string that doesn't actually need any formatting");
-      }
-      return null;
+public class FormatterBenchmarkSuite extends SimpleBenchmark {
+  public void timeFormatter_NoFormatting(int reps) {
+    for (int i = 0; i < reps; i++) {
+      Formatter f = new Formatter();
+      f.format("this is a reasonably short string that doesn't actually need any formatting");
     }
   }
 
-  class StringBuilder_NoFormatting extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("this is a reasonably short string that doesn't actually need any formatting");
-      }
-      return null;
+  public void timeStringBuilder_NoFormatting(int reps) {
+    for (int i = 0; i < reps; i++) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("this is a reasonably short string that doesn't actually need any formatting");
     }
   }
 
-  class Formatter_OneInt extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        Formatter f = new Formatter();
-        f.format("this is a reasonably short string that has an int %d in it", i);
-      }
-      return null;
+  public void timeFormatter_OneInt(int reps) {
+    for (int i = 0; i < reps; i++) {
+      Formatter f = new Formatter();
+      f.format("this is a reasonably short string that has an int %d in it", i);
     }
   }
 
-  class StringBuilder_OneInt extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("this is a reasonably short string that has an int ");
-        sb.append(i);
-        sb.append(" in it");
-      }
-      return null;
+  public void timeStringBuilder_OneInt(int reps) {
+    for (int i = 0; i < reps; i++) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("this is a reasonably short string that has an int ");
+      sb.append(i);
+      sb.append(" in it");
     }
   }
 
-  class Formatter_OneString extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        Formatter f = new Formatter();
-        f.format("this is a reasonably short string that has a string %s in it", "hello");
-      }
-      return null;
+  public void timeFormatter_OneString(int reps) {
+    for (int i = 0; i < reps; i++) {
+      Formatter f = new Formatter();
+      f.format("this is a reasonably short string that has a string %s in it", "hello");
     }
   }
 
-  class StringBuilder_OneString extends Benchmark {
-    public Object run(int trials) {
-      for (int i = 0; i < trials; i++) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("this is a reasonably short string that has a string ");
-        sb.append("hello");
-        sb.append(" in it");
-      }
-      return null;
+  public void timeStringBuilder_OneString(int reps) {
+    for (int i = 0; i < reps; i++) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("this is a reasonably short string that has a string ");
+      sb.append("hello");
+      sb.append(" in it");
     }
   }
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     Runner.main(FormatterBenchmarkSuite.class, args);
   }
 }

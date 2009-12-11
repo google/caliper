@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Set;
 
@@ -24,12 +25,12 @@ import java.util.Set;
  */
 public abstract class BenchmarkSuite {
 
-  protected abstract Set<Class<? extends Benchmark>> benchmarkClasses();
+  protected abstract Set<Method> benchmarkMethods();
 
   protected abstract Set<String> parameterNames();
 
   protected abstract Set<String> parameterValues(String parameterName);
 
   protected abstract Benchmark createBenchmark(
-      Class<? extends Benchmark> benchmark, Map<String, String> parameterValues);
+      Method benchmark, Map<String, String> parameterValues);
 }

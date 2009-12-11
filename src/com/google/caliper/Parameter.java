@@ -20,7 +20,7 @@ import java.lang.reflect.*;
 import java.util.*;
 
 /**
- * A parameter in a {@link DefaultBenchmarkSuite}.
+ * A parameter in a {@link SimpleBenchmark}.
  */
 abstract class Parameter<T> {
 

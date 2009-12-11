@@ -22,7 +22,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Annotates the field accepting a parameter in a {@link DefaultBenchmarkSuite}.
+ * Annotates the field accepting a parameter in a {@link SimpleBenchmark}.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

@@ -16,10 +16,10 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -51,9 +52,9 @@ public final class Runner {
 
   /**
    * Benchmark class specified by the user on the command line; or null to run
-   * the complete set of benchmark classes.
+   * the complete set of benchmark methods.
    */
-  private Class<? extends Benchmark> userBenchmarkClass;
+  private Method userBenchmarkMethod;
 
   /**
    * True if each benchmark should run in process.
@@ -122,12 +123,12 @@ public final class Runner {
     List<RunBuilder> builders = new ArrayList<RunBuilder>();
 
     // create runs for each benchmark class
-    Set<Class<? extends Benchmark>> benchmarkClasses = (userBenchmarkClass != null)
-        ? ImmutableSet.<Class<? extends Benchmark>>of(userBenchmarkClass)
-        : suite.benchmarkClasses();
-    for (Class<? extends Benchmark> benchmarkClass : benchmarkClasses) {
+    Set<Method> benchmarkMethodes = (userBenchmarkMethod != null)
+        ? ImmutableSet.of(userBenchmarkMethod)
+        : suite.benchmarkMethods();
+    for (Method benchmarkMethod : benchmarkMethodes) {
       RunBuilder builder = new RunBuilder();
-      builder.benchmarkClass = benchmarkClass;
+      builder.benchmarkMethod = benchmarkMethod;
       builders.add(builder);
     }
 
@@ -185,19 +186,19 @@ public final class Runner {
 
   static class RunBuilder {
     Map<String, String> parameters = new LinkedHashMap<String, String>();
-    Class<? extends Benchmark> benchmarkClass;
+    Method benchmarkMethod;
     String vm;
 
     RunBuilder copy() {
       RunBuilder result = new RunBuilder();
       result.parameters.putAll(parameters);
-      result.benchmarkClass = benchmarkClass;
+      result.benchmarkMethod = benchmarkMethod;
       result.vm = vm;
       return result;
     }
 
     public Run build() {
-      return new Run(parameters, benchmarkClass, vm);
+      return new Run(parameters, benchmarkMethod, vm);
     }
   }
 
@@ -214,7 +215,7 @@ public final class Runner {
     command.add(String.valueOf(runMillis));
     command.add("--inProcess");
     command.add("--benchmark");
-    command.add(run.getBenchmarkClass().getName());
+    command.add(run.getBenchmarkMethod().getName());
     for (Map.Entry<String, String> entry : run.getParameters().entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
@@ -298,7 +299,7 @@ public final class Runner {
       for (Run run : createRuns()) {
         double result;
         Benchmark benchmark = suite.createBenchmark(
-            run.getBenchmarkClass(), run.getParameters());
+            run.getBenchmarkMethod(), run.getParameters());
         double warmupNanosPerTrial = caliper.warmUp(benchmark);
         result = caliper.run(benchmark, warmupNanosPerTrial);
         double nanosPerTrial = result;
@@ -309,23 +310,14 @@ public final class Runner {
     }
   }
 
-  private boolean parseArgs(String[] args) {
+  private boolean parseArgs(String[] args) throws Exception {
+    String userBenchmarkMethodName = null;
     for (int i = 0; i < args.length; i++) {
       if ("--help".equals(args[i])) {
         return false;
 
       } else if ("--benchmark".equals(args[i])) {
-        try {
-          @SuppressWarnings("unchecked") // guarded immediately afterwards!
-          Class<? extends Benchmark> c = (Class<? extends Benchmark>) Class.forName(args[++i]);
-          if (!Benchmark.class.isAssignableFrom(c)) {
-            System.out.println("Not a benchmark class: " + c);
-            return false;
-          }
-          userBenchmarkClass = c;
-        } catch (ClassNotFoundException e) {
-          throw new RuntimeException(e);
-        }
+        userBenchmarkMethodName = args[++i];
 
       } else if ("--inProcess".equals(args[i])) {
           inProcess = true;
@@ -358,9 +350,7 @@ public final class Runner {
           System.out.println("Too many benchmark classes!");
           return false;
         }
-
         suiteClassName = args[i];
-
       }
     }
 
@@ -372,6 +362,11 @@ public final class Runner {
     if (suiteClassName == null) {
       System.out.println("No benchmark class provided.");
       return false;
+    }
+
+    Class<?> c = Class.forName(suiteClassName);
+    if (userBenchmarkMethodName != null) {
+      userBenchmarkMethod = c.getMethod(userBenchmarkMethodName, ReflectiveBenchmark.ARGUMENT_TYPES);
     }
 
     return true;
@@ -403,7 +398,7 @@ public final class Runner {
     // adding new options? don't forget to update executeForked()
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception { // TODO: cleaner error reporting
     Runner runner = new Runner();
     if (!runner.parseArgs(args)) {
       runner.printUsage();
@@ -422,7 +417,7 @@ public final class Runner {
     new ConsoleReport(result).displayResults();
   }
 
-  public static void main(Class<? extends BenchmarkSuite> suite, String... args) {
+  public static void main(Class<? extends BenchmarkSuite> suite, String... args) throws Exception {
     String[] argsWithSuiteName = new String[args.length + 1];
     System.arraycopy(args, 0, argsWithSuiteName, 0, args.length);
     argsWithSuiteName[args.length] = suite.getName();
