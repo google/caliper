@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -36,7 +35,7 @@ import java.util.*;
 public final class Runner {
 
   private String suiteClassName;
-  private BenchmarkSuite suite;
+  private Benchmark suite;
 
   /** Effective parameters to run in the benchmark. */
   private Multimap<String, String> parameters = LinkedHashMultimap.create();
@@ -49,12 +48,6 @@ public final class Runner {
    * no value in this multimap will get their values from the benchmark suite.
    */
   private Multimap<String, String> userParameters = LinkedHashMultimap.create();
-
-  /**
-   * Benchmark class specified by the user on the command line; or null to run
-   * the complete set of benchmark methods.
-   */
-  private Method userBenchmarkMethod;
 
   /**
    * True if each benchmark should run in process.
@@ -76,13 +69,13 @@ public final class Runner {
   private void prepareSuite() {
     try {
       @SuppressWarnings("unchecked") // guarded by the if statement that follows
-      Class<? extends BenchmarkSuite> suiteClass
-          = (Class<? extends BenchmarkSuite>) Class.forName(suiteClassName);
-      if (!BenchmarkSuite.class.isAssignableFrom(suiteClass)) {
+      Class<? extends Benchmark> suiteClass
+          = (Class<? extends Benchmark>) Class.forName(suiteClassName);
+      if (!Benchmark.class.isAssignableFrom(suiteClass)) {
         throw new ConfigurationException(suiteClass + " is not a benchmark suite.");
       }
 
-      Constructor<? extends BenchmarkSuite> constructor = suiteClass.getDeclaredConstructor();
+      Constructor<? extends Benchmark> constructor = suiteClass.getDeclaredConstructor();
       suite = constructor.newInstance();
     } catch (InvocationTargetException e) {
       throw new ExecutionException(e.getCause());
@@ -122,33 +115,14 @@ public final class Runner {
   private List<Run> createRuns() throws Exception {
     List<RunBuilder> builders = new ArrayList<RunBuilder>();
 
-    // create runs for each benchmark class
-    Set<Method> benchmarkMethodes = (userBenchmarkMethod != null)
-        ? ImmutableSet.of(userBenchmarkMethod)
-        : suite.benchmarkMethods();
-    for (Method benchmarkMethod : benchmarkMethodes) {
-      RunBuilder builder = new RunBuilder();
-      builder.benchmarkMethod = benchmarkMethod;
-      builders.add(builder);
-    }
-
-    // multiply the runs by the number of VMs
+    // create runs for each VMs
     Set<String> vms = userVms.isEmpty()
         ? defaultVms()
         : userVms;
-    Iterator<String> vmIterator = vms.iterator();
-    String firstVm = vmIterator.next();
-    for (RunBuilder builder : builders) {
-      builder.vm = firstVm;
-    }
-    int length = builders.size();
-    while (vmIterator.hasNext()) {
-      String alternateVm = vmIterator.next();
-      for (int s = 0; s < length; s++) {
-        RunBuilder copy = builders.get(s).copy();
-        copy.vm = alternateVm;
-        builders.add(copy);
-      }
+    for (String vm : vms) {
+      RunBuilder runBuilder = new RunBuilder();
+      runBuilder.vm = vm;
+      builders.add(runBuilder);
     }
 
     for (Map.Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
@@ -165,10 +139,10 @@ public final class Runner {
       }
 
       // multiply the size of the specs by the number of alternate values
-      length = builders.size();
+      int size = builders.size();
       while (values.hasNext()) {
         String alternate = values.next();
-        for (int s = 0; s < length; s++) {
+        for (int s = 0; s < size; s++) {
           RunBuilder copy = builders.get(s).copy();
           copy.parameters.put(key, alternate);
           builders.add(copy);
@@ -186,19 +160,17 @@ public final class Runner {
 
   static class RunBuilder {
     Map<String, String> parameters = new LinkedHashMap<String, String>();
-    Method benchmarkMethod;
     String vm;
 
     RunBuilder copy() {
       RunBuilder result = new RunBuilder();
       result.parameters.putAll(parameters);
-      result.benchmarkMethod = benchmarkMethod;
       result.vm = vm;
       return result;
     }
 
     public Run build() {
-      return new Run(parameters, benchmarkMethod, vm);
+      return new Run(parameters, vm);
     }
   }
 
@@ -214,8 +186,6 @@ public final class Runner {
     command.add("--runMillis");
     command.add(String.valueOf(runMillis));
     command.add("--inProcess");
-    command.add("--benchmark");
-    command.add(run.getBenchmarkMethod().getName());
     for (Map.Entry<String, String> entry : run.getParameters().entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
@@ -271,6 +241,14 @@ public final class Runner {
         afterRun(nanosPerTrial);
         resultsBuilder.put(run, nanosPerTrial);
       }
+
+      // blat out our progress bar
+      System.out.print("\r");
+      for (int j = 0; j < 80; j++) {
+        System.out.print(" ");
+      }
+      System.out.print("\r");
+
       return new Result(resultsBuilder.build());
     } catch (Exception e) {
       throw new ExecutionException(e);
@@ -284,12 +262,12 @@ public final class Runner {
     if (runString.length() > runStringLength) {
       runString = runString.substring(0, runStringLength);
     }
-    System.out.printf("%2.0f%% %-" + runStringLength + "s",
+    System.out.printf("\r%2.0f%% %-" + runStringLength + "s",
         percentDone * 100, runString);
   }
 
   private void afterRun(double nanosPerTrial) {
-    System.out.printf(" %10.0fns%n", nanosPerTrial);
+    System.out.printf(" %10.0fns", nanosPerTrial);
   }
 
   private void runInProcess() {
@@ -298,10 +276,9 @@ public final class Runner {
 
       for (Run run : createRuns()) {
         double result;
-        Benchmark benchmark = suite.createBenchmark(
-            run.getBenchmarkMethod(), run.getParameters());
-        double warmupNanosPerTrial = caliper.warmUp(benchmark);
-        result = caliper.run(benchmark, warmupNanosPerTrial);
+        TimedRunnable timedRunnable = suite.createBenchmark(run.getParameters());
+        double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
+        result = caliper.run(timedRunnable, warmupNanosPerTrial);
         double nanosPerTrial = result;
         System.out.println(nanosPerTrial);
       }
@@ -311,13 +288,9 @@ public final class Runner {
   }
 
   private boolean parseArgs(String[] args) throws Exception {
-    String userBenchmarkMethodName = null;
     for (int i = 0; i < args.length; i++) {
       if ("--help".equals(args[i])) {
         return false;
-
-      } else if ("--benchmark".equals(args[i])) {
-        userBenchmarkMethodName = args[++i];
 
       } else if ("--inProcess".equals(args[i])) {
           inProcess = true;
@@ -364,11 +337,6 @@ public final class Runner {
       return false;
     }
 
-    Class<?> c = Class.forName(suiteClassName);
-    if (userBenchmarkMethodName != null) {
-      userBenchmarkMethod = c.getMethod(userBenchmarkMethodName, ReflectiveBenchmark.ARGUMENT_TYPES);
-    }
-
     return true;
   }
 
@@ -382,8 +350,6 @@ public final class Runner {
     System.out.println("  --D<param>=<value>: fix a benchmark parameter to a given value.");
     System.out.println("        When multiple values for the same parameter are given (via");
     System.out.println("        multiple --Dx=y args), all supplied values are used.");
-    System.out.println();
-    System.out.println("  --benchmark <class>: fix a benchmark executable to the named class");
     System.out.println();
     System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
     System.out.println("        another with the same classpath. By default each benchmark is");
@@ -413,11 +379,10 @@ public final class Runner {
     }
 
     Result result = runner.runOutOfProcess();
-    System.out.println();
     new ConsoleReport(result).displayResults();
   }
 
-  public static void main(Class<? extends BenchmarkSuite> suite, String... args) throws Exception {
+  public static void main(Class<? extends Benchmark> suite, String... args) throws Exception {
     String[] argsWithSuiteName = new String[args.length + 1];
     System.arraycopy(args, 0, argsWithSuiteName, 0, args.length);
     argsWithSuiteName[args.length] = suite.getName();

@@ -24,7 +24,7 @@ import java.util.Formatter;
 /**
  * Compares Formatter against hand-written StringBuilder code.
  */
-public class FormatterBenchmarkSuite extends SimpleBenchmark {
+public class FormatterBenchmark extends SimpleBenchmark {
   public void timeFormatter_NoFormatting(int reps) {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
@@ -72,6 +72,6 @@ public class FormatterBenchmarkSuite extends SimpleBenchmark {
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(FormatterBenchmarkSuite.class, args);
+    Runner.main(FormatterBenchmark.class, args);
   }
 }

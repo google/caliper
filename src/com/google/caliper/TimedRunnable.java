@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,21 +16,14 @@
 
 package com.google.caliper;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-import java.util.Set;
+public interface TimedRunnable {
 
-/**
- * A collection of benchmarks that share a set of configuration parameters.
- */
-public abstract class BenchmarkSuite {
-
-  protected abstract Set<Method> benchmarkMethods();
-
-  protected abstract Set<String> parameterNames();
-
-  protected abstract Set<String> parameterValues(String parameterName);
-
-  protected abstract Benchmark createBenchmark(
-      Method benchmark, Map<String, String> parameterValues);
+  /**
+   * Runs the benchmark through {@code trials} iterations.
+   *
+   * @return any object or null. Benchmark implementors may keep an accumulating
+   *      value to prevent the runtime from optimizing away the code under test.
+   *      Such an accumulator value can be returned here.
+   */
+  Object run(int reps) throws Exception;
 }

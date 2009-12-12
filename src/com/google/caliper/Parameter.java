@@ -33,7 +33,7 @@ abstract class Parameter<T> {
   /**
    * Returns all properties for the given class.
    */
-  public static Map<String, Parameter<?>> forClass(Class<? extends BenchmarkSuite> suiteClass) {
+  public static Map<String, Parameter<?>> forClass(Class<? extends Benchmark> suiteClass) {
     Map<String, Parameter<?>> parameters = new TreeMap<String, Parameter<?>>();
     for (final Field field : suiteClass.getDeclaredFields()) {
       if (field.isAnnotationPresent(Param.class)) {
@@ -46,7 +46,7 @@ abstract class Parameter<T> {
   }
 
   public static Parameter forField(
-      Class<? extends BenchmarkSuite> suiteClass, final Field field) {
+      Class<? extends Benchmark> suiteClass, final Field field) {
     Parameter result = null;
     Type returnType = null;
     Member member = null;
@@ -110,7 +110,7 @@ abstract class Parameter<T> {
   /**
    * Sets the value of this property to the specified value for the given suite.
    */
-  public void set(BenchmarkSuite suite, Object value) throws Exception {
+  public void set(Benchmark suite, Object value) throws Exception {
     field.set(suite, value);
   }
 

@@ -18,7 +18,10 @@ package com.google.caliper;
 
 import com.google.common.collect.*;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Prints a report containing the tested values and the corresponding
@@ -36,13 +39,14 @@ import java.util.*;
 final class ConsoleReport {
 
   private static final int bargraphWidth = 30;
-  private static final String benchmarkKey = "benchmark";
   private static final String vmKey = "vm";
 
   private final List<Parameter> parameters;
   private final Result result;
   private final List<Run> runs;
 
+  private final double minValue;
+  private final double maxValue;
   private final double logMaxValue;
   private final int decimalDigits;
   private final double divideBy;
@@ -69,7 +73,6 @@ final class ConsoleReport {
         nameToValues.put(name, parameter.getValue());
       }
 
-      nameToValues.put(benchmarkKey, run.getBenchmarkMethod().getName());
       nameToValues.put(vmKey, run.getVm());
     }
 
@@ -109,6 +112,8 @@ final class ConsoleReport {
 
     this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
     this.runs = new ByParametersOrdering().sortedCopy(result.getMeasurements().keySet());
+    this.minValue = minValue;
+    this.maxValue = maxValue;
     this.logMaxValue = Math.log(maxValue);
 
     int numDigitsInMin = (int) Math.ceil(Math.log10(minValue));
@@ -155,9 +160,7 @@ final class ConsoleReport {
     }
 
     String get(Run run) {
-      if (benchmarkKey.equals(name)) {
-        return run.getBenchmarkMethod().getName();
-      } else if (vmKey.equals(name)) {
+      if (vmKey.equals(name)) {
         return run.getVm();
       } else {
         return run.getParameters().get(name);
@@ -210,6 +213,7 @@ final class ConsoleReport {
    * Prints a table of values.
    */
   private void printValues() {
+    // header
     for (Parameter parameter : parameters) {
       if (parameter.isInteresting()) {
         System.out.printf("%" + parameter.maxLength + "s ", parameter.name);
@@ -217,6 +221,7 @@ final class ConsoleReport {
     }
     System.out.printf("%" + measurementColumnLength + "s logarithmic runtime%n", units);
 
+    // rows
     String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f %s%n";
     for (Run run : runs) {
       for (Parameter parameter : parameters) {
@@ -245,10 +250,15 @@ final class ConsoleReport {
    * value.
    */
   private String bargraph(double value) {
+    int numLinearChars = (int) ((value / maxValue) * bargraphWidth);
     double logValue = Math.log(value);
     int numChars = (int) ((logValue / logMaxValue) * bargraphWidth);
     StringBuilder result = new StringBuilder(numChars);
-    for (int i = 0; i < numChars; i++) {
+    for (int i = 0; i < numLinearChars; i++) {
+      result.append("X");
+    }
+
+    for (int i = numLinearChars; i < numChars; i++) {
       result.append("|");
     }
     return result.toString();

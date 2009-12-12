@@ -34,13 +34,13 @@ class Caliper {
     this.runNanos = runMillis * 1000000;
   }
 
-  public double warmUp(Benchmark benchmark) throws Exception {
+  public double warmUp(TimedRunnable timedRunnable) throws Exception {
     long startNanos = System.nanoTime();
     long endNanos = startNanos + warmupNanos;
     int trials = 0;
     long currentNanos;
     while ((currentNanos = System.nanoTime()) < endNanos) {
-      benchmark.run(1);
+      timedRunnable.run(1);
       trials++;
     }
     double nanosPerExecution = (currentNanos - startNanos) / trials;
@@ -54,8 +54,11 @@ class Caliper {
    * In the run proper, we predict how extrapolate based on warmup how many
    * runs we're going to need, and run them all in a single batch.
    */
-  public double run(Benchmark test, double estimatedNanosPerTrial) throws Exception {
+  public double run(TimedRunnable test, double estimatedNanosPerTrial) throws Exception {
     int trials = (int) (runNanos / estimatedNanosPerTrial);
+    if (trials == 0) {
+      trials = 1;
+    }
     long startNanos = System.nanoTime();
     test.run(trials);
     long endNanos = System.nanoTime();

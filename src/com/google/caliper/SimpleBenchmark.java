@@ -16,9 +16,16 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A convenience class for implementing benchmarks in plain code.
@@ -50,32 +57,37 @@ import java.util.*;
  *   }
  * </pre>
  */
-public abstract class SimpleBenchmark extends BenchmarkSuite {
+public abstract class SimpleBenchmark implements Benchmark {
+
+  private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 
   private final Map<String, Parameter<?>> parameters;
-  private final Map<Method, BenchmarkFactory> benchmarkFactories;
-
-  protected void setUp() throws Exception {}
+  private final Map<String, Method> methods;
 
   protected SimpleBenchmark() {
     parameters = Parameter.forClass(getClass());
-    benchmarkFactories = createBenchmarkFactories();
+    methods = createTimedMethods();
 
-    if (benchmarkFactories.isEmpty()) {
+    if (methods.isEmpty()) {
       throw new ConfigurationException(
           "No benchmarks defined in " + getClass().getName());
     }
   }
 
-  protected Set<Method> benchmarkMethods() {
-    return benchmarkFactories.keySet();
+  protected void setUp() throws Exception {}
+
+  public Set<String> parameterNames() {
+    return ImmutableSet.<String>builder()
+        .add("benchmark")
+        .addAll(parameters.keySet())
+        .build();
   }
 
-  protected Set<String> parameterNames() {
-    return parameters.keySet();
-  }
+  public Set<String> parameterValues(String parameterName) {
+    if ("benchmark".equals(parameterName)) {
+      return methods.keySet();
+    }
 
-  protected Set<String> parameterValues(String parameterName) {
     try {
       TypeConverter typeConverter = new TypeConverter();
       Parameter<?> parameter = parameters.get(parameterName);
@@ -84,41 +96,46 @@ public abstract class SimpleBenchmark extends BenchmarkSuite {
       }
       Collection<?> values = parameter.values();
       Type type = parameter.getType();
-      Set<String> result = new LinkedHashSet<String>();
+
+      ImmutableSet.Builder<String> result = ImmutableSet.builder();
       for (Object value : values) {
         result.add(typeConverter.toString(value, type));
       }
-      return result;
+      return result.build();
     } catch (Exception e) {
       throw new ExecutionException(e);
     }
   }
 
-  protected Benchmark createBenchmark(Method benchmarkMethod,
-      Map<String, String> parameterValues) {
+  public TimedRunnable createBenchmark(Map<String, String> parameterValues) {
     TypeConverter typeConverter = new TypeConverter();
 
-    BenchmarkFactory benchmarkFactory = benchmarkFactories.get(benchmarkMethod);
-    if (benchmarkFactory == null) {
-      throw new IllegalArgumentException();
-    }
-
-    if (!parameters.keySet().equals(parameterValues.keySet())) {
+    if (!parameterNames().equals(parameterValues.keySet())) {
       throw new IllegalArgumentException("Invalid parameters specified. Expected "
-          + parameters.keySet() + " but was " + parameterValues.keySet());
+          + parameterNames() + " but was " + parameterValues.keySet());
     }
 
     try {
-      SimpleBenchmark copyOfSelf = getClass().newInstance();
-      Benchmark benchmark = benchmarkFactory.create(copyOfSelf);
+      final SimpleBenchmark copyOfSelf = getClass().newInstance();
+      final Method method = methods.get(parameterValues.get("benchmark"));
+
       for (Map.Entry<String, String> entry : parameterValues.entrySet()) {
-        Parameter parameter = parameters.get(entry.getKey());
+        String parameterName = entry.getKey();
+        if ("benchmark".equals(parameterName)) {
+          continue;
+        }
+
+        Parameter parameter = parameters.get(parameterName);
         Object value = typeConverter.fromString(entry.getValue(), parameter.getType());
         parameter.set(copyOfSelf, value);
       }
-
       copyOfSelf.setUp();
-      return benchmark;
+
+      return new TimedRunnable() {
+        public Object run(int reps) throws Exception {
+          return method.invoke(copyOfSelf, reps);
+        }
+      };
 
     } catch (Exception e) {
       throw new ExecutionException(e);
@@ -129,25 +146,26 @@ public abstract class SimpleBenchmark extends BenchmarkSuite {
    * Returns a spec for each benchmark defined in the specified class. The
    * returned specs have no parameter values; those must be added separately.
    */
-  private Map<Method, BenchmarkFactory> createBenchmarkFactories() {
-    Map<Method, BenchmarkFactory> result
-        = new LinkedHashMap<Method, BenchmarkFactory>();
+  private Map<String, Method> createTimedMethods() {
+    ImmutableMap.Builder<String, Method> result = ImmutableMap.builder();
     for (final Method method : getClass().getDeclaredMethods()) {
-      if (!ReflectiveBenchmark.isBenchmarkMethod(method)) {
+      int modifiers = method.getModifiers();
+      if (!method.getName().startsWith("time")) {
         continue;
       }
 
-      result.put(method, new BenchmarkFactory() {
-        public Benchmark create(BenchmarkSuite suite) throws Exception {
-          return new ReflectiveBenchmark((SimpleBenchmark) suite, method);
-        }
-      });
+      if (!Modifier.isPublic(modifiers)
+          || Modifier.isStatic(modifiers)
+          || Modifier.isAbstract(modifiers)
+          || !Arrays.equals(method.getParameterTypes(), ARGUMENT_TYPES)) {
+        throw new ConfigurationException("Timed methods must be public, "
+            + "non-static, non-abstract and take a single int parameter. "
+            + "But " + method + " violates these requirements.");
+      }
+
+      result.put(method.getName().substring(4), method);
     }
 
-    return result;
-  }
-
-  interface BenchmarkFactory {
-    Benchmark create(BenchmarkSuite suite) throws Exception;
+    return result.build();
   }
 }

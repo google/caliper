@@ -16,18 +16,18 @@
 
 package com.google.caliper;
 
-public abstract class Benchmark {
+import java.lang.reflect.Method;
+import java.util.Map;
+import java.util.Set;
 
-  /**
-   * Runs the benchmark through {@code trials} iterations.
-   *
-   * @return any object or null. Benchmark implementors may keep an accumulating
-   *      value to prevent the runtime from optimizing away the code under test.
-   *      Such an accumulator value can be returned here.
-   */
-  public abstract Object run(int trials) throws Exception;
+/**
+ * A collection of benchmarks that share a set of configuration parameters.
+ */
+public interface Benchmark {
 
-  @Override public String toString() {
-    return getClass().getSimpleName();
-  }
+  Set<String> parameterNames();
+
+  Set<String> parameterValues(String parameterName);
+
+  TimedRunnable createBenchmark(Map<String, String> parameterValues);
 }

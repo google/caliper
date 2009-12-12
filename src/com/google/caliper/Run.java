@@ -27,13 +27,9 @@ import java.util.Map;
 final class Run {
 
   private final ImmutableMap<String, String> parameters;
-  private final Method benchmarkMethod;
   private final String vm;
 
-  public Run(Map<String, String> parameters,
-      Method benchmarkMethod,
-      String vm) {
-    this.benchmarkMethod = benchmarkMethod;
+  public Run(Map<String, String> parameters, String vm) {
     this.parameters = ImmutableMap.copyOf(parameters);
     this.vm = vm;
   }
@@ -42,15 +38,11 @@ final class Run {
     return parameters;
   }
 
-  public Method getBenchmarkMethod() {
-    return benchmarkMethod;
-  }
-
   public String getVm() {
     return vm;
   }
 
   @Override public String toString() {
-    return benchmarkMethod.getName() + " " + parameters;
+    return "Run" + parameters;
   }
 }
