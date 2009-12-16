@@ -33,10 +33,10 @@ public class CharacterBenchmark extends SimpleBenchmark {
     @Param CharacterSet characterSet;
     static Collection<CharacterSet> characterSetValues = EnumSet.allOf(CharacterSet.class);
 
-    char[] values;
+    char[] chars;
 
     @Override protected void setUp() throws Exception {
-        values = characterSet.chars;
+        this.chars = characterSet.chars;
     }
 
     enum CharacterSet {
@@ -44,112 +44,112 @@ public class CharacterBenchmark extends SimpleBenchmark {
         UNICODE(65536);
         char[] chars;
         CharacterSet(int size) {
-            chars = new char[size];
-            for (int i = 0; i < chars.length; ++i) {
-                chars[i] = (char) i;
+            this.chars = new char[65536];
+            for (int i = 0; i < 65536; ++i) {
+                chars[i] = (char) (i % size);
             }
         }
     }
 
     public void timeDigit(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.digit(ch, 10);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.digit(chars[ch], 10);
             }
         }
     }
 
     public void timeGetNumericValue(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.getNumericValue(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.getNumericValue(chars[ch]);
             }
         }
     }
 
     public void timeIsDigit(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isDigit(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isDigit(chars[ch]);
             }
         }
     }
 
     public void timeIsIdentifierIgnorable(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isIdentifierIgnorable(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isIdentifierIgnorable(chars[ch]);
             }
         }
     }
 
     public void timeIsJavaIdentifierPart(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isJavaIdentifierPart(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isJavaIdentifierPart(chars[ch]);
             }
         }
     }
 
     public void timeIsJavaIdentifierStart(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isJavaIdentifierStart(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isJavaIdentifierStart(chars[ch]);
             }
         }
     }
 
     public void timeIsLetter(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isLetter(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isLetter(chars[ch]);
             }
         }
     }
 
     public void timeIsLetterOrDigit(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isLetterOrDigit(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isLetterOrDigit(chars[ch]);
             }
         }
     }
 
     public void timeIsLowerCase(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isLowerCase(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isLowerCase(chars[ch]);
             }
         }
     }
 
     public void timeIsSpaceChar(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isSpaceChar(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isSpaceChar(chars[ch]);
             }
         }
     }
 
     public void timeIsUpperCase(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isUpperCase(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isUpperCase(chars[ch]);
             }
         }
     }
 
     public void timeIsWhitespace(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.isWhitespace(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.isWhitespace(chars[ch]);
             }
         }
     }
 
     public void timeIsNull(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
+            for (int ch = 0; ch < 65536; ++ch) {
                 boolean b = (ch == ' ');
             }
         }
@@ -157,16 +157,16 @@ public class CharacterBenchmark extends SimpleBenchmark {
 
     public void timeToLowerCase(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.toLowerCase(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.toLowerCase(chars[ch]);
             }
         }
     }
 
     public void timeToUpperCase(int reps) {
         for (int i = 0; i < reps; ++i) {
-            for (char ch = 0; ch < '}'; ++ch) {
-                Character.toUpperCase(ch);
+            for (int ch = 0; ch < 65536; ++ch) {
+                Character.toUpperCase(chars[ch]);
             }
         }
     }
