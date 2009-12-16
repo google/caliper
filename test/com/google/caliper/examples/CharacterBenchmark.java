@@ -33,11 +33,16 @@ public class CharacterBenchmark extends SimpleBenchmark {
     @Param CharacterSet characterSet;
     static Collection<CharacterSet> characterSetValues = EnumSet.allOf(CharacterSet.class);
 
+    @Param Overload overload;
+    static Collection<Overload> overloadValues = EnumSet.allOf(Overload.class);
+
     char[] chars;
 
     @Override protected void setUp() throws Exception {
         this.chars = characterSet.chars;
     }
+
+    enum Overload { CHAR, INT; }
 
     enum CharacterSet {
         ASCII(128),
@@ -51,122 +56,243 @@ public class CharacterBenchmark extends SimpleBenchmark {
         }
     }
 
+    // A fake benchmark to give us a baseline.
+    public void timeIsNull(int reps) {
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    boolean b = ((char) ch == ' ');
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    boolean b = (ch == ' ');
+                }
+            }
+        }
+    }
+
     public void timeDigit(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.digit(chars[ch], 10);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.digit(chars[ch], 10);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.digit((int) chars[ch], 10);
+                }
             }
         }
     }
 
     public void timeGetNumericValue(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.getNumericValue(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.getNumericValue(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.getNumericValue((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsDigit(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isDigit(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isDigit(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isDigit((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsIdentifierIgnorable(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isIdentifierIgnorable(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isIdentifierIgnorable(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isIdentifierIgnorable((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsJavaIdentifierPart(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isJavaIdentifierPart(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isJavaIdentifierPart(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isJavaIdentifierPart((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsJavaIdentifierStart(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isJavaIdentifierStart(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isJavaIdentifierStart(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isJavaIdentifierStart((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsLetter(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isLetter(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLetter(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLetter((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsLetterOrDigit(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isLetterOrDigit(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLetterOrDigit(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLetterOrDigit((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsLowerCase(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isLowerCase(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLowerCase(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isLowerCase((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsSpaceChar(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isSpaceChar(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isSpaceChar(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isSpaceChar((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsUpperCase(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isUpperCase(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isUpperCase(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isUpperCase((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeIsWhitespace(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.isWhitespace(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isWhitespace(chars[ch]);
+                }
             }
-        }
-    }
-
-    public void timeIsNull(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                boolean b = (ch == ' ');
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.isWhitespace((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeToLowerCase(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.toLowerCase(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.toLowerCase(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.toLowerCase((int) chars[ch]);
+                }
             }
         }
     }
 
     public void timeToUpperCase(int reps) {
-        for (int i = 0; i < reps; ++i) {
-            for (int ch = 0; ch < 65536; ++ch) {
-                Character.toUpperCase(chars[ch]);
+        if (overload == Overload.CHAR) {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.toUpperCase(chars[ch]);
+                }
+            }
+        } else {
+            for (int i = 0; i < reps; ++i) {
+                for (int ch = 0; ch < 65536; ++ch) {
+                    Character.toUpperCase((int) chars[ch]);
+                }
             }
         }
     }
