@@ -46,14 +46,11 @@ public class ArraySortBenchmark extends SimpleBenchmark {
     copy = new int[length];
   }
 
-  public int timeSort(int reps) {
-    int dummy = 0;
+  public void timeSort(int reps) {
     for (int i = 0; i < reps; i++) {
       System.arraycopy(values, 0, copy, 0, values.length);
       Arrays.sort(copy);
-      dummy ^= copy[0];
     }
-    return dummy;
   }
 
   enum Distribution {

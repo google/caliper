@@ -53,24 +53,18 @@ public class ListIterationBenchmark extends SimpleBenchmark {
     };
   }
 
-  public int timeListIteration(int reps) {
-    int count = 0;
+  public void timeListIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : list) {
-        count ^= value.hashCode(); // prevent overoptimization
       }
     }
-    return count; // ignored
   }
 
-  public int timeArrayIteration(int reps) {
-    int count = 0;
+  public void timeArrayIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : array) {
-        count ^= value.hashCode(); // prevent overoptimization
       }
     }
-    return count; // ignored
   }
 
   // TODO: remove this from all examples when IDE plugins are ready

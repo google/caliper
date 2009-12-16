@@ -37,40 +37,32 @@ public class BoxedDoubleToStringBenchmark extends SimpleBenchmark {
       Double.NaN
   );
 
-  public int timeStringFormat(int reps) {
+  public void timeStringFormat(int reps) {
     Double value = d;
-    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += String.format("%f", value).length();
+      String.format("%f", value);
     }
-    return dummy;
   }
 
-  public int timeToString(int reps) {
+  public void timeToString(int reps) {
     Double value = d;
-    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += value.toString().length();
+      value.toString();
     }
-    return dummy;
   }
 
-  public int timeStringValueOf(int reps) {
+  public void timeStringValueOf(int reps) {
     Double value = d;
-    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += String.valueOf(value).length();
+      String.valueOf(value);
     }
-    return dummy;
   }
 
-  public int timeQuoteTrick(int reps) {
+  public void timeQuoteTrick(int reps) {
     Double value = d;
-    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy = ("" + value).length();
+      String unused = ("" + value);
     }
-    return dummy;
   }
 
   // TODO: remove this from all examples when IDE plugins are ready

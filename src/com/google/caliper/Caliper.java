@@ -37,15 +37,24 @@ class Caliper {
   public double warmUp(TimedRunnable timedRunnable) throws Exception {
     long startNanos = System.nanoTime();
     long endNanos = startNanos + warmupNanos;
-    int trials = 0;
     long currentNanos;
+    int netReps = 0;
+    int reps = 1;
+
+    /*
+     * Run progressively more reps at a time until we cross our warmup
+     * threshold. This way any just-in-time compiler will be comfortable running
+     * multiple iterations of our measurement method.
+     */
     while ((currentNanos = System.nanoTime()) < endNanos) {
-      timedRunnable.run(1);
-      trials++;
+      timedRunnable.run(reps);
+      netReps += reps;
+      reps *= 2;
     }
-    double nanosPerExecution = (currentNanos - startNanos) / trials;
+
+    double nanosPerExecution = (currentNanos - startNanos) / netReps;
     if (nanosPerExecution > 1000000000 || nanosPerExecution < 2) {
-      throw new ConfigurationException("Runtime out of range");
+      throw new ConfigurationException("Runtime " + nanosPerExecution + " out of range");
     }
     return nanosPerExecution;
   }
@@ -54,15 +63,50 @@ class Caliper {
    * In the run proper, we predict how extrapolate based on warmup how many
    * runs we're going to need, and run them all in a single batch.
    */
-  public double run(TimedRunnable test, double estimatedNanosPerTrial) throws Exception {
+  public double run(TimedRunnable test, double estimatedNanosPerTrial)
+      throws Exception {
     int trials = (int) (runNanos / estimatedNanosPerTrial);
     if (trials == 0) {
       trials = 1;
     }
+
+    double nanosPerTrial = measure(test, trials);
+
+    // if the runtime was in the expected range, return it. We're good.
+    if (isPlausible(estimatedNanosPerTrial, nanosPerTrial)) {
+      return nanosPerTrial;
+    }
+
+    // The runtime was outside of the expected range. Perhaps the VM is inlining
+    // things too aggressively? We'll run more rounds to confirm that the
+    // runtime scales with the number of trials.
+    double nanosPerTrial2 = measure(test, trials * 4);
+    if (isPlausible(nanosPerTrial, nanosPerTrial2)) {
+      return nanosPerTrial;
+    }
+
+    throw new ConfigurationException("Measurement error: "
+        + "runtime isn't proportional to the number of repetitions!");
+  }
+
+  /**
+   * Returns true if the given measurement is consistent with the expected
+   * measurement.
+   */
+  private boolean isPlausible(double expected, double measurement) {
+    double ratio = measurement / expected;
+    return ratio > 0.9 && ratio < 1.1;
+  }
+
+  private double measure(TimedRunnable test, int trials) throws Exception {
+    prepareForTest();
     long startNanos = System.nanoTime();
     test.run(trials);
-    long endNanos = System.nanoTime();
-    estimatedNanosPerTrial = (endNanos - startNanos) / trials;
-    return estimatedNanosPerTrial;
+    return (System.nanoTime() - startNanos) / trials;
+  }
+
+  private void prepareForTest() {
+    System.gc();
+    System.gc();
   }
 }

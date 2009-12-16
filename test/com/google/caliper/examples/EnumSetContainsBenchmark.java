@@ -84,12 +84,10 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
     this.testValues = setMaker.testValues();
   }
 
-  public int timeContains(int reps) throws Exception {
-    int dummy = 0;
+  public void timeContains(int reps) throws Exception {
     for (int i = 0; i < reps; i++) {
-      dummy ^= (set.contains(testValues[i % testValues.length]) ? i : 0);
+      set.contains(testValues[i % testValues.length]);
     }
-    return dummy;
   }
 
   public static void main(String[] args) throws Exception {
