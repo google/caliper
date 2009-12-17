@@ -31,10 +31,8 @@ import java.util.EnumSet;
 public class CharacterBenchmark extends SimpleBenchmark {
 
     @Param CharacterSet characterSet;
-    static Collection<CharacterSet> characterSetValues = EnumSet.allOf(CharacterSet.class);
 
     @Param Overload overload;
-    static Collection<Overload> overloadValues = EnumSet.allOf(Overload.class);
 
     char[] chars;
 

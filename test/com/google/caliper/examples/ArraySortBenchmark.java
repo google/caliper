@@ -36,8 +36,6 @@ public class ArraySortBenchmark extends SimpleBenchmark {
 
   @Param Distribution distribution;
 
-  static final Collection<Distribution> distributionValues = EnumSet.allOf(Distribution.class);
-
   int[] values;
   int[] copy;
 

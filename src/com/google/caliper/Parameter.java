@@ -82,29 +82,45 @@ abstract class Parameter<T> {
     } catch (NoSuchFieldException ignored) {
     }
 
+    if (member != null && !Modifier.isStatic(member.getModifiers())) {
+        throw new ConfigurationException("Values member must be static " + member);
+    }
+
+    // If there isn't a values member but the parameter is an enum, we default
+    // to EnumSet.allOf.
+    if (member == null && field.getType().isEnum()) {
+      returnType = Collection.class;
+      result = new Parameter<Object>(field) {
+        @SuppressWarnings("unchecked") // guarded above
+        public Collection<Object> values() throws Exception {
+          return EnumSet.allOf((Class<Enum>) field.getType());
+        }
+      };
+    }
+
     if (result == null) {
       throw new ConfigurationException("No values member defined for " + field);
     }
 
-    if (!Modifier.isStatic(member.getModifiers())) {
-      throw new ConfigurationException("Values member must be static " + member);
-    }
-
-    // validate return type
-    boolean valid = false;
-    if (returnType instanceof ParameterizedType) {
-      ParameterizedType type = (ParameterizedType) returnType;
-      if (type.getRawType() == Collection.class) {
-        valid = true;
-      }
-    }
-
-    if (!valid) {
+    if (!isValidReturnType(returnType)) {
       throw new ConfigurationException("Invalid return type " + returnType
           + " for values member " + member + "; must be Collection");
     }
 
     return result;
+  }
+
+  private static boolean isValidReturnType(Type returnType) {
+    if (returnType == Collection.class) {
+      return true;
+    }
+    if (returnType instanceof ParameterizedType) {
+      ParameterizedType type = (ParameterizedType) returnType;
+      if (type.getRawType() == Collection.class) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**

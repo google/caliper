@@ -31,8 +31,6 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
 
   @Param private SetMaker setMaker;
 
-  private static final Collection<SetMaker> setMakerValues = EnumSet.allOf(SetMaker.class);
-
   enum SetMaker {
     ENUM_SET {
       @Override Set<?> newSet() {
