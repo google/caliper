@@ -16,8 +16,6 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
@@ -67,5 +65,10 @@ public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
         for (int i = 0; i < reps; ++i) {
             sdf.clone();
         }
+    }
+
+    // TODO: remove this from all examples when IDE plugins are ready
+    public static void main(String[] args) throws Exception {
+        Runner.main(ExpensiveObjectsBenchmark.class, args);
     }
 }

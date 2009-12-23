@@ -16,8 +16,17 @@
 
 package com.google.caliper;
 
-import java.lang.reflect.*;
-import java.util.*;
+import java.lang.reflect.Field;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.EnumSet;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A parameter in a {@link SimpleBenchmark}.
@@ -47,15 +56,25 @@ abstract class Parameter<T> {
 
   public static Parameter forField(
       Class<? extends Benchmark> suiteClass, final Field field) {
+    // First check for String values on the annotation itself
+    final String[] defaults = field.getAnnotation(Param.class).value();
+    if (defaults.length > 0) {
+      return new Parameter<Object>(field) {
+        public Collection<Object> values() throws Exception {
+          return Arrays.<Object>asList(defaults);
+        }
+      };
+    }
+
     Parameter result = null;
     Type returnType = null;
     Member member = null;
 
+    // Now check for a fooValues() method
     try {
       final Method valuesMethod = suiteClass.getDeclaredMethod(field.getName() + "Values");
       valuesMethod.setAccessible(true);
-      member = valuesMethod;
-      returnType = valuesMethod.getGenericReturnType();
+      returnType = field.getGenericType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
         public Collection<Object> values() throws Exception {
@@ -65,6 +84,7 @@ abstract class Parameter<T> {
     } catch (NoSuchMethodException ignored) {
     }
 
+    // Now check for a fooValues field
     try {
       final Field valuesField = suiteClass.getDeclaredField(field.getName() + "Values");
       valuesField.setAccessible(true);

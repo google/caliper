@@ -16,21 +16,16 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * Tests the performance of various StringBuilder methods.
  */
 public class StringBuilderBenchmark extends SimpleBenchmark {
 
-    @Param int length;
-    static Collection<Integer> lengthValues = Arrays.asList(1, 10, 100);
+    @Param({"1", "10", "100"}) int length;
 
     public void timeAppendBoolean(int reps) {
         for (int i = 0; i < reps; ++i) {
@@ -128,5 +123,11 @@ public class StringBuilderBenchmark extends SimpleBenchmark {
                 sb.append(s);
             }
         }
+    }
+
+
+    // TODO: remove this from all examples when IDE plugins are ready
+    public static void main(String[] args) throws Exception {
+        Runner.main(StringBuilderBenchmark.class, args);
     }
 }

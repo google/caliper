@@ -3,13 +3,14 @@
   <component name="AntConfiguration">
     <defaultAnt bundledAnt="true" />
   </component>
+  <component name="BlazePluginSettings" buildBeforeRefresh="true" blazeTestProducers="true" updater="default" />
   <component name="BuildJarProjectSettings">
     <option name="BUILD_JARS_ON_MAKE" value="false" />
   </component>
   <component name="CodeStyleSettingsManager">
     <option name="PER_PROJECT_SETTINGS">
       <value>
-        <ADDITIONAL_INDENT_OPTIONS fileType="java">
+        <ADDITIONAL_INDENT_OPTIONS fileType="">
           <option name="INDENT_SIZE" value="4" />
           <option name="CONTINUATION_INDENT_SIZE" value="8" />
           <option name="TAB_SIZE" value="4" />
@@ -18,7 +19,7 @@
           <option name="LABEL_INDENT_SIZE" value="0" />
           <option name="LABEL_INDENT_ABSOLUTE" value="false" />
         </ADDITIONAL_INDENT_OPTIONS>
-        <ADDITIONAL_INDENT_OPTIONS fileType="jsp">
+        <ADDITIONAL_INDENT_OPTIONS fileType="java">
           <option name="INDENT_SIZE" value="4" />
           <option name="CONTINUATION_INDENT_SIZE" value="8" />
           <option name="TAB_SIZE" value="4" />
@@ -111,6 +112,21 @@
           <option name="IGNORE_DEPRECATED" value="false" />
           <option name="IGNORE_JAVADOC_PERIOD" value="true" />
           <option name="myAdditionalJavadocTags" value="" />
+        </inspection_tool>
+        <inspection_tool class="UnusedDeclaration" level="WARNING" enabled="false">
+          <option name="ADD_MAINS_TO_ENTRIES" value="true" />
+          <option name="ADD_APPLET_TO_ENTRIES" value="true" />
+          <option name="ADD_SERVLET_TO_ENTRIES" value="true" />
+          <option name="ADD_NONJAVA_TO_ENTRIES" value="true" />
+          <option name="ADDITIONAL_ANNOTATIONS">
+            <value>
+              <list size="1">
+                <item index="0" class="java.lang.String" itemvalue="javax.ws.rs.*" />
+              </list>
+            </value>
+          </option>
+          <option name="ADD_JUNIT_TO_ENTRIES" value="true" />
+          <option name="ADD_TESTNG_TO_ENTRIES" value="true" />
         </inspection_tool>
       </profile>
     </profiles>
@@ -281,7 +297,7 @@
       <module fileurl="file://$PROJECT_DIR$/core.iml" filepath="$PROJECT_DIR$/core.iml" />
     </modules>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="1.5" project-jdk-type="JavaSDK">
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_1_5" assert-keyword="true" jdk-15="true" project-jdk-name="OpenJDK (gg5)" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="ResourceManagerContainer">

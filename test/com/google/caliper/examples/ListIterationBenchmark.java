@@ -21,17 +21,15 @@ import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
 import java.util.AbstractList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 /**
  * Measures iterating through list elements.
  */
 public class ListIterationBenchmark extends SimpleBenchmark {
-  @Param private int length;
 
-  private static final Collection<Integer> lengthValues = Arrays.asList(0, 10, 100, 1000);
+  @Param({"0", "10", "100", "1000"})
+  private int length;
 
   private List<Object> list;
   private Object[] array;

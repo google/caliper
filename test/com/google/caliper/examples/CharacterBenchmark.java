@@ -16,13 +16,9 @@
 
 package com.google.caliper.examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
-import java.util.Collection;
-import java.util.EnumSet;
 
 /**
  * Tests various Character methods, intended for testing multiple
@@ -40,9 +36,9 @@ public class CharacterBenchmark extends SimpleBenchmark {
         this.chars = characterSet.chars;
     }
 
-    enum Overload { CHAR, INT; }
+    public enum Overload { CHAR, INT; }
 
-    enum CharacterSet {
+    public enum CharacterSet {
         ASCII(128),
         UNICODE(65536);
         char[] chars;
@@ -293,5 +289,10 @@ public class CharacterBenchmark extends SimpleBenchmark {
                 }
             }
         }
+    }
+
+    // TODO: remove this from all examples when IDE plugins are ready
+    public static void main(String[] args) throws Exception {
+        Runner.main(CharacterBenchmark.class, args);
     }
 }

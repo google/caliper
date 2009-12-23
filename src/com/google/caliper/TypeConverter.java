@@ -16,42 +16,47 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.ImmutableMap;
+
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.util.Map;
 
 /**
  * Convert objects to and from Strings.
  */
 class TypeConverter {
-
-  // the enum to strings conversion is manually checked
-  @SuppressWarnings("unchecked")
   public Object fromString(String value, Type type) {
-    if (type instanceof Class) {
-      Class<?> c = (Class<?>) type;
-      if (c.isEnum()) {
-          return Enum.valueOf((Class) c, value);
-      } else if (type == Double.class || type == double.class) {
-        return Double.valueOf(value);
-      } else if (type == Integer.class || type == int.class) {
-        return Integer.valueOf(value);
-      }
+    Class<?> c = wrap((Class<?>) type);
+    try {
+      Method m = c.getMethod("valueOf", String.class);
+      return m.invoke(null, value);
+    } catch (Exception e) {
+      throw new UnsupportedOperationException(
+          "Cannot convert " + value + " of type " + type, e);
     }
-    throw new UnsupportedOperationException(
-        "Cannot convert " + value + " of type " + type);
   }
 
   public String toString(Object value, Type type) {
-    if (type instanceof Class) {
-      Class<?> c = (Class<?>) type;
-      if (c.isEnum()) {
-        return value.toString();
-      } else if (type == Double.class || type == double.class) {
-        return value.toString();
-      } else if (type == Integer.class || type == int.class) {
-        return value.toString();
-      }
-    }
-    throw new UnsupportedOperationException(
-        "Cannot convert " + value + " of type " + type);
+    return String.valueOf(value);
   }
+
+  // safe because both Long.class and long.class are of type Class<Long>
+  @SuppressWarnings("unchecked")
+  private static <T> Class<T> wrap(Class<T> c) {
+    return c.isPrimitive() ? (Class<T>) PRIMITIVES_TO_WRAPPERS.get(c) : c;
+  }
+
+  private static final Map<Class<?>, Class<?>> PRIMITIVES_TO_WRAPPERS
+    = new ImmutableMap.Builder<Class<?>, Class<?>>()
+      .put(boolean.class, Boolean.class)
+      .put(byte.class, Byte.class)
+      .put(char.class, Character.class)
+      .put(double.class, Double.class)
+      .put(float.class, Float.class)
+      .put(int.class, Integer.class)
+      .put(long.class, Long.class)
+      .put(short.class, Short.class)
+      .put(void.class, Void.class)
+      .build();
 }

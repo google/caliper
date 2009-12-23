@@ -22,7 +22,6 @@ import com.google.caliper.SimpleBenchmark;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.EnumSet;
 import java.util.Random;
 
 /**
@@ -51,7 +50,7 @@ public class ArraySortBenchmark extends SimpleBenchmark {
     }
   }
 
-  enum Distribution {
+  public enum Distribution {
     SAWTOOTH {
       @Override
       int[] create(int length) {

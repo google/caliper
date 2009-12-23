@@ -20,7 +20,6 @@ import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -31,7 +30,7 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
 
   @Param private SetMaker setMaker;
 
-  enum SetMaker {
+  public enum SetMaker {
     ENUM_SET {
       @Override Set<?> newSet() {
         return EnumSet.allOf(RegularSize.class);
