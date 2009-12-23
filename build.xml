@@ -1,104 +1,90 @@
 <?xml version="1.0"?>
 
-<project name="caliper" default="compile">
-
-    <property environment="env"/>
-
+<project name="caliper" default="install">
     <!-- can be overridden at the command line with -Dversion=
          or in IDEA, in the ant properties dialog -->
     <property name="version" value="snapshot"/>
 
-    <path id="compile.classpath">
+    <property name="classes" value="build/classes/prod"/>
+    <property name="testclasses" value="build/classes/test"/>
+    <property name="installroot" value="build/caliper-${version}"/>
+    <property name="javadocroot" value="${installroot}/docs/api"/>
+
+    <path id="dependencies">
         <pathelement location="lib/google-collect-1.0-rc4.jar"/>
     </path>
 
-    <target name="compile" description="Compile Java source.">
-        <mkdir dir="build/classes"/>
-        <javac srcdir="src"
-               debug="on"
-               destdir="build/classes"
-               source="1.5"
-               target="1.5">
-            <classpath refid="compile.classpath"/>
-        </javac>
-        <copy toDir="build/classes">
-            <fileset dir="src" excludes="**/*.java"/>
-        </copy>
-    </target>
+    <path id="testdependencies">
+        <path refid="dependencies"/>
+        <pathelement location="${classes}"/>
+        <pathelement location="lib/junit.jar"/>
+    </path>
 
-    <target name="test.compile"
-            depends="compile"
-            description="Compile test source.">
-        <mkdir dir="build/test"/>
+
+    <target name="compile"
+            description="Compile source code for the Caliper framework">
+        <mkdir dir="${classes}"/>
+        <javac srcdir="src"
+               destdir="${classes}"
+               debug="on"
+               source="1.5"
+               target="1.5"
+               classpathref="dependencies">
+            <compilerarg value="-Xlint"/>
+            <compilerarg value="-Xlint:-serial"/> <!-- should turn this back on.. -->
+            <!--compilerarg value="-Werror"/-->
+        </javac>
+
+        <mkdir dir="${testclasses}"/>
         <javac srcdir="test"
                debug="on"
-               destdir="build/test"
+               destdir="${testclasses}"
                source="1.5"
                target="1.5">
+            <compilerarg value="-Xlint"/>
+            <compilerarg value="-Xlint:-serial"/> <!-- should turn this back on.. -->
+            <!--compilerarg value="-Werror"/-->
             <classpath>
-                <pathelement location="build/classes"/>
-                <pathelement location="lib/google-collect-1.0-rc4.jar"/>
-                <pathelement location="lib/junit.jar"/>
+                <path refid="testdependencies"/>
             </classpath>
         </javac>
-        <copy toDir="build/test">
-            <fileset dir="test" excludes="**/*.java"/>
-        </copy>
     </target>
 
     <target name="test"
-            depends="test.compile"
-            description="Execute JUnit tests.">
+            depends="compile"
+            description="Run unit tests">
         <java fork="true"
               classname="junit.textui.TestRunner"
               failonerror="true"
               taskname="junit">
             <classpath>
-                <pathelement location="build/test"/>
-                <pathelement location="build/classes"/>
-                <pathelement location="lib/junit.jar"/>
-                <pathelement location="lib/google-collect-1.0-rc4.jar"/>
+                <pathelement location="${testclasses}"/>
+                <path refid="testdependencies"/>
             </classpath>
             <arg value="com.google.caliper.AllTests" />
         </java>
     </target>
 
-    <target name="clean"
-            description="Remove generated files.">
-        <delete dir="build"/>
-    </target>
-
-    <target name="jar" depends="compile" description="Build jars.">
-        <mkdir dir="build/dist"/>
-        <mkdir dir="build/dist/caliper-${version}"/>
-        <jar jarfile="build/dist/caliper-${version}/caliper-${version}.jar">
-            <fileset dir="build/classes"/>
+    <target name="makejar" depends="compile">
+        <mkdir dir="${installroot}/lib"/>
+        <jar jarfile="${installroot}/lib/caliper-${version}.jar">
+            <fileset dir="${classes}"/>
         </jar>
     </target>
 
-    <target name="jarsrc" description="Build jar of source.">
-        <jar jarfile="build/dist/caliper-${version}/src-${version}.zip">
+    <target name="makesourcejar">
+        <mkdir dir="${installroot}"/>
+        <zip zipfile="${installroot}/src-${version}.zip">
             <fileset dir="src"/>
-        </jar>
-    </target>
-
-    <target name="dist" depends="jar, jarsrc, javadoc"
-            description="Build entire distribution.">
-        <copy toDir="build/dist/caliper-${version}" file="COPYING"/>
-        <copy toDir="build/dist/caliper-${version}">
-            <fileset dir="build" includes="javadoc/**/*"/>
-        </copy>
-
-        <zip destfile="build/caliper-${version}.zip"
-             basedir="build/dist"/>
+        </zip>
     </target>
 
     <target name="javadoc"
-            description="Generate Javadocs.">
-        <delete dir="build/javadoc"/>
-        <mkdir dir="build/javadoc"/>
+            description="Generate API documentation to ${javadocroot}">
+        <!-- delete dir="${javadocroot}"/-->
+        <mkdir dir="${javadocroot}"/>
         <javadoc packagenames="com.google.caliper"
-                 destdir="build/javadoc"
+                 destdir="${javadocroot}"
                  use="true"
                  author="true"
                  protected="true"
@@ -106,9 +92,36 @@
             <sourcepath>
                 <pathelement location="src"/>
             </sourcepath>
-            <classpath refid="compile.classpath"/>
+            <classpath refid="dependencies"/>
             <link href="http://google-collections.googlecode.com/svn/trunk/javadoc/"/>
             <link href="http://java.sun.com/javase/6/docs/api"/>
         </javadoc>
     </target>
+
+    <target name="install" depends="makejar, makesourcejar, javadoc"
+            description="Create a complete installation tree in ./build/caliper-*">
+        <copy toDir="${installroot}/lib" file="lib/google-collect-1.0-rc4.jar"/> <!-- should use 'dependencies' -->
+        <copy toDir="${installroot}" file="COPYING"/>
+        <copy toDir="${installroot}" file="src/caliper"/>
+        <chmod perm="ugo=rx" file="${installroot}/caliper"/>
+    </target>
+
+    <target name="dist"
+            depends="install"
+            description="Create a zipped distribution for upload to Google Code">
+        <zip destfile="build/caliper-${version}.zip">
+            <zipfileset dir="build/caliper-${version}"
+                        excludes="caliper"
+                        prefix="caliper-${version}"/>
+            <zipfileset file="build/caliper-${version}/caliper" 
+                        prefix="caliper-${version}"
+                        filemode="555"/>
+        </zip>
+    </target>
+
+    <target name="clean"
+            description="Remove all generated files.">
+        <delete dir="build"/>
+    </target>
+
 </project>
