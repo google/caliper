@@ -57,7 +57,7 @@ abstract class Parameter<T> {
   public static Parameter forField(
       Class<? extends Benchmark> suiteClass, final Field field) {
     // First check for String values on the annotation itself
-    final String[] defaults = field.getAnnotation(Param.class).value();
+    final Object[] defaults = field.getAnnotation(Param.class).value();
     if (defaults.length > 0) {
       return new Parameter<Object>(field) {
         public Collection<Object> values() throws Exception {
