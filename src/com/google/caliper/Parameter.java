@@ -24,6 +24,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.TreeMap;
@@ -119,14 +120,15 @@ abstract class Parameter<T> {
     }
 
     if (result == null) {
-      throw new ConfigurationException("No values member defined for " + field);
-    }
-
-    if (!isValidReturnType(returnType)) {
+      return new Parameter<Object>(field) {
+        @Override public Collection<Object> values() throws Exception {
+          return Collections.emptySet();
+        }
+      };
+    } else if (!isValidReturnType(returnType)) {
       throw new ConfigurationException("Invalid return type " + returnType
           + " for values member " + member + "; must be Collection");
     }
-
     return result;
   }
 

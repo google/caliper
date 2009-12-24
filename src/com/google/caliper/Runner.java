@@ -347,7 +347,7 @@ public final class Runner {
     System.out.println();
     System.out.println("OPTIONS");
     System.out.println();
-    System.out.println("  --D<param>=<value>: fix a benchmark parameter to a given value.");
+    System.out.println("  -D<param>=<value>: fix a benchmark parameter to a given value.");
     System.out.println("        When multiple values for the same parameter are given (via");
     System.out.println("        multiple --Dx=y args), all supplied values are used.");
     System.out.println();
