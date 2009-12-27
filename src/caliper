@@ -3,5 +3,5 @@
 # rough
 
 base=`dirname $0`
-exec $JAVA_HOME/bin/java -cp $base/lib/caliper-0.1.jar:$base/lib/google-collect-1.0-rc4.jar:$CLASSPATH com.google.caliper.Runner $*
+exec $JAVA_HOME/bin/java -cp $base/lib/caliper-@VERSION@.jar:$base/@COLLECT@:$CLASSPATH com.google.caliper.Runner $*
 

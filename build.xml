@@ -9,9 +9,10 @@
     <property name="testclasses" value="build/classes/test"/>
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
+    <property name="collections" value="lib/google-collect-1.0-rc4.jar"/>
 
     <path id="dependencies">
-        <pathelement location="lib/google-collect-1.0-rc4.jar"/>
+        <pathelement location="${collections}"/>
     </path>
 
     <path id="testdependencies">
@@ -100,9 +101,14 @@
 
     <target name="install" depends="makejar, makesourcejar, javadoc"
             description="Create a complete installation tree in ./build/caliper-*">
-        <copy toDir="${installroot}/lib" file="lib/google-collect-1.0-rc4.jar"/> <!-- should use 'dependencies' -->
+        <copy toDir="${installroot}/lib" file="${collections}"/> <!-- should use 'dependencies' -->
         <copy toDir="${installroot}" file="COPYING"/>
-        <copy toDir="${installroot}" file="src/caliper"/>
+        <copy toDir="${installroot}" file="src/caliper">
+            <filterset>
+                <filter token="VERSION" value="${version}"/>
+                <filter token="COLLECT" value="${collections}"/>
+            </filterset>
+        </copy>
         <chmod perm="ugo=rx" file="${installroot}/caliper"/>
     </target>
 
