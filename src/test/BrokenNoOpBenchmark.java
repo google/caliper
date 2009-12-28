@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package test;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
-public final class AllTests {
-  public static Test suite() {
-    TestSuite suite = new TestSuite();
-    // tests go here :)
-    return suite;
+/**
+ * This fails with a runtime out of range error.
+ */
+public class BrokenNoOpBenchmark extends SimpleBenchmark {
+
+  public void timeNoOp(int reps) {
+    for (int i = 0; i < reps; i++);
+  }
+
+  public static void main(String[] args) throws Exception {
+    Runner.main(BrokenNoOpBenchmark.class, args);
   }
 }

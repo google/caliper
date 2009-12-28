@@ -3,10 +3,10 @@
 <project name="caliper" default="install">
     <!-- can be overridden at the command line with -Dversion=
          or in IDEA, in the ant properties dialog -->
-    <property name="version" value="snapshot"/>
+    <property name="version" value="0.1-r35"/> <!-- make automatic -->
 
-    <property name="classes" value="build/classes/prod"/>
-    <property name="testclasses" value="build/classes/test"/>
+    <property name="frameworkclasses" value="build/classes/framework"/>
+    <property name="otherclasses" value="build/classes/other"/>
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
     <property name="collections" value="lib/google-collect-1.0-rc4.jar"/>
@@ -17,16 +17,16 @@
 
     <path id="testdependencies">
         <path refid="dependencies"/>
-        <pathelement location="${classes}"/>
+        <pathelement location="${frameworkclasses}"/>
         <pathelement location="lib/junit.jar"/>
     </path>
 
-
     <target name="compile"
-            description="Compile source code for the Caliper framework">
-        <mkdir dir="${classes}"/>
+            description="Compile all Java source code">
+        <mkdir dir="${frameworkclasses}"/>
         <javac srcdir="src"
-               destdir="${classes}"
+               includes="com/**"
+               destdir="${frameworkclasses}"
                debug="on"
                source="1.5"
                target="1.5"
@@ -36,10 +36,11 @@
             <!--compilerarg value="-Werror"/-->
         </javac>
 
-        <mkdir dir="${testclasses}"/>
-        <javac srcdir="test"
+        <mkdir dir="${otherclasses}"/>
+        <javac srcdir="src"
+               excludes="com/**"
                debug="on"
-               destdir="${testclasses}"
+               destdir="${otherclasses}"
                source="1.5"
                target="1.5">
             <compilerarg value="-Xlint"/>
@@ -59,30 +60,25 @@
               failonerror="true"
               taskname="junit">
             <classpath>
-                <pathelement location="${testclasses}"/>
+                <pathelement location="${otherclasses}"/>
                 <path refid="testdependencies"/>
             </classpath>
-            <arg value="com.google.caliper.AllTests" />
+            <arg value="com.google.caliper.AllTests" /> <!-- no works, replace with file pattern -->
         </java>
     </target>
 
-    <target name="makejar" depends="compile">
+    <target name="buildjar"
+            depends="compile"
+            description="Build JAR archive of caliper framework">
         <mkdir dir="${installroot}/lib"/>
         <jar jarfile="${installroot}/lib/caliper-${version}.jar">
-            <fileset dir="${classes}"/>
+            <fileset dir="${frameworkclasses}"/>
         </jar>
-    </target>
-
-    <target name="makesourcejar">
-        <mkdir dir="${installroot}"/>
-        <zip zipfile="${installroot}/src-${version}.zip">
-            <fileset dir="src"/>
-        </zip>
     </target>
 
     <target name="javadoc"
             description="Generate API documentation to ${javadocroot}">
-        <!-- delete dir="${javadocroot}"/-->
+        <delete dir="${javadocroot}"/> <!-- TODO: figure out how to make this more incremental -->
         <mkdir dir="${javadocroot}"/>
         <javadoc packagenames="com.google.caliper"
                  destdir="${javadocroot}"
@@ -99,11 +95,16 @@
         </javadoc>
     </target>
 
-    <target name="install" depends="makejar, makesourcejar, javadoc"
+    <target name="install" depends="buildjar, javadoc"
             description="Create a complete installation tree in ./build/caliper-*">
+        <mkdir dir="${installroot}"/>
+        <zip zipfile="${installroot}/src-${version}.zip">
+            <fileset dir="src"/>
+        </zip>
+
         <copy toDir="${installroot}/lib" file="${collections}"/> <!-- should use 'dependencies' -->
         <copy toDir="${installroot}" file="COPYING"/>
-        <copy toDir="${installroot}" file="src/caliper">
+        <copy toDir="${installroot}" file="src/scripts/caliper">
             <filterset>
                 <filter token="VERSION" value="${version}"/>
                 <filter token="COLLECT" value="${collections}"/>

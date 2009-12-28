@@ -14,22 +14,25 @@
  * limitations under the License.
  */
 
+package test;
 
-package com.google.caliper;
+import com.google.caliper.Runner;
+import com.google.caliper.SimpleBenchmark;
 
 /**
- * Should fail with a measurement error.
+ * If everything is working properly, this should report runtime very close to
+ * 1ms.
  */
-public class BrokenSleepBenchmark extends SimpleBenchmark {
+public class ThreadSleepBenchmark extends SimpleBenchmark {
 
-  public void timeSleepOneSecond(int reps) {
+  public void timeSleep(int reps) {
     try {
-      Thread.sleep(1000);
+      Thread.sleep(reps);
     } catch (InterruptedException ignored) {
     }
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(BrokenSleepBenchmark.class, args);
+    Runner.main(ThreadSleepBenchmark.class, args);
   }
 }

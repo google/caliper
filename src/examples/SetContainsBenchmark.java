@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.examples;
+package examples;
 
 import com.google.caliper.Param;
 import com.google.caliper.Runner;

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.tutorial;
+package tutorial;
 
 import com.google.caliper.Param;
 import com.google.caliper.SimpleBenchmark;
