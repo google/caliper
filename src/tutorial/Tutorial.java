@@ -89,11 +89,11 @@ public class Tutorial {
    * there is a problem!
    */
   public static class Benchmark3 extends SimpleBenchmark {
-    private int[] array = new int[1000000];
+    private final int[] array = new int[1000000];
 
     public void timeArrayIteration_BAD(int reps) {
       for (int i = 0; i < reps; i++) {
-        for (int ignoreMe : array);
+        for (int ignoreMe : array) {}
       }
     }
   }
@@ -125,7 +125,7 @@ public class Tutorial {
    * on the order of an entire millisecond.
    */
   public static class Benchmark4 extends SimpleBenchmark {
-    private int[] array = new int[1000000];
+    private final int[] array = new int[1000000];
 
     public int timeArrayIteration_fixed(int reps) {
       int dummy = 0;

@@ -27,5 +27,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface Param {
+  /**
+   * One or more default values, as strings, that this parameter should be given if none are
+   * specified on the command line. If values are specified on the command line, the defaults given
+   * here are all ignored.
+   */
   String[] value() default {};
 }

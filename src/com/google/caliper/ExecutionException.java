@@ -21,8 +21,9 @@ package com.google.caliper;
  * execution.
  */
 public final class ExecutionException extends RuntimeException {
-
   public ExecutionException(Throwable throwable) {
     super(throwable);
   }
+
+  private static final long serialVersionUID = 0;
 }

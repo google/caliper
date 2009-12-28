@@ -36,7 +36,7 @@ public class CharacterBenchmark extends SimpleBenchmark {
         this.chars = characterSet.chars;
     }
 
-    public enum Overload { CHAR, INT; }
+    public enum Overload { CHAR, INT }
 
     public enum CharacterSet {
         ASCII(128),

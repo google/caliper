@@ -19,9 +19,7 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Random;
 
 /**
@@ -29,9 +27,7 @@ import java.util.Random;
  */
 public class ArraySortBenchmark extends SimpleBenchmark {
 
-  @Param int length;
-
-  static Collection<Integer> lengthValues = Arrays.asList(10, 100, 1000, 10000);
+  @Param({"10", "100", "1000", "10000"}) int length;
 
   @Param Distribution distribution;
 

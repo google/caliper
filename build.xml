@@ -32,7 +32,6 @@
                target="1.5"
                classpathref="dependencies">
             <compilerarg value="-Xlint"/>
-            <compilerarg value="-Xlint:-serial"/> <!-- should turn this back on.. -->
             <!--compilerarg value="-Werror"/-->
         </javac>
 
@@ -44,7 +43,6 @@
                source="1.5"
                target="1.5">
             <compilerarg value="-Xlint"/>
-            <compilerarg value="-Xlint:-serial"/> <!-- should turn this back on.. -->
             <!--compilerarg value="-Werror"/-->
             <classpath>
                 <path refid="testdependencies"/>

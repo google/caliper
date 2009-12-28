@@ -22,6 +22,7 @@ import com.google.caliper.SimpleBenchmark;
 /**
  * Measures several candidate implementations for mod().
  */
+@SuppressWarnings("SameParameterValue")
 public class IntModBenchmark extends SimpleBenchmark {
   private static final int M = (1 << 16) - 1;
 
@@ -46,8 +47,9 @@ public class IntModBenchmark extends SimpleBenchmark {
     return dummy;
   }
 
+  @SuppressWarnings("NumericCastThatLosesPrecision") // result of % by an int must be in int range
   private static int doubleRemainderMod(int a, int m) {
-    return (int) (((a % m) + (long) m) % m);
+    return (int) ((a % m + (long) m) % m);
   }
 
   public int timeRightShiftingMod(int reps) {
@@ -58,9 +60,10 @@ public class IntModBenchmark extends SimpleBenchmark {
     return dummy;
   }
 
+  @SuppressWarnings("NumericCastThatLosesPrecision") // must be in int range
   private static int rightShiftingMod(int a, int m) {
      long r = a % m;
-     return (int) (r + ((r >> 63) & m));
+     return (int) (r + (r >> 63 & m));
   }
 
   public int timeLeftShiftingMod(int reps) {
@@ -71,8 +74,9 @@ public class IntModBenchmark extends SimpleBenchmark {
     return dummy;
   }
 
+  @SuppressWarnings("NumericCastThatLosesPrecision") // result of % by an int must be in int range
   private static int leftShiftingMod(int a, int m) {
-    return (int) ((a + (((long) m) << 32)) % m);
+    return (int) ((a + ((long) m << 32)) % m);
   }
 
   public int timeWrongMod(int reps) {

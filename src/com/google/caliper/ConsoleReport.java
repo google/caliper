@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.common.base.Function;
 import com.google.common.collect.*;
 
 import java.util.ArrayList;
@@ -45,7 +46,6 @@ final class ConsoleReport {
   private final Result result;
   private final List<Run> runs;
 
-  private final double minValue;
   private final double maxValue;
   private final double logMaxValue;
   private final int decimalDigits;
@@ -53,11 +53,11 @@ final class ConsoleReport {
   private final String units;
   private final int measurementColumnLength;
 
-  public ConsoleReport(Result result) {
+  ConsoleReport(Result result) {
     this.result = result;
 
-    double minValue = Double.POSITIVE_INFINITY;
-    double maxValue = 0;
+    double min = Double.POSITIVE_INFINITY;
+    double max = 0;
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Parameter> parametersBuilder = new ArrayList<Parameter>();
@@ -65,8 +65,8 @@ final class ConsoleReport {
       Run run = entry.getKey();
       double d = entry.getValue();
 
-      minValue = Math.min(minValue, d);
-      maxValue = Math.max(maxValue, d);
+      min = Math.min(min, d);
+      max = Math.max(max, d);
 
       for (Map.Entry<String, String> parameter : run.getParameters().entrySet()) {
         String name = parameter.getKey();
@@ -112,11 +112,11 @@ final class ConsoleReport {
 
     this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
     this.runs = new ByParametersOrdering().sortedCopy(result.getMeasurements().keySet());
-    this.minValue = minValue;
-    this.maxValue = maxValue;
-    this.logMaxValue = Math.log(maxValue);
+    double minValue1 = min;
+    this.maxValue = max;
+    this.logMaxValue = Math.log(max);
 
-    int numDigitsInMin = (int) Math.ceil(Math.log10(minValue));
+    int numDigitsInMin = ceil(Math.log10(min));
     if (numDigitsInMin > 9) {
       divideBy = 1000000000;
       decimalDigits = Math.max(0, 9 + 3 - numDigitsInMin);
@@ -134,8 +134,8 @@ final class ConsoleReport {
       decimalDigits = 0;
       units = "ns";
     }
-    measurementColumnLength = maxValue > 0
-        ? (int) Math.ceil(Math.log10(maxValue / divideBy)) + decimalDigits + 1
+    measurementColumnLength = max > 0
+        ? ceil(Math.log10(max / divideBy)) + decimalDigits + 1
         : 1;
   }
 
@@ -148,23 +148,19 @@ final class ConsoleReport {
     final int maxLength;
     double stdDeviation;
 
-    public Parameter(String name, Collection<String> values) {
+    Parameter(String name, Collection<String> values) {
       this.name = name;
       this.values = ImmutableList.copyOf(values);
-
-      int maxLength = name.length();
-      for (String value : values) {
-        maxLength = Math.max(maxLength, value.length());
-      }
-      this.maxLength = maxLength;
+      this.maxLength = Ordering.natural().max(Iterables.transform(values,
+          new Function<String, Integer>() {
+            public Integer apply(String s) {
+              return s.length();
+            }
+          }));
     }
 
     String get(Run run) {
-      if (vmKey.equals(name)) {
-        return run.getVm();
-      } else {
-        return run.getParameters().get(name);
-      }
+      return vmKey.equals(name) ? run.getVm() : run.getParameters().get(name);
     }
 
     int index(Run run) {
@@ -180,7 +176,7 @@ final class ConsoleReport {
    * Orders the different parameters by their standard deviation. This results
    * in an appropriate grouping of output values.
    */
-  static class StandardDeviationOrdering extends Ordering<Parameter> {
+  private static class StandardDeviationOrdering extends Ordering<Parameter> {
     public int compare(Parameter a, Parameter b) {
       return Double.compare(a.stdDeviation, b.stdDeviation);
     }
@@ -189,7 +185,7 @@ final class ConsoleReport {
   /**
    * Orders runs by the parameters.
    */
-  class ByParametersOrdering extends Ordering<Run> {
+  private class ByParametersOrdering extends Ordering<Run> {
     public int compare(Run a, Run b) {
       for (Parameter parameter : parameters) {
         int aValue = parameter.values.indexOf(parameter.get(a));
@@ -250,17 +246,27 @@ final class ConsoleReport {
    * value.
    */
   private String bargraph(double value) {
-    int numLinearChars = (int) ((value / maxValue) * bargraphWidth);
+    int numLinearChars = floor(value / maxValue * bargraphWidth);
     double logValue = Math.log(value);
-    int numChars = (int) ((logValue / logMaxValue) * bargraphWidth);
-    StringBuilder result = new StringBuilder(numChars);
+    int numChars = floor(logValue / logMaxValue * bargraphWidth);
+    StringBuilder sb = new StringBuilder(numChars);
     for (int i = 0; i < numLinearChars; i++) {
-      result.append("X");
+      sb.append("X");
     }
 
     for (int i = numLinearChars; i < numChars; i++) {
-      result.append("|");
+      sb.append("|");
     }
-    return result.toString();
+    return sb.toString();
+  }
+
+  @SuppressWarnings("NumericCastThatLosesPrecision")
+  private static int floor(double d) {
+    return (int) d;
+  }
+
+  @SuppressWarnings("NumericCastThatLosesPrecision")
+  private static int ceil(double d) {
+    return (int) Math.ceil(d);
   }
 }

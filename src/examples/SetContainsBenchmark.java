@@ -42,22 +42,22 @@ public class SetContainsBenchmark extends SimpleBenchmark {
 
   public enum Impl {
     HashSet {
-      Set<Integer> create(Collection<Integer> contents) {
+      @Override Set<Integer> create(Collection<Integer> contents) {
         return new HashSet<Integer>(contents);
       }
     },
     LinkedHashSet {
-      Set<Integer> create(Collection<Integer> contents) {
+      @Override Set<Integer> create(Collection<Integer> contents) {
         return new LinkedHashSet<Integer>(contents);
       }
     },
     UnmodifiableHashSet {
-      Set<Integer> create(Collection<Integer> contents) {
+      @Override Set<Integer> create(Collection<Integer> contents) {
         return Collections.unmodifiableSet(new HashSet<Integer>(contents));
       }
     },
     SynchronizedHashSet {
-      Set<Integer> create(Collection<Integer> contents) {
+      @Override Set<Integer> create(Collection<Integer> contents) {
         return Collections.synchronizedSet(new HashSet<Integer>(contents));
       }
     },
@@ -79,7 +79,7 @@ public class SetContainsBenchmark extends SimpleBenchmark {
 
   // Queries are just sequential integers. Since the contents of the set were
   // chosen randomly, this shouldn't cause any undue bias.
-  public void setUp() {
+  @Override public void setUp() {
     this.queries = new Integer[size * 2];
     for (int i = 0; i < size * 2; i++) {
       queries[i] = i;
@@ -142,5 +142,7 @@ public class SetContainsBenchmark extends SimpleBenchmark {
     @Override public String toString() {
       return hasSeed ? "(seed:" + seed : "(default seed)";
     }
+
+    private static final long serialVersionUID = 0;
   }
 }

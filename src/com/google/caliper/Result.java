@@ -27,11 +27,11 @@ final class Result {
 
   private final ImmutableMap<Run, Double> measurements;
 
-  public Result(Map<Run, Double> measurements) {
+  Result(Map<Run, Double> measurements) {
     this.measurements = ImmutableMap.copyOf(measurements);
   }
 
-  public ImmutableMap<Run, Double> getMeasurements() {
+  ImmutableMap<Run, Double> getMeasurements() {
     return measurements;
   }
 }

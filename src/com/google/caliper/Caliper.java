@@ -26,7 +26,7 @@ class Caliper {
   private final long warmupNanos;
   private final long runNanos;
 
-  public Caliper(long warmupMillis, long runMillis) {
+  Caliper(long warmupMillis, long runMillis) {
     checkArgument(warmupMillis > 50);
     checkArgument(runMillis > 50);
 
@@ -52,7 +52,7 @@ class Caliper {
       reps *= 2;
     }
 
-    double nanosPerExecution = (currentNanos - startNanos) / netReps;
+    double nanosPerExecution = (currentNanos - startNanos) / (double) netReps;
     if (nanosPerExecution > 1000000000 || nanosPerExecution < 2) {
       throw new ConfigurationException("Runtime " + nanosPerExecution + " out of range");
     }
@@ -65,6 +65,7 @@ class Caliper {
    */
   public double run(TimedRunnable test, double estimatedNanosPerTrial)
       throws Exception {
+    @SuppressWarnings("NumericCastThatLosesPrecision")
     int trials = (int) (runNanos / estimatedNanosPerTrial);
     if (trials == 0) {
       trials = 1;
@@ -102,7 +103,7 @@ class Caliper {
     prepareForTest();
     long startNanos = System.nanoTime();
     test.run(trials);
-    return (System.nanoTime() - startNanos) / trials;
+    return (System.nanoTime() - startNanos) / (double) trials;
   }
 
   private void prepareForTest() {

@@ -28,4 +28,6 @@ public final class ConfigurationException extends RuntimeException {
   public ConfigurationException(Throwable cause) {
     super(cause);
   }
+
+  private static final long serialVersionUID = 0;
 }

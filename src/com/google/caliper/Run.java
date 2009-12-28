@@ -17,8 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
-
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -29,16 +27,16 @@ final class Run {
   private final ImmutableMap<String, String> parameters;
   private final String vm;
 
-  public Run(Map<String, String> parameters, String vm) {
+  Run(Map<String, String> parameters, String vm) {
     this.parameters = ImmutableMap.copyOf(parameters);
     this.vm = vm;
   }
 
-  public ImmutableMap<String, String> getParameters() {
+  ImmutableMap<String, String> getParameters() {
     return parameters;
   }
 
-  public String getVm() {
+  String getVm() {
     return vm;
   }
 

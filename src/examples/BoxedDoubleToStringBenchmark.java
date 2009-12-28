@@ -61,7 +61,7 @@ public class BoxedDoubleToStringBenchmark extends SimpleBenchmark {
   public void timeQuoteTrick(int reps) {
     Double value = d;
     for (int i = 0; i < reps; i++) {
-      String unused = ("" + value);
+      String unused = "" + value;
     }
   }
 

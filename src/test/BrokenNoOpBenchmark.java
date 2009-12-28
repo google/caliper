@@ -25,7 +25,7 @@ import com.google.caliper.SimpleBenchmark;
 public class BrokenNoOpBenchmark extends SimpleBenchmark {
 
   public void timeNoOp(int reps) {
-    for (int i = 0; i < reps; i++);
+    for (int i = 0; i < reps; i++) {}
   }
 
   public static void main(String[] args) throws Exception {

@@ -45,29 +45,29 @@ abstract class Parameter<T> {
    */
   public static Map<String, Parameter<?>> forClass(Class<? extends Benchmark> suiteClass) {
     Map<String, Parameter<?>> parameters = new TreeMap<String, Parameter<?>>();
-    for (final Field field : suiteClass.getDeclaredFields()) {
+    for (Field field : suiteClass.getDeclaredFields()) {
       if (field.isAnnotationPresent(Param.class)) {
         field.setAccessible(true);
-        Parameter parameter = Parameter.forField(suiteClass, field);
+        Parameter<?> parameter = forField(suiteClass, field);
         parameters.put(parameter.getName(), parameter);
       }
     }
     return parameters;
   }
 
-  public static Parameter forField(
+  public static Parameter<?> forField(
       Class<? extends Benchmark> suiteClass, final Field field) {
     // First check for String values on the annotation itself
     final Object[] defaults = field.getAnnotation(Param.class).value();
     if (defaults.length > 0) {
       return new Parameter<Object>(field) {
-        public Collection<Object> values() throws Exception {
-          return Arrays.<Object>asList(defaults);
+        @Override public Collection<Object> values() throws Exception {
+          return Arrays.asList(defaults);
         }
       };
     }
 
-    Parameter result = null;
+    Parameter<?> result = null;
     Type returnType = null;
     Member member = null;
 
@@ -75,10 +75,11 @@ abstract class Parameter<T> {
     try {
       final Method valuesMethod = suiteClass.getDeclaredMethod(field.getName() + "Values");
       valuesMethod.setAccessible(true);
+      member = valuesMethod;
       returnType = field.getGenericType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        public Collection<Object> values() throws Exception {
+        @Override public Collection<Object> values() throws Exception {
           return (Collection<Object>) valuesMethod.invoke(null);
         }
       };
@@ -96,7 +97,7 @@ abstract class Parameter<T> {
       returnType = valuesField.getGenericType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        public Collection<Object> values() throws Exception {
+        @Override public Collection<Object> values() throws Exception {
           return (Collection<Object>) valuesField.get(null);
         }
       };
@@ -113,7 +114,7 @@ abstract class Parameter<T> {
       returnType = Collection.class;
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded above
-        public Collection<Object> values() throws Exception {
+        @Override public Collection<Object> values() throws Exception {
           return EnumSet.allOf((Class<Enum>) field.getType());
         }
       };

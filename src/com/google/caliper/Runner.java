@@ -38,16 +38,16 @@ public final class Runner {
   private Benchmark suite;
 
   /** Effective parameters to run in the benchmark. */
-  private Multimap<String, String> parameters = LinkedHashMultimap.create();
+  private final Multimap<String, String> parameters = LinkedHashMultimap.create();
 
   /** JVMs to run in the benchmark */
-  private Set<String> userVms = new LinkedHashSet<String>();
+  private final Set<String> userVms = new LinkedHashSet<String>();
 
   /**
    * Parameter values specified by the user on the command line. Parameters with
    * no value in this multimap will get their values from the benchmark suite.
    */
-  private Multimap<String, String> userParameters = LinkedHashMultimap.create();
+  private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
 
   /**
    * True if each benchmark should run in process.
@@ -202,7 +202,7 @@ public final class Runner {
       Double nanosPerTrial = null;
       try {
         nanosPerTrial = Double.valueOf(firstLine);
-      } catch (NumberFormatException e) {
+      } catch (NumberFormatException ignore) {
       }
 
       String anotherLine = reader.readLine();
@@ -262,6 +262,7 @@ public final class Runner {
     if (runString.length() > runStringLength) {
       runString = runString.substring(0, runStringLength);
     }
+    // TODO: check if this \r trick is platform-independent?
     System.out.printf("\r%2.0f%% %-" + runStringLength + "s",
         percentDone * 100, runString);
   }
@@ -275,11 +276,9 @@ public final class Runner {
       Caliper caliper = new Caliper(warmupMillis, runMillis);
 
       for (Run run : createRuns()) {
-        double result;
         TimedRunnable timedRunnable = suite.createBenchmark(run.getParameters());
         double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
-        result = caliper.run(timedRunnable, warmupNanosPerTrial);
-        double nanosPerTrial = result;
+        double nanosPerTrial = caliper.run(timedRunnable, warmupNanosPerTrial);
         System.out.println(nanosPerTrial);
       }
     } catch (Exception e) {

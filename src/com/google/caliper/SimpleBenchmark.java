@@ -125,7 +125,7 @@ public abstract class SimpleBenchmark implements Benchmark {
           continue;
         }
 
-        Parameter parameter = parameters.get(parameterName);
+        Parameter<?> parameter = parameters.get(parameterName);
         Object value = typeConverter.fromString(entry.getValue(), parameter.getType());
         parameter.set(copyOfSelf, value);
       }
@@ -148,7 +148,7 @@ public abstract class SimpleBenchmark implements Benchmark {
    */
   private Map<String, Method> createTimedMethods() {
     ImmutableMap.Builder<String, Method> result = ImmutableMap.builder();
-    for (final Method method : getClass().getDeclaredMethods()) {
+    for (Method method : getClass().getDeclaredMethods()) {
       int modifiers = method.getModifiers();
       if (!method.getName().startsWith("time")) {
         continue;
