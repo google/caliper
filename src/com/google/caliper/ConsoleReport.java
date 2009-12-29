@@ -17,8 +17,11 @@
 package com.google.caliper;
 
 import com.google.common.base.Function;
-import com.google.common.collect.*;
-
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -112,7 +115,6 @@ final class ConsoleReport {
 
     this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
     this.runs = new ByParametersOrdering().sortedCopy(result.getMeasurements().keySet());
-    double minValue1 = min;
     this.maxValue = max;
     this.logMaxValue = Math.log(max);
 
@@ -142,7 +144,7 @@ final class ConsoleReport {
   /**
    * A parameter plus all of its values.
    */
-  static class Parameter {
+  private static class Parameter {
     final String name;
     final ImmutableList<String> values;
     final int maxLength;

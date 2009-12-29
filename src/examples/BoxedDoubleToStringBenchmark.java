@@ -16,11 +16,10 @@
 
 package examples;
 
-import com.google.caliper.SimpleBenchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-
-import java.util.Arrays;
+import com.google.caliper.SimpleBenchmark;
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 
 /**
@@ -30,39 +29,49 @@ public class BoxedDoubleToStringBenchmark extends SimpleBenchmark {
 
   @Param private Double d;
 
-  private static final Collection<Double> dValues = Arrays.asList(
+  // Expressing these as strings in the annotation parameter would be annoying
+  // (and maybe not possible?)
+  public static final Collection<Double> dValues = ImmutableList.of(
       Math.PI,
       -0.0d,
       Double.NEGATIVE_INFINITY,
       Double.NaN
   );
 
-  public void timeStringFormat(int reps) {
+  public int timeStringFormat(int reps) {
     Double value = d;
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      String.format("%f", value);
+      dummy += String.format("%f", value).length();
     }
+    return dummy;
   }
 
-  public void timeToString(int reps) {
+  public int timeToString(int reps) {
     Double value = d;
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      value.toString();
+      dummy += value.toString().length();
     }
+    return dummy;
   }
 
-  public void timeStringValueOf(int reps) {
+  public int timeStringValueOf(int reps) {
     Double value = d;
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      String.valueOf(value);
+      dummy += String.valueOf(value).length();
     }
+    return dummy;
   }
 
-  public void timeQuoteTrick(int reps) {
+  public int timeQuoteTrick(int reps) {
     Double value = d;
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      String unused = "" + value;
+      dummy += ("" + value).length();
     }
+    return dummy;
   }
 
   // TODO: remove this from all examples when IDE plugins are ready

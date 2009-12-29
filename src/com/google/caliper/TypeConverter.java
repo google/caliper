@@ -17,7 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Map;
@@ -25,8 +24,10 @@ import java.util.Map;
 /**
  * Convert objects to and from Strings.
  */
-class TypeConverter {
-  public Object fromString(String value, Type type) {
+final class TypeConverter {
+  private TypeConverter() {}
+
+  public static Object fromString(String value, Type type) {
     Class<?> c = wrap((Class<?>) type);
     try {
       Method m = c.getMethod("valueOf", String.class);
@@ -35,10 +36,6 @@ class TypeConverter {
       throw new UnsupportedOperationException(
           "Cannot convert " + value + " of type " + type, e);
     }
-  }
-
-  public String toString(Object value, Type type) {
-    return String.valueOf(value);
   }
 
   // safe because both Long.class and long.class are of type Class<Long>

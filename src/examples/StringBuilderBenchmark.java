@@ -25,7 +25,7 @@ import com.google.caliper.SimpleBenchmark;
  */
 public class StringBuilderBenchmark extends SimpleBenchmark {
 
-    @Param({"1", "10", "100"}) int length;
+    @Param({"1", "10", "100"}) private int length;
 
     public void timeAppendBoolean(int reps) {
         for (int i = 0; i < reps; ++i) {

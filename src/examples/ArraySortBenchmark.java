@@ -27,12 +27,12 @@ import java.util.Random;
  */
 public class ArraySortBenchmark extends SimpleBenchmark {
 
-  @Param({"10", "100", "1000", "10000"}) int length;
+  @Param({"10", "100", "1000", "10000"}) private int length;
 
-  @Param Distribution distribution;
+  @Param private Distribution distribution;
 
-  int[] values;
-  int[] copy;
+  private int[] values;
+  private int[] copy;
 
   @Override protected void setUp() throws Exception {
     values = distribution.create(length);

@@ -16,11 +16,10 @@
 
 package examples;
 
-import com.google.caliper.SimpleBenchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-
-import java.util.Arrays;
+import com.google.caliper.SimpleBenchmark;
+import com.google.common.collect.ImmutableList;
 import java.util.Collection;
 
 /**
@@ -30,7 +29,7 @@ public class PrimitiveDoubleToStringBenchmark extends SimpleBenchmark {
 
   @Param private double d;
 
-  private static final Collection<Double> dValues = Arrays.asList(
+  public static final Collection<Double> dValues = ImmutableList.of(
       Math.PI,
       -0.0d,
       Double.NEGATIVE_INFINITY,

@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
@@ -27,6 +26,7 @@ import java.util.Locale;
 /**
  * Benchmarks creation and cloning various expensive objects.
  */
+@SuppressWarnings({"ResultOfObjectAllocationIgnored"}) // TODO: should fix!
 public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
     public void timeNewDecimalFormatSymbols(int reps) {
         for (int i = 0; i < reps; ++i) {

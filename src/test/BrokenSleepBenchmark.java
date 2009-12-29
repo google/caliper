@@ -23,7 +23,8 @@ import com.google.caliper.SimpleBenchmark;
  * Should fail with a measurement error.
  */
 public class BrokenSleepBenchmark extends SimpleBenchmark {
-
+  // And look, IDEA tries to warn you
+  @SuppressWarnings({"UnusedDeclaration", "UnusedParameters"})
   public void timeSleepOneSecond(int reps) {
     try {
       Thread.sleep(1000);

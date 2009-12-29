@@ -20,8 +20,8 @@ package com.google.caliper;
  * Thrown upon occurrence of a runtime failure during test construction or
  * execution.
  */
-public final class ExecutionException extends RuntimeException {
-  public ExecutionException(Throwable throwable) {
+final class ExecutionException extends RuntimeException {
+  ExecutionException(Throwable throwable) {
     super(throwable);
   }
 

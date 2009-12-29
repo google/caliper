@@ -16,18 +16,33 @@
 
 package com.google.caliper;
 
+import com.google.caliper.UserException.AbstractClassException;
+import com.google.caliper.UserException.DoesntImplementBenchmarkException;
+import com.google.caliper.UserException.NoParameterlessConstructorException;
+import com.google.caliper.UserException.NoSuchClassException;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
-
+import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -67,20 +82,32 @@ public final class Runner {
   }
 
   private void prepareSuite() {
+    Class<?> benchmarkClass;
     try {
-      Class<?> suiteClass = getClassByName(suiteClassName);
-      Constructor<?> constructor = suiteClass.getDeclaredConstructor();
-      Object s = constructor.newInstance();
-      if (s instanceof Benchmark) {
-        this.suite = (Benchmark) s;
-      } else {
-        throw new ConfigurationException(
-            "Class " + suiteClass + " does not extend " + Benchmark.class);
-      }
+      benchmarkClass = getClassByName(suiteClassName);
+    } catch (ClassNotFoundException ignored) {
+      throw new NoSuchClassException(suiteClassName);
+    }
+
+    Object s;
+    try {
+      Constructor<?> constructor = benchmarkClass.getDeclaredConstructor();
+      constructor.setAccessible(true);
+      s = constructor.newInstance();
+    } catch (InstantiationException ignore) {
+      throw new AbstractClassException(benchmarkClass);
+    } catch (NoSuchMethodException ignore) {
+      throw new NoParameterlessConstructorException(benchmarkClass);
+    } catch (IllegalAccessException impossible) {
+      throw new AssertionError(impossible); // shouldn't happen since we setAccessible(true)
     } catch (InvocationTargetException e) {
       throw new ExecutionException(e.getCause());
-    } catch (Exception e) {
-      throw new ConfigurationException(e);
+    }
+
+    if (s instanceof Benchmark) {
+      this.suite = (Benchmark) s;
+    } else {
+      throw new DoesntImplementBenchmarkException(benchmarkClass);
     }
   }
 
@@ -90,7 +117,8 @@ public final class Runner {
     } catch (ClassNotFoundException ignored) {
       // try replacing the last dot with a $, in case that helps
       // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
-      return Class.forName(className.replaceFirst("\\.([^.]+)$", "\\$$1"));
+      String newName = className.replaceFirst("\\.([^.]+)$", "\\$$1");
+      return Class.forName(newName);
     }
   }
 
@@ -122,7 +150,7 @@ public final class Runner {
    * Returns a complete set of runs with every combination of values and
    * benchmark classes.
    */
-  private List<Run> createRuns() throws Exception {
+  private List<Run> createRuns() {
     List<RunBuilder> builders = new ArrayList<RunBuilder>();
 
     // create runs for each VMs
@@ -135,7 +163,7 @@ public final class Runner {
       builders.add(runBuilder);
     }
 
-    for (Map.Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
+    for (Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
       Iterator<String> values = parameter.getValue().iterator();
       if (!values.hasNext()) {
         throw new ConfigurationException("Not enough values for " + parameter);
@@ -168,8 +196,8 @@ public final class Runner {
     return result;
   }
 
-  static class RunBuilder {
-    Map<String, String> parameters = new LinkedHashMap<String, String>();
+  private static class RunBuilder {
+    final Map<String, String> parameters = new LinkedHashMap<String, String>();
     String vm;
 
     RunBuilder copy() {
@@ -196,7 +224,7 @@ public final class Runner {
     command.add("--runMillis");
     command.add(String.valueOf(runMillis));
     command.add("--inProcess");
-    for (Map.Entry<String, String> entry : run.getParameters().entrySet()) {
+    for (Entry<String, String> entry : run.getParameters().entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
     command.add(suiteClassName);
@@ -239,8 +267,12 @@ public final class Runner {
     }
   }
 
+  // TODO: check if this is platform-independent
+  @SuppressWarnings("HardcodedLineSeparator")
+  private static final String RETURN = "\r";
+
   private Result runOutOfProcess() {
-    ImmutableMap.Builder<Run, Double> resultsBuilder = ImmutableMap.builder();
+    Builder<Run, Double> resultsBuilder = ImmutableMap.builder();
 
     try {
       List<Run> runs = createRuns();
@@ -253,11 +285,11 @@ public final class Runner {
       }
 
       // blat out our progress bar
-      System.out.print("\r");
+      System.out.print(RETURN);
       for (int j = 0; j < 80; j++) {
         System.out.print(" ");
       }
-      System.out.print("\r");
+      System.out.print(RETURN);
 
       return new Result(resultsBuilder.build());
     } catch (Exception e) {
@@ -272,8 +304,7 @@ public final class Runner {
     if (runString.length() > runStringLength) {
       runString = runString.substring(0, runStringLength);
     }
-    // TODO: check if this \r trick is platform-independent?
-    System.out.printf("\r%2.0f%% %-" + runStringLength + "s",
+    System.out.printf(RETURN + "%2.0f%% %-" + runStringLength + "s",
         percentDone * 100, runString);
   }
 
@@ -281,7 +312,10 @@ public final class Runner {
     System.out.printf(" %10.0fns", nanosPerTrial);
   }
 
-  private void runInProcess() {
+  private boolean doRunInProcess() {
+    if (!inProcess) {
+      return false;
+    }
     try {
       Caliper caliper = new Caliper(warmupMillis, runMillis);
 
@@ -294,37 +328,42 @@ public final class Runner {
     } catch (Exception e) {
       throw new ExecutionException(e);
     }
+    return true;
   }
 
-  private boolean parseArgs(String[] args) throws Exception {
-    for (int i = 0; i < args.length; i++) {
-      if ("--help".equals(args[i])) {
+  private boolean parseArgs(String[] argsArray) {
+    Iterator<String> args = Iterators.forArray(argsArray);
+    while (args.hasNext()) {
+      String arg = args.next();
+      
+      if ("--help".equals(arg)) {
         return false;
+      }
 
-      } else if ("--inProcess".equals(args[i])) {
+      if ("--inProcess".equals(arg)) {
           inProcess = true;
 
-      } else if (args[i].startsWith("-D")) {
-        int equalsSign = args[i].indexOf('=');
+      } else if (arg.startsWith("-D")) {
+        int equalsSign = arg.indexOf('=');
         if (equalsSign == -1) {
-          System.out.println("Malformed parameter " + args[i]);
+          System.out.println("Malformed parameter " + arg);
           return false;
         }
-        String name = args[i].substring(2, equalsSign);
-        String value = args[i].substring(equalsSign + 1);
+        String name = arg.substring(2, equalsSign);
+        String value = arg.substring(equalsSign + 1);
         setParameter(name, value);
 
-      } else if ("--warmupMillis".equals(args[i])) {
-        warmupMillis = Long.parseLong(args[++i]);
+      } else if ("--warmupMillis".equals(arg)) {
+        warmupMillis = Long.parseLong(args.next());
 
-      } else if ("--runMillis".equals(args[i])) {
-        runMillis = Long.parseLong(args[++i]);
+      } else if ("--runMillis".equals(arg)) {
+        runMillis = Long.parseLong(args.next());
 
-      } else if ("--vm".equals(args[i])) {
-        userVms.add(args[++i]);
+      } else if ("--vm".equals(arg)) {
+        userVms.add(args.next());
 
-      } else if (args[i].startsWith("-")) {
-        System.out.println("Unrecognized option: " + args[i]);
+      } else if (arg.startsWith("-")) {
+        System.out.println("Unrecognized option: " + arg);
         return false;
 
       } else {
@@ -332,7 +371,7 @@ public final class Runner {
           System.out.println("Too many benchmark classes!");
           return false;
         }
-        suiteClassName = args[i];
+        suiteClassName = arg;
       }
     }
 
@@ -374,27 +413,26 @@ public final class Runner {
   }
 
   public static void main(String... args) throws Exception { // TODO: cleaner error reporting
-    Runner runner = new Runner();
-    if (!runner.parseArgs(args)) {
-      runner.printUsage();
-      return;
-    }
+    try {
+      Runner runner = new Runner();
+      if (!runner.parseArgs(args)) {
+        runner.printUsage();
+        return;
+      }
 
-    runner.prepareSuite();
-    runner.prepareParameters();
-    if (runner.inProcess) {
-      runner.runInProcess();
-      return;
+      runner.prepareSuite();
+      runner.prepareParameters();
+      if (!runner.doRunInProcess()) {
+        Result result = runner.runOutOfProcess();
+        new ConsoleReport(result).displayResults();
+      }
+    } catch (UserException e) {
+      System.err.println(e.getMessage());
+      System.exit(1);
     }
-
-    Result result = runner.runOutOfProcess();
-    new ConsoleReport(result).displayResults();
   }
 
   public static void main(Class<? extends Benchmark> suite, String... args) throws Exception {
-    String[] argsWithSuiteName = new String[args.length + 1];
-    System.arraycopy(args, 0, argsWithSuiteName, 0, args.length);
-    argsWithSuiteName[args.length] = suite.getName();
-    main(argsWithSuiteName);
+    main(ObjectArrays.concat(args, suite.getName()));
   }
 }

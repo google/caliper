@@ -19,7 +19,6 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -54,13 +53,13 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
     abstract Object[] testValues();
   }
 
-  enum RegularSize {
+  private enum RegularSize {
     E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E17,
     E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31, E32,
     E33, E34, E35, E36, E37, E38, E39, E40,
   }
 
-  enum LargeSize {
+  private enum LargeSize {
     E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16, E17,
     E18, E19, E20, E21, E22, E23, E24, E25, E26, E27, E28, E29, E30, E31, E32,
     E33, E34, E35, E36, E37, E38, E39, E40, E41, E42, E43, E44, E45, E46, E47,
@@ -76,12 +75,12 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
   private Set<?> set;
   private Object[] testValues;
 
-  @Override protected void setUp() throws Exception {
+  @Override protected void setUp() {
     this.set = setMaker.newSet();
     this.testValues = setMaker.testValues();
   }
 
-  public void timeContains(int reps) throws Exception {
+  public void timeContains(int reps) {
     for (int i = 0; i < reps; i++) {
       set.contains(testValues[i % testValues.length]);
     }

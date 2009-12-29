@@ -26,11 +26,11 @@ import com.google.caliper.SimpleBenchmark;
  */
 public class CharacterBenchmark extends SimpleBenchmark {
 
-    @Param CharacterSet characterSet;
+    @Param private CharacterSet characterSet;
 
-    @Param Overload overload;
+    @Param private Overload overload;
 
-    char[] chars;
+    private char[] chars;
 
     @Override protected void setUp() throws Exception {
         this.chars = characterSet.chars;
@@ -41,7 +41,7 @@ public class CharacterBenchmark extends SimpleBenchmark {
     public enum CharacterSet {
         ASCII(128),
         UNICODE(65536);
-        char[] chars;
+        final char[] chars;
         CharacterSet(int size) {
             this.chars = new char[65536];
             for (int i = 0; i < 65536; ++i) {
@@ -51,20 +51,22 @@ public class CharacterBenchmark extends SimpleBenchmark {
     }
 
     // A fake benchmark to give us a baseline.
-    public void timeIsNull(int reps) {
+    public boolean timeIsSpace(int reps) {
+        boolean dummy = false;
         if (overload == Overload.CHAR) {
             for (int i = 0; i < reps; ++i) {
                 for (int ch = 0; ch < 65536; ++ch) {
-                    boolean b = ((char) ch == ' ');
+                    dummy ^= ((char) ch == ' ');
                 }
             }
         } else {
             for (int i = 0; i < reps; ++i) {
                 for (int ch = 0; ch < 65536; ++ch) {
-                    boolean b = (ch == ' ');
+                    dummy ^= (ch == ' ');
                 }
             }
         }
+        return dummy;
     }
 
     public void timeDigit(int reps) {

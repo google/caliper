@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -55,7 +56,7 @@ abstract class Parameter<T> {
     return parameters;
   }
 
-  public static Parameter<?> forField(
+  private static Parameter<?> forField(
       Class<? extends Benchmark> suiteClass, final Field field) {
     // First check for String values on the annotation itself
     final Object[] defaults = field.getAnnotation(Param.class).value();
@@ -113,9 +114,12 @@ abstract class Parameter<T> {
     if (member == null && field.getType().isEnum()) {
       returnType = Collection.class;
       result = new Parameter<Object>(field) {
-        @SuppressWarnings("unchecked") // guarded above
+        // TODO: figure out the simplest way to make this compile and be green in IDEA too
+        @SuppressWarnings({"unchecked", "RawUseOfParameterizedType", "RedundantCast"})
+        // guarded above
         @Override public Collection<Object> values() throws Exception {
-          return EnumSet.allOf((Class<Enum>) field.getType());
+          Set<Enum> set = EnumSet.allOf((Class<Enum>) field.getType());
+          return (Collection) set;
         }
       };
     }
@@ -168,7 +172,7 @@ abstract class Parameter<T> {
   /**
    * Returns the field's name.
    */
-  public String getName() {
+  String getName() {
     return field.getName();
   }
 }

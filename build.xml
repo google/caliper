@@ -3,7 +3,7 @@
 <project name="caliper" default="install">
     <!-- can be overridden at the command line with -Dversion=
          or in IDEA, in the ant properties dialog -->
-    <property name="version" value="0.1-r35"/> <!-- make automatic -->
+    <property name="version" value="0.0"/> <!-- subversion revision? -->
 
     <property name="frameworkclasses" value="build/classes/framework"/>
     <property name="otherclasses" value="build/classes/other"/>

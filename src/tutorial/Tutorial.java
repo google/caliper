@@ -91,6 +91,7 @@ public class Tutorial {
   public static class Benchmark3 extends SimpleBenchmark {
     private final int[] array = new int[1000000];
 
+    @SuppressWarnings("UnusedDeclaration") // IDEA tries to warn us!
     public void timeArrayIteration_BAD(int reps) {
       for (int i = 0; i < reps; i++) {
         for (int ignoreMe : array) {}

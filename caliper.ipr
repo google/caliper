@@ -159,7 +159,6 @@
         <inspection_tool class="ArithmeticOnVolatileField" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="AssertEqualsMayBeAssertSame" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="AssertStatement" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="AssertsWithoutMessages" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="AssignmentToCatchBlockParameter" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="AssignmentToCollectionFieldFromParameter" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="ignorePrivateMethods" value="true" />
@@ -181,6 +180,7 @@
         <inspection_tool class="BeforeClassOrAfterClassIsPublicStaticVoidNoArg" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="BeforeOrAfterIsPublicVoidNoArg" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="BigDecimalEquals" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="BooleanMethodIsAlwaysInverted" enabled="false" level="WARNING" enabled_by_default="false" />
         <inspection_tool class="BusyWait" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="CStyleArrayDeclaration" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="CachedNumberConstructorCall" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -241,7 +241,7 @@
         <inspection_tool class="EqualsAndHashcode" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="EqualsHashCodeCalledOnUrl" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="EqualsUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="ExceptionFromCatchWhichDoesntWrap" enabled="true" level="WARNING" enabled_by_default="true">
+        <inspection_tool class="ExceptionFromCatchWhichDoesntWrap" enabled="false" level="WARNING" enabled_by_default="false">
           <option name="ignoreGetMessage" value="true" />
         </inspection_tool>
         <inspection_tool class="ExtendsThread" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -264,9 +264,6 @@
           <option name="m_ignoreLoopsWithoutConditions" value="false" />
         </inspection_tool>
         <inspection_tool class="ForLoopThatDoesntUseLoopVariable" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="HardcodedFileSeparators" enabled="true" level="WARNING" enabled_by_default="true">
-          <option name="m_recognizeExampleMediaType" value="false" />
-        </inspection_tool>
         <inspection_tool class="HardcodedLineSeparators" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="HashCodeUsesNonFinalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="HtmlExtraClosingTag" enabled="false" level="ERROR" enabled_by_default="false" />
@@ -457,10 +454,6 @@
         </inspection_tool>
         <inspection_tool class="OverridableMethodCallDuringObjectConstruction" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="OverriddenMethodCallDuringObjectConstruction" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="PackageVisibleField" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="PackageVisibleInnerClass" enabled="true" level="WARNING" enabled_by_default="true">
-          <option name="ignoreEnums" value="false" />
-        </inspection_tool>
         <inspection_tool class="ParameterHidingMemberVariable" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="m_ignoreInvisibleFields" value="true" />
           <option name="m_ignoreStaticMethodParametersHidingInstanceFields" value="true" />
@@ -482,7 +475,6 @@
         </inspection_tool>
         <inspection_tool class="PublicFieldAccessedInSynchronizedContext" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="PublicStaticArrayField" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="PublicStaticCollectionField" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="RawUseOfParameterizedType" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="ignoreObjectConstruction" value="true" />
           <option name="ignoreTypeCasts" value="false" />
@@ -509,9 +501,6 @@
           <option name="myAdditionalRequiredHtmlAttributes" value="" />
         </inspection_tool>
         <inspection_tool class="ResultOfObjectAllocationIgnored" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="ReturnOfCollectionField" enabled="true" level="WARNING" enabled_by_default="true">
-          <option name="ignorePrivateMethods" value="true" />
-        </inspection_tool>
         <inspection_tool class="ReturnOfDateField" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="ReuseOfLocalVariable" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="RuntimeExec" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -571,7 +560,6 @@
           <option name="m_includeNativeMethods" value="true" />
         </inspection_tool>
         <inspection_tool class="SynchronizedOnLiteralObject" enabled="true" level="WARNING" enabled_by_default="true" />
-        <inspection_tool class="SystemExit" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="SystemRunFinalizersOnExit" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="TailRecursion" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="TeardownCallsSuperTeardown" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -607,6 +595,21 @@
         <inspection_tool class="TransientFieldNotInitialized" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="TypeParameterExtendsFinalClass" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="TypeParameterHidesVisibleType" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="UNUSED_SYMBOL" enabled="true" level="WARNING" enabled_by_default="true">
+          <option name="LOCAL_VARIABLE" value="true" />
+          <option name="FIELD" value="true" />
+          <option name="METHOD" value="true" />
+          <option name="CLASS" value="true" />
+          <option name="PARAMETER" value="true" />
+          <option name="REPORT_PARAMETER_FOR_PUBLIC_METHODS" value="true" />
+          <option name="INJECTION_ANNOS">
+            <value>
+              <list size="1">
+                <item index="0" class="java.lang.String" itemvalue="com.google.caliper.Param" />
+              </list>
+            </value>
+          </option>
+        </inspection_tool>
         <inspection_tool class="UnaryPlus" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="UnconditionalWait" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="UnconstructableTestCase" enabled="true" level="WARNING" enabled_by_default="true" />
@@ -680,6 +683,11 @@
         <inspection_tool class="WaitOrAwaitWithoutTimeout" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="WaitWhileHoldingTwoLocks" enabled="true" level="WARNING" enabled_by_default="true" />
         <inspection_tool class="WaitWithoutCorrespondingNotify" enabled="true" level="WARNING" enabled_by_default="true" />
+        <inspection_tool class="WeakerAccess" enabled="true" level="WARNING" enabled_by_default="true">
+          <option name="SUGGEST_PACKAGE_LOCAL_FOR_MEMBERS" value="true" />
+          <option name="SUGGEST_PACKAGE_LOCAL_FOR_TOP_CLASSES" value="false" />
+          <option name="SUGGEST_PRIVATE_FOR_INNERS" value="false" />
+        </inspection_tool>
         <inspection_tool class="WhileLoopSpinsOnField" enabled="true" level="WARNING" enabled_by_default="true">
           <option name="ignoreNonEmtpyLoops" value="false" />
         </inspection_tool>

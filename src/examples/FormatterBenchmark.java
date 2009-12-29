@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
 import java.util.Formatter;
 
 /**

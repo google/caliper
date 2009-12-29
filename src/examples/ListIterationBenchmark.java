@@ -19,7 +19,6 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-
 import java.util.AbstractList;
 import java.util.List;
 
@@ -51,6 +50,7 @@ public class ListIterationBenchmark extends SimpleBenchmark {
     };
   }
 
+  @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
   public void timeListIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : list) {
@@ -58,6 +58,7 @@ public class ListIterationBenchmark extends SimpleBenchmark {
     }
   }
 
+  @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
   public void timeArrayIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : array) {

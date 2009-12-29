@@ -18,10 +18,8 @@ package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
@@ -88,18 +86,16 @@ public abstract class SimpleBenchmark implements Benchmark {
       return methods.keySet();
     }
 
+    Parameter<?> parameter = parameters.get(parameterName);
+    if (parameter == null) {
+      throw new IllegalArgumentException();
+    }
     try {
-      TypeConverter typeConverter = new TypeConverter();
-      Parameter<?> parameter = parameters.get(parameterName);
-      if (parameter == null) {
-        throw new IllegalArgumentException();
-      }
       Collection<?> values = parameter.values();
-      Type type = parameter.getType();
 
       ImmutableSet.Builder<String> result = ImmutableSet.builder();
       for (Object value : values) {
-        result.add(typeConverter.toString(value, type));
+        result.add(String.valueOf(value));
       }
       return result.build();
     } catch (Exception e) {
@@ -108,14 +104,13 @@ public abstract class SimpleBenchmark implements Benchmark {
   }
 
   public TimedRunnable createBenchmark(Map<String, String> parameterValues) {
-    TypeConverter typeConverter = new TypeConverter();
-
     if (!parameterNames().equals(parameterValues.keySet())) {
       throw new IllegalArgumentException("Invalid parameters specified. Expected "
           + parameterNames() + " but was " + parameterValues.keySet());
     }
 
     try {
+      @SuppressWarnings({"ClassNewInstance"}) // can throw any Exception, so we catch all Exceptions
       final SimpleBenchmark copyOfSelf = getClass().newInstance();
       final Method method = methods.get(parameterValues.get("benchmark"));
 
@@ -126,7 +121,7 @@ public abstract class SimpleBenchmark implements Benchmark {
         }
 
         Parameter<?> parameter = parameters.get(parameterName);
-        Object value = typeConverter.fromString(entry.getValue(), parameter.getType());
+        Object value = TypeConverter.fromString(entry.getValue(), parameter.getType());
         parameter.set(copyOfSelf, value);
       }
       copyOfSelf.setUp();
