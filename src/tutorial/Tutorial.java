@@ -20,8 +20,8 @@ import com.google.caliper.Param;
 import com.google.caliper.SimpleBenchmark;
 
 /**
- * Caliper tutorial. To run the example benchmarks in this file: {@code
- * CLASSPATH=... [caliper_home]/caliper com.google.caliper.tutorial.Tutorial$Benchmark1}
+ * Caliper tutorial. To run the example benchmarks in this file:
+ * {@code CLASSPATH=... [caliper_home]/caliper tutorial.Tutorial.Benchmark1}
  *
  * @author Kevin Bourrillion
  */
@@ -41,7 +41,7 @@ public class Tutorial {
    *
    * Example run:
    *
-   *    $ CLASSPATH=build/classes/test caliper tutorial.Tutorial$Benchmark1
+   *    $ CLASSPATH=build/classes/test caliper tutorial.Tutorial.Benchmark1
    *    [real-time results appear on this line]
    *
    *    Summary report for tutorial.Tutorial$Benchmark1:

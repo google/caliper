@@ -2,6 +2,7 @@
 
 # rough
 
+export PATH=$PATH:$JAVA_HOME/bin
 base=`dirname $0`
-exec $JAVA_HOME/bin/java -cp $base/lib/caliper-@VERSION@.jar:$base/@COLLECT@:$CLASSPATH com.google.caliper.Runner $*
+exec java -cp $base/lib/caliper-@VERSION@.jar:$base/@COLLECT@:$CLASSPATH com.google.caliper.Runner $*
 

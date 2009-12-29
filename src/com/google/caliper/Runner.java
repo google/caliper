@@ -68,19 +68,29 @@ public final class Runner {
 
   private void prepareSuite() {
     try {
-      @SuppressWarnings("unchecked") // guarded by the if statement that follows
-      Class<? extends Benchmark> suiteClass
-          = (Class<? extends Benchmark>) Class.forName(suiteClassName);
-      if (!Benchmark.class.isAssignableFrom(suiteClass)) {
-        throw new ConfigurationException(suiteClass + " is not a benchmark suite.");
+      Class<?> suiteClass = getClassByName(suiteClassName);
+      Constructor<?> constructor = suiteClass.getDeclaredConstructor();
+      Object s = constructor.newInstance();
+      if (s instanceof Benchmark) {
+        this.suite = (Benchmark) s;
+      } else {
+        throw new ConfigurationException(
+            "Class " + suiteClass + " does not extend " + Benchmark.class);
       }
-
-      Constructor<? extends Benchmark> constructor = suiteClass.getDeclaredConstructor();
-      suite = constructor.newInstance();
     } catch (InvocationTargetException e) {
       throw new ExecutionException(e.getCause());
     } catch (Exception e) {
       throw new ConfigurationException(e);
+    }
+  }
+
+  private static Class<?> getClassByName(String className) throws ClassNotFoundException {
+    try {
+      return Class.forName(className);
+    } catch (ClassNotFoundException ignored) {
+      // try replacing the last dot with a $, in case that helps
+      // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
+      return Class.forName(className.replaceFirst("\\.([^.]+)$", "\\$$1"));
     }
   }
 
