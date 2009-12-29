@@ -16,10 +16,17 @@
 
 package com.google.caliper;
 
-import com.google.caliper.UserException.AbstractClassException;
+import com.google.caliper.UserException.AbstractBenchmarkException;
+import com.google.caliper.UserException.CantCustomizeInProcessVmException;
+import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.DoesntImplementBenchmarkException;
+import com.google.caliper.UserException.ExceptionFromUserCodeException;
+import com.google.caliper.UserException.MalformedParameterException;
+import com.google.caliper.UserException.MultipleBenchmarkClassesException;
+import com.google.caliper.UserException.NoBenchmarkClassException;
 import com.google.caliper.UserException.NoParameterlessConstructorException;
 import com.google.caliper.UserException.NoSuchClassException;
+import com.google.caliper.UserException.UnrecognizedOptionException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableSet;
@@ -85,6 +92,8 @@ public final class Runner {
     Class<?> benchmarkClass;
     try {
       benchmarkClass = getClassByName(suiteClassName);
+    } catch (ExceptionInInitializerError e) {
+      throw new ExceptionFromUserCodeException(e.getCause());
     } catch (ClassNotFoundException ignored) {
       throw new NoSuchClassException(suiteClassName);
     }
@@ -95,13 +104,13 @@ public final class Runner {
       constructor.setAccessible(true);
       s = constructor.newInstance();
     } catch (InstantiationException ignore) {
-      throw new AbstractClassException(benchmarkClass);
+      throw new AbstractBenchmarkException(benchmarkClass);
     } catch (NoSuchMethodException ignore) {
       throw new NoParameterlessConstructorException(benchmarkClass);
     } catch (IllegalAccessException impossible) {
       throw new AssertionError(impossible); // shouldn't happen since we setAccessible(true)
     } catch (InvocationTargetException e) {
-      throw new ExecutionException(e.getCause());
+      throw new ExceptionFromUserCodeException(e.getCause());
     }
 
     if (s instanceof Benchmark) {
@@ -194,6 +203,16 @@ public final class Runner {
     }
 
     return result;
+  }
+
+  public void doRun(String... args) {
+    parseArgs(args);
+    prepareSuite();
+    prepareParameters();
+    if (!doRunInProcess()) {
+      Result result = runOutOfProcess();
+      new ConsoleReport(result).displayResults();
+    }
   }
 
   private static class RunBuilder {
@@ -331,13 +350,13 @@ public final class Runner {
     return true;
   }
 
-  private boolean parseArgs(String[] argsArray) {
+  private void parseArgs(String[] argsArray) {
     Iterator<String> args = Iterators.forArray(argsArray);
     while (args.hasNext()) {
       String arg = args.next();
       
       if ("--help".equals(arg)) {
-        return false;
+        throw new DisplayUsageException();
       }
 
       if ("--inProcess".equals(arg)) {
@@ -346,8 +365,7 @@ public final class Runner {
       } else if (arg.startsWith("-D")) {
         int equalsSign = arg.indexOf('=');
         if (equalsSign == -1) {
-          System.out.println("Malformed parameter " + arg);
-          return false;
+          throw new MalformedParameterException(arg);
         }
         String name = arg.substring(2, equalsSign);
         String value = arg.substring(equalsSign + 1);
@@ -363,32 +381,27 @@ public final class Runner {
         userVms.add(args.next());
 
       } else if (arg.startsWith("-")) {
-        System.out.println("Unrecognized option: " + arg);
-        return false;
+        throw new UnrecognizedOptionException(arg);
 
       } else {
         if (suiteClassName != null) {
-          System.out.println("Too many benchmark classes!");
-          return false;
+          throw new MultipleBenchmarkClassesException(suiteClassName, arg);
         }
         suiteClassName = arg;
       }
     }
 
     if (inProcess && !userVms.isEmpty()) {
-      System.out.println("Cannot customize VM when running in process");
-      return false;
+      throw new CantCustomizeInProcessVmException();
     }
 
     if (suiteClassName == null) {
-      System.out.println("No benchmark class provided.");
-      return false;
+      throw new NoBenchmarkClassException();
     }
-
-    return true;
   }
 
-  private void printUsage() {
+  static void printUsage() {
+    System.out.println();
     System.out.println("Usage: Runner [OPTIONS...] <benchmark>");
     System.out.println();
     System.out.println("  <benchmark>: a benchmark class or suite");
@@ -412,24 +425,8 @@ public final class Runner {
     // adding new options? don't forget to update executeForked()
   }
 
-  public static void main(String... args) throws Exception { // TODO: cleaner error reporting
-    try {
-      Runner runner = new Runner();
-      if (!runner.parseArgs(args)) {
-        runner.printUsage();
-        return;
-      }
-
-      runner.prepareSuite();
-      runner.prepareParameters();
-      if (!runner.doRunInProcess()) {
-        Result result = runner.runOutOfProcess();
-        new ConsoleReport(result).displayResults();
-      }
-    } catch (UserException e) {
-      System.err.println(e.getMessage());
-      System.exit(1);
-    }
+  public static void main(String... args) throws UserException {
+    new Runner().doRun(args);
   }
 
   public static void main(Class<? extends Benchmark> suite, String... args) throws Exception {
