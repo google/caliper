@@ -53,16 +53,19 @@
     <target name="test"
             depends="compile"
             description="Run unit tests">
-        <java fork="true"
-              classname="junit.textui.TestRunner"
-              failonerror="true"
-              taskname="junit">
+        <junit fork="true"
+               haltonfailure="true">
             <classpath>
                 <pathelement location="${otherclasses}"/>
                 <path refid="testdependencies"/>
             </classpath>
-            <arg value="com.google.caliper.AllTests" /> <!-- no works, replace with file pattern -->
-        </java>
+            <batchtest>
+              <fileset dir="src">
+                <include name="test/*Test.java"/>
+              </fileset>
+            </batchtest>
+
+        </junit>
     </target>
 
     <target name="buildjar"

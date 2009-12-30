@@ -30,9 +30,15 @@ import junit.framework.TestCase;
  * @author Kevin Bourrillion
  */
 public class ErrorsInUserCodeTest extends TestCase {
+  private Runner runner;
+
+  @Override protected void setUp() throws Exception {
+    runner = new Runner();
+  }
+
   public void testDidntSubclassAnything() {
     try {
-      Runner.main(NotABenchmark.class.getName());
+      runner.doRun(NotABenchmark.class.getName());
       fail();
     } catch (DoesntImplementBenchmarkException expected) {
     }
@@ -47,7 +53,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testAbstract() {
     try {
-      Runner.main(AbstractBenchmark.class.getName());
+      runner.doRun(AbstractBenchmark.class.getName());
       fail();
     } catch (AbstractBenchmarkException expected) {
     }
@@ -62,7 +68,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testNoSuitableConstructor() {
     try {
-      Runner.main(BadConstructorBenchmark.class.getName());
+      runner.doRun(BadConstructorBenchmark.class.getName());
       fail();
     } catch (NoParameterlessConstructorException expected) {
     }
@@ -89,7 +95,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testExceptionInInit() {
     try {
-      Runner.main(ExceptionInInitBenchmark.class.getName());
+      runner.doRun(ExceptionInInitBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException expected) {
     }
@@ -107,7 +113,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testExceptionInConstructor() {
     try {
-      Runner.main(ExceptionInConstructorBenchmark.class.getName());
+      runner.doRun(ExceptionInConstructorBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException expected) {
     }
@@ -126,7 +132,7 @@ public class ErrorsInUserCodeTest extends TestCase {
   // TODO: enable
   public void XXXtestExceptionInMethod() {
     try {
-      Runner.main(ExceptionInMethodBenchmark.class.getName());
+      new Runner().doRun(ExceptionInMethodBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException ignored) {
     }

@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;
@@ -99,7 +100,7 @@ public abstract class SimpleBenchmark implements Benchmark {
       }
       return result.build();
     } catch (Exception e) {
-      throw new ExecutionException(e);
+      throw new ExceptionFromUserCodeException(e);
     }
   }
 
@@ -133,7 +134,7 @@ public abstract class SimpleBenchmark implements Benchmark {
       };
 
     } catch (Exception e) {
-      throw new ExecutionException(e);
+      throw new ExceptionFromUserCodeException(e);
     }
   }
 

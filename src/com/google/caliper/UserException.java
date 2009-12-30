@@ -30,6 +30,8 @@ public abstract class UserException extends RuntimeException {
     this.error = error;
   }
 
+  public abstract void display();
+
   // - - - -
 
   public abstract static class ErrorInUsageException extends UserException {
@@ -37,7 +39,7 @@ public abstract class UserException extends RuntimeException {
       super(error);
     }
 
-    @Override public void printStackTrace() {
+    @Override public void display() {
       if (error != null) {
         System.err.println("Error: " + error);
       }
@@ -53,7 +55,7 @@ public abstract class UserException extends RuntimeException {
       this.remedy = remedy;
     }
 
-    @Override public void printStackTrace() {
+    @Override public void display() {
       System.err.println("Error: " + error);
       System.err.println("Typical Remedy: " + remedy);
     }
@@ -107,20 +109,20 @@ public abstract class UserException extends RuntimeException {
 
   public static class AbstractBenchmarkException extends ErrorInUserCodeException {
     public AbstractBenchmarkException(Class<?> specifiedClass) {
-      super("Class [" + specifiedClass + "] is abstract.", "Specify a concrete class.");
+      super("Class [" + specifiedClass.getName() + "] is abstract.", "Specify a concrete class.");
     }
   }
 
   public static class NoParameterlessConstructorException extends ErrorInUserCodeException {
     public NoParameterlessConstructorException(Class<?> specifiedClass) {
-      super("Class [" + specifiedClass + "] has no parameterless constructor.",
+      super("Class [" + specifiedClass.getName() + "] has no parameterless constructor.",
           "Remove all constructors or add a parameterless constructor.");
     }
   }
 
   public static class DoesntImplementBenchmarkException extends ErrorInUserCodeException {
     public DoesntImplementBenchmarkException(Class<?> specifiedClass) {
-      super("Class [" + specifiedClass + "] does not implement the " + Benchmark.class
+      super("Class [" + specifiedClass + "] does not implement the " + Benchmark.class.getName()
           + " interface.", "Add 'extends " + SimpleBenchmark.class + "' to the class declaration.");
     }
   }
@@ -130,6 +132,10 @@ public abstract class UserException extends RuntimeException {
     public ExceptionFromUserCodeException(Throwable t) {
       super("An exception was thrown from the benchmark code.");
       initCause(t);
+    }
+    @Override public void display() {
+      System.err.println(error);
+      getCause().printStackTrace(System.err);
     }
   }
 }

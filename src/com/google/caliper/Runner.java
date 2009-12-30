@@ -312,7 +312,7 @@ public final class Runner {
 
       return new Result(resultsBuilder.build());
     } catch (Exception e) {
-      throw new ExecutionException(e);
+      throw new ExceptionFromUserCodeException(e);
     }
   }
 
@@ -345,7 +345,7 @@ public final class Runner {
         System.out.println(nanosPerTrial);
       }
     } catch (Exception e) {
-      throw new ExecutionException(e);
+      throw new ExceptionFromUserCodeException(e);
     }
     return true;
   }
@@ -425,11 +425,16 @@ public final class Runner {
     // adding new options? don't forget to update executeForked()
   }
 
-  public static void main(String... args) throws UserException {
-    new Runner().doRun(args);
+  public static void main(String... args) {
+    try {
+      new Runner().doRun(args);
+    } catch (UserException e) {
+      e.display();
+      System.exit(1);
+    }
   }
 
-  public static void main(Class<? extends Benchmark> suite, String... args) throws Exception {
+  public static void main(Class<? extends Benchmark> suite, String... args) {
     main(ObjectArrays.concat(args, suite.getName()));
   }
 }
