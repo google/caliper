@@ -38,7 +38,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testDidntSubclassAnything() {
     try {
-      runner.doRun(NotABenchmark.class.getName());
+      runner.run(NotABenchmark.class.getName());
       fail();
     } catch (DoesntImplementBenchmarkException expected) {
     }
@@ -53,7 +53,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testAbstract() {
     try {
-      runner.doRun(AbstractBenchmark.class.getName());
+      runner.run(AbstractBenchmark.class.getName());
       fail();
     } catch (AbstractBenchmarkException expected) {
     }
@@ -68,7 +68,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testNoSuitableConstructor() {
     try {
-      runner.doRun(BadConstructorBenchmark.class.getName());
+      runner.run(BadConstructorBenchmark.class.getName());
       fail();
     } catch (NoParameterlessConstructorException expected) {
     }
@@ -95,7 +95,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testExceptionInInit() {
     try {
-      runner.doRun(ExceptionInInitBenchmark.class.getName());
+      runner.run(ExceptionInInitBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException expected) {
     }
@@ -113,7 +113,7 @@ public class ErrorsInUserCodeTest extends TestCase {
 
   public void testExceptionInConstructor() {
     try {
-      runner.doRun(ExceptionInConstructorBenchmark.class.getName());
+      runner.run(ExceptionInConstructorBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException expected) {
     }
@@ -132,7 +132,7 @@ public class ErrorsInUserCodeTest extends TestCase {
   // TODO: enable
   public void XXXtestExceptionInMethod() {
     try {
-      new Runner().doRun(ExceptionInMethodBenchmark.class.getName());
+      new Runner().run(ExceptionInMethodBenchmark.class.getName());
       fail();
     } catch (ExceptionFromUserCodeException ignored) {
     }

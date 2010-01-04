@@ -66,6 +66,8 @@ abstract class Parameter<T> {
           return Arrays.asList(defaults);
         }
       };
+      // TODO: or should we continue so we can give an error/warning if params are also give in a
+      // method or field?
     }
 
     Parameter<?> result = null;
@@ -77,7 +79,7 @@ abstract class Parameter<T> {
       final Method valuesMethod = suiteClass.getDeclaredMethod(field.getName() + "Values");
       valuesMethod.setAccessible(true);
       member = valuesMethod;
-      returnType = field.getGenericType();
+      returnType = valuesMethod.getGenericReturnType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
         @Override public Collection<Object> values() throws Exception {
@@ -126,7 +128,9 @@ abstract class Parameter<T> {
 
     if (result == null) {
       return new Parameter<Object>(field) {
-        @Override public Collection<Object> values() throws Exception {
+        @Override public Collection<Object> values() {
+          // TODO: need tests to make sure this fails properly when no cmdline params given and
+          // works properly when they are given
           return Collections.emptySet();
         }
       };

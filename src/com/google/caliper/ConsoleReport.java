@@ -150,15 +150,23 @@ final class ConsoleReport {
     final int maxLength;
     double stdDeviation;
 
+    // TODO: this should be in Functions.java
+    private static final Function<String,Integer> STRING_LENGTH_FUNCTION =
+        new Function<String, Integer>() {
+          public Integer apply(String s) {
+            return s.length();
+          }
+        };
+
     Parameter(String name, Collection<String> values) {
       this.name = name;
       this.values = ImmutableList.copyOf(values);
-      this.maxLength = Ordering.natural().max(Iterables.transform(values,
-          new Function<String, Integer>() {
-            public Integer apply(String s) {
-              return s.length();
-            }
-          }));
+
+      int maxLen = name.length();
+      for (String value : values) {
+        maxLen = Math.max(maxLen, value.length());
+      }
+      this.maxLength = maxLen;
     }
 
     String get(Run run) {

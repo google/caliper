@@ -126,6 +126,7 @@ public final class Runner {
     } catch (ClassNotFoundException ignored) {
       // try replacing the last dot with a $, in case that helps
       // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
+      // amusingly, the $ character means three different things in this one line alone
       String newName = className.replaceFirst("\\.([^.]+)$", "\\$$1");
       return Class.forName(newName);
     }
@@ -205,7 +206,7 @@ public final class Runner {
     return result;
   }
 
-  public void doRun(String... args) {
+  public void run(String... args) {
     parseArgs(args);
     prepareSuite();
     prepareParameters();
@@ -354,7 +355,7 @@ public final class Runner {
     Iterator<String> args = Iterators.forArray(argsArray);
     while (args.hasNext()) {
       String arg = args.next();
-      
+
       if ("--help".equals(arg)) {
         throw new DisplayUsageException();
       }
@@ -427,7 +428,7 @@ public final class Runner {
 
   public static void main(String... args) {
     try {
-      new Runner().doRun(args);
+      new Runner().run(args);
     } catch (UserException e) {
       e.display();
       System.exit(1);
