@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
@@ -149,14 +148,6 @@ final class ConsoleReport {
     final ImmutableList<String> values;
     final int maxLength;
     double stdDeviation;
-
-    // TODO: this should be in Functions.java
-    private static final Function<String,Integer> STRING_LENGTH_FUNCTION =
-        new Function<String, Integer>() {
-          public Integer apply(String s) {
-            return s.length();
-          }
-        };
 
     Parameter(String name, Collection<String> values) {
       this.name = name;
