@@ -45,7 +45,7 @@ final class ConsoleReport {
 
   private final List<Variable> variables;
   private final Result result;
-  private final List<Run> runs;
+  private final List<Scenario> scenarios;
 
   private final double maxValue;
   private final double logMaxValue;
@@ -62,14 +62,14 @@ final class ConsoleReport {
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Variable> variablesBuilder = new ArrayList<Variable>();
-    for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
-      Run run = entry.getKey();
+    for (Map.Entry<Scenario, Double> entry : result.getMeasurements().entrySet()) {
+      Scenario scenario = entry.getKey();
       double d = entry.getValue();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
 
-      for (Map.Entry<String, String> variable : run.getVariables().entrySet()) {
+      for (Map.Entry<String, String> variable : scenario.getVariables().entrySet()) {
         String name = variable.getKey();
         nameToValues.put(name, variable.getValue());
       }
@@ -96,9 +96,9 @@ final class ConsoleReport {
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
-      for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
-        Run run = entry.getKey();
-        sumForValue[variable.index(run)] += entry.getValue();
+      for (Map.Entry<Scenario, Double> entry : result.getMeasurements().entrySet()) {
+        Scenario scenario = entry.getKey();
+        sumForValue[variable.index(scenario)] += entry.getValue();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -110,7 +110,7 @@ final class ConsoleReport {
     }
 
     this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
-    this.runs = new ByVariablesOrdering().sortedCopy(result.getMeasurements().keySet());
+    this.scenarios = new ByVariablesOrdering().sortedCopy(result.getMeasurements().keySet());
     this.maxValue = max;
     this.logMaxValue = Math.log(max);
 
@@ -157,12 +157,12 @@ final class ConsoleReport {
       this.maxLength = maxLen;
     }
 
-    String get(Run run) {
-      return run.getVariables().get(name);
+    String get(Scenario scenario) {
+      return scenario.getVariables().get(name);
     }
 
-    int index(Run run) {
-      return values.indexOf(get(run));
+    int index(Scenario scenario) {
+      return values.indexOf(get(scenario));
     }
 
     boolean isInteresting() {
@@ -181,10 +181,10 @@ final class ConsoleReport {
   }
 
   /**
-   * Orders runs by the variables.
+   * Orders scenarios by the variables.
    */
-  private class ByVariablesOrdering extends Ordering<Run> {
-    public int compare(Run a, Run b) {
+  private class ByVariablesOrdering extends Ordering<Scenario> {
+    public int compare(Scenario a, Scenario b) {
       for (Variable variable : variables) {
         int aValue = variable.values.indexOf(variable.get(a));
         int bValue = variable.values.indexOf(variable.get(b));
@@ -217,13 +217,13 @@ final class ConsoleReport {
 
     // rows
     String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f %s%n";
-    for (Run run : runs) {
+    for (Scenario scenario : scenarios) {
       for (Variable variable : variables) {
         if (variable.isInteresting()) {
-          System.out.printf("%" + variable.maxLength + "s ", variable.get(run));
+          System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement = result.getMeasurements().get(run);
+      double measurement = result.getMeasurements().get(scenario);
       System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
     }
   }

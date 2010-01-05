@@ -157,20 +157,20 @@ public final class Runner {
   }
 
   /**
-   * Returns a complete set of runs with every combination of values and
+   * Returns a complete set of scenarios with every combination of values and
    * benchmark classes.
    */
-  private List<Run> createRuns() {
-    List<RunBuilder> builders = new ArrayList<RunBuilder>();
+  private List<Scenario> createScenarios() {
+    List<ScenarioBuilder> builders = new ArrayList<ScenarioBuilder>();
 
-    // create runs for each VMs
+    // create scenarios for each VM
     Set<String> vms = userVms.isEmpty()
         ? defaultVms()
         : userVms;
     for (String vm : vms) {
-      RunBuilder runBuilder = new RunBuilder();
-      runBuilder.parameters.put(Run.VM_KEY, vm);
-      builders.add(runBuilder);
+      ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
+      scenarioBuilder.parameters.put(Scenario.VM_KEY, vm);
+      builders.add(scenarioBuilder);
     }
 
     for (Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
@@ -182,7 +182,7 @@ public final class Runner {
       String key = parameter.getKey();
 
       String firstValue = values.next();
-      for (RunBuilder builder : builders) {
+      for (ScenarioBuilder builder : builders) {
         builder.parameters.put(key, firstValue);
       }
 
@@ -191,15 +191,15 @@ public final class Runner {
       while (values.hasNext()) {
         String alternate = values.next();
         for (int s = 0; s < size; s++) {
-          RunBuilder copy = builders.get(s).copy();
+          ScenarioBuilder copy = builders.get(s).copy();
           copy.parameters.put(key, alternate);
           builders.add(copy);
         }
       }
     }
 
-    List<Run> result = new ArrayList<Run>();
-    for (RunBuilder builder : builders) {
+    List<Scenario> result = new ArrayList<Scenario>();
+    for (ScenarioBuilder builder : builders) {
       result.add(builder.build());
     }
 
@@ -216,24 +216,24 @@ public final class Runner {
     }
   }
 
-  private static class RunBuilder {
+  private static class ScenarioBuilder {
     final Map<String, String> parameters = new LinkedHashMap<String, String>();
 
-    RunBuilder copy() {
-      RunBuilder result = new RunBuilder();
+    ScenarioBuilder copy() {
+      ScenarioBuilder result = new ScenarioBuilder();
       result.parameters.putAll(parameters);
       return result;
     }
 
-    public Run build() {
-      return new Run(parameters);
+    public Scenario build() {
+      return new Scenario(parameters);
     }
   }
 
-  private double executeForked(Run run) {
+  private double executeForked(Scenario scenario) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
-    command.addAll(Arrays.asList(run.getVariables().get(Run.VM_KEY).split("\\s+")));
+    command.addAll(Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+")));
     command.add("-cp");
     command.add(System.getProperty("java.class.path"));
     command.add(Runner.class.getName());
@@ -242,7 +242,7 @@ public final class Runner {
     command.add("--runMillis");
     command.add(String.valueOf(runMillis));
     command.add("--inProcess");
-    for (Entry<String, String> entry : run.getParameters().entrySet()) {
+    for (Entry<String, String> entry : scenario.getParameters().entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
     command.add(suiteClassName);
@@ -290,16 +290,16 @@ public final class Runner {
   private static final String RETURN = "\r";
 
   private Result runOutOfProcess() {
-    Builder<Run, Double> resultsBuilder = ImmutableMap.builder();
+    Builder<Scenario, Double> resultsBuilder = ImmutableMap.builder();
 
     try {
-      List<Run> runs = createRuns();
+      List<Scenario> scenarios = createScenarios();
       int i = 0;
-      for (Run run : runs) {
-        beforeRun(i++, runs.size(), run);
-        double nanosPerTrial = executeForked(run);
-        afterRun(nanosPerTrial);
-        resultsBuilder.put(run, nanosPerTrial);
+      for (Scenario scenario : scenarios) {
+        beforeMeasurement(i++, scenarios.size(), scenario);
+        double nanosPerTrial = executeForked(scenario);
+        afterMeasurement(nanosPerTrial);
+        resultsBuilder.put(scenario, nanosPerTrial);
       }
 
       // blat out our progress bar
@@ -315,10 +315,10 @@ public final class Runner {
     }
   }
 
-  private void beforeRun(int index, int total, Run run) {
+  private void beforeMeasurement(int index, int total, Scenario scenario) {
     double percentDone = (double) index / total;
     int runStringLength = 63; // so the total line length is 80
-    String runString = String.valueOf(run);
+    String runString = String.valueOf(scenario);
     if (runString.length() > runStringLength) {
       runString = runString.substring(0, runStringLength);
     }
@@ -326,7 +326,7 @@ public final class Runner {
         percentDone * 100, runString);
   }
 
-  private void afterRun(double nanosPerTrial) {
+  private void afterMeasurement(double nanosPerTrial) {
     System.out.printf(" %10.0fns", nanosPerTrial);
   }
 
@@ -337,8 +337,8 @@ public final class Runner {
     try {
       Caliper caliper = new Caliper(warmupMillis, runMillis);
 
-      for (Run run : createRuns()) {
-        TimedRunnable timedRunnable = suite.createBenchmark(run.getParameters());
+      for (Scenario scenario : createScenarios()) {
+        TimedRunnable timedRunnable = suite.createBenchmark(scenario.getParameters());
         double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
         double nanosPerTrial = caliper.run(timedRunnable, warmupNanosPerTrial);
         System.out.println(nanosPerTrial);

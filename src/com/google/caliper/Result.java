@@ -38,13 +38,13 @@ import org.w3c.dom.NodeList;
  */
 public final class Result {
 
-  private final ImmutableMap<Run, Double> measurements;
+  private final ImmutableMap<Scenario, Double> measurements;
 
-  public Result(Map<Run, Double> measurements) {
+  public Result(Map<Scenario, Double> measurements) {
     this.measurements = ImmutableMap.copyOf(measurements);
   }
 
-  public ImmutableMap<Run, Double> getMeasurements() {
+  public ImmutableMap<Scenario, Double> getMeasurements() {
     return measurements;
   }
 
@@ -66,8 +66,8 @@ public final class Result {
    * with {@link #fromXml(InputStream)}. Sample output:
    * <pre>{@code
    * <result>
-   *   <run bar="15" foo="A" vm="dalvikvm">1200.1</run>
-   *   <run bar="15" foo="B" vm="dalvikvm">1100.2</run>
+   *   <scenario bar="15" foo="A" vm="dalvikvm">1200.1</scenario>
+   *   <scenario bar="15" foo="B" vm="dalvikvm">1100.2</scenario>
    * </result>
    * }</pre>
    */
@@ -77,12 +77,12 @@ public final class Result {
       Element result = doc.createElement("result");
       doc.appendChild(result);
 
-      for (Map.Entry<Run, Double> entry : measurements.entrySet()) {
-        Element runElement = doc.createElement("run");
+      for (Map.Entry<Scenario, Double> entry : measurements.entrySet()) {
+        Element runElement = doc.createElement("scenario");
         result.appendChild(runElement);
 
-        Run run = entry.getKey();
-        for (Map.Entry<String, String> parameter : run.getVariables().entrySet()) {
+        Scenario scenario = entry.getKey();
+        for (Map.Entry<String, String> parameter : scenario.getVariables().entrySet()) {
           runElement.setAttribute(parameter.getKey(), parameter.getValue());
         }
         runElement.setTextContent(String.valueOf(entry.getValue()));
@@ -104,12 +104,12 @@ public final class Result {
       Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
       Element result = document.getDocumentElement();
 
-      ImmutableMap.Builder<Run, Double> measurementsBuilder = ImmutableMap.builder();
+      ImmutableMap.Builder<Scenario, Double> measurementsBuilder = ImmutableMap.builder();
       for (Node node : childrenOf(result)) {
-        Element runElement = (Element) node;
-        Run run = new Run(attributesOf(runElement));
-        double measurement = Double.parseDouble(runElement.getTextContent());
-        measurementsBuilder.put(run, measurement);
+        Element scenarioElement = (Element) node;
+        Scenario scenario = new Scenario(attributesOf(scenarioElement));
+        double measurement = Double.parseDouble(scenarioElement.getTextContent());
+        measurementsBuilder.put(scenario, measurement);
       }
 
       return new Result(measurementsBuilder.build());

@@ -23,7 +23,7 @@ import java.util.Map;
 /**
  * A configured benchmark.
  */
-public final class Run {
+public final class Scenario {
 
   static final String VM_KEY = "vm";
 
@@ -35,7 +35,7 @@ public final class Run {
 
   private final ImmutableMap<String, String> variables;
 
-  public Run(Map<String, String> variables) {
+  public Scenario(Map<String, String> variables) {
     this.variables = ImmutableMap.copyOf(variables);
   }
 
@@ -45,7 +45,8 @@ public final class Run {
 
   /**
    * Returns the user-specified parameters. This is the (possibly-empty) set of
-   * variables that may be varied from run to run in the same environment.
+   * variables that may be varied from scenario to scenario in the same
+   * environment.
    */
   public ImmutableMap<String, String> getParameters() {
     ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
@@ -58,8 +59,8 @@ public final class Run {
   }
 
   @Override public boolean equals(Object o) {
-    return o instanceof Run
-        && ((Run) o).getVariables().equals(variables);
+    return o instanceof Scenario
+        && ((Scenario) o).getVariables().equals(variables);
   }
 
   @Override public int hashCode() {
@@ -67,6 +68,6 @@ public final class Run {
   }
 
   @Override public String toString() {
-    return "Run" + variables;
+    return "Scenario" + variables;
   }
 }

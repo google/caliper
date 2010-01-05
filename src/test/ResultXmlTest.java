@@ -17,7 +17,7 @@
 package test;
 
 import com.google.caliper.Result;
-import com.google.caliper.Run;
+import com.google.caliper.Scenario;
 import com.google.common.collect.ImmutableMap;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
@@ -26,9 +26,9 @@ import junit.framework.TestCase;
 public class ResultXmlTest extends TestCase {
 
   public void testXmlRoundtrip() {
-    Run a15dalvik = new Run(ImmutableMap.of(
+    Scenario a15dalvik = new Scenario(ImmutableMap.of(
         "foo", "A", "bar", "15", "vm", "dalvikvm"));
-    Run b15dalvik = new Run(ImmutableMap.of(
+    Scenario b15dalvik = new Scenario(ImmutableMap.of(
         "foo", "B", "bar", "15", "vm", "dalvikvm"));
 
     Result toEncode = new Result(ImmutableMap.of(a15dalvik, 1200.1, b15dalvik, 1100.2));
