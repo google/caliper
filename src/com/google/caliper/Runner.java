@@ -169,7 +169,7 @@ public final class Runner {
         : userVms;
     for (String vm : vms) {
       RunBuilder runBuilder = new RunBuilder();
-      runBuilder.vm = vm;
+      runBuilder.parameters.put(Run.VM_KEY, vm);
       builders.add(runBuilder);
     }
 
@@ -218,24 +218,22 @@ public final class Runner {
 
   private static class RunBuilder {
     final Map<String, String> parameters = new LinkedHashMap<String, String>();
-    String vm;
 
     RunBuilder copy() {
       RunBuilder result = new RunBuilder();
       result.parameters.putAll(parameters);
-      result.vm = vm;
       return result;
     }
 
     public Run build() {
-      return new Run(parameters, vm);
+      return new Run(parameters);
     }
   }
 
   private double executeForked(Run run) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
-    command.addAll(Arrays.asList(run.getVm().split("\\s+")));
+    command.addAll(Arrays.asList(run.getVariables().get(Run.VM_KEY).split("\\s+")));
     command.add("-cp");
     command.add(System.getProperty("java.class.path"));
     command.add(Runner.class.getName());

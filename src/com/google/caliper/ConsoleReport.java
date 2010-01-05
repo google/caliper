@@ -42,9 +42,8 @@ import java.util.Map;
 final class ConsoleReport {
 
   private static final int bargraphWidth = 30;
-  private static final String vmKey = "vm";
 
-  private final List<Parameter> parameters;
+  private final List<Variable> variables;
   private final Result result;
   private final List<Run> runs;
 
@@ -62,7 +61,7 @@ final class ConsoleReport {
     double max = 0;
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
-    List<Parameter> parametersBuilder = new ArrayList<Parameter>();
+    List<Variable> variablesBuilder = new ArrayList<Variable>();
     for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
       Run run = entry.getKey();
       double d = entry.getValue();
@@ -70,38 +69,36 @@ final class ConsoleReport {
       min = Math.min(min, d);
       max = Math.max(max, d);
 
-      for (Map.Entry<String, String> parameter : run.getParameters().entrySet()) {
-        String name = parameter.getKey();
-        nameToValues.put(name, parameter.getValue());
+      for (Map.Entry<String, String> variable : run.getVariables().entrySet()) {
+        String name = variable.getKey();
+        nameToValues.put(name, variable.getValue());
       }
-
-      nameToValues.put(vmKey, run.getVm());
     }
 
     for (Map.Entry<String, Collection<String>> entry : nameToValues.asMap().entrySet()) {
-      Parameter parameter = new Parameter(entry.getKey(), entry.getValue());
-      parametersBuilder.add(parameter);
+      Variable variable = new Variable(entry.getKey(), entry.getValue());
+      variablesBuilder.add(variable);
     }
 
     /*
-     * Figure out how much influence each parameter has on the measured value.
-     * We sum the measurements taken with each value of each parameter. For
-     * parameters that have influence on the measurement, the sums will differ
-     * by value. If the parameter has little influence, the sums will be similar
+     * Figure out how much influence each variable has on the measured value.
+     * We sum the measurements taken with each value of each variable. For
+     * variable that have influence on the measurement, the sums will differ
+     * by value. If the variable has little influence, the sums will be similar
      * to one another and close to the overall average. We take the standard
-     * deviation across each parameters collection of sums. Higher standard
+     * deviation across each variable's collection of sums. Higher standard
      * deviation implies higher influence on the measured result.
      */
     double sumOfAllMeasurements = 0;
     for (double measurement : result.getMeasurements().values()) {
       sumOfAllMeasurements += measurement;
     }
-    for (Parameter parameter : parametersBuilder) {
-      int numValues = parameter.values.size();
+    for (Variable variable : variablesBuilder) {
+      int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
       for (Map.Entry<Run, Double> entry : result.getMeasurements().entrySet()) {
         Run run = entry.getKey();
-        sumForValue[parameter.index(run)] += entry.getValue();
+        sumForValue[variable.index(run)] += entry.getValue();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -109,11 +106,11 @@ final class ConsoleReport {
         double distance = value - mean;
         stdDeviationSquared += distance * distance;
       }
-      parameter.stdDeviation = Math.sqrt(stdDeviationSquared / numValues);
+      variable.stdDeviation = Math.sqrt(stdDeviationSquared / numValues);
     }
 
-    this.parameters = new StandardDeviationOrdering().reverse().sortedCopy(parametersBuilder);
-    this.runs = new ByParametersOrdering().sortedCopy(result.getMeasurements().keySet());
+    this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
+    this.runs = new ByVariablesOrdering().sortedCopy(result.getMeasurements().keySet());
     this.maxValue = max;
     this.logMaxValue = Math.log(max);
 
@@ -141,15 +138,15 @@ final class ConsoleReport {
   }
 
   /**
-   * A parameter plus all of its values.
+   * A variable and the set of values to which it has been assigned.
    */
-  private static class Parameter {
+  private static class Variable {
     final String name;
     final ImmutableList<String> values;
     final int maxLength;
     double stdDeviation;
 
-    Parameter(String name, Collection<String> values) {
+    Variable(String name, Collection<String> values) {
       this.name = name;
       this.values = ImmutableList.copyOf(values);
 
@@ -161,7 +158,7 @@ final class ConsoleReport {
     }
 
     String get(Run run) {
-      return vmKey.equals(name) ? run.getVm() : run.getParameters().get(name);
+      return run.getVariables().get(name);
     }
 
     int index(Run run) {
@@ -174,23 +171,23 @@ final class ConsoleReport {
   }
 
   /**
-   * Orders the different parameters by their standard deviation. This results
+   * Orders the different variables by their standard deviation. This results
    * in an appropriate grouping of output values.
    */
-  private static class StandardDeviationOrdering extends Ordering<Parameter> {
-    public int compare(Parameter a, Parameter b) {
+  private static class StandardDeviationOrdering extends Ordering<Variable> {
+    public int compare(Variable a, Variable b) {
       return Double.compare(a.stdDeviation, b.stdDeviation);
     }
   }
 
   /**
-   * Orders runs by the parameters.
+   * Orders runs by the variables.
    */
-  private class ByParametersOrdering extends Ordering<Run> {
+  private class ByVariablesOrdering extends Ordering<Run> {
     public int compare(Run a, Run b) {
-      for (Parameter parameter : parameters) {
-        int aValue = parameter.values.indexOf(parameter.get(a));
-        int bValue = parameter.values.indexOf(parameter.get(b));
+      for (Variable variable : variables) {
+        int aValue = variable.values.indexOf(variable.get(a));
+        int bValue = variable.values.indexOf(variable.get(b));
         int diff = aValue - bValue;
         if (diff != 0) {
           return diff;
@@ -203,7 +200,7 @@ final class ConsoleReport {
   void displayResults() {
     printValues();
     System.out.println();
-    printUninterestingParameters();
+    printUninterestingVariables();
   }
 
   /**
@@ -211,9 +208,9 @@ final class ConsoleReport {
    */
   private void printValues() {
     // header
-    for (Parameter parameter : parameters) {
-      if (parameter.isInteresting()) {
-        System.out.printf("%" + parameter.maxLength + "s ", parameter.name);
+    for (Variable variable : variables) {
+      if (variable.isInteresting()) {
+        System.out.printf("%" + variable.maxLength + "s ", variable.name);
       }
     }
     System.out.printf("%" + measurementColumnLength + "s logarithmic runtime%n", units);
@@ -221,9 +218,9 @@ final class ConsoleReport {
     // rows
     String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f %s%n";
     for (Run run : runs) {
-      for (Parameter parameter : parameters) {
-        if (parameter.isInteresting()) {
-          System.out.printf("%" + parameter.maxLength + "s ", parameter.get(run));
+      for (Variable variable : variables) {
+        if (variable.isInteresting()) {
+          System.out.printf("%" + variable.maxLength + "s ", variable.get(run));
         }
       }
       double measurement = result.getMeasurements().get(run);
@@ -232,12 +229,12 @@ final class ConsoleReport {
   }
 
   /**
-   * Prints parameters with only one unique value.
+   * Prints variables with only one unique value.
    */
-  private void printUninterestingParameters() {
-    for (Parameter parameter : parameters) {
-      if (!parameter.isInteresting()) {
-        System.out.println(parameter.name + ": " + Iterables.getOnlyElement(parameter.values));
+  private void printUninterestingVariables() {
+    for (Variable variable : variables) {
+      if (!variable.isInteresting()) {
+        System.out.println(variable.name + ": " + Iterables.getOnlyElement(variable.values));
       }
     }
   }

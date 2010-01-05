@@ -17,30 +17,56 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import java.util.Map;
 
 /**
  * A configured benchmark.
  */
-final class Run {
+public final class Run {
 
-  private final ImmutableMap<String, String> parameters;
-  private final String vm;
+  static final String VM_KEY = "vm";
 
-  Run(Map<String, String> parameters, String vm) {
-    this.parameters = ImmutableMap.copyOf(parameters);
-    this.vm = vm;
+  /**
+   * The subset of variable names that are managed by the system. It is an error
+   * to create a parameter with the same name as one of these variables.
+   */
+  static final ImmutableSet<String> SYSTEM_VARIABLES = ImmutableSet.of(VM_KEY);
+
+  private final ImmutableMap<String, String> variables;
+
+  public Run(Map<String, String> variables) {
+    this.variables = ImmutableMap.copyOf(variables);
   }
 
-  ImmutableMap<String, String> getParameters() {
-    return parameters;
+  public ImmutableMap<String, String> getVariables() {
+    return variables;
   }
 
-  String getVm() {
-    return vm;
+  /**
+   * Returns the user-specified parameters. This is the (possibly-empty) set of
+   * variables that may be varied from run to run in the same environment.
+   */
+  public ImmutableMap<String, String> getParameters() {
+    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+    for (Map.Entry<String, String> entry : variables.entrySet()) {
+      if (!SYSTEM_VARIABLES.contains(entry.getKey())) {
+        builder.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return builder.build();
+  }
+
+  @Override public boolean equals(Object o) {
+    return o instanceof Run
+        && ((Run) o).getVariables().equals(variables);
+  }
+
+  @Override public int hashCode() {
+    return variables.hashCode();
   }
 
   @Override public String toString() {
-    return "Run" + parameters;
+    return "Run" + variables;
   }
 }
