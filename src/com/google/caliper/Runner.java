@@ -43,6 +43,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -50,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -206,13 +208,21 @@ public final class Runner {
     return result;
   }
 
+  /**
+   * Returns the UUID of the executing host. Multiple runs by the same user on
+   * the same machine should yield the same result.
+   */
+  private String getExecutedByUuid() {
+    return UUID.randomUUID().toString();
+  }
+
   public void run(String... args) {
     parseArgs(args);
     prepareSuite();
     prepareParameters();
     if (!doRunInProcess()) {
-      Result result = runOutOfProcess();
-      new ConsoleReport(result).displayResults();
+      Run run = runOutOfProcess();
+      new ConsoleReport(run).displayResults();
     }
   }
 
@@ -289,7 +299,9 @@ public final class Runner {
   @SuppressWarnings("HardcodedLineSeparator")
   private static final String RETURN = "\r";
 
-  private Result runOutOfProcess() {
+  private Run runOutOfProcess() {
+    String executedByUuid = getExecutedByUuid();
+    Date executedDate = new Date();
     Builder<Scenario, Double> resultsBuilder = ImmutableMap.builder();
 
     try {
@@ -309,7 +321,7 @@ public final class Runner {
       }
       System.out.print(RETURN);
 
-      return new Result(resultsBuilder.build());
+      return new Run(resultsBuilder.build(), suiteClassName, executedByUuid, executedDate);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }

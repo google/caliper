@@ -16,14 +16,15 @@
 
 package test;
 
-import com.google.caliper.Result;
+import com.google.caliper.Run;
 import com.google.caliper.Scenario;
 import com.google.common.collect.ImmutableMap;
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.util.Date;
 import junit.framework.TestCase;
 
-public class ResultXmlTest extends TestCase {
+public class RunXmlTest extends TestCase {
 
   public void testXmlRoundtrip() {
     Scenario a15dalvik = new Scenario(ImmutableMap.of(
@@ -31,15 +32,18 @@ public class ResultXmlTest extends TestCase {
     Scenario b15dalvik = new Scenario(ImmutableMap.of(
         "foo", "B", "bar", "15", "vm", "dalvikvm"));
 
-    Result toEncode = new Result(ImmutableMap.of(a15dalvik, 1200.1, b15dalvik, 1100.2));
+    Run toEncode = new Run(ImmutableMap.of(a15dalvik, 1200.1, b15dalvik, 1100.2),
+        "examples.FooBenchmark", "A0:1F:CAFE:BABE", new Date());
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     toEncode.toXml(bytesOut);
+
+    assertEquals("", new String(bytesOut.toByteArray()));
 
     // we don't validate the XML directly because it's a hassle to cope with arbitrary orderings of
     // an element's attributes
 
     ByteArrayInputStream bytesIn = new ByteArrayInputStream(bytesOut.toByteArray());
-    Result decoded = Result.fromXml(bytesIn);
+    Run decoded = Run.fromXml(bytesIn);
 
     assertEquals(toEncode, decoded);
   }

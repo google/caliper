@@ -44,7 +44,7 @@ final class ConsoleReport {
   private static final int bargraphWidth = 30;
 
   private final List<Variable> variables;
-  private final Result result;
+  private final Run run;
   private final List<Scenario> scenarios;
 
   private final double maxValue;
@@ -54,15 +54,15 @@ final class ConsoleReport {
   private final String units;
   private final int measurementColumnLength;
 
-  ConsoleReport(Result result) {
-    this.result = result;
+  ConsoleReport(Run run) {
+    this.run = run;
 
     double min = Double.POSITIVE_INFINITY;
     double max = 0;
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Variable> variablesBuilder = new ArrayList<Variable>();
-    for (Map.Entry<Scenario, Double> entry : result.getMeasurements().entrySet()) {
+    for (Map.Entry<Scenario, Double> entry : run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
       double d = entry.getValue();
 
@@ -90,13 +90,13 @@ final class ConsoleReport {
      * deviation implies higher influence on the measured result.
      */
     double sumOfAllMeasurements = 0;
-    for (double measurement : result.getMeasurements().values()) {
+    for (double measurement : run.getMeasurements().values()) {
       sumOfAllMeasurements += measurement;
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
-      for (Map.Entry<Scenario, Double> entry : result.getMeasurements().entrySet()) {
+      for (Map.Entry<Scenario, Double> entry : run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
         sumForValue[variable.index(scenario)] += entry.getValue();
       }
@@ -110,7 +110,7 @@ final class ConsoleReport {
     }
 
     this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
-    this.scenarios = new ByVariablesOrdering().sortedCopy(result.getMeasurements().keySet());
+    this.scenarios = new ByVariablesOrdering().sortedCopy(run.getMeasurements().keySet());
     this.maxValue = max;
     this.logMaxValue = Math.log(max);
 
@@ -223,7 +223,7 @@ final class ConsoleReport {
           System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement = result.getMeasurements().get(scenario);
+      double measurement = run.getMeasurements().get(scenario);
       System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
     }
   }
