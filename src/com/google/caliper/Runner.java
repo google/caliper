@@ -36,12 +36,14 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,16 +54,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
-import java.util.Properties;
-import java.net.URL;
-import java.net.URLConnection;
 
 /**
  * Creates, executes and reports benchmark runs.
  */
 public final class Runner {
+
+  private static final String DEFAULT_POST_HOST = "http://microbenchmarks.appspot.com/run/";
 
   private String suiteClassName;
   private Benchmark suite;
@@ -78,13 +80,14 @@ public final class Runner {
    */
   private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
 
-  /**
-   * True if each benchmark should run in process.
-   */
+  /** True if each benchmark should run in process. */
   private boolean inProcess;
 
   private long warmupMillis = 5000;
   private long runMillis = 5000;
+
+  /** The URL to post benchmark results to. */
+  private String postHost = DEFAULT_POST_HOST;
 
   /**
    * Sets the named parameter to the specified value. This value will replace
@@ -245,24 +248,37 @@ public final class Runner {
     if (!doRunInProcess()) {
       Run run = runOutOfProcess();
       new ConsoleReport(run).displayResults();
+      postResults(run);
+    }
+  }
 
-      try {
-        URL url = new URL(
-            "http://localhost:8888/run/" + run.getExecutedByUuid() + "/" + run.getBenchmarkName());
-        URLConnection urlConnection = url.openConnection();
-        urlConnection.setDoOutput(true);
-        Xml.runToXml(run, urlConnection.getOutputStream());
-        BufferedReader reader = new BufferedReader(
-            new InputStreamReader(urlConnection.getInputStream()));
-        String line;
-        while ((line = reader.readLine()) != null) {
-          System.out.println(line);
-        }
-        System.out.println(url);
-        
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+  private void postResults(Run run) {
+    if ("none".equals(postHost)) {
+      return;
+    }
+
+    try {
+      URL url = new URL(postHost + run.getExecutedByUuid() + "/" + run.getBenchmarkName());
+      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+      urlConnection.setDoOutput(true);
+      Xml.runToXml(run, urlConnection.getOutputStream());
+      if (urlConnection.getResponseCode() == 200) {
+        System.out.println("");
+        System.out.println("View current and previous benchmark results online:");
+        System.out.println("  " + url);
+        return;
       }
+
+      System.out.println("Posting to " + postHost + " failed: "
+          + urlConnection.getResponseMessage());
+      BufferedReader reader = new BufferedReader(
+          new InputStreamReader(urlConnection.getInputStream()));
+      String line;
+      while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+      }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -413,6 +429,9 @@ public final class Runner {
       if ("--inProcess".equals(arg)) {
           inProcess = true;
 
+      } else if ("--postHost".equals(arg)) {
+          postHost = args.next();
+
       } else if (arg.startsWith("-D")) {
         int equalsSign = arg.indexOf('=');
         if (equalsSign == -1) {
@@ -466,6 +485,10 @@ public final class Runner {
     System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
     System.out.println("        another with the same classpath. By default each benchmark is");
     System.out.println("        run in a separate VM");
+    System.out.println();
+    System.out.println("  --postHost <host>: the URL to post benchmark results to, or \"none\"");
+    System.out.println("        to skip posting results to the web.");
+    System.out.println("        default value: " + DEFAULT_POST_HOST);
     System.out.println();
     System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
     System.out.println();
