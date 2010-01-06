@@ -74,6 +74,13 @@
         <mkdir dir="${installroot}/lib"/>
         <jar jarfile="${installroot}/lib/caliper-${version}.jar">
             <fileset dir="${frameworkclasses}"/>
+
+            <!-- include some files for GWT's benefit -->
+            <zipfileset dir="src">
+                <include name="com/google/caliper/Run.java"/>
+                <include name="com/google/caliper/Scenario.java"/>
+                <include name="CaliperCore.gwt.xml" />
+            </zipfileset>
         </jar>
     </target>
 

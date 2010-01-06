@@ -18,9 +18,10 @@ package test;
 
 import com.google.caliper.Run;
 import com.google.caliper.Scenario;
+import com.google.caliper.Xml;
 import com.google.common.collect.ImmutableMap;
-import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Date;
 import junit.framework.TestCase;
 
@@ -35,7 +36,7 @@ public class RunXmlTest extends TestCase {
     Run toEncode = new Run(ImmutableMap.of(a15dalvik, 1200.1, b15dalvik, 1100.2),
         "examples.FooBenchmark", "A0:1F:CAFE:BABE", new Date());
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
-    toEncode.toXml(bytesOut);
+    Xml.runToXml(toEncode, bytesOut);
 
     assertEquals("", new String(bytesOut.toByteArray()));
 
@@ -43,7 +44,7 @@ public class RunXmlTest extends TestCase {
     // an element's attributes
 
     ByteArrayInputStream bytesIn = new ByteArrayInputStream(bytesOut.toByteArray());
-    Run decoded = Run.fromXml(bytesIn);
+    Run decoded = Xml.runFromXml(bytesIn);
 
     assertEquals(toEncode, decoded);
   }

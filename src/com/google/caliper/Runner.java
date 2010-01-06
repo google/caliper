@@ -38,6 +38,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -52,6 +54,9 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
+import java.util.Properties;
+import java.net.URL;
+import java.net.URLConnection;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -213,7 +218,24 @@ public final class Runner {
    * the same machine should yield the same result.
    */
   private String getExecutedByUuid() {
-    return UUID.randomUUID().toString();
+    try {
+      File dotCaliperRc = new File(System.getProperty("user.home"), ".caliperrc");
+      Properties properties = new Properties();
+      if (dotCaliperRc.exists()) {
+        properties.load(new FileInputStream(dotCaliperRc));
+      }
+
+      String userUuid = properties.getProperty("userUuid");
+      if (userUuid == null) {
+        userUuid = UUID.randomUUID().toString();
+        properties.setProperty("userUuid", userUuid);
+        properties.store(new FileOutputStream(dotCaliperRc), "");
+      }
+
+      return userUuid;
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public void run(String... args) {
@@ -223,6 +245,24 @@ public final class Runner {
     if (!doRunInProcess()) {
       Run run = runOutOfProcess();
       new ConsoleReport(run).displayResults();
+
+      try {
+        URL url = new URL(
+            "http://localhost:8888/run/" + run.getExecutedByUuid() + "/" + run.getBenchmarkName());
+        URLConnection urlConnection = url.openConnection();
+        urlConnection.setDoOutput(true);
+        Xml.runToXml(run, urlConnection.getOutputStream());
+        BufferedReader reader = new BufferedReader(
+            new InputStreamReader(urlConnection.getInputStream()));
+        String line;
+        while ((line = reader.readLine()) != null) {
+          System.out.println(line);
+        }
+        System.out.println(url);
+        
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 

@@ -16,14 +16,20 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A configured benchmark.
+ *
+ * <p>Gwt-safe.
  */
-public final class Scenario {
+public final class Scenario
+    implements Serializable /* for GWT */  {
 
   static final String VM_KEY = "vm";
 
@@ -31,15 +37,15 @@ public final class Scenario {
    * The subset of variable names that are managed by the system. It is an error
    * to create a parameter with the same name as one of these variables.
    */
-  static final ImmutableSet<String> SYSTEM_VARIABLES = ImmutableSet.of(VM_KEY);
+  static final Set<String> SYSTEM_VARIABLES = new HashSet<String>(Arrays.asList(VM_KEY));
 
-  private final ImmutableMap<String, String> variables;
+  private /*final*/ Map<String, String> variables;
 
   public Scenario(Map<String, String> variables) {
-    this.variables = ImmutableMap.copyOf(variables);
+    this.variables = new LinkedHashMap<String, String>(variables);
   }
 
-  public ImmutableMap<String, String> getVariables() {
+  public Map<String, String> getVariables() {
     return variables;
   }
 
@@ -48,14 +54,14 @@ public final class Scenario {
    * variables that may be varied from scenario to scenario in the same
    * environment.
    */
-  public ImmutableMap<String, String> getParameters() {
-    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+  public Map<String, String> getParameters() {
+    Map<String, String> result = new LinkedHashMap<String, String>();
     for (Map.Entry<String, String> entry : variables.entrySet()) {
       if (!SYSTEM_VARIABLES.contains(entry.getKey())) {
-        builder.put(entry.getKey(), entry.getValue());
+        result.put(entry.getKey(), entry.getValue());
       }
     }
-    return builder.build();
+    return result;
   }
 
   @Override public boolean equals(Object o) {
@@ -70,4 +76,6 @@ public final class Scenario {
   @Override public String toString() {
     return "Scenario" + variables;
   }
+
+  private Scenario() {} // for GWT
 }
