@@ -72,8 +72,16 @@
             depends="compile"
             description="Build JAR archive of caliper framework">
         <mkdir dir="${installroot}/lib"/>
-        <jar jarfile="${installroot}/lib/caliper-${version}.jar">
+
+        <taskdef name="jarjar"
+                 classname="com.tonicsystems.jarjar.JarJarTask"
+                 classpath="lib/jarjar-1.0rc8.jar"/>
+
+        <jarjar jarfile="${installroot}/lib/caliper-${version}.jar">
             <fileset dir="${frameworkclasses}"/>
+            <zipfileset src="${collections}"/>
+            <rule pattern="com.google.common.**" result="com.google.caliper.internal.guava.@1"/>
+            <keep pattern="com.google.caliper.**"/>
 
             <!-- include some files for GWT's benefit -->
             <zipfileset dir="src">
@@ -81,7 +89,7 @@
                 <include name="com/google/caliper/Scenario.java"/>
                 <include name="CaliperCore.gwt.xml" />
             </zipfileset>
-        </jar>
+        </jarjar>
     </target>
 
     <target name="javadoc"
@@ -110,12 +118,10 @@
             <fileset dir="src"/>
         </zip>
 
-        <copy toDir="${installroot}/lib" file="${collections}"/> <!-- should use 'dependencies' -->
         <copy toDir="${installroot}" file="COPYING"/>
         <copy toDir="${installroot}" file="src/scripts/caliper">
             <filterset>
                 <filter token="VERSION" value="${version}"/>
-                <filter token="COLLECT" value="${collections}"/>
             </filterset>
         </copy>
         <chmod perm="ugo=rx" file="${installroot}/caliper"/>
