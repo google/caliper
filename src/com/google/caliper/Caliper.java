@@ -96,7 +96,7 @@ class Caliper {
    */
   private boolean isPlausible(double expected, double measurement) {
     double ratio = measurement / expected;
-    return ratio > 0.9 && ratio < 1.1;
+    return ratio > 0.5 && ratio < 2.0;
   }
 
   private double measure(TimedRunnable test, int trials) throws Exception {

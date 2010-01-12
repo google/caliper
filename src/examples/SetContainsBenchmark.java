@@ -19,6 +19,7 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,40 +35,55 @@ import java.util.Set;
  * @author Kevin Bourrillion
  */
 public class SetContainsBenchmark extends SimpleBenchmark {
-
-  // So far, this is the best way to test various implementations
-
   @Param private Impl impl;
 
+  // So far, this is the best way to test various implementations
   public enum Impl {
-    HashSet {
+    Hash {
       @Override Set<Integer> create(Collection<Integer> contents) {
         return new HashSet<Integer>(contents);
       }
     },
-    LinkedHashSet {
+    LinkedHash {
       @Override Set<Integer> create(Collection<Integer> contents) {
         return new LinkedHashSet<Integer>(contents);
       }
     },
-    UnmodifiableHashSet {
+    UnmodHS {
       @Override Set<Integer> create(Collection<Integer> contents) {
         return Collections.unmodifiableSet(new HashSet<Integer>(contents));
       }
     },
-    SynchronizedHashSet {
+    SyncHS {
       @Override Set<Integer> create(Collection<Integer> contents) {
         return Collections.synchronizedSet(new HashSet<Integer>(contents));
       }
     },
-    ;
+
+    // Kind of cheating here -- Caliper just happens to bundle Google Collections so I'm testing
+    // this from it; this might not work at the command line since GC are jarjar'd for caliper.jar
+    Immutable {
+      @Override Set<Integer> create(Collection<Integer> contents) {
+        return ImmutableSet.copyOf(contents);
+      }
+    };
 
     abstract Set<Integer> create(Collection<Integer> contents);
   }
 
-  // a range of sizes that are different multiples of their nearest power of 2
-  @Param({"2", "18", "160", "1400", "12600" /*, "112000" */})
-  private int size;
+  @Param private int size;
+  public static final Collection<Integer> sizeValues = Arrays.asList(
+      (1<<2) - 1,
+      (1<<2),
+      (1<<6) - 1,
+      (1<<6),
+      (1<<10) - 1,
+      (1<<10),
+      (1<<14) - 1,
+      (1<<14),
+      (1<<18) - 1,
+      (1<<18)
+  );
 
   // "" means no fixed seed
   @Param("") private SpecialRandom random;
@@ -101,11 +117,18 @@ public class SetContainsBenchmark extends SimpleBenchmark {
   }
 
   public boolean timeContains(int reps) {
+    // Paranoia: acting on hearsay that accessing fields might be slow
+    // Should write a benchmark to test that!
+    Set<Integer> set = setToTest;
+    Integer[] queries = this.queries;
+
+    // Allows us to use & instead of %, acting on hearsay that division operators (/%) are
+    // disproportionately expensive; should test this too!
+    int mask = Integer.highestOneBit(size * 2) - 1;
+
     boolean dummy = false;
-    int numQueries = size * 2;
     for (int i = 0; i < reps; i++) {
-      // TODO: this % may be too expensive...
-      dummy ^= setToTest.contains(queries[i % numQueries]);
+      dummy ^= set.contains(queries[i & mask]);
     }
     return dummy;
   }
@@ -114,6 +137,7 @@ public class SetContainsBenchmark extends SimpleBenchmark {
   public static void main(String[] args) throws Exception {
     Runner.main(SetContainsBenchmark.class, args);
   }
+
 
   // Just an experiment with a slightly nicer way to create Randoms for benchies
 
