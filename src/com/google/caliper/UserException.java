@@ -43,7 +43,7 @@ public abstract class UserException extends RuntimeException {
       if (error != null) {
         System.err.println("Error: " + error);
       }
-      Runner.printUsage();
+      Arguments.printUsage();
     }
   }
 

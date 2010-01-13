@@ -27,7 +27,7 @@ import java.util.Map;
  * <p>Gwt-safe.
  */
 public final class Run
-    implements Serializable /* for GWT */ {
+    implements Serializable /* for GWT Serialization */ {
 
   private /*final*/ Map<Scenario, Double> measurements;
   private /*final*/ String benchmarkName;
@@ -88,5 +88,5 @@ public final class Run
     return measurements.toString();
   }
 
-  private Run() {} // for GWT
+  private Run() {} // for GWT Serialization
 }

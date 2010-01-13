@@ -16,23 +16,9 @@
 
 package com.google.caliper;
 
-import com.google.caliper.UserException.AbstractBenchmarkException;
-import com.google.caliper.UserException.CantCustomizeInProcessVmException;
-import com.google.caliper.UserException.DisplayUsageException;
-import com.google.caliper.UserException.DoesntImplementBenchmarkException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
-import com.google.caliper.UserException.MalformedParameterException;
-import com.google.caliper.UserException.MultipleBenchmarkClassesException;
-import com.google.caliper.UserException.NoBenchmarkClassException;
-import com.google.caliper.UserException.NoParameterlessConstructorException;
-import com.google.caliper.UserException.NoSuchClassException;
-import com.google.caliper.UserException.UnrecognizedOptionException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMap.Builder;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
@@ -40,22 +26,13 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -63,158 +40,9 @@ import java.util.UUID;
  */
 public final class Runner {
 
-  private static final String DEFAULT_POST_HOST = "http://microbenchmarks.appspot.com/run/";
-
-  private String suiteClassName;
-  private Benchmark suite;
-
-  /** Effective parameters to run in the benchmark. */
-  private final Multimap<String, String> parameters = LinkedHashMultimap.create();
-
-  /** JVMs to run in the benchmark */
-  private final Set<String> userVms = new LinkedHashSet<String>();
-
-  /**
-   * Parameter values specified by the user on the command line. Parameters with
-   * no value in this multimap will get their values from the benchmark suite.
-   */
-  private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
-
-  /** True if each benchmark should run in process. */
-  private boolean inProcess;
-
-  private long warmupMillis = 5000;
-  private long runMillis = 5000;
-
-  /** The URL to post benchmark results to. */
-  private String postHost = DEFAULT_POST_HOST;
-
-  /**
-   * Sets the named parameter to the specified value. This value will replace
-   * the benchmark suite's default values for the parameter. Multiple calls to
-   * this method will cause benchmarks for each value to be run.
-   */
-  void setParameter(String name, String value) {
-    userParameters.put(name, value);
-  }
-
-  private void prepareSuite() {
-    Class<?> benchmarkClass;
-    try {
-      benchmarkClass = getClassByName(suiteClassName);
-    } catch (ExceptionInInitializerError e) {
-      throw new ExceptionFromUserCodeException(e.getCause());
-    } catch (ClassNotFoundException ignored) {
-      throw new NoSuchClassException(suiteClassName);
-    }
-
-    Object s;
-    try {
-      Constructor<?> constructor = benchmarkClass.getDeclaredConstructor();
-      constructor.setAccessible(true);
-      s = constructor.newInstance();
-    } catch (InstantiationException ignore) {
-      throw new AbstractBenchmarkException(benchmarkClass);
-    } catch (NoSuchMethodException ignore) {
-      throw new NoParameterlessConstructorException(benchmarkClass);
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible); // shouldn't happen since we setAccessible(true)
-    } catch (InvocationTargetException e) {
-      throw new ExceptionFromUserCodeException(e.getCause());
-    }
-
-    if (s instanceof Benchmark) {
-      this.suite = (Benchmark) s;
-    } else {
-      throw new DoesntImplementBenchmarkException(benchmarkClass);
-    }
-  }
-
-  private static Class<?> getClassByName(String className) throws ClassNotFoundException {
-    try {
-      return Class.forName(className);
-    } catch (ClassNotFoundException ignored) {
-      // try replacing the last dot with a $, in case that helps
-      // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
-      // amusingly, the $ character means three different things in this one line alone
-      String newName = className.replaceFirst("\\.([^.]+)$", "\\$$1");
-      return Class.forName(newName);
-    }
-  }
-
-  private void prepareParameters() {
-    for (String key : suite.parameterNames()) {
-      // first check if the user has specified values
-      Collection<String> userValues = userParameters.get(key);
-      if (!userValues.isEmpty()) {
-        parameters.putAll(key, userValues);
-        // TODO: type convert 'em to validate?
-
-      } else { // otherwise use the default values from the suite
-        Set<String> values = suite.parameterValues(key);
-        if (values.isEmpty()) {
-          throw new ConfigurationException(key + " has no values");
-        }
-        parameters.putAll(key, values);
-      }
-    }
-  }
-
-  private ImmutableSet<String> defaultVms() {
-    return "Dalvik".equals(System.getProperty("java.vm.name"))
-        ? ImmutableSet.of("dalvikvm")
-        : ImmutableSet.of("java");
-  }
-
-  /**
-   * Returns a complete set of scenarios with every combination of values and
-   * benchmark classes.
-   */
-  private List<Scenario> createScenarios() {
-    List<ScenarioBuilder> builders = new ArrayList<ScenarioBuilder>();
-
-    // create scenarios for each VM
-    Set<String> vms = userVms.isEmpty()
-        ? defaultVms()
-        : userVms;
-    for (String vm : vms) {
-      ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
-      scenarioBuilder.parameters.put(Scenario.VM_KEY, vm);
-      builders.add(scenarioBuilder);
-    }
-
-    for (Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
-      Iterator<String> values = parameter.getValue().iterator();
-      if (!values.hasNext()) {
-        throw new ConfigurationException("Not enough values for " + parameter);
-      }
-
-      String key = parameter.getKey();
-
-      String firstValue = values.next();
-      for (ScenarioBuilder builder : builders) {
-        builder.parameters.put(key, firstValue);
-      }
-
-      // multiply the size of the specs by the number of alternate values
-      int size = builders.size();
-      while (values.hasNext()) {
-        String alternate = values.next();
-        for (int s = 0; s < size; s++) {
-          ScenarioBuilder copy = builders.get(s).copy();
-          copy.parameters.put(key, alternate);
-          builders.add(copy);
-        }
-      }
-    }
-
-    List<Scenario> result = new ArrayList<Scenario>();
-    for (ScenarioBuilder builder : builders) {
-      result.add(builder.build());
-    }
-
-    return result;
-  }
+  /** Command line arguments to the process */
+  private Arguments arguments;
+  private ScenarioSelection scenarioSelection;
 
   /**
    * Returns the UUID of the executing host. Multiple runs by the same user on
@@ -242,17 +70,15 @@ public final class Runner {
   }
 
   public void run(String... args) {
-    parseArgs(args);
-    prepareSuite();
-    prepareParameters();
-    if (!doRunInProcess()) {
-      Run run = runOutOfProcess();
-      new ConsoleReport(run).displayResults();
-      postResults(run);
-    }
+    this.arguments = Arguments.parse(args);
+    this.scenarioSelection = new ScenarioSelection(arguments);
+    Run run = runOutOfProcess();
+    new ConsoleReport(run).displayResults();
+    postResults(run);
   }
 
   private void postResults(Run run) {
+    String postHost = arguments.getPostHost();
     if ("none".equals(postHost)) {
       return;
     }
@@ -282,36 +108,21 @@ public final class Runner {
     }
   }
 
-  private static class ScenarioBuilder {
-    final Map<String, String> parameters = new LinkedHashMap<String, String>();
-
-    ScenarioBuilder copy() {
-      ScenarioBuilder result = new ScenarioBuilder();
-      result.parameters.putAll(parameters);
-      return result;
-    }
-
-    public Scenario build() {
-      return new Scenario(parameters);
-    }
-  }
-
   private double executeForked(Scenario scenario) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
     command.addAll(Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+")));
     command.add("-cp");
     command.add(System.getProperty("java.class.path"));
-    command.add(Runner.class.getName());
+    command.add(InProcessRunner.class.getName());
     command.add("--warmupMillis");
-    command.add(String.valueOf(warmupMillis));
+    command.add(String.valueOf(arguments.getWarmupMillis()));
     command.add("--runMillis");
-    command.add(String.valueOf(runMillis));
-    command.add("--inProcess");
+    command.add(String.valueOf(arguments.getRunMillis()));
     for (Entry<String, String> entry : scenario.getParameters().entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
-    command.add(suiteClassName);
+    command.add(arguments.getSuiteClassName());
 
     BufferedReader reader = null;
     try {
@@ -361,7 +172,7 @@ public final class Runner {
     Builder<Scenario, Double> resultsBuilder = ImmutableMap.builder();
 
     try {
-      List<Scenario> scenarios = createScenarios();
+      List<Scenario> scenarios = scenarioSelection.select();
       int i = 0;
       for (Scenario scenario : scenarios) {
         beforeMeasurement(i++, scenarios.size(), scenario);
@@ -377,7 +188,7 @@ public final class Runner {
       }
       System.out.print(RETURN);
 
-      return new Run(resultsBuilder.build(), suiteClassName, executedByUuid, executedDate);
+      return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), executedByUuid, executedDate);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }
@@ -396,107 +207,6 @@ public final class Runner {
 
   private void afterMeasurement(double nanosPerTrial) {
     System.out.printf(" %10.0fns", nanosPerTrial);
-  }
-
-  private boolean doRunInProcess() {
-    if (!inProcess) {
-      return false;
-    }
-    try {
-      Caliper caliper = new Caliper(warmupMillis, runMillis);
-
-      for (Scenario scenario : createScenarios()) {
-        TimedRunnable timedRunnable = suite.createBenchmark(scenario.getParameters());
-        double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
-        double nanosPerTrial = caliper.run(timedRunnable, warmupNanosPerTrial);
-        System.out.println(nanosPerTrial);
-      }
-    } catch (Exception e) {
-      throw new ExceptionFromUserCodeException(e);
-    }
-    return true;
-  }
-
-  private void parseArgs(String[] argsArray) {
-    Iterator<String> args = Iterators.forArray(argsArray);
-    while (args.hasNext()) {
-      String arg = args.next();
-
-      if ("--help".equals(arg)) {
-        throw new DisplayUsageException();
-      }
-
-      if ("--inProcess".equals(arg)) {
-          inProcess = true;
-
-      } else if ("--postHost".equals(arg)) {
-          postHost = args.next();
-
-      } else if (arg.startsWith("-D")) {
-        int equalsSign = arg.indexOf('=');
-        if (equalsSign == -1) {
-          throw new MalformedParameterException(arg);
-        }
-        String name = arg.substring(2, equalsSign);
-        String value = arg.substring(equalsSign + 1);
-        setParameter(name, value);
-
-      } else if ("--warmupMillis".equals(arg)) {
-        warmupMillis = Long.parseLong(args.next());
-
-      } else if ("--runMillis".equals(arg)) {
-        runMillis = Long.parseLong(args.next());
-
-      } else if ("--vm".equals(arg)) {
-        userVms.add(args.next());
-
-      } else if (arg.startsWith("-")) {
-        throw new UnrecognizedOptionException(arg);
-
-      } else {
-        if (suiteClassName != null) {
-          throw new MultipleBenchmarkClassesException(suiteClassName, arg);
-        }
-        suiteClassName = arg;
-      }
-    }
-
-    if (inProcess && !userVms.isEmpty()) {
-      throw new CantCustomizeInProcessVmException();
-    }
-
-    if (suiteClassName == null) {
-      throw new NoBenchmarkClassException();
-    }
-  }
-
-  static void printUsage() {
-    System.out.println();
-    System.out.println("Usage: Runner [OPTIONS...] <benchmark>");
-    System.out.println();
-    System.out.println("  <benchmark>: a benchmark class or suite");
-    System.out.println();
-    System.out.println("OPTIONS");
-    System.out.println();
-    System.out.println("  -D<param>=<value>: fix a benchmark parameter to a given value.");
-    System.out.println("        When multiple values for the same parameter are given (via");
-    System.out.println("        multiple --Dx=y args), all supplied values are used.");
-    System.out.println();
-    System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
-    System.out.println("        another with the same classpath. By default each benchmark is");
-    System.out.println("        run in a separate VM");
-    System.out.println();
-    System.out.println("  --postHost <host>: the URL to post benchmark results to, or \"none\"");
-    System.out.println("        to skip posting results to the web.");
-    System.out.println("        default value: " + DEFAULT_POST_HOST);
-    System.out.println();
-    System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
-    System.out.println();
-    System.out.println("  --runMillis <millis>: duration to execute each benchmark");
-    System.out.println();
-    System.out.println("  --vm <vm>: executable to test benchmark on");
-
-    // adding new options? don't forget to update executeForked()
   }
 
   public static void main(String... args) {
