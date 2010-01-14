@@ -42,7 +42,7 @@ public final class Xml {
    * with {@link #runFromXml(InputStream)}. Sample output:
    * <pre>{@code
    * <result benchmark="examples.FooBenchmark"
-   *     executedBy="A0:1F:CAFE:BABE"
+   *     apiKey="56b35ad1-2985-4541-8f40-170471a46693"
    *     executedTimestamp="2010-01-05T11:08:15PST">
    *   <scenario bar="15" foo="A" vm="dalvikvm">1200.1</scenario>
    *   <scenario bar="15" foo="B" vm="dalvikvm">1100.2</scenario>
@@ -56,7 +56,7 @@ public final class Xml {
       doc.appendChild(result);
 
       result.setAttribute("benchmark", run.getBenchmarkName());
-      result.setAttribute("executedBy", run.getExecutedByUuid());
+      result.setAttribute("apiKey", run.getApiKey());
       String executedTimestampString = new SimpleDateFormat(DATE_FORMAT_STRING)
           .format(run.getExecutedTimestamp());
       result.setAttribute("executedTimestamp", executedTimestampString);
@@ -89,7 +89,7 @@ public final class Xml {
       Element result = document.getDocumentElement();
 
       String benchmarkName = result.getAttribute("benchmark");
-      String executedByUuid = result.getAttribute("executedBy");
+      String apiKey = result.getAttribute("apiKey");
       String executedDateString = result.getAttribute("executedTimestamp");
       Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
 
@@ -101,7 +101,7 @@ public final class Xml {
         measurementsBuilder.put(scenario, measurement);
       }
 
-      return new Run(measurementsBuilder.build(), benchmarkName, executedByUuid, executedDate);
+      return new Run(measurementsBuilder.build(), benchmarkName, apiKey, executedDate);
     } catch (Exception e) {
       throw new IllegalStateException("Malformed XML document", e);
     }

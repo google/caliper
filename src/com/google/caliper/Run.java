@@ -31,20 +31,20 @@ public final class Run
 
   private /*final*/ Map<Scenario, Double> measurements;
   private /*final*/ String benchmarkName;
-  private /*final*/ String executedByUuid;
+  private /*final*/ String apiKey;
   private /*final*/ long executedTimestamp;
 
   // TODO: add more run properites such as checksums of the executed code
 
   public Run(Map<Scenario, Double> measurements,
-      String benchmarkName, String executedByUuid, Date executedTimestamp) {
-    if (benchmarkName == null || executedByUuid == null || executedTimestamp == null) {
+      String benchmarkName, String apiKey, Date executedTimestamp) {
+    if (benchmarkName == null || apiKey == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
     this.measurements = new LinkedHashMap<Scenario, Double>(measurements);
     this.benchmarkName = benchmarkName;
-    this.executedByUuid = executedByUuid;
+    this.apiKey = apiKey;
     this.executedTimestamp = executedTimestamp.getTime();
   }
 
@@ -56,8 +56,8 @@ public final class Run
     return benchmarkName;
   }
 
-  public String getExecutedByUuid() {
-    return executedByUuid;
+  public String getApiKey() {
+    return apiKey;
   }
 
   public Date getExecutedTimestamp() {
@@ -69,7 +69,7 @@ public final class Run
       Run that = (Run) o;
       return measurements.equals(that.measurements)
           && benchmarkName.equals(that.benchmarkName)
-          && executedByUuid.equals(that.executedByUuid)
+          && apiKey.equals(that.apiKey)
           && executedTimestamp == that.executedTimestamp;
     }
 
@@ -79,7 +79,7 @@ public final class Run
   @Override public int hashCode() {
     int result = measurements.hashCode();
     result = result * 37 + benchmarkName.hashCode();
-    result = result * 37 + executedByUuid.hashCode();
+    result = result * 37 + apiKey.hashCode();
     result = result * 37 + (int) ((executedTimestamp >> 32) ^ executedTimestamp);
     return result;
   }

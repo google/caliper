@@ -23,7 +23,6 @@ import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -33,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.UUID;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -48,7 +46,7 @@ public final class Runner {
    * Returns the UUID of the executing host. Multiple runs by the same user on
    * the same machine should yield the same result.
    */
-  private String getExecutedByUuid() {
+  private String getApiKey() {
     try {
       File dotCaliperRc = new File(System.getProperty("user.home"), ".caliperrc");
       Properties properties = new Properties();
@@ -56,14 +54,7 @@ public final class Runner {
         properties.load(new FileInputStream(dotCaliperRc));
       }
 
-      String userUuid = properties.getProperty("userUuid");
-      if (userUuid == null) {
-        userUuid = UUID.randomUUID().toString();
-        properties.setProperty("userUuid", userUuid);
-        properties.store(new FileOutputStream(dotCaliperRc), "");
-      }
-
-      return userUuid;
+      return properties.getProperty("apiKey");
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -79,19 +70,22 @@ public final class Runner {
 
   private void postResults(Run run) {
     String postHost = arguments.getPostHost();
-    if ("none".equals(postHost)) {
+    String apiKey = run.getApiKey();
+    if ("none".equals(postHost) || apiKey == null) {
       return;
     }
 
     try {
-      URL url = new URL(postHost + run.getExecutedByUuid() + "/" + run.getBenchmarkName());
+      URL url = new URL(postHost + apiKey + "/" + run.getBenchmarkName());
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
       urlConnection.setDoOutput(true);
       Xml.runToXml(run, urlConnection.getOutputStream());
       if (urlConnection.getResponseCode() == 200) {
         System.out.println("");
         System.out.println("View current and previous benchmark results online:");
-        System.out.println("  " + url);
+        BufferedReader in = new BufferedReader(
+            new InputStreamReader(urlConnection.getInputStream()));
+        System.out.println("  " + in.readLine());
         return;
       }
 
@@ -167,7 +161,7 @@ public final class Runner {
   private static final String RETURN = "\r";
 
   private Run runOutOfProcess() {
-    String executedByUuid = getExecutedByUuid();
+    String apiKey = getApiKey();
     Date executedDate = new Date();
     Builder<Scenario, Double> resultsBuilder = ImmutableMap.builder();
 
@@ -188,7 +182,7 @@ public final class Runner {
       }
       System.out.print(RETURN);
 
-      return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), executedByUuid, executedDate);
+      return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }
