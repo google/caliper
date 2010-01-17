@@ -26,39 +26,78 @@ public final class MeasurementSet
     implements Serializable /* for GWT Serialization */ {
 
   private /*final*/ double[] measurements;
+  private /*final*/ double mean;
+  private /*final*/ double standardDeviation;
 
   public MeasurementSet(double... measurements) {
-    this.measurements = cloneDoubleArray(measurements);
+    this.measurements = copyDoubleArray(measurements, new double[measurements.length]);
     Arrays.sort(this.measurements);
+
+    double sum = 0;
+    for (double d : measurements) {
+      sum += d;
+    }
+    mean = sum / measurements.length;
+
+    double sumOfSquares = 0;
+    for (double d : measurements) {
+      double delta = (d - mean);
+      sumOfSquares += (delta * delta);
+    }
+    standardDeviation = Math.sqrt(sumOfSquares / (measurements.length - 1));
   }
 
   /**
    * Returns the measurements in sorted order.
    */
   public double[] getMeasurements() {
-    return cloneDoubleArray(measurements);
+    return copyDoubleArray(measurements, new double[measurements.length]);
   }
 
   /**
    * Returns the median measurement.
    */
-  public double getMedian() {
+  public double median() {
     // TODO: average middle two if the set is even-sized
     return measurements[measurements.length / 2];
   }
 
   /**
+   * Returns the average measurement.
+   */
+  public double mean() {
+    return mean;
+  }
+
+  /**
+   * Returns the standard deviation of the measurements.
+   */
+  public double standardDeviation() {
+    return standardDeviation;
+  }
+
+  /**
    * Returns the minimum measurement.
    */
-  public double getMin() {
+  public double min() {
     return measurements[0];
   }
 
   /**
    * Returns the maximum measurement.
    */
-  public double getMax() {
+  public double max() {
     return measurements[measurements.length - 1];
+  }
+
+  /**
+   * Returns a new measurement set that contains the measurements in this set
+   * plus the given additional measurement.
+   */
+  public MeasurementSet plusMeasurement(double measurement) {
+    double[] result = copyDoubleArray(measurements, new double[measurements.length + 1]);
+    result[measurements.length] = measurement;
+    return new MeasurementSet(result);
   }
 
   /**
@@ -93,15 +132,14 @@ public final class MeasurementSet
   }
 
   /**
-   * Returns a copy of the input. GWT doesn't support cloning arrays, so we need
-   * to do it by hand.
+   * Copies the input into the output. GWT doesn't support cloning arrays, so
+   * we need to do it by hand.
    */
-  private double[] cloneDoubleArray(double[] input) {
-    double[] result = new double[input.length];
+  private double[] copyDoubleArray(double[] input, double[] output) {
     for (int i = 0; i < input.length; i++) {
-      result[i] = input[i];
+      output[i] = input[i];
     }
-    return result;
+    return output;
   }
 
   private MeasurementSet() {} // for GWT Serialization

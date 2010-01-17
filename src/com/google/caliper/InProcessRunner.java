@@ -18,6 +18,7 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.CantCustomizeInProcessVmException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
+import com.google.common.base.Supplier;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -34,7 +35,7 @@ final class InProcessRunner {
       throw new CantCustomizeInProcessVmException();
     }
 
-    ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
+    final ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
 
     PrintStream resultStream = System.out;
     System.setOut(nullPrintStream());
@@ -43,10 +44,15 @@ final class InProcessRunner {
     try {
       Caliper caliper = new Caliper(arguments.getWarmupMillis(), arguments.getRunMillis());
 
-      for (Scenario scenario : scenarioSelection.select()) {
-        TimedRunnable timedRunnable = scenarioSelection.createBenchmark(scenario);
-        double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
-        MeasurementSet measurementSet = caliper.run(timedRunnable, warmupNanosPerTrial);
+      for (final Scenario scenario : scenarioSelection.select()) {
+        Supplier<TimedRunnable> supplier = new Supplier<TimedRunnable>() {
+          public TimedRunnable get() {
+            return scenarioSelection.createBenchmark(scenario);
+          }
+        };
+
+        double warmupNanosPerTrial = caliper.warmUp(supplier);
+        MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
         resultStream.println(measurementSet);
       }
     } catch (Exception e) {

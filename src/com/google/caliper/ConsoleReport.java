@@ -64,7 +64,7 @@ final class ConsoleReport {
     List<Variable> variablesBuilder = new ArrayList<Variable>();
     for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
-      double d = entry.getValue().getMedian();
+      double d = entry.getValue().median();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
@@ -91,14 +91,14 @@ final class ConsoleReport {
      */
     double sumOfAllMeasurements = 0;
     for (MeasurementSet measurement : run.getMeasurements().values()) {
-      sumOfAllMeasurements += measurement.getMedian();
+      sumOfAllMeasurements += measurement.median();
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
       for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
-        sumForValue[variable.index(scenario)] += entry.getValue().getMedian();
+        sumForValue[variable.index(scenario)] += entry.getValue().median();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -223,7 +223,7 @@ final class ConsoleReport {
           System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement = run.getMeasurements().get(scenario).getMedian();
+      double measurement = run.getMeasurements().get(scenario).median();
       System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
     }
   }

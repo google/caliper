@@ -156,10 +156,6 @@ public final class Runner {
     }
   }
 
-  // TODO: check if this is platform-independent
-  @SuppressWarnings("HardcodedLineSeparator")
-  private static final String RETURN = "\r";
-
   private Run runOutOfProcess() {
     String apiKey = getApiKey();
     Date executedDate = new Date();
@@ -174,13 +170,7 @@ public final class Runner {
         afterMeasurement(nanosPerTrial);
         resultsBuilder.put(scenario, nanosPerTrial);
       }
-
-      // blat out our progress bar
-      System.out.print(RETURN);
-      for (int j = 0; j < 80; j++) {
-        System.out.print(" ");
-      }
-      System.out.print(RETURN);
+      System.out.println();
 
       return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate);
     } catch (Exception e) {
@@ -190,17 +180,12 @@ public final class Runner {
 
   private void beforeMeasurement(int index, int total, Scenario scenario) {
     double percentDone = (double) index / total;
-    int runStringLength = 63; // so the total line length is 80
-    String runString = String.valueOf(scenario);
-    if (runString.length() > runStringLength) {
-      runString = runString.substring(0, runStringLength);
-    }
-    System.out.printf(RETURN + "%2.0f%% %-" + runStringLength + "s",
-        percentDone * 100, runString);
+    System.out.printf("%2.0f%% %s", percentDone * 100, scenario);
   }
 
   private void afterMeasurement(MeasurementSet measurementSet) {
-    System.out.printf(" %10.0fns", measurementSet.getMedian());
+    System.out.printf(" %.2fns; \u03C3=%.2fns @ %d trials%n", measurementSet.median(),
+        measurementSet.standardDeviation(), measurementSet.getMeasurements().length);
   }
 
   public static void main(String... args) {

@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import com.google.common.base.Supplier;
 
 /**
  * Measure's the benchmark's per-trial execution time.
@@ -26,6 +27,14 @@ class Caliper {
   private final long warmupNanos;
   private final long runNanos;
 
+  /**
+   * If the standard deviation of our measurements is within this tolerance, we
+   * won't bother to perform additional measurements.
+   */
+  private final double SHORT_CIRCUIT_TOLERANCE = 0.01;
+
+  private final int MAX_TRIALS = 10;
+
   Caliper(long warmupMillis, long runMillis) {
     checkArgument(warmupMillis > 50);
     checkArgument(runMillis > 50);
@@ -34,10 +43,8 @@ class Caliper {
     this.runNanos = runMillis * 1000000;
   }
 
-  public double warmUp(TimedRunnable timedRunnable) throws Exception {
-    long startNanos = System.nanoTime();
-    long endNanos = startNanos + warmupNanos;
-    long currentNanos;
+  public double warmUp(Supplier<TimedRunnable> testSupplier) throws Exception {
+    long elapsedNanos = 0;
     int netReps = 0;
     int reps = 1;
 
@@ -46,13 +53,20 @@ class Caliper {
      * threshold. This way any just-in-time compiler will be comfortable running
      * multiple iterations of our measurement method.
      */
-    while ((currentNanos = System.nanoTime()) < endNanos) {
-      timedRunnable.run(reps);
+    while (elapsedNanos < warmupNanos) {
+      TimedRunnable test = testSupplier.get(); // construct the test when we're off-the-clock
+
+      prepareForTest();
+      long startNanos = System.nanoTime();
+      test.run(reps);
+      long endNanos = System.nanoTime();
+
+      elapsedNanos += (endNanos - startNanos);
       netReps += reps;
       reps *= 2;
     }
 
-    double nanosPerExecution = (currentNanos - startNanos) / (double) netReps;
+    double nanosPerExecution = (elapsedNanos) / (double) netReps;
     if (nanosPerExecution > 1000000000 || nanosPerExecution < 2) {
       throw new ConfigurationException("Runtime " + nanosPerExecution + " out of range");
     }
@@ -60,57 +74,55 @@ class Caliper {
   }
 
   /**
-   * In the run proper, we predict how extrapolate based on warmup how many
-   * runs we're going to need, and run them all in a single batch.
+   * Measure the nanos per rep for the given test. This code uses an interesting
+   * strategy to measure the runtime to minimize execution time when execution
+   * time is consistent.
+   * <ol>
+   *   <li>1.0x {@code runMillis} trial is run.
+   *   <li>0.5x {@code runMillis} trial is run.
+   *   <li>1.5x {@code runMillis} trial is run.
+   *   <li>At this point, the standard deviation of these trials is computed. If
+   *       it is within the threshold, the result is returned.
+   *   <li>Otherwise trials continue to be executed until either the threshold
+   *       is satisfied or the maximum number of runs have been executed.
+   * </ol>
+   *
+   * @param testSupplier provides instances of the code under test. A new test
+   *      is created for each iteration because some benchmarks' performance
+   *      depends on which memory was allocated. See SetContainsBenchmark for an
+   *      example.
    */
-  public MeasurementSet run(TimedRunnable test, double estimatedNanosPerTrial)
+  public MeasurementSet run(Supplier<TimedRunnable> testSupplier, double estimatedNanosPerTrial)
       throws Exception {
+    double npr100 = measure(testSupplier.get(), 1.00, estimatedNanosPerTrial);
+    double npr050 = measure(testSupplier.get(), 0.50, npr100);
+    double npr150 = measure(testSupplier.get(), 1.50, npr100);
+    MeasurementSet measurementSet = new MeasurementSet(npr100, npr050, npr150);
 
-    int rounds = 5;
-    double[] measurements = new double[rounds];
-
-    for (int i = 0; i < rounds; i++) {
-
-      @SuppressWarnings("NumericCastThatLosesPrecision")
-      int trials = (int) (runNanos / estimatedNanosPerTrial);
-      if (trials == 0) {
-        trials = 1;
+    for (int i = 3; i < MAX_TRIALS; i++) {
+      double threshold = SHORT_CIRCUIT_TOLERANCE * measurementSet.mean();
+      if (measurementSet.standardDeviation() < threshold) {
+        return measurementSet;
       }
 
-      double nanosPerTrial = measure(test, trials);
-
-      // if the runtime was in the expected range, return it. We're good.
-      if (isPlausible(estimatedNanosPerTrial, nanosPerTrial)) {
-        measurements[i] = nanosPerTrial;
-        continue;
-      }
-
-      // The runtime was outside of the expected range. Perhaps the VM is inlining
-      // things too aggressively? We'll run more rounds to confirm that the
-      // runtime scales with the number of trials.
-      double nanosPerTrial2 = measure(test, trials * 4);
-      if (isPlausible(nanosPerTrial, nanosPerTrial2)) {
-        measurements[i] = nanosPerTrial;
-        continue;
-      }
-
-      throw new ConfigurationException("Measurement error: "
-          + "runtime isn't proportional to the number of repetitions!");
+      double npr = measure(testSupplier.get(), 1.0, npr100);
+      measurementSet = measurementSet.plusMeasurement(npr);
     }
 
-    return new MeasurementSet(measurements);
+    return measurementSet;
   }
 
   /**
-   * Returns true if the given measurement is consistent with the expected
-   * measurement.
+   * Runs the test method for approximately {@code runNanos * durationScale}
+   * nanos and returns the nanos per rep.
    */
-  private boolean isPlausible(double expected, double measurement) {
-    double ratio = measurement / expected;
-    return ratio > 0.5 && ratio < 2.0;
-  }
+  private double measure(TimedRunnable test, double durationScale, double estimatedNanosPerTrial)
+      throws Exception {
+    int trials = (int) (durationScale * runNanos / estimatedNanosPerTrial);
+    if (trials == 0) {
+      trials = 1;
+    }
 
-  private double measure(TimedRunnable test, int trials) throws Exception {
     prepareForTest();
     long startNanos = System.nanoTime();
     test.run(trials);
