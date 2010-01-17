@@ -46,8 +46,8 @@ final class InProcessRunner {
       for (Scenario scenario : scenarioSelection.select()) {
         TimedRunnable timedRunnable = scenarioSelection.createBenchmark(scenario);
         double warmupNanosPerTrial = caliper.warmUp(timedRunnable);
-        double nanosPerTrial = caliper.run(timedRunnable, warmupNanosPerTrial);
-        resultStream.println(nanosPerTrial);
+        MeasurementSet measurementSet = caliper.run(timedRunnable, warmupNanosPerTrial);
+        resultStream.println(measurementSet);
       }
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);

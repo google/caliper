@@ -62,9 +62,9 @@ final class ConsoleReport {
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Variable> variablesBuilder = new ArrayList<Variable>();
-    for (Map.Entry<Scenario, Double> entry : run.getMeasurements().entrySet()) {
+    for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
-      double d = entry.getValue();
+      double d = entry.getValue().getMedian();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
@@ -90,15 +90,15 @@ final class ConsoleReport {
      * deviation implies higher influence on the measured result.
      */
     double sumOfAllMeasurements = 0;
-    for (double measurement : run.getMeasurements().values()) {
-      sumOfAllMeasurements += measurement;
+    for (MeasurementSet measurement : run.getMeasurements().values()) {
+      sumOfAllMeasurements += measurement.getMedian();
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
-      for (Map.Entry<Scenario, Double> entry : run.getMeasurements().entrySet()) {
+      for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
-        sumForValue[variable.index(scenario)] += entry.getValue();
+        sumForValue[variable.index(scenario)] += entry.getValue().getMedian();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -223,7 +223,7 @@ final class ConsoleReport {
           System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement = run.getMeasurements().get(scenario);
+      double measurement = run.getMeasurements().get(scenario).getMedian();
       System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
     }
   }

@@ -102,7 +102,7 @@ public final class Runner {
     }
   }
 
-  private double executeForked(Scenario scenario) {
+  private MeasurementSet executeForked(Scenario scenario) {
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
     command.addAll(Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+")));
@@ -126,15 +126,15 @@ public final class Runner {
 
       reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String firstLine = reader.readLine();
-      Double nanosPerTrial = null;
+      MeasurementSet measurementSet = null;
       try {
-        nanosPerTrial = Double.valueOf(firstLine);
-      } catch (NumberFormatException ignore) {
+        measurementSet = MeasurementSet.valueOf(firstLine);
+      } catch (IllegalArgumentException ignore) {
       }
 
       String anotherLine = reader.readLine();
-      if (nanosPerTrial != null && anotherLine == null) {
-        return nanosPerTrial;
+      if (measurementSet != null && anotherLine == null) {
+        return measurementSet;
       }
 
       String message = "Failed to execute " + command;
@@ -163,14 +163,14 @@ public final class Runner {
   private Run runOutOfProcess() {
     String apiKey = getApiKey();
     Date executedDate = new Date();
-    Builder<Scenario, Double> resultsBuilder = ImmutableMap.builder();
+    Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
 
     try {
       List<Scenario> scenarios = scenarioSelection.select();
       int i = 0;
       for (Scenario scenario : scenarios) {
         beforeMeasurement(i++, scenarios.size(), scenario);
-        double nanosPerTrial = executeForked(scenario);
+        MeasurementSet nanosPerTrial = executeForked(scenario);
         afterMeasurement(nanosPerTrial);
         resultsBuilder.put(scenario, nanosPerTrial);
       }
@@ -199,8 +199,8 @@ public final class Runner {
         percentDone * 100, runString);
   }
 
-  private void afterMeasurement(double nanosPerTrial) {
-    System.out.printf(" %10.0fns", nanosPerTrial);
+  private void afterMeasurement(MeasurementSet measurementSet) {
+    System.out.printf(" %10.0fns", measurementSet.getMedian());
   }
 
   public static void main(String... args) {

@@ -43,8 +43,8 @@ public final class Arguments {
    */
   private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
 
-  private long warmupMillis = 5000;
-  private long runMillis = 5000;
+  private long warmupMillis = 3000;
+  private long runMillis = 1000;
 
   /** The URL to post benchmark results to. */
   private String postHost = "http://microbenchmarks.appspot.com/run/";

@@ -61,7 +61,7 @@ public final class Xml {
           .format(run.getExecutedTimestamp());
       result.setAttribute("executedTimestamp", executedTimestampString);
 
-      for (Map.Entry<Scenario, Double> entry : run.getMeasurements().entrySet()) {
+      for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
         Element runElement = doc.createElement("scenario");
         result.appendChild(runElement);
 
@@ -93,11 +93,11 @@ public final class Xml {
       String executedDateString = result.getAttribute("executedTimestamp");
       Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
 
-      ImmutableMap.Builder<Scenario, Double> measurementsBuilder = ImmutableMap.builder();
+      ImmutableMap.Builder<Scenario, MeasurementSet> measurementsBuilder = ImmutableMap.builder();
       for (Node node : childrenOf(result)) {
         Element scenarioElement = (Element) node;
         Scenario scenario = new Scenario(attributesOf(scenarioElement));
-        double measurement = Double.parseDouble(scenarioElement.getTextContent());
+        MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
         measurementsBuilder.put(scenario, measurement);
       }
 

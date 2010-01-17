@@ -63,31 +63,42 @@ class Caliper {
    * In the run proper, we predict how extrapolate based on warmup how many
    * runs we're going to need, and run them all in a single batch.
    */
-  public double run(TimedRunnable test, double estimatedNanosPerTrial)
+  public MeasurementSet run(TimedRunnable test, double estimatedNanosPerTrial)
       throws Exception {
-    @SuppressWarnings("NumericCastThatLosesPrecision")
-    int trials = (int) (runNanos / estimatedNanosPerTrial);
-    if (trials == 0) {
-      trials = 1;
+
+    int rounds = 5;
+    double[] measurements = new double[rounds];
+
+    for (int i = 0; i < rounds; i++) {
+
+      @SuppressWarnings("NumericCastThatLosesPrecision")
+      int trials = (int) (runNanos / estimatedNanosPerTrial);
+      if (trials == 0) {
+        trials = 1;
+      }
+
+      double nanosPerTrial = measure(test, trials);
+
+      // if the runtime was in the expected range, return it. We're good.
+      if (isPlausible(estimatedNanosPerTrial, nanosPerTrial)) {
+        measurements[i] = nanosPerTrial;
+        continue;
+      }
+
+      // The runtime was outside of the expected range. Perhaps the VM is inlining
+      // things too aggressively? We'll run more rounds to confirm that the
+      // runtime scales with the number of trials.
+      double nanosPerTrial2 = measure(test, trials * 4);
+      if (isPlausible(nanosPerTrial, nanosPerTrial2)) {
+        measurements[i] = nanosPerTrial;
+        continue;
+      }
+
+      throw new ConfigurationException("Measurement error: "
+          + "runtime isn't proportional to the number of repetitions!");
     }
 
-    double nanosPerTrial = measure(test, trials);
-
-    // if the runtime was in the expected range, return it. We're good.
-    if (isPlausible(estimatedNanosPerTrial, nanosPerTrial)) {
-      return nanosPerTrial;
-    }
-
-    // The runtime was outside of the expected range. Perhaps the VM is inlining
-    // things too aggressively? We'll run more rounds to confirm that the
-    // runtime scales with the number of trials.
-    double nanosPerTrial2 = measure(test, trials * 4);
-    if (isPlausible(nanosPerTrial, nanosPerTrial2)) {
-      return nanosPerTrial;
-    }
-
-    throw new ConfigurationException("Measurement error: "
-        + "runtime isn't proportional to the number of repetitions!");
+    return new MeasurementSet(measurements);
   }
 
   /**

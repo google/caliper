@@ -3,6 +3,7 @@
   <inherits name='com.google.gwt.user.User'/>
   <source path="com/google/caliper">
     <include name="**/Run.java"/>
+    <include name="**/MeasurementSet.java"/>
     <include name="**/Scenario.java"/>
   </source>
 </module>

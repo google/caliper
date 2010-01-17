@@ -29,26 +29,26 @@ import java.util.Map;
 public final class Run
     implements Serializable /* for GWT Serialization */ {
 
-  private /*final*/ Map<Scenario, Double> measurements;
+  private /*final*/ Map<Scenario, MeasurementSet> measurements;
   private /*final*/ String benchmarkName;
   private /*final*/ String apiKey;
   private /*final*/ long executedTimestamp;
 
   // TODO: add more run properites such as checksums of the executed code
 
-  public Run(Map<Scenario, Double> measurements,
+  public Run(Map<Scenario, MeasurementSet> measurements,
       String benchmarkName, String apiKey, Date executedTimestamp) {
     if (benchmarkName == null || apiKey == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
-    this.measurements = new LinkedHashMap<Scenario, Double>(measurements);
+    this.measurements = new LinkedHashMap<Scenario, MeasurementSet>(measurements);
     this.benchmarkName = benchmarkName;
     this.apiKey = apiKey;
     this.executedTimestamp = executedTimestamp.getTime();
   }
 
-  public Map<Scenario, Double> getMeasurements() {
+  public Map<Scenario, MeasurementSet> getMeasurements() {
     return measurements;
   }
 
