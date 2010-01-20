@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -26,6 +27,7 @@ import java.util.Map;
  *
  * <p>Gwt-safe.
  */
+@SuppressWarnings("serial")
 public final class Run
     implements Serializable /* for GWT Serialization */ {
 
@@ -38,7 +40,7 @@ public final class Run
 
   public Run(Map<Scenario, MeasurementSet> measurements,
       String benchmarkName, String apiKey, Date executedTimestamp) {
-    if (benchmarkName == null || apiKey == null || executedTimestamp == null) {
+    if (benchmarkName == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
@@ -69,7 +71,7 @@ public final class Run
       Run that = (Run) o;
       return measurements.equals(that.measurements)
           && benchmarkName.equals(that.benchmarkName)
-          && apiKey.equals(that.apiKey)
+          && Objects.equal(apiKey, that.apiKey)
           && executedTimestamp == that.executedTimestamp;
     }
 
@@ -77,11 +79,7 @@ public final class Run
   }
 
   @Override public int hashCode() {
-    int result = measurements.hashCode();
-    result = result * 37 + benchmarkName.hashCode();
-    result = result * 37 + apiKey.hashCode();
-    result = result * 37 + (int) ((executedTimestamp >> 32) ^ executedTimestamp);
-    return result;
+    return Objects.hashCode(measurements, benchmarkName, apiKey, executedTimestamp);
   }
 
   @Override public String toString() {

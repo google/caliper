@@ -86,6 +86,7 @@ public class SetContainsBenchmark extends SimpleBenchmark {
       (1<<15)
   );
 
+  // TODO: look at exact (==) hits vs. equals() hits?
   @Param({"0.2", "0.8"}) private double hitRate;
 
   @Param({"true", "false"}) // TODO: that should be assumed

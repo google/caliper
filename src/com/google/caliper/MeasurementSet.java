@@ -22,6 +22,7 @@ import java.util.Arrays;
 /**
  * A collection of measurements of the same scenario.
  */
+@SuppressWarnings("serial")
 public final class MeasurementSet
     implements Serializable /* for GWT Serialization */ {
 

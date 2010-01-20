@@ -24,8 +24,8 @@ import com.google.caliper.UserException.UnrecognizedOptionException;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Sets;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -35,7 +35,7 @@ public final class Arguments {
   private String suiteClassName;
 
   /** JVMs to run in the benchmark */
-  private final Set<String> userVms = new LinkedHashSet<String>();
+  private final Set<String> userVms = Sets.newLinkedHashSet();
 
   /**
    * Parameter values specified by the user on the command line. Parameters with
@@ -45,9 +45,6 @@ public final class Arguments {
 
   private long warmupMillis = 3000;
   private long runMillis = 1000;
-
-  /** The URL to post benchmark results to. */
-  private String postHost = "http://microbenchmarks.appspot.com/run/";
 
   public String getSuiteClassName() {
     return suiteClassName;
@@ -69,10 +66,6 @@ public final class Arguments {
     return runMillis;
   }
 
-  public String getPostHost() {
-    return postHost;
-  }
-
   public static Arguments parse(String[] argsArray) {
     Arguments result = new Arguments();
 
@@ -84,10 +77,7 @@ public final class Arguments {
         throw new DisplayUsageException();
       }
 
-      if ("--postHost".equals(arg)) {
-          result.postHost = args.next();
-
-      } else if (arg.startsWith("-D")) {
+      if (arg.startsWith("-D")) {
         int equalsSign = arg.indexOf('=');
         if (equalsSign == -1) {
           throw new MalformedParameterException(arg);
@@ -96,6 +86,7 @@ public final class Arguments {
         String value = arg.substring(equalsSign + 1);
         result.userParameters.put(name, value);
 
+      // TODO: move warmup/run to caliperrc
       } else if ("--warmupMillis".equals(arg)) {
         result.warmupMillis = Long.parseLong(args.next());
 
@@ -124,8 +115,6 @@ public final class Arguments {
   }
 
   public static void printUsage() {
-    Arguments defaults = new Arguments();
-
     System.out.println();
     System.out.println("Usage: Runner [OPTIONS...] <benchmark>");
     System.out.println();
@@ -136,14 +125,6 @@ public final class Arguments {
     System.out.println("  -D<param>=<value>: fix a benchmark parameter to a given value.");
     System.out.println("        When multiple values for the same parameter are given (via");
     System.out.println("        multiple --Dx=y args), all supplied values are used.");
-    System.out.println();
-    System.out.println("  --inProcess: run the benchmark in the same JVM rather than spawning");
-    System.out.println("        another with the same classpath. By default each benchmark is");
-    System.out.println("        run in a separate VM");
-    System.out.println();
-    System.out.println("  --postHost <host>: the URL to post benchmark results to, or \"none\"");
-    System.out.println("        to skip posting results to the web.");
-    System.out.println("        default value: " + defaults.postHost);
     System.out.println();
     System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
     System.out.println();

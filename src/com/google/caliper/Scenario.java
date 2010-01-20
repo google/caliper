@@ -28,6 +28,7 @@ import java.util.Set;
  *
  * <p>Gwt-safe.
  */
+@SuppressWarnings("serial")
 public final class Scenario
     implements Serializable /* for GWT */  {
 

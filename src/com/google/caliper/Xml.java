@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2009 Google Inc.
+/*
+ * Copyright (C) 2010 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ public final class Xml {
       doc.appendChild(result);
 
       result.setAttribute("benchmark", run.getBenchmarkName());
-      result.setAttribute("apiKey", run.getApiKey());
+      result.setAttribute("apiKey", CaliperRc.INSTANCE.getApiKey());
       String executedTimestampString = new SimpleDateFormat(DATE_FORMAT_STRING)
           .format(run.getExecutedTimestamp());
       result.setAttribute("executedTimestamp", executedTimestampString);

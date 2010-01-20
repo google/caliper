@@ -18,11 +18,9 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -31,7 +29,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -42,24 +39,6 @@ public final class Runner {
   private Arguments arguments;
   private ScenarioSelection scenarioSelection;
 
-  /**
-   * Returns the UUID of the executing host. Multiple runs by the same user on
-   * the same machine should yield the same result.
-   */
-  private String getApiKey() {
-    try {
-      File dotCaliperRc = new File(System.getProperty("user.home"), ".caliperrc");
-      Properties properties = new Properties();
-      if (dotCaliperRc.exists()) {
-        properties.load(new FileInputStream(dotCaliperRc));
-      }
-
-      return properties.getProperty("apiKey");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-  }
-
   public void run(String... args) {
     this.arguments = Arguments.parse(args);
     this.scenarioSelection = new ScenarioSelection(arguments);
@@ -69,14 +48,16 @@ public final class Runner {
   }
 
   private void postResults(Run run) {
-    String postHost = arguments.getPostHost();
-    String apiKey = run.getApiKey();
-    if ("none".equals(postHost) || apiKey == null) {
+    CaliperRc caliperrc = CaliperRc.INSTANCE;
+    String postUrl = caliperrc.getPostUrl();
+    String apiKey = caliperrc.getApiKey();
+    if (postUrl == null || apiKey == null) {
+      // TODO: probably nicer to show a message if only one is null
       return;
     }
 
     try {
-      URL url = new URL(postHost + apiKey + "/" + run.getBenchmarkName());
+      URL url = new URL(postUrl + apiKey + "/" + run.getBenchmarkName());
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
       urlConnection.setDoOutput(true);
       Xml.runToXml(run, urlConnection.getOutputStream());
@@ -89,7 +70,7 @@ public final class Runner {
         return;
       }
 
-      System.out.println("Posting to " + postHost + " failed: "
+      System.out.println("Posting to " + postUrl + " failed: "
           + urlConnection.getResponseMessage());
       BufferedReader reader = new BufferedReader(
           new InputStreamReader(urlConnection.getInputStream()));
@@ -157,9 +138,8 @@ public final class Runner {
   }
 
   private Run runOutOfProcess() {
-    String apiKey = getApiKey();
     Date executedDate = new Date();
-    Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
 
     try {
       List<Scenario> scenarios = scenarioSelection.select();
@@ -172,6 +152,7 @@ public final class Runner {
       }
       System.out.println();
 
+      String apiKey = CaliperRc.INSTANCE.getApiKey();
       return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
