@@ -28,6 +28,10 @@ final class TypeConverter {
   private TypeConverter() {}
 
   public static Object fromString(String value, Type type) {
+    if (type == String.class) {
+      return value;
+    }
+
     Class<?> c = wrap((Class<?>) type);
     try {
       Method m = c.getMethod("valueOf", String.class);

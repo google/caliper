@@ -37,10 +37,10 @@ final class InProcessRunner {
 
     final ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
 
-    PrintStream resultStream = System.out;
+    PrintStream outStream = System.out;
+    PrintStream errStream = System.err;
     System.setOut(nullPrintStream());
     System.setErr(nullPrintStream());
-
     try {
       Caliper caliper = new Caliper(arguments.getWarmupMillis(), arguments.getRunMillis());
 
@@ -53,10 +53,13 @@ final class InProcessRunner {
 
         double warmupNanosPerTrial = caliper.warmUp(supplier);
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
-        resultStream.println(measurementSet);
+        outStream.println(measurementSet);
       }
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
+    } finally {
+      System.setOut(outStream);
+      System.setErr(errStream);
     }
   }
 

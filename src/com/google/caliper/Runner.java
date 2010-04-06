@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
@@ -107,18 +108,15 @@ public final class Runner {
 
       reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
       String firstLine = reader.readLine();
-      MeasurementSet measurementSet = null;
-      try {
-        measurementSet = MeasurementSet.valueOf(firstLine);
-      } catch (IllegalArgumentException ignore) {
-      }
-
       String anotherLine = reader.readLine();
-      if (measurementSet != null && anotherLine == null) {
-        return measurementSet;
+      if (firstLine != null && anotherLine == null) {
+        try {
+          return MeasurementSet.valueOf(firstLine);
+        } catch (IllegalArgumentException ignore) {
+        }
       }
 
-      String message = "Failed to execute " + command;
+      String message = "Failed to execute " + Joiner.on(" ").join(command);
       System.err.println(message);
       System.err.println("  " + firstLine);
       do {
