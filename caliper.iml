@@ -16,7 +16,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/lib/google-collect-1.0-rc4.jar!/" />
+          <root url="jar://$MODULE_DIR$/lib/guava-r05.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

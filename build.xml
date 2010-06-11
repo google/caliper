@@ -9,10 +9,10 @@
     <property name="otherclasses" value="build/classes/other"/>
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
-    <property name="collections" value="lib/google-collect-1.0-rc4.jar"/>
+    <property name="guava" value="lib/guava-r05.jar"/>
 
     <path id="dependencies">
-        <pathelement location="${collections}"/>
+        <pathelement location="${guava}"/>
     </path>
 
     <path id="testdependencies">
@@ -79,7 +79,7 @@
 
         <jarjar jarfile="${installroot}/lib/caliper-${version}.jar">
             <fileset dir="${frameworkclasses}"/>
-            <zipfileset src="${collections}"/>
+            <zipfileset src="${guava}"/>
             <rule pattern="com.google.common.**" result="com.google.caliper.internal.guava.@1"/>
             <keep pattern="com.google.caliper.**"/>
 
@@ -107,7 +107,7 @@
                 <pathelement location="src"/>
             </sourcepath>
             <classpath refid="dependencies"/>
-            <link href="http://google-collections.googlecode.com/svn/trunk/javadoc/"/>
+            <link href="http://guava-libraries.googlecode.com/svn/trunk/javadoc/"/>
             <link href="http://java.sun.com/javase/6/docs/api"/>
         </javadoc>
     </target>
