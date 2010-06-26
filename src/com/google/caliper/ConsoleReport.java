@@ -16,13 +16,16 @@
 
 package com.google.caliper;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -30,32 +33,37 @@ import java.util.Map;
  * Prints a report containing the tested values and the corresponding
  * measurements. Measurements are grouped by variable using indentation.
  * Alongside numeric values, quick-glance ascii art bar charts are printed.
- * Sample output:
+ * Sample output (this may not represent the exact form that is produced):
  * <pre>
  *              benchmark                 d     ns logarithmic runtime
- * ConcatenationBenchmark 3.141592653589793   4397 ||||||||||||||||||||||||
- * ConcatenationBenchmark              -0.0    223 |||||||||||||||
- *     FormatterBenchmark 3.141592653589793  33999 ||||||||||||||||||||||||||||||
- *     FormatterBenchmark              -0.0  26399 |||||||||||||||||||||||||||||
+ * ConcatenationBenchmark 3.141592653589793   4397 ========================
+ * ConcatenationBenchmark              -0.0    223 ===============
+ *     FormatterBenchmark 3.141592653589793  33999 ==============================
+ *     FormatterBenchmark              -0.0  26399 =============================
  * </pre>
  */
 final class ConsoleReport {
 
-  private static final int bargraphWidth = 30;
+  private static final int barGraphWidth = 30;
 
   private final List<Variable> variables;
   private final Run run;
   private final List<Scenario> scenarios;
 
+  // Measurements made in nanoseconds
+  private final int measuredExponent = 9;
+
   private final double maxValue;
+  private final double logMinValue;
   private final double logMaxValue;
   private final int decimalDigits;
   private final double divideBy;
-  private final String units;
+  private TimeUnit timeUnit;
   private final int measurementColumnLength;
 
-  ConsoleReport(Run run) {
+  ConsoleReport(Run run, Arguments arguments) {
     this.run = run;
+    this.timeUnit = arguments.getUnit();
 
     double min = Double.POSITIVE_INFINITY;
     double max = 0;
@@ -112,28 +120,32 @@ final class ConsoleReport {
     this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
     this.scenarios = new ByVariablesOrdering().sortedCopy(run.getMeasurements().keySet());
     this.maxValue = max;
+    this.logMinValue = Math.log(min);
     this.logMaxValue = Math.log(max);
 
     int numDigitsInMin = ceil(Math.log10(min));
-    if (numDigitsInMin > 9) {
-      divideBy = 1000000000;
-      decimalDigits = Math.max(0, 9 + 3 - numDigitsInMin);
-      units = "s";
-    } else if (numDigitsInMin > 6) {
-      divideBy = 1000000;
-      decimalDigits = Math.max(0, 6 + 3 - numDigitsInMin);
-      units = "ms";
-    } else if (numDigitsInMin > 3) {
-      divideBy = 1000;
-      decimalDigits = Math.max(0, 3 + 3 - numDigitsInMin);
-      units = "us";
-    } else {
-      divideBy = 1;
-      decimalDigits = 0;
-      units = "ns";
+    if (timeUnit == null) {
+      List<TimeUnit> timeUnits = new ArrayList<TimeUnit>(TimeUnit.getOptions());
+      // Sort timeUnit in descending order of exponent
+      Collections.sort(timeUnits);
+      for (TimeUnit timeUnitToTest : timeUnits) {
+        int exponent = timeUnitToTest.getExponent();
+        if (numDigitsInMin > (measuredExponent - exponent)
+            || (measuredExponent - exponent) == 0) {
+          this.timeUnit = timeUnitToTest;
+          break;
+        }
+      }
     }
+
+    int exponent = timeUnit.getExponent();
+    divideBy = Math.pow(10, measuredExponent - exponent);
+    decimalDigits = Math.max(0, (measuredExponent - exponent) + 3 - numDigitsInMin);
+
+    int digitsBeforeDecimal = Math.max(1, ceil(Math.log10(max / divideBy)));
+    int decimalPoint = decimalDigits > 0 ? 1 : 0;
     measurementColumnLength = max > 0
-        ? ceil(Math.log10(max / divideBy)) + decimalDigits + 1
+        ?  digitsBeforeDecimal + decimalPoint + decimalDigits
         : 1;
   }
 
@@ -213,10 +225,20 @@ final class ConsoleReport {
         System.out.printf("%" + variable.maxLength + "s ", variable.name);
       }
     }
-    System.out.printf("%" + measurementColumnLength + "s logarithmic runtime%n", units);
+    // doesn't make sense to show logarithmic scale for 2 scenarios, or any graphs at all for 1
+    // scenario, since these lead to vacuous graphs.
+    boolean showGraphs = scenarios.size() > 1;
+    boolean showLinear = scenarios.size() == 2;
+
+    System.out.printf("%" + measurementColumnLength + "s", timeUnit);
+    if (showGraphs) {
+      String comparisonType = showLinear ? "linear" : "logarithmic";
+      System.out.printf(" %s runtime", comparisonType);
+    }
+    System.out.println();
 
     // rows
-    String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f %s%n";
+    String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f";
     for (Scenario scenario : scenarios) {
       for (Variable variable : variables) {
         if (variable.isInteresting()) {
@@ -224,7 +246,11 @@ final class ConsoleReport {
         }
       }
       double measurement = run.getMeasurements().get(scenario).median();
-      System.out.printf(numbersFormat, measurement / divideBy, bargraph(measurement));
+      System.out.printf(numbersFormat, measurement / divideBy);
+      if (showGraphs) {
+        System.out.printf(" %s", barGraph(measurement, showLinear));
+      }
+      System.out.println();
     }
   }
 
@@ -243,19 +269,19 @@ final class ConsoleReport {
    * Returns a string containing a bar of proportional width to the specified
    * value.
    */
-  private String bargraph(double value) {
-    int numLinearChars = floor(value / maxValue * bargraphWidth);
-    double logValue = Math.log(value);
-    int numChars = floor(logValue / logMaxValue * bargraphWidth);
-    StringBuilder sb = new StringBuilder(numChars);
-    for (int i = 0; i < numLinearChars; i++) {
-      sb.append("X");
+  private String barGraph(double value, boolean showLinear) {
+    int graphLength;
+    if (showLinear) {
+      graphLength = floor(value / maxValue * barGraphWidth);
+    } else {
+      // a normalized value between 0 and 1, where 0 is attained by minLogValue.
+      double normalizedValue = (Math.log(value) - logMinValue) / (logMaxValue - logMinValue);
+      // the smallest bar should be 1 long, and the longest bar barGraphWidth long, so use the
+      // normalized value to get a width between 0 and barGraphWidth - 1, and then just add 1.
+      graphLength = floor(normalizedValue * (barGraphWidth - 1)) + 1;
     }
 
-    for (int i = numLinearChars; i < numChars; i++) {
-      sb.append("|");
-    }
-    return sb.toString();
+    return Strings.repeat("=", graphLength);
   }
 
   @SuppressWarnings("NumericCastThatLosesPrecision")

@@ -125,7 +125,6 @@ public class StringBuilderBenchmark extends SimpleBenchmark {
         }
     }
 
-
     // TODO: remove this from all examples when IDE plugins are ready
     public static void main(String[] args) throws Exception {
         Runner.main(StringBuilderBenchmark.class, args);

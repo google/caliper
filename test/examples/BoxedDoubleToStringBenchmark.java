@@ -19,7 +19,7 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
-import com.google.common.collect.ImmutableList;
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -31,7 +31,7 @@ public class BoxedDoubleToStringBenchmark extends SimpleBenchmark {
 
   // Expressing these as strings in the annotation parameter would be annoying
   // (and maybe not possible?)
-  public static final Collection<Double> dValues = ImmutableList.of(
+  public static final Collection<Double> dValues = Arrays.asList(
       Math.PI,
       -0.0d,
       Double.NEGATIVE_INFINITY,

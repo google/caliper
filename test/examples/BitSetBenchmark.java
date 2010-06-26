@@ -84,8 +84,7 @@ import java.util.Random;
  * performance.
  *
  * @author David Beaumont
- */
-public class BitSetBenchmark extends SimpleBenchmark {
+ */ic class BitSetBenchmark extends SimpleBenchmark {
   private BitSet bitSet;
   private char[] bitString;
 
@@ -99,9 +98,9 @@ public class BitSetBenchmark extends SimpleBenchmark {
   }
 
   /**
+ /**
    * This benchmark attempts to measure performance of {@link BitSet#set}.
-   */
-  public int timeSetBitSetX64(int reps) {
+   */blic int timeSetBitSetX64(int reps) {
     long count = 64L * reps;
     for (int i = 0; i < count; i++) {
       bitSet.set(i & 0x3F, true);
@@ -110,9 +109,9 @@ public class BitSetBenchmark extends SimpleBenchmark {
   }
 
   /**
+ /**
    * This benchmark attempts to measure performance of direct bit-manipulation.
-   */
-  public long timeSetMaskX64(int reps) {
+   */blic long timeSetMaskX64(int reps) {
     long count = 64L * reps;
     long bitMask = 0L;
     for (int i = 0; i < count; i++) {
@@ -122,17 +121,17 @@ public class BitSetBenchmark extends SimpleBenchmark {
   }
 
   /**
+ /**
    * This benchmark parses a char[] of 1's and 0's into a BitSet. Results from
    * this benchmark should be comparable with those from
    * {@link #timeCharsToMask(int)}.
-   */
-  public String timeCharsToBitSet(int reps) {
+   */blic String timeCharsToBitSet(int reps) {
     /*
+  /*
      * This benchmark now measures the complete parsing of a char[] rather than
      * a single invocation of {@link BitSet#set}. However this fine because
      * it is intended to be a comparative benchmark.
-     */
-    for (int i = 0; i < reps; i++) {
+     */for (int i = 0; i < reps; i++) {
       for (int n = 0; n < bitString.length; n++) {
         bitSet.set(n, bitString[n] == '1');
       }
@@ -141,16 +140,16 @@ public class BitSetBenchmark extends SimpleBenchmark {
   }
 
   /**
+ /**
    * This benchmark parses a char[] of 1's and 0's into a bit mask. Results from
    * this benchmark should be comparable with those from
    * {@link #timeCharsToBitSet(int)}.
-   */
-  public long timeCharsToMask(int reps) {
+   */blic long timeCharsToMask(int reps) {
     /*
+  /*
      * Comparing results we see a far more realistic sounding result whereby
      * using a bit mask is a little over 4x faster than using BitSet.
-     */
-    long bitMask = 0;
+     */long bitMask = 0;
     for (int i = 0; i < reps; i++) {
       for (int n = 0; n < bitString.length; n++) {
         long m = 1 << n;
@@ -165,13 +164,13 @@ public class BitSetBenchmark extends SimpleBenchmark {
   }
 
   /**
+ /**
    * This benchmark attempts to measure the baseline cost of both
    * {@link #timeCharsToBitSet(int)} and {@link #timeCharsToMask(int)}.
    * It does this by unconditionally summing the character values of the char[].
    * This is as close to a no-op case as we can expect to get without unwanted
    * over-optimization.
-   */
-  public long timeBaselineIteration(int reps) {
+   */blic long timeBaselineIteration(int reps) {
     int badHash = 0;
     for (int i = 0; i < reps; i++) {
       for (int n = 0; n < bitString.length; n++) {

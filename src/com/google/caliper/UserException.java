@@ -94,6 +94,18 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class DuplicateParameterException extends ErrorInUsageException {
+    public DuplicateParameterException(String arg) {
+      super("Duplicate parameter: " + arg);
+    }
+  }
+
+  public static class InvalidParameterValueException extends ErrorInUsageException {
+    public InvalidParameterValueException(String arg, String value) {
+      super("Invalid value \"" + value + "\" for parameter: " + arg);
+    }
+  }
+
   public static class CantCustomizeInProcessVmException extends ErrorInUsageException {
     public CantCustomizeInProcessVmException() {
       super("Can't customize VM when running in process.");
@@ -105,7 +117,6 @@ public abstract class UserException extends RuntimeException {
       super("No class named [" + name + "] was found (check CLASSPATH).");
     }
   }
-
 
   public static class AbstractBenchmarkException extends ErrorInUserCodeException {
     public AbstractBenchmarkException(Class<?> specifiedClass) {

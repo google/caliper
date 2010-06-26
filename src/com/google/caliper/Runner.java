@@ -44,7 +44,7 @@ public final class Runner {
     this.arguments = Arguments.parse(args);
     this.scenarioSelection = new ScenarioSelection(arguments);
     Run run = runOutOfProcess();
-    new ConsoleReport(run).displayResults();
+    new ConsoleReport(run, arguments).displayResults();
     postResults(run);
   }
 
