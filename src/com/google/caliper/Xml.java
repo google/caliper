@@ -56,7 +56,7 @@ public final class Xml {
       doc.appendChild(result);
 
       result.setAttribute("benchmark", run.getBenchmarkName());
-      result.setAttribute("apiKey", CaliperRc.INSTANCE.getApiKey());
+      result.setAttribute("apiKey", run.getApiKey());
       String executedTimestampString = new SimpleDateFormat(DATE_FORMAT_STRING)
           .format(run.getExecutedTimestamp());
       result.setAttribute("executedTimestamp", executedTimestampString);

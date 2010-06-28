@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.common.base.Objects;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -71,7 +70,7 @@ public final class Run
       Run that = (Run) o;
       return measurements.equals(that.measurements)
           && benchmarkName.equals(that.benchmarkName)
-          && Objects.equal(apiKey, that.apiKey)
+          && apiKey.equals(that.apiKey)
           && executedTimestamp == that.executedTimestamp;
     }
 
@@ -79,7 +78,11 @@ public final class Run
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(measurements, benchmarkName, apiKey, executedTimestamp);
+    int result = measurements.hashCode();
+    result = result * 37 + benchmarkName.hashCode();
+    result = result * 37 + apiKey.hashCode();
+    result = result * 37 + (int) ((executedTimestamp >> 32) ^ executedTimestamp);
+    return result;
   }
 
   @Override public String toString() {
