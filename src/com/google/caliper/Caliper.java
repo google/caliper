@@ -60,6 +60,7 @@ class Caliper {
       long startNanos = System.nanoTime();
       test.run(reps);
       long endNanos = System.nanoTime();
+      test.close();
 
       elapsedNanos += (endNanos - startNanos);
       netReps += reps;
@@ -126,7 +127,10 @@ class Caliper {
     prepareForTest();
     long startNanos = System.nanoTime();
     test.run(trials);
-    return (System.nanoTime() - startNanos) / (double) trials;
+    long elapsedTime = System.nanoTime() - startNanos;
+    test.close();
+
+    return elapsedTime / (double) trials;
   }
 
   private void prepareForTest() {

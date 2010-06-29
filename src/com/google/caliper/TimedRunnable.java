@@ -26,4 +26,6 @@ public interface TimedRunnable {
    *      Such an accumulator value can be returned here.
    */
   Object run(int reps) throws Exception;
+
+  void close() throws Exception;
 }

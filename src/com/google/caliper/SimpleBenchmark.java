@@ -75,6 +75,8 @@ public abstract class SimpleBenchmark implements Benchmark {
 
   protected void setUp() throws Exception {}
 
+  protected void tearDown() throws Exception {}
+
   public Set<String> parameterNames() {
     return ImmutableSet.<String>builder()
         .add("benchmark")
@@ -127,11 +129,18 @@ public abstract class SimpleBenchmark implements Benchmark {
       }
       copyOfSelf.setUp();
 
-      return new TimedRunnable() {
+      TimedRunnable timedRunnable = new TimedRunnable() {
         public Object run(int reps) throws Exception {
-          return method.invoke(copyOfSelf, reps);
+          Object result = method.invoke(copyOfSelf, reps);
+          return result;
+        }
+
+        public void close() throws Exception {
+          copyOfSelf.tearDown();
         }
       };
+
+      return timedRunnable;
 
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
