@@ -95,9 +95,9 @@ class Caliper {
    */
   public MeasurementSet run(Supplier<TimedRunnable> testSupplier, double estimatedNanosPerTrial)
       throws Exception {
-    double npr100 = measure(testSupplier.get(), 1.00, estimatedNanosPerTrial);
-    double npr050 = measure(testSupplier.get(), 0.50, npr100);
-    double npr150 = measure(testSupplier.get(), 1.50, npr100);
+    double npr100 = measure(testSupplier, 1.00, estimatedNanosPerTrial);
+    double npr050 = measure(testSupplier, 0.50, npr100);
+    double npr150 = measure(testSupplier, 1.50, npr100);
     MeasurementSet measurementSet = new MeasurementSet(npr100, npr050, npr150);
 
     for (int i = 3; i < MAX_TRIALS; i++) {
@@ -106,7 +106,7 @@ class Caliper {
         return measurementSet;
       }
 
-      double npr = measure(testSupplier.get(), 1.0, npr100);
+      double npr = measure(testSupplier, 1.0, npr100);
       measurementSet = measurementSet.plusMeasurement(npr);
     }
 
@@ -117,8 +117,10 @@ class Caliper {
    * Runs the test method for approximately {@code runNanos * durationScale}
    * nanos and returns the nanos per rep.
    */
-  private double measure(TimedRunnable test, double durationScale, double estimatedNanosPerTrial)
-      throws Exception {
+  private double measure(Supplier<TimedRunnable> testSupplier,
+      double durationScale, double estimatedNanosPerTrial) throws Exception {
+    TimedRunnable test = testSupplier.get();
+
     int trials = (int) (durationScale * runNanos / estimatedNanosPerTrial);
     if (trials == 0) {
       trials = 1;

@@ -35,6 +35,7 @@ final class TypeConverter {
     Class<?> c = wrap((Class<?>) type);
     try {
       Method m = c.getMethod("valueOf", String.class);
+      m.setAccessible(true); // to permit inner enums, etc.
       return m.invoke(null, value);
     } catch (Exception e) {
       throw new UnsupportedOperationException(

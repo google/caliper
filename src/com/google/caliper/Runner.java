@@ -85,11 +85,16 @@ public final class Runner {
   }
 
   private MeasurementSet executeForked(Scenario scenario) {
+    String classPath = System.getProperty("java.class.path");
+    if (classPath == null || classPath.length() == 0) {
+      throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
+    }
+
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
     command.addAll(Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+")));
     command.add("-cp");
-    command.add(System.getProperty("java.class.path"));
+    command.add(classPath);
     command.add(InProcessRunner.class.getName());
     command.add("--warmupMillis");
     command.add(String.valueOf(arguments.getWarmupMillis()));
@@ -170,6 +175,7 @@ public final class Runner {
   public static void main(String... args) {
     try {
       new Runner().run(args);
+      System.exit(0); // user code may have leave non-daemon threads behind!
     } catch (UserException e) {
       e.display();
       System.exit(1);
