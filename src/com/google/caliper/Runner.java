@@ -80,7 +80,7 @@ public final class Runner {
         System.out.println(line);
       }
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Posting to " + postUrl + " failed.", e);
     }
   }
 

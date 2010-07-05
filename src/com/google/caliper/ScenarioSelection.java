@@ -129,7 +129,8 @@ public final class ScenarioSelection {
       } else { // otherwise use the default values from the suite
         Set<String> values = suite.parameterValues(key);
         if (values.isEmpty()) {
-          throw new ConfigurationException(key + " has no values");
+          throw new ConfigurationException(key + " has no values. "
+              + "Did you forget a -D" + key + "=<value> command line argument?");
         }
         parameters.putAll(key, values);
       }
