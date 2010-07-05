@@ -6,7 +6,7 @@
     <property name="version" value="0.0"/> <!-- subversion revision? -->
 
     <property name="frameworkclasses" value="build/classes/framework"/>
-    <property name="otherclasses" value="build/classes/other"/>
+    <property name="testclasses" value="build/classes/test"/>
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
     <property name="guava" value="lib/guava-r05.jar"/>
@@ -35,11 +35,10 @@
             <!--compilerarg value="-Werror"/-->
         </javac>
 
-        <mkdir dir="${otherclasses}"/>
-        <javac srcdir="src"
-               excludes="com/**"
+        <mkdir dir="${testclasses}"/>
+        <javac srcdir="test"
                debug="on"
-               destdir="${otherclasses}"
+               destdir="${testclasses}"
                source="1.5"
                target="1.5">
             <compilerarg value="-Xlint"/>
@@ -53,18 +52,15 @@
     <target name="test"
             depends="compile"
             description="Run unit tests">
-        <junit fork="true"
-               haltonfailure="true">
+        <junit fork="true" printsummary="true" haltonfailure="true">
+            <assertions><enable/></assertions>
             <classpath>
-                <pathelement location="${otherclasses}"/>
+                <pathelement location="${testclasses}"/>
                 <path refid="testdependencies"/>
             </classpath>
             <batchtest>
-              <fileset dir="src">
-                <include name="test/*Test.java"/>
-              </fileset>
+                <fileset dir="${testclasses}" includes="**/*Test.class"/>
             </batchtest>
-
         </junit>
     </target>
 

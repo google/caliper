@@ -40,14 +40,14 @@ public class RunXmlTest extends TestCase {
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     Xml.runToXml(toEncode, bytesOut);
 
-    assertEquals("", new String(bytesOut.toByteArray()));
-
     // we don't validate the XML directly because it's a hassle to cope with arbitrary orderings of
     // an element's attributes
 
     ByteArrayInputStream bytesIn = new ByteArrayInputStream(bytesOut.toByteArray());
     Run decoded = Xml.runFromXml(bytesIn);
 
-    assertEquals(toEncode, decoded);
+    assertEquals(toEncode.getBenchmarkName(), decoded.getBenchmarkName());
+    assertEquals(toEncode.getApiKey(), decoded.getApiKey());
+    assertEquals(toEncode.getMeasurements().keySet(), decoded.getMeasurements().keySet());    
   }
 }

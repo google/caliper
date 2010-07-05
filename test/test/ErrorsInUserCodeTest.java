@@ -40,7 +40,9 @@ public class ErrorsInUserCodeTest extends TestCase {
     try {
       runner.run(NotABenchmark.class.getName());
       fail();
-    } catch (DoesntImplementBenchmarkException expected) {
+    } catch (ExceptionFromUserCodeException expected) {
+      assertEquals(DoesntImplementBenchmarkException.class.getCanonicalName(),
+    		  expected.getCause().getClass().getCanonicalName());
     }
   }
 
@@ -55,7 +57,9 @@ public class ErrorsInUserCodeTest extends TestCase {
     try {
       runner.run(AbstractBenchmark.class.getName());
       fail();
-    } catch (AbstractBenchmarkException expected) {
+    } catch (ExceptionFromUserCodeException expected) {
+        assertEquals(AbstractBenchmarkException.class.getCanonicalName(),
+      		  expected.getCause().getClass().getCanonicalName());
     }
   }
 
@@ -70,7 +74,9 @@ public class ErrorsInUserCodeTest extends TestCase {
     try {
       runner.run(BadConstructorBenchmark.class.getName());
       fail();
-    } catch (NoParameterlessConstructorException expected) {
+    } catch (ExceptionFromUserCodeException expected) {
+        assertEquals(NoParameterlessConstructorException.class.getCanonicalName(),
+        		  expected.getCause().getClass().getCanonicalName());
     }
   }
 
@@ -91,7 +97,6 @@ public class ErrorsInUserCodeTest extends TestCase {
   private static void throwSomeUserException() {
     throw new SomeUserException();
   }
-
 
   public void testExceptionInInit() {
     try {

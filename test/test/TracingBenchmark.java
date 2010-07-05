@@ -54,6 +54,10 @@ public class TracingBenchmark implements Benchmark {
           Runtime.getRuntime().traceMethodCalls(false);
         }
       }
+
+      public void close() throws Exception {
+        benchmark.close();
+      }
     };
   }
 
