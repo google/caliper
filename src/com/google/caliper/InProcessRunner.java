@@ -55,6 +55,8 @@ final class InProcessRunner {
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
         outStream.println(measurementSet);
       }
+    } catch (UserException e) {
+      throw e;
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     } finally {

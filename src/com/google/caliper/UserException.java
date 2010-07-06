@@ -24,10 +24,8 @@ import java.util.Arrays;
  */
 @SuppressWarnings("serial") // never going to serialize these... right?
 public abstract class UserException extends RuntimeException {
-  protected final String error;
-
   protected UserException(String error) {
-    this.error = error;
+    super(error);
   }
 
   public abstract void display();
@@ -40,8 +38,9 @@ public abstract class UserException extends RuntimeException {
     }
 
     @Override public void display() {
-      if (error != null) {
-        System.err.println("Error: " + error);
+      String message = getMessage();
+      if (message != null) {
+        System.err.println("Error: " + message);
       }
       Arguments.printUsage();
     }
@@ -56,7 +55,7 @@ public abstract class UserException extends RuntimeException {
     }
 
     @Override public void display() {
-      System.err.println("Error: " + error);
+      System.err.println("Error: " + getMessage());
       System.err.println("Typical Remedy: " + remedy);
     }
   }
@@ -118,6 +117,19 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class RuntimeOutOfRangeException extends ErrorInUsageException {
+    public RuntimeOutOfRangeException(long reps, long nanos) {
+      super("Runtime " + ((double) nanos / (double) reps) + "ns/rep out of range.");
+    }
+  }
+
+  public static class DoesNotScaleLinearlyException extends ErrorInUsageException {
+    public DoesNotScaleLinearlyException() {
+      super("Doing 2x as much work didn't take 2x as much time! "
+          + "Is the JIT optimizing away the body of your benchmark?");
+    }
+  }
+
   public static class AbstractBenchmarkException extends ErrorInUserCodeException {
     public AbstractBenchmarkException(Class<?> specifiedClass) {
       super("Class [" + specifiedClass.getName() + "] is abstract.", "Specify a concrete class.");
@@ -145,7 +157,7 @@ public abstract class UserException extends RuntimeException {
       initCause(t);
     }
     @Override public void display() {
-      System.err.println(error);
+      System.err.println(getMessage());
       getCause().printStackTrace(System.err);
     }
   }

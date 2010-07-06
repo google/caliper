@@ -16,6 +16,9 @@
 
 package com.google.caliper;
 
+
+import com.google.caliper.UserException.DoesNotScaleLinearlyException;
+import com.google.caliper.UserException.RuntimeOutOfRangeException;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Supplier;
 
@@ -45,8 +48,9 @@ class Caliper {
 
   public double warmUp(Supplier<TimedRunnable> testSupplier) throws Exception {
     long elapsedNanos = 0;
-    int netReps = 0;
+    long netReps = 0;
     int reps = 1;
+    boolean definitelyScalesLinearly = false;
 
     /*
      * Run progressively more reps at a time until we cross our warmup
@@ -54,24 +58,38 @@ class Caliper {
      * multiple iterations of our measurement method.
      */
     while (elapsedNanos < warmupNanos) {
-      TimedRunnable test = testSupplier.get(); // construct the test when we're off-the-clock
+      long nanos = measureReps(testSupplier, reps);
+      elapsedNanos += nanos;
 
-      prepareForTest();
-      long startNanos = System.nanoTime();
-      test.run(reps);
-      long endNanos = System.nanoTime();
-      test.close();
-
-      elapsedNanos += (endNanos - startNanos);
       netReps += reps;
       reps *= 2;
+
+      // if reps overflowed, that's suspicious! Check that it time scales with reps
+      if (reps <= 0 && !definitelyScalesLinearly) {
+        checkScalesLinearly(testSupplier);
+        definitelyScalesLinearly = true;
+        reps = Integer.MAX_VALUE;
+      }
     }
 
-    double nanosPerExecution = (elapsedNanos) / (double) netReps;
+    double nanosPerExecution = elapsedNanos / (double) netReps;
     if (nanosPerExecution > 1000000000 || nanosPerExecution < 2) {
-      throw new ConfigurationException("Runtime " + nanosPerExecution + " out of range");
+      throw new RuntimeOutOfRangeException(netReps, elapsedNanos);
     }
+
     return nanosPerExecution;
+  }
+
+  /**
+   * Doing half as much work shouldn't take much more than half as much time. If
+   * it does we have a broken benchmark!
+   */
+  private void checkScalesLinearly(Supplier<TimedRunnable> testSupplier) throws Exception {
+    double half = measureReps(testSupplier, Integer.MAX_VALUE / 2);
+    double one = measureReps(testSupplier, Integer.MAX_VALUE);
+    if (half / one > 0.75) {
+      throw new DoesNotScaleLinearlyException();
+    }
   }
 
   /**
@@ -119,20 +137,26 @@ class Caliper {
    */
   private double measure(Supplier<TimedRunnable> testSupplier,
       double durationScale, double estimatedNanosPerTrial) throws Exception {
-    TimedRunnable test = testSupplier.get();
-
     int trials = (int) (durationScale * runNanos / estimatedNanosPerTrial);
     if (trials == 0) {
       trials = 1;
     }
 
+    long elapsedTime = measureReps(testSupplier, trials);
+    return elapsedTime / (double) trials;
+  }
+
+  /**
+   * Returns the total nanos to run {@code trials}.
+   */
+  private long measureReps(Supplier<TimedRunnable> testSupplier, int trials) throws Exception {
+    TimedRunnable test = testSupplier.get();
     prepareForTest();
     long startNanos = System.nanoTime();
     test.run(trials);
-    long elapsedTime = System.nanoTime() - startNanos;
+    long endNanos = System.nanoTime();
     test.close();
-
-    return elapsedTime / (double) trials;
+    return endNanos - startNanos;
   }
 
   private void prepareForTest() {
