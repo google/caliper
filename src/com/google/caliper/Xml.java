@@ -79,6 +79,64 @@ public final class Xml {
     }
   }
 
+  public static void environmentToXml(Environment environment, OutputStream out) {
+    try {
+      Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+      Element environmentElement = doc.createElement("environment");
+      doc.appendChild(environmentElement);
+      for (Map.Entry<String, String> entry : environment.getProperties().entrySet()) {
+        environmentElement.setAttribute(entry.getKey(), entry.getValue());
+      }
+      TransformerFactory.newInstance().newTransformer()
+          .transform(new DOMSource(doc), new StreamResult(out));
+    } catch (Exception e) {
+      throw new IllegalStateException("Malformed XML document", e);
+    }
+  }
+
+  public static void resultToXml(Result result, OutputStream out) {
+    Run run = result.getRun();
+    Environment environment = result.getEnvironment();
+    try {
+      Document doc = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument();
+
+      Element topElement = doc.createElement("result");
+      doc.appendChild(topElement);
+
+      Element environmentElement = doc.createElement("environment");
+      topElement.appendChild(environmentElement);
+
+      for (Map.Entry<String, String> entry : environment.getProperties().entrySet()) {
+        environmentElement.setAttribute(entry.getKey(), entry.getValue());
+      }
+
+      Element resultElement = doc.createElement("run");
+      topElement.appendChild(resultElement);
+
+      resultElement.setAttribute("benchmark", run.getBenchmarkName());
+      resultElement.setAttribute("apiKey", run.getApiKey());
+      String executedTimestampString = new SimpleDateFormat(DATE_FORMAT_STRING)
+          .format(run.getExecutedTimestamp());
+      resultElement.setAttribute("executedTimestamp", executedTimestampString);
+
+      for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
+        Element runElement = doc.createElement("scenario");
+        resultElement.appendChild(runElement);
+
+        Scenario scenario = entry.getKey();
+        for (Map.Entry<String, String> parameter : scenario.getVariables().entrySet()) {
+          runElement.setAttribute(parameter.getKey(), parameter.getValue());
+        }
+        runElement.setTextContent(String.valueOf(entry.getValue()));
+      }
+
+      TransformerFactory.newInstance().newTransformer()
+          .transform(new DOMSource(doc), new StreamResult(out));
+    } catch (Exception e) {
+      throw new IllegalStateException("Malformed XML document", e);
+    }
+  }
+
   /**
    * Creates a result by decoding XML from the specified stream. The XML should
    * be consistent with the format emitted by {@link #runToXml(Run, OutputStream)}.
@@ -102,6 +160,63 @@ public final class Xml {
       }
 
       return new Run(measurementsBuilder.build(), benchmarkName, apiKey, executedDate);
+    } catch (Exception e) {
+      throw new IllegalStateException("Malformed XML document", e);
+    }
+  }
+
+  /**
+   * Creates an environment by decoding XML from the specified stream. The XML should
+   * be consistent with the format emitted by {@link #environmentToXml(Environment, OutputStream)}.
+   */
+  public static Environment environmentFromXml(InputStream in) {
+    try {
+      Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+      Element environmentElement = document.getDocumentElement();
+      return new Environment(attributesOf(environmentElement));
+    } catch (Exception e) {
+      throw new IllegalStateException("Malformed XML document", e);
+    }
+  }
+
+  public static Result resultFromXml(InputStream in) {
+    try {
+      Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(in);
+
+      Element resultElement = document.getDocumentElement();
+      Environment environment = null;
+      Run run = null;
+      for (Node topLevelNode : childrenOf(resultElement)) {
+        if (topLevelNode.getNodeName().equals("environment")) {
+          Element environmentNode = (Element) topLevelNode;
+          environment = new Environment(attributesOf(environmentNode));
+        } else if (topLevelNode.getNodeName().equals("run")) {
+          Element result = (Element) topLevelNode;
+
+          String benchmarkName = result.getAttribute("benchmark");
+          String apiKey = result.getAttribute("apiKey");
+          String executedDateString = result.getAttribute("executedTimestamp");
+          Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
+
+          ImmutableMap.Builder<Scenario, MeasurementSet> measurementsBuilder = ImmutableMap.builder();
+          for (Node node : childrenOf(result)) {
+            Element scenarioElement = (Element) node;
+            Scenario scenario = new Scenario(attributesOf(scenarioElement));
+            MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
+            measurementsBuilder.put(scenario, measurement);
+          }
+
+          run = new Run(measurementsBuilder.build(), benchmarkName, apiKey, executedDate);
+        } else {
+          throw new RuntimeException("illegal node name: " + topLevelNode.getNodeName());
+        }
+      }
+
+      if (environment == null || run == null) {
+        throw new RuntimeException("missing environment or run elements");
+      }
+
+      return new Result(run, environment);
     } catch (Exception e) {
       throw new IllegalStateException("Malformed XML document", e);
     }

@@ -35,7 +35,7 @@ public final class Run
   private /*final*/ String apiKey;
   private /*final*/ long executedTimestamp;
 
-  // TODO: add more run properites such as checksums of the executed code
+  // TODO: add more run properties such as checksums of the executed code
 
   public Run(Map<Scenario, MeasurementSet> measurements,
       String benchmarkName, String apiKey, Date executedTimestamp) {

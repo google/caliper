@@ -43,12 +43,12 @@ public final class Runner {
   public void run(String... args) {
     this.arguments = Arguments.parse(args);
     this.scenarioSelection = new ScenarioSelection(arguments);
-    Run run = runOutOfProcess();
-    new ConsoleReport(run, arguments).displayResults();
-    postResults(run);
+    Result result = runOutOfProcess();
+    new ConsoleReport(result.getRun(), arguments).displayResults();
+    postResults(result);
   }
 
-  private void postResults(Run run) {
+  private void postResults(Result result) {
     CaliperRc caliperrc = CaliperRc.INSTANCE;
     String postUrl = caliperrc.getPostUrl();
     String apiKey = caliperrc.getApiKey();
@@ -58,10 +58,10 @@ public final class Runner {
     }
 
     try {
-      URL url = new URL(postUrl + apiKey + "/" + run.getBenchmarkName());
+      URL url = new URL(postUrl + apiKey + "/" + result.getRun().getBenchmarkName());
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
       urlConnection.setDoOutput(true);
-      Xml.runToXml(run, urlConnection.getOutputStream());
+      Xml.resultToXml(result, urlConnection.getOutputStream());
       if (urlConnection.getResponseCode() == 200) {
         System.out.println("");
         System.out.println("View current and previous benchmark results online:");
@@ -140,7 +140,7 @@ public final class Runner {
     }
   }
 
-  private Run runOutOfProcess() {
+  private Result runOutOfProcess() {
     Date executedDate = new Date();
     ImmutableMap.Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
 
@@ -156,7 +156,10 @@ public final class Runner {
       System.out.println();
 
       String apiKey = CaliperRc.INSTANCE.getApiKey();
-      return new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate);
+      Environment environment = new EnvironmentGetter().getEnvironmentSnapshot();
+      return new Result(
+          new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate),
+          environment);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }

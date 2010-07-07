@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multimap;
@@ -26,12 +27,14 @@ import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Map;
 
-public class PrintEnvironment {
-  private PrintEnvironment() {}
+public final class EnvironmentGetter {
 
-  public static void main(String[] args) {
+  public Environment getEnvironmentSnapshot() {
+    Map<String, String> propertyMap = new HashMap<String, String>();
+
     @SuppressWarnings("unchecked")
     Map<String, String> sysProps = (Map<String, String>) (Map) System.getProperties();
 
@@ -41,39 +44,44 @@ public class PrintEnvironment {
     if (alternateVersion != null && alternateVersion.length() > version.length()) {
       version = alternateVersion;
     }
-    System.out.println("jre.version=" + version);
+    propertyMap.put("jre.version", version);
 
-    System.out.println("jre.vmname=" + sysProps.get("java.vm.name"));
-    System.out.println("jre.vmversion=" + sysProps.get("java.vm.version"));
-    System.out.println("jre.availableProcessors=" + Runtime.getRuntime().availableProcessors());
+    propertyMap.put("jre.vmname", sysProps.get("java.vm.name"));
+    propertyMap.put("jre.vmversion", sysProps.get("java.vm.version"));
+    propertyMap.put("jre.availableProcessors",
+        Integer.toString(Runtime.getRuntime().availableProcessors()));
 
     String osName = sysProps.get("os.name");
-    System.out.println("os.name=" + osName);
-    System.out.println("os.version=" + sysProps.get("os.version"));
-    System.out.println("os.arch=" + sysProps.get("os.arch"));
+    propertyMap.put("os.name", osName);
+    propertyMap.put("os.version", sysProps.get("os.version"));
+    propertyMap.put("os.arch", sysProps.get("os.arch"));
 
     try {
-      System.out.println("host.name=" + InetAddress.getLocalHost().getHostName());
+      propertyMap.put("host.name", InetAddress.getLocalHost().getHostName());
     } catch (UnknownHostException ignored) {
     }
 
     if (osName.equals("Linux")) { // the following probably doesn't work on ALL linux
       Multimap<String, String> cpuInfo = propertiesFromLinuxFile("/proc/cpuinfo");
-      System.out.println("host.cpus=" + cpuInfo.get("processor").size());
+      propertyMap.put("host.cpus", Integer.toString(cpuInfo.get("processor").size()));
       String s = "cpu cores";
-      System.out.println("host.cpu.cores=" + describe(cpuInfo, s));
-      System.out.println("host.cpu.speeds=" + describe(cpuInfo, "cpu MHz"));
-      System.out.println("host.cpu.names=" + describe(cpuInfo, "model name"));
-      System.out.println("host.cpu.cachesize=" + describe(cpuInfo, "cache size"));
+      propertyMap.put("host.cpu.cores", describe(cpuInfo, s));
+      propertyMap.put("host.cpu.speeds", describe(cpuInfo, "cpu MHz"));
+      propertyMap.put("host.cpu.names", describe(cpuInfo, "model name"));
+      propertyMap.put("host.cpu.cachesize", describe(cpuInfo, "cache size"));
 
       Multimap<String, String> memInfo = propertiesFromLinuxFile("/proc/meminfo");
-      System.out.println("host.memory.physical=" + memInfo.get("MemTotal"));
-      System.out.println("host.memory.swap=" + memInfo.get("SwapTotal"));
+      // TODO redo memInfo.toString() so we don't get square brackets
+      propertyMap.put("host.memory.physical", memInfo.get("MemTotal").toString());
+      propertyMap.put("host.memory.swap", memInfo.get("SwapTotal").toString());
     }
+
+    return new Environment(propertyMap);
   }
 
   private static String describe(Multimap<String, String> cpuInfo, String s) {
     Collection<String> strings = cpuInfo.get(s);
+    // TODO redo the ImmutableMultiset.toString() call so we don't get square brackets
     return (strings.size() == 1)
         ? strings.iterator().next()
         : ImmutableMultiset.copyOf(strings).toString();
@@ -84,7 +92,7 @@ public class PrintEnvironment {
    * reader. Unlike standard Java properties files, {@code reader} is allowed
    * to list the same property multiple times. Comments etc. are unsupported.
    */
-  static Multimap<String, String> propertiesFileToMultimap(Reader reader)
+  private static Multimap<String, String> propertiesFileToMultimap(Reader reader)
       throws IOException {
     ImmutableMultimap.Builder<String, String> result = ImmutableMultimap.builder();
     BufferedReader in = new BufferedReader(reader);
@@ -100,7 +108,7 @@ public class PrintEnvironment {
     return result.build();
   }
 
-  static Multimap<String, String> propertiesFromLinuxFile(String file) {
+  private static Multimap<String, String> propertiesFromLinuxFile(String file) {
     try {
       Process process = Runtime.getRuntime().exec(new String[]{"/bin/cat", file});
       return propertiesFileToMultimap(
