@@ -72,9 +72,11 @@ class Caliper {
       }
     }
 
-    double nanosPerExecution = elapsedNanos / (double) netReps;
-    if (nanosPerExecution > 1000000000 || nanosPerExecution < 2) {
-      throw new RuntimeOutOfRangeException(netReps, elapsedNanos);
+    long nanosPerExecution = elapsedNanos / netReps;
+    long lowerBound = 2;
+    long upperBound = 10000000000L;
+    if (!(lowerBound <= nanosPerExecution && nanosPerExecution <= upperBound)) {
+      throw new RuntimeOutOfRangeException(nanosPerExecution, lowerBound, upperBound);
     }
 
     return nanosPerExecution;
