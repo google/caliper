@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -27,12 +26,9 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
-import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 public final class Xml {
   private static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssz";
@@ -54,7 +50,7 @@ public final class Xml {
   private static Result readResultElement(Element element) throws Exception {
     Environment environment = null;
     Run run = null;
-    for (Node topLevelNode : childrenOf(element)) {
+    for (Node topLevelNode : XmlUtils.childrenOf(element)) {
       if (topLevelNode.getNodeName().equals(ENVIRONMENT_ELEMENT_NAME)) {
         Element environmentElement = (Element) topLevelNode;
         environment = readEnvironmentElement(environmentElement);
@@ -81,7 +77,7 @@ public final class Xml {
   }
 
   private static Environment readEnvironmentElement(Element element) {
-    return new Environment(attributesOf(element));
+    return new Environment(XmlUtils.attributesOf(element));
   }
 
   private static Element createRunElement(Document doc, Run run) {
@@ -112,9 +108,9 @@ public final class Xml {
     Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
 
     ImmutableMap.Builder<Scenario, MeasurementSet> measurementsBuilder = ImmutableMap.builder();
-    for (Node node : childrenOf(element)) {
+    for (Node node : XmlUtils.childrenOf(element)) {
       Element scenarioElement = (Element) node;
-      Scenario scenario = new Scenario(attributesOf(scenarioElement));
+      Scenario scenario = new Scenario(XmlUtils.attributesOf(scenarioElement));
       MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
       measurementsBuilder.put(scenario, measurement);
     }
@@ -232,25 +228,6 @@ public final class Xml {
     } catch (Exception e) {
       throw new IllegalStateException("Malformed XML document", e);
     }
-  }
-
-  private static ImmutableList<Node> childrenOf(Node node) {
-    NodeList children = node.getChildNodes();
-    ImmutableList.Builder<Node> result = ImmutableList.builder();
-    for (int i = 0, size = children.getLength(); i < size; i++) {
-      result.add(children.item(i));
-    }
-    return result.build();
-  }
-
-  private static ImmutableMap<String, String> attributesOf(Element element) {
-    NamedNodeMap map = element.getAttributes();
-    ImmutableMap.Builder<String, String> result = ImmutableMap.builder();
-    for (int i = 0, size = map.getLength(); i < size; i++) {
-      Attr attr = (Attr) map.item(i);
-      result.put(attr.getName(), attr.getValue());
-    }
-    return result.build();
   }
 
   private Xml() {}
