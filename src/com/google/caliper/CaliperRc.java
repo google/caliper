@@ -32,9 +32,12 @@ public class CaliperRc {
 
   private CaliperRc() {
     try {
-      File dotCaliperRc = new File(System.getProperty("user.home"), ".caliperrc");
-      if (dotCaliperRc.exists()) {
-        properties.load(new FileInputStream(dotCaliperRc));
+      String caliperRcEnvVar = System.getenv("CALIPERRC");
+      File caliperRcFile = (caliperRcEnvVar == null)
+          ? new File(System.getProperty("user.home"), ".caliperrc")
+          : new File(caliperRcEnvVar);
+      if (caliperRcFile.exists()) {
+        properties.load(new FileInputStream(caliperRcFile));
       } else {
         // create it with a template
       }
