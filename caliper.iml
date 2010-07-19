@@ -4,12 +4,12 @@
     <output url="file://$MODULE_DIR$/ideabuild/framework" />
     <output-test url="file://$MODULE_DIR$/ideabuild/other" />
     <exclude-output />
-    <content url="file://$MODULE_DIR$">
-      <sourceFolder url="file://$MODULE_DIR$/src/com" isTestSource="false" packagePrefix="com" />
-      <sourceFolder url="file://$MODULE_DIR$/src/examples" isTestSource="true" packagePrefix="examples" />
-      <sourceFolder url="file://$MODULE_DIR$/src/test" isTestSource="true" packagePrefix="test" />
-      <sourceFolder url="file://$MODULE_DIR$/src/tutorial" isTestSource="true" packagePrefix="tutorial" />
-      <excludeFolder url="file://$MODULE_DIR$/build" />
+    <content url="file://$MODULE_DIR$/src">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <excludeFolder url="file://$MODULE_DIR$/src/scripts" />
+    </content>
+    <content url="file://$MODULE_DIR$/test">
+      <sourceFolder url="file://$MODULE_DIR$/test" isTestSource="true" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
