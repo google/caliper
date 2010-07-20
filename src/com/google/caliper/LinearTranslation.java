@@ -16,8 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.common.base.Preconditions;
-
 public class LinearTranslation {
   //  y = mx + b
   private final double m;
@@ -30,8 +28,6 @@ public class LinearTranslation {
    * @throws IllegalArgumentException if {@code in1 == in2}
    */
   public LinearTranslation(double in1, double out1, double in2, double out2) {
-    Preconditions.checkArgument(in1 != in2);
-
     double divisor = in1 - in2;
     this.m = (out1 - out2) / divisor;
     this.b = (in1 * out2 - in2 * out1) / divisor;
