@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.caliper.UserException.DisplayUsageException;
+import com.google.caliper.UserException.IncompatibleArgumentsException;
 import com.google.caliper.UserException.MalformedParameterException;
 import com.google.caliper.UserException.MultipleBenchmarkClassesException;
 import com.google.caliper.UserException.NoBenchmarkClassException;
@@ -58,6 +59,7 @@ public final class Arguments {
     }
   }
   private File xmlSaveFile = null;
+  private File xmlUploadFile = null;
 
   private static final String defaultDelimiter = ",";
 
@@ -89,6 +91,10 @@ public final class Arguments {
     return xmlSaveFile;
   }
 
+  public File getXmlUploadFile() {
+    return xmlUploadFile;
+  }
+
   public static Arguments parse(String[] argsArray) {
     Arguments result = new Arguments();
 
@@ -96,6 +102,7 @@ public final class Arguments {
     String delimiter = defaultDelimiter;
     Map<String, String> userParameterStrings = Maps.newLinkedHashMap();
     String vmString = null;
+    boolean standardRun = false;
     while (args.hasNext()) {
       String arg = args.next();
 
@@ -114,31 +121,35 @@ public final class Arguments {
         if (oldValue != null) {
           throw new UserException.DuplicateParameterException(arg);
         }
+        standardRun = true;
       // TODO: move warmup/run to caliperrc
       } else if ("--warmupMillis".equals(arg)) {
         result.warmupMillis = Long.parseLong(args.next());
-
+        standardRun = true;
       } else if ("--runMillis".equals(arg)) {
         result.runMillis = Long.parseLong(args.next());
-
+        standardRun = true;
       } else if ("--vm".equals(arg)) {
         if (vmString != null) {
           throw new UserException.DuplicateParameterException(arg);
         }
         vmString = args.next();
-
+        standardRun = true;
       } else if ("--delimiter".equals(arg)) {
         delimiter = args.next();
-
+        standardRun = true;
       } else if ("--timeUnit".equals(arg)) {
         String unit = args.next();
         result.timeUnit = timeUnitMap.get(unit);
         if (result.timeUnit == null) {
           throw new UserException.InvalidParameterValueException(arg, unit);
         }
-        
+        standardRun = true;
       } else if ("--xmlSave".equals(arg)) {
         result.xmlSaveFile = new File(args.next());
+        standardRun = true;
+      } else if ("--xmlUpload".equals(arg)) {
+        result.xmlUploadFile = new File(args.next());
       } else if (arg.startsWith("-")) {
         throw new UnrecognizedOptionException(arg);
 
@@ -161,7 +172,11 @@ public final class Arguments {
       result.userParameters.putAll(name, delimiterSplitter.split(userParameterEntry.getValue()));
     }
 
-    if (result.suiteClassName == null) {
+    if (standardRun && result.xmlUploadFile != null) {
+      throw new IncompatibleArgumentsException("--xmlUpload");
+    }
+
+    if (result.suiteClassName == null && result.xmlUploadFile == null) {
       throw new NoBenchmarkClassException();
     }
 
@@ -198,6 +213,10 @@ public final class Arguments {
     System.out.println("        Options: ns, us, ms, s");
     System.out.println();
     System.out.println("  --xmlSave <file/dir>: write XML results to this file or directory");
+    System.out.println();
+    System.out.println("  --xmlUpload <file/dir>: upload this XML file or directory of XML files");
+    System.out.println("        to the web app. This argument ends Caliper early and is thus");
+    System.out.println("        incompatible with all other arguments.");
 
     // adding new options? don't forget to update executeForked()
   }

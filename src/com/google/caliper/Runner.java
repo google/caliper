@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -39,6 +41,12 @@ import java.util.TimeZone;
  */
 public final class Runner {
 
+  static FileFilter xmlFilter = new FileFilter() {
+    @Override public boolean accept(File file) {
+      return file.getName().endsWith(".xml");
+    }
+  };
+
   private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssz";
 
   /** Command line arguments to the process */
@@ -55,6 +63,11 @@ public final class Runner {
 
   public void run(String... args) {
     this.arguments = Arguments.parse(args);
+    File xmlUploadFile = arguments.getXmlUploadFile();
+    if (xmlUploadFile != null) {
+      uploadXmlFileOrDir(xmlUploadFile);
+      return;
+    }
     this.scenarioSelection = new ScenarioSelection(arguments);
     Result result = runOutOfProcess();
     new ConsoleReport(result.getRun(), arguments).displayResults();
@@ -70,6 +83,27 @@ public final class Runner {
     if (saveXmlLocally) {
       saveResultsToXml(result);
     }
+  }
+
+  private void uploadXmlFileOrDir(File xmlUploadFile) {
+    try {
+      if (xmlUploadFile.isDirectory()) {
+        for (File xmlFile : xmlUploadFile.listFiles(xmlFilter)) {
+          uploadXml(xmlFile);
+        }
+      } else {
+        uploadXml(xmlUploadFile);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("uploading XML file failed", e);
+    }
+  }
+
+  private void uploadXml(File xmlUploadFile) throws IOException {
+    System.out.println();
+    System.out.println("Uploading " + xmlUploadFile.getCanonicalPath());
+    Result result = Xml.resultFromXml(new FileInputStream(xmlUploadFile));
+    postResults(result);
   }
 
   private void saveResultsToXml(Result result) {

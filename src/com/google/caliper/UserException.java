@@ -69,6 +69,12 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class IncompatibleArgumentsException extends ErrorInUsageException {
+    public IncompatibleArgumentsException(String arg) {
+      super("Some arguments passed in are incompatible with: " + arg);
+    }
+  }
+
   public static class UnrecognizedOptionException extends ErrorInUsageException {
     public UnrecognizedOptionException(String arg) {
       super("Argument not recognized: " + arg);
