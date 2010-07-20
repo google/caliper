@@ -59,8 +59,10 @@ public final class MeasurementSet
    * Returns the median measurement.
    */
   public double median() {
-    // TODO: average middle two if the set is even-sized
-    return measurements[measurements.length / 2];
+    int n = measurements.length;
+    return (n % 2 == 0)
+        ? (measurements[n / 2 - 1] + measurements[n / 2]) / 2
+        : measurements[n / 2];
   }
 
   /**
