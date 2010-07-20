@@ -18,10 +18,6 @@ package com.google.caliper;
 
 import junit.framework.TestCase;
 
-/**
- * Created by IntelliJ IDEA. User: kevinb Date: Jul 19, 2010 Time: 4:25:21 PM To change this
- * template use File | Settings | File Templates.
- */
 public class LinearTranslationTest extends TestCase {
   public void test() {
     LinearTranslation ctof = new LinearTranslation(0, 32, 100, 212);
