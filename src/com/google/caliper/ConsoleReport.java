@@ -45,6 +45,12 @@ final class ConsoleReport {
 
   private static final int barGraphWidth = 30;
 
+  private static final int NANOS_FOR_SCORE_100 = 1;
+  private static final int NANOS_FOR_SCORE_0 = 1000000000;
+
+  private static final LinearTranslation scoreTranslation =
+      new LinearTranslation(Math.log(NANOS_FOR_SCORE_0), 0, Math.log(NANOS_FOR_SCORE_100), 100);
+
   private final List<Variable> variables;
   private final Run run;
   private final List<Scenario> scenarios;
@@ -59,6 +65,7 @@ final class ConsoleReport {
   private final double divideBy;
   private TimeUnit timeUnit;
   private final int measurementColumnLength;
+  private boolean printScore;
 
   ConsoleReport(Run run, Arguments arguments) {
     this.run = run;
@@ -146,6 +153,8 @@ final class ConsoleReport {
     measurementColumnLength = max > 0
         ?  digitsBeforeDecimal + decimalPoint + decimalDigits
         : 1;
+
+    this.printScore = arguments.printScore();
   }
 
   /**
@@ -248,11 +257,19 @@ final class ConsoleReport {
         }
       }
       double measurement = run.getMeasurements().get(scenario).median();
+      sumOfLogs += Math.log(measurement);
+
       System.out.printf(numbersFormat, measurement / divideBy);
       if (showGraphs) {
         System.out.printf(" %s", barGraph(measurement, showLinear));
       }
       System.out.println();
+    }
+
+    if (printScore) {
+      // arithmetic mean of logs, aka log of geometric mean
+      double meanLogNanos = sumOfLogs / scenarios.size();
+      System.out.format("%nScore: %.3f%n", scoreTranslation.translate(meanLogNanos));
     }
   }
 

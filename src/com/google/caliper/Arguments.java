@@ -60,6 +60,7 @@ public final class Arguments {
   }
   private File xmlSaveFile = null;
   private File xmlUploadFile = null;
+  private boolean printScore = false;
 
   private static final String defaultDelimiter = ",";
 
@@ -93,6 +94,10 @@ public final class Arguments {
 
   public File getXmlUploadFile() {
     return xmlUploadFile;
+  }
+
+  public boolean printScore() {
+    return printScore;
   }
 
   public static Arguments parse(String[] argsArray) {
@@ -150,6 +155,9 @@ public final class Arguments {
         standardRun = true;
       } else if ("--xmlUpload".equals(arg)) {
         result.xmlUploadFile = new File(args.next());
+      } else if ("--printScore".equals(arg)) {
+        result.printScore = true;
+        standardRun = true;
       } else if (arg.startsWith("-")) {
         throw new UnrecognizedOptionException(arg);
 
@@ -213,6 +221,11 @@ public final class Arguments {
     System.out.println("        Options: ns, us, ms, s");
     System.out.println();
     System.out.println("  --xmlSave <file/dir>: write XML results to this file or directory");
+    System.out.println();
+    System.out.println("  --printScore: if present, also display an aggregate score for this run,");
+    System.out.println("        where higher is better. This number has no particular meaning,");
+    System.out.println("        but can be compared to scores from other runs that use the exact");
+    System.out.println("        same arguments.");
     System.out.println();
     System.out.println("  --xmlUpload <file/dir>: upload this XML file or directory of XML files");
     System.out.println("        to the web app. This argument ends Caliper early and is thus");
