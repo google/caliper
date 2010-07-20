@@ -23,7 +23,6 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -239,6 +238,9 @@ final class ConsoleReport {
 
     // rows
     String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f";
+
+    double sumOfLogs = 0.0;
+
     for (Scenario scenario : scenarios) {
       for (Variable variable : variables) {
         if (variable.isInteresting()) {
@@ -274,11 +276,9 @@ final class ConsoleReport {
     if (showLinear) {
       graphLength = floor(value / maxValue * barGraphWidth);
     } else {
-      // a normalized value between 0 and 1, where 0 is attained by minLogValue.
-      double normalizedValue = (Math.log(value) - logMinValue) / (logMaxValue - logMinValue);
-      // the smallest bar should be 1 long, and the longest bar barGraphWidth long, so use the
-      // normalized value to get a width between 0 and barGraphWidth - 1, and then just add 1.
-      graphLength = floor(normalizedValue * (barGraphWidth - 1)) + 1;
+      // smallest value becomes 1 bar, largest becomes full-width
+      LinearTranslation t = new LinearTranslation(logMinValue, 1, logMaxValue, barGraphWidth);
+      graphLength = floor(t.translate(Math.log(value)));
     }
 
     return Strings.repeat("=", graphLength);
