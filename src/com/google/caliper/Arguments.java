@@ -28,6 +28,7 @@ import com.google.common.collect.Iterators;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import java.io.File;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,7 @@ public final class Arguments {
       timeUnitMap.put(timeUnit.toString(), timeUnit);
     }
   }
+  private File xmlSaveFile = null;
 
   private static final String defaultDelimiter = ",";
 
@@ -81,6 +83,10 @@ public final class Arguments {
 
   public TimeUnit getUnit() {
     return timeUnit;
+  }
+
+  public File getXmlSaveFile() {
+    return xmlSaveFile;
   }
 
   public static Arguments parse(String[] argsArray) {
@@ -131,6 +137,8 @@ public final class Arguments {
           throw new UserException.InvalidParameterValueException(arg, unit);
         }
         
+      } else if ("--xmlSave".equals(arg)) {
+        result.xmlSaveFile = new File(args.next());
       } else if (arg.startsWith("-")) {
         throw new UnrecognizedOptionException(arg);
 
@@ -188,6 +196,8 @@ public final class Arguments {
     System.out.println();
     System.out.println("  --timeUnit <timeUnit>: unit of time to use for result.");
     System.out.println("        Options: ns, us, ms, s");
+    System.out.println();
+    System.out.println("  --xmlSave <file/dir>: write XML results to this file or directory");
 
     // adding new options? don't forget to update executeForked()
   }

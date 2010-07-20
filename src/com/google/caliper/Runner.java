@@ -22,30 +22,84 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.TimeZone;
 
 /**
  * Creates, executes and reports benchmark runs.
  */
 public final class Runner {
 
+  private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssz";
+
   /** Command line arguments to the process */
   private Arguments arguments;
   private ScenarioSelection scenarioSelection;
+
+  private String createFileName(Result result) {
+    SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_DATE_FORMAT);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    dateFormat.setLenient(true);
+    String timestamp = dateFormat.format(new Date());
+    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
+  }
 
   public void run(String... args) {
     this.arguments = Arguments.parse(args);
     this.scenarioSelection = new ScenarioSelection(arguments);
     Result result = runOutOfProcess();
     new ConsoleReport(result.getRun(), arguments).displayResults();
-    postResults(result);
+    boolean saveXmlLocally = arguments.getXmlSaveFile() != null;
+    try {
+      postResults(result);
+    } catch (Exception e) {
+      System.out.println();
+      System.out.println(e);
+      saveXmlLocally = true;
+    }
+
+    if (saveXmlLocally) {
+      saveResultsToXml(result);
+    }
+  }
+
+  private void saveResultsToXml(Result result) {
+    File xmlSaveFile = arguments.getXmlSaveFile();
+    File destinationFile;
+    if (xmlSaveFile == null) {
+      File dir = new File("./caliper-results");
+      dir.mkdirs();
+      destinationFile = new File(dir, createFileName(result));
+    } else if (xmlSaveFile.exists() && xmlSaveFile.isDirectory()) {
+      destinationFile = new File(xmlSaveFile, createFileName(result));
+    } else {
+      // assume this is a file
+      File parent = xmlSaveFile.getParentFile();
+      if (parent != null) {
+        parent.mkdirs();
+      }
+      destinationFile = xmlSaveFile;
+    }
+    try {
+      System.out.println();
+      System.out.println("Writing XML result to " + destinationFile.getCanonicalPath());
+      FileOutputStream fileOutputStream = new FileOutputStream(destinationFile.getCanonicalPath());
+      Xml.resultToXml(result, fileOutputStream);
+      fileOutputStream.close();
+    } catch (Exception e) {
+      System.out.println("Failed to write XML results to file, writing to standard out instead:");
+      Xml.resultToXml(result, System.out);
+      System.out.flush();
+    }
   }
 
   private void postResults(Result result) {
