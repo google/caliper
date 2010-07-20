@@ -34,11 +34,11 @@ import java.util.Map;
  * Alongside numeric values, quick-glance ascii art bar charts are printed.
  * Sample output (this may not represent the exact form that is produced):
  * <pre>
- *              benchmark                 d     ns logarithmic runtime
- * ConcatenationBenchmark 3.141592653589793   4397 ========================
- * ConcatenationBenchmark              -0.0    223 ===============
- *     FormatterBenchmark 3.141592653589793  33999 ==============================
- *     FormatterBenchmark              -0.0  26399 =============================
+ *              benchmark          d     ns logarithmic runtime
+ * ConcatenationBenchmark 3.14159265   4397 ========================
+ * ConcatenationBenchmark       -0.0    223 ===============
+ *     FormatterBenchmark 3.14159265  33999 ==============================
+ *     FormatterBenchmark       -0.0  26399 =============================
  * </pre>
  */
 final class ConsoleReport {
@@ -46,10 +46,11 @@ final class ConsoleReport {
   private static final int barGraphWidth = 30;
 
   private static final int NANOS_FOR_SCORE_100 = 1;
-  private static final int NANOS_FOR_SCORE_0 = 1000000000;
+  private static final int NANOS_FOR_SCORE_10 = 1000000000; // 1 s
 
   private static final LinearTranslation scoreTranslation =
-      new LinearTranslation(Math.log(NANOS_FOR_SCORE_0), 0, Math.log(NANOS_FOR_SCORE_100), 100);
+      new LinearTranslation(Math.log(NANOS_FOR_SCORE_10), 10,
+                            Math.log(NANOS_FOR_SCORE_100), 100);
 
   private final List<Variable> variables;
   private final Run run;
