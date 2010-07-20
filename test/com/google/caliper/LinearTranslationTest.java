@@ -19,11 +19,16 @@ package com.google.caliper;
 import junit.framework.TestCase;
 
 public class LinearTranslationTest extends TestCase {
+  private static final double CLOSE_ENOUGH = 1.0E-13;
+
   public void test() {
     LinearTranslation ctof = new LinearTranslation(0, 32, 100, 212);
-    assertEquals(-40.0, ctof.translate(-40.0));
+    assertEquals(32, ctof.translate(0), CLOSE_ENOUGH);
+    assertEquals(212, ctof.translate(100), CLOSE_ENOUGH);
+    assertEquals(98.6, ctof.translate(37), CLOSE_ENOUGH);
+    assertEquals(-40, ctof.translate(-40), CLOSE_ENOUGH);
 
     LinearTranslation reversed = new LinearTranslation(5, 42, 69, 0);
-    assertEquals(-21.0, reversed.translate(101.0));
+    assertEquals(-21, reversed.translate(101), CLOSE_ENOUGH);
   }
 }
