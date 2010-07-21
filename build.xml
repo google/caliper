@@ -82,6 +82,7 @@
             <!-- include some files for GWT's benefit -->
             <zipfileset dir="src">
                 <!-- Adding a file? Don't forget to update CaliperCore.gwt.xml! -->
+                <include name="com/google/caliper/LinearTranslation.java"/>
                 <include name="com/google/caliper/Environment.java"/>
                 <include name="com/google/caliper/Run.java"/>
                 <include name="com/google/caliper/MeasurementSet.java"/>
