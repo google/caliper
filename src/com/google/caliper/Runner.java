@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
@@ -267,6 +268,9 @@ public final class Runner {
     try {
       new Runner().run(args);
       System.exit(0); // user code may have leave non-daemon threads behind!
+    } catch (DisplayUsageException e) {
+      e.display();
+      System.exit(0);
     } catch (UserException e) {
       e.display();
       System.exit(1);
