@@ -48,7 +48,7 @@ public final class Runner {
     }
   };
 
-  private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ss";
+  private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ssZ";
 
   /** Command line arguments to the process */
   private Arguments arguments;
@@ -59,7 +59,7 @@ public final class Runner {
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     dateFormat.setLenient(true);
     String timestamp = dateFormat.format(new Date());
-    return String.format("%s.%sUTC.xml", result.getRun().getBenchmarkName(), timestamp);
+    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
   }
 
   public void run(String... args) {
