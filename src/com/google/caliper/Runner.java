@@ -48,7 +48,7 @@ public final class Runner {
     }
   };
 
-  private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ssz";
+  private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ss";
 
   /** Command line arguments to the process */
   private Arguments arguments;
@@ -59,7 +59,7 @@ public final class Runner {
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     dateFormat.setLenient(true);
     String timestamp = dateFormat.format(new Date());
-    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
+    return String.format("%s.%sGMT.xml", result.getRun().getBenchmarkName(), timestamp);
   }
 
   public void run(String... args) {
@@ -131,6 +131,7 @@ public final class Runner {
       Xml.resultToXml(result, fileOutputStream);
       fileOutputStream.close();
     } catch (Exception e) {
+      System.out.println(e);
       System.out.println("Failed to write XML results to file, writing to standard out instead:");
       Xml.resultToXml(result, System.out);
       System.out.flush();
