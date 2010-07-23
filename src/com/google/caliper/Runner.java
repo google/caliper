@@ -56,7 +56,7 @@ public final class Runner {
 
   private String createFileName(Result result) {
     SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_DATE_FORMAT);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     dateFormat.setLenient(true);
     String timestamp = dateFormat.format(new Date());
     return String.format("%s.%sUTC.xml", result.getRun().getBenchmarkName(), timestamp);
