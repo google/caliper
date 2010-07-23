@@ -59,7 +59,7 @@ public final class Runner {
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
     dateFormat.setLenient(true);
     String timestamp = dateFormat.format(new Date());
-    return String.format("%s.%sGMT.xml", result.getRun().getBenchmarkName(), timestamp);
+    return String.format("%s.%sUTC.xml", result.getRun().getBenchmarkName(), timestamp);
   }
 
   public void run(String... args) {
