@@ -124,8 +124,10 @@ public abstract class UserException extends RuntimeException {
   }
 
   public static class RuntimeOutOfRangeException extends ErrorInUsageException {
-    public RuntimeOutOfRangeException(long nanosPerExecution, long lowerBound, long upperBound) {
-      super("Runtime " + nanosPerExecution + "ns/rep out of range " + lowerBound + "-" + upperBound);
+    public RuntimeOutOfRangeException(
+        double nanosPerExecution, double lowerBound, double upperBound) {
+      super("Runtime " + nanosPerExecution + "ns/rep out of range "
+          + lowerBound + "-" + upperBound);
     }
   }
 
