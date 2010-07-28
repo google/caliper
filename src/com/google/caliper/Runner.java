@@ -245,10 +245,9 @@ public final class Runner {
       }
       System.out.println();
 
-      String apiKey = CaliperRc.INSTANCE.getApiKey();
       Environment environment = new EnvironmentGetter().getEnvironmentSnapshot();
       return new Result(
-          new Run(resultsBuilder.build(), arguments.getSuiteClassName(), apiKey, executedDate),
+          new Run(resultsBuilder.build(), arguments.getSuiteClassName(), executedDate),
           environment);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);

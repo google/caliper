@@ -32,20 +32,18 @@ public final class Run
 
   private /*final*/ Map<Scenario, MeasurementSet> measurements;
   private /*final*/ String benchmarkName;
-  private /*final*/ String apiKey;
   private /*final*/ long executedTimestamp;
 
   // TODO: add more run properties such as checksums of the executed code
 
   public Run(Map<Scenario, MeasurementSet> measurements,
-      String benchmarkName, String apiKey, Date executedTimestamp) {
+      String benchmarkName, Date executedTimestamp) {
     if (benchmarkName == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
     this.measurements = new LinkedHashMap<Scenario, MeasurementSet>(measurements);
     this.benchmarkName = benchmarkName;
-    this.apiKey = apiKey;
     this.executedTimestamp = executedTimestamp.getTime();
   }
 
@@ -57,10 +55,6 @@ public final class Run
     return benchmarkName;
   }
 
-  public String getApiKey() {
-    return apiKey;
-  }
-
   public Date getExecutedTimestamp() {
     return new Date(executedTimestamp);
   }
@@ -70,7 +64,6 @@ public final class Run
       Run that = (Run) o;
       return measurements.equals(that.measurements)
           && benchmarkName.equals(that.benchmarkName)
-          && apiKey.equals(that.apiKey)
           && executedTimestamp == that.executedTimestamp;
     }
 
@@ -80,7 +73,6 @@ public final class Run
   @Override public int hashCode() {
     int result = measurements.hashCode();
     result = result * 37 + benchmarkName.hashCode();
-    result = result * 37 + apiKey.hashCode();
     result = result * 37 + (int) ((executedTimestamp >> 32) ^ executedTimestamp);
     return result;
   }

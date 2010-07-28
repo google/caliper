@@ -83,7 +83,6 @@ public final class Xml {
   private static Element createRunElement(Document doc, Run run) {
     Element runElement = doc.createElement(RUN_ELEMENT_NAME);
     runElement.setAttribute(BENCHMARK_ATTRIBUTE, run.getBenchmarkName());
-    runElement.setAttribute(API_KEY_ATTRIBUTE, run.getApiKey());
     String executedTimestampString = new SimpleDateFormat(DATE_FORMAT_STRING)
         .format(run.getExecutedTimestamp());
     runElement.setAttribute(EXECUTED_TIMESTAMP_ATTRIBUTE, executedTimestampString);
@@ -103,7 +102,6 @@ public final class Xml {
 
   private static Run readRunElement(Element element) throws Exception {
     String benchmarkName = element.getAttribute(BENCHMARK_ATTRIBUTE);
-    String apiKey = element.getAttribute(API_KEY_ATTRIBUTE);
     String executedDateString = element.getAttribute(EXECUTED_TIMESTAMP_ATTRIBUTE);
     Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
 
@@ -115,7 +113,7 @@ public final class Xml {
       measurementsBuilder.put(scenario, measurement);
     }
 
-    return new Run(measurementsBuilder.build(), benchmarkName, apiKey, executedDate);
+    return new Run(measurementsBuilder.build(), benchmarkName, executedDate);
   }
 
   /**
