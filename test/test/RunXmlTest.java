@@ -35,8 +35,7 @@ public class RunXmlTest extends TestCase {
         "foo", "B", "bar", "15", "vm", "dalvikvm"));
 
     Run toEncode = new Run(ImmutableMap.of(a15dalvik, new MeasurementSet(1200.1, 1198.8), 
-        b15dalvik, new MeasurementSet(1100.2, 1110.0)),
-        "examples.FooBenchmark", "A0:1F:CAFE:BABE", new Date());
+        b15dalvik, new MeasurementSet(1100.2, 1110.0)), "examples.FooBenchmark", new Date());
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     Xml.runToXml(toEncode, bytesOut);
 
@@ -47,7 +46,6 @@ public class RunXmlTest extends TestCase {
     Run decoded = Xml.runFromXml(bytesIn);
 
     assertEquals(toEncode.getBenchmarkName(), decoded.getBenchmarkName());
-    assertEquals(toEncode.getApiKey(), decoded.getApiKey());
-    assertEquals(toEncode.getMeasurements().keySet(), decoded.getMeasurements().keySet());    
+    assertEquals(toEncode.getMeasurements().keySet(), decoded.getMeasurements().keySet());
   }
 }
