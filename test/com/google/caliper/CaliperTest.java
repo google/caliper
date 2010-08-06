@@ -17,6 +17,8 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
+import com.google.common.io.NullOutputStream;
+import java.io.PrintStream;
 import junit.framework.TestCase;
 
 public final class CaliperTest extends TestCase {
@@ -26,7 +28,7 @@ public final class CaliperTest extends TestCase {
    * @throws Exception
    */
   public void testBenchmarkScalesNonLinearly() throws Exception {
-    Caliper caliper = new Caliper(1000, 1000);
+    Caliper caliper = new Caliper(1000, 1000, new PrintStream(new NullOutputStream()));
     try {
       caliper.warmUp(new NonLinearTimedRunnable());
       fail();
