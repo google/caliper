@@ -20,6 +20,7 @@ import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import java.io.BufferedReader;
 import java.io.File;
@@ -28,6 +29,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -42,24 +44,29 @@ import java.util.TimeZone;
  */
 public final class Runner {
 
-  static FileFilter xmlFilter = new FileFilter() {
+  private static final FileFilter xmlFilter = new FileFilter() {
     @Override public boolean accept(File file) {
       return file.getName().endsWith(".xml");
     }
   };
 
   private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ssZ";
+  private static final String LOG_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ss.SSSZ";
 
   /** Command line arguments to the process */
   private Arguments arguments;
   private ScenarioSelection scenarioSelection;
 
   private String createFileName(Result result) {
+    String timestamp = createTimestamp();
+    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
+  }
+
+  private String createTimestamp() {
     SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_DATE_FORMAT);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     dateFormat.setLenient(true);
-    String timestamp = dateFormat.format(new Date());
-    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
+    return dateFormat.format(new Date());
   }
 
   public void run(String... args) {
@@ -174,7 +181,7 @@ public final class Runner {
     }
   }
 
-  private MeasurementSet executeForked(Scenario scenario) {
+  private MeasurementSet executeForked(Scenario scenario, PrintStream logStream) {
     String classPath = System.getProperty("java.class.path");
     if (classPath == null || classPath.length() == 0) {
       throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
@@ -182,9 +189,25 @@ public final class Runner {
 
     ProcessBuilder builder = new ProcessBuilder();
     List<String> command = builder.command();
-    command.addAll(Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+")));
+    List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
+    Vm vm = null;
+    if (!vmList.isEmpty()) {
+      if (vmList.get(0).endsWith("dalvikvm")) {
+        vm = new DalvikVm();
+      } else if (vmList.get(0).endsWith("java")) {
+        vm = new StandardVm();
+      }
+    }
+    if (vm == null) {
+      vm = new UnknownVm();
+    }
+    command.addAll(vmList);
     command.add("-cp");
     command.add(classPath);
+    command.add("-verbose:gc");
+    for (String option : vm.getVmSpecificOptions()) {
+      command.add(option);
+    }
     command.add(InProcessRunner.class.getName());
     command.add("--warmupMillis");
     command.add(String.valueOf(arguments.getWarmupMillis()));
@@ -199,24 +222,47 @@ public final class Runner {
     try {
       builder.redirectErrorStream(true);
       builder.directory(new File(System.getProperty("user.dir")));
-      Process process = builder.start();
 
-      reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-      String firstLine = reader.readLine();
-      String anotherLine = reader.readLine();
-      if (firstLine != null && anotherLine == null) {
-        try {
-          return MeasurementSet.valueOf(firstLine);
-        } catch (IllegalArgumentException ignore) {
+      vm.init();
+      reader = vm.getLogReader(builder.start());
+      LogProcessor logProcessor = vm.getLogProcessor();
+
+      List<String> outputLines = Lists.newArrayList();
+
+      SimpleDateFormat dateFormat = new SimpleDateFormat(LOG_DATE_FORMAT);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+      dateFormat.setLenient(true);
+
+      String line;
+      while ((line = reader.readLine()) != null) {
+        logProcessor.readLine(line);
+
+        if (logProcessor.logLine()) {
+          logStream.println("[" + dateFormat.format(new Date()) + "] "
+              + logProcessor.lineToLog());
         }
+
+        if (logProcessor.displayLine()) {
+          outputLines.add(logProcessor.lineToDisplay());
+        }
+
+        if (logProcessor.isLogDone()) {
+          break;
+        }
+      }
+      vm.cleanup();
+      
+      MeasurementSet measurementSet = logProcessor.getMeasurementSet();
+      if (measurementSet != null) {
+        return measurementSet;
       }
 
       String message = "Failed to execute " + Joiner.on(" ").join(command);
-      System.err.println(message);
-      System.err.println("  " + firstLine);
-      do {
-        System.err.println("  " + anotherLine);
-      } while ((anotherLine = reader.readLine()) != null);
+      System.err.println();
+      System.err.println("  " + message);
+      for (String outputLine : outputLines) {
+        System.err.println("  " + outputLine);
+      }
       throw new ConfigurationException(message);
     } catch (IOException e) {
       throw new ConfigurationException(e);
@@ -234,12 +280,20 @@ public final class Runner {
     Date executedDate = new Date();
     ImmutableMap.Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
 
+    PrintStream logStream = null;
     try {
       List<Scenario> scenarios = scenarioSelection.select();
+
+      File caliperResultsDir = new File("caliper-results");
+      caliperResultsDir.mkdir();
+      File logFile = new File(caliperResultsDir, arguments.getSuiteClassName() + "_"
+          + createTimestamp() + ".log");
+      logStream = new PrintStream(new FileOutputStream(logFile));
+
       int i = 0;
       for (Scenario scenario : scenarios) {
         beforeMeasurement(i++, scenarios.size(), scenario);
-        MeasurementSet nanosPerTrial = executeForked(scenario);
+        MeasurementSet nanosPerTrial = executeForked(scenario, logStream);
         afterMeasurement(nanosPerTrial);
         resultsBuilder.put(scenario, nanosPerTrial);
       }
@@ -251,6 +305,10 @@ public final class Runner {
           environment);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
+    } finally {
+      if (logStream != null) {
+        logStream.close();
+      }
     }
   }
 

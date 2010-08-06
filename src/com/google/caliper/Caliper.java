@@ -21,6 +21,7 @@ import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.caliper.UserException.RuntimeOutOfRangeException;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Supplier;
+import java.io.PrintStream;
 
 /**
  * Measure's the benchmark's per-trial execution time.
@@ -38,12 +39,15 @@ class Caliper {
 
   private final int MAX_TRIALS = 10;
 
-  Caliper(long warmupMillis, long runMillis) {
+  private final PrintStream verboseStream;
+
+  Caliper(long warmupMillis, long runMillis, PrintStream verboseStream) {
     checkArgument(warmupMillis > 50);
     checkArgument(runMillis > 50);
 
     this.warmupNanos = warmupMillis * 1000000;
     this.runNanos = runMillis * 1000000;
+    this.verboseStream = verboseStream;
   }
 
   public double warmUp(Supplier<TimedRunnable> testSupplier) throws Exception {
@@ -57,6 +61,7 @@ class Caliper {
      * threshold. This way any just-in-time compiler will be comfortable running
      * multiple iterations of our measurement method.
      */
+    log("[starting warmup]");
     while (elapsedNanos < warmupNanos) {
       long nanos = measureReps(testSupplier, reps);
       elapsedNanos += nanos;
@@ -71,6 +76,7 @@ class Caliper {
         reps = Integer.MAX_VALUE;
       }
     }
+    log("[ending warmup]");
 
     double nanosPerExecution = (double) elapsedNanos / netReps;
     double lowerBound = 0.1;
@@ -113,10 +119,13 @@ class Caliper {
    *      depends on which memory was allocated. See SetContainsBenchmark for an
    *      example.
    */
-  public MeasurementSet run(Supplier<TimedRunnable> testSupplier, double estimatedNanosPerTrial)
+  public MeasurementSet run(Supplier<TimedRunnable> testSupplier, double estimatedNanosPerRep)
       throws Exception {
-    double npr100 = measure(testSupplier, 1.00, estimatedNanosPerTrial);
+    log("[measuring nanos per rep with scale 1.00]");
+    double npr100 = measure(testSupplier, 1.00, estimatedNanosPerRep);
+    log("[measuring nanos per rep with scale 0.50]");
     double npr050 = measure(testSupplier, 0.50, npr100);
+    log("[measuring nanos per rep with scale 1.50]");
     double npr150 = measure(testSupplier, 1.50, npr100);
     MeasurementSet measurementSet = new MeasurementSet(npr100, npr050, npr150);
 
@@ -126,7 +135,8 @@ class Caliper {
         return measurementSet;
       }
 
-      double npr = measure(testSupplier, 1.0, npr100);
+      log("[performing additional measurement with scale 1.00]");
+      double npr = measure(testSupplier, 1.00, npr100);
       measurementSet = measurementSet.plusMeasurement(npr);
     }
 
@@ -138,25 +148,30 @@ class Caliper {
    * nanos and returns the nanos per rep.
    */
   private double measure(Supplier<TimedRunnable> testSupplier,
-      double durationScale, double estimatedNanosPerTrial) throws Exception {
-    int trials = (int) (durationScale * runNanos / estimatedNanosPerTrial);
-    if (trials == 0) {
-      trials = 1;
+      double durationScale, double estimatedNanosPerRep) throws Exception {
+    int reps = (int) (durationScale * runNanos / estimatedNanosPerRep);
+    if (reps == 0) {
+      reps = 1;
     }
 
-    long elapsedTime = measureReps(testSupplier, trials);
-    return elapsedTime / (double) trials;
+    log("[running trial with " + reps + " reps]");
+    long elapsedTime = measureReps(testSupplier, reps);
+    double nanosPerRep = elapsedTime / (double) reps;
+    log(String.format("[took %.2f nanoseconds per rep]", nanosPerRep));
+    return nanosPerRep;
   }
 
   /**
-   * Returns the total nanos to run {@code trials}.
+   * Returns the total nanos to run {@code reps}.
    */
-  private long measureReps(Supplier<TimedRunnable> testSupplier, int trials) throws Exception {
+  private long measureReps(Supplier<TimedRunnable> testSupplier, int reps) throws Exception {
     TimedRunnable test = testSupplier.get();
     prepareForTest();
+    log(LogConstants.TIMED_SECTION_STARTING);
     long startNanos = System.nanoTime();
-    test.run(trials);
+    test.run(reps);
     long endNanos = System.nanoTime();
+    log(LogConstants.TIMED_SECTION_DONE);
     test.close();
     return endNanos - startNanos;
   }
@@ -164,5 +179,9 @@ class Caliper {
   private void prepareForTest() {
     System.gc();
     System.gc();
+  }
+
+  private void log(String message) {
+    verboseStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 }

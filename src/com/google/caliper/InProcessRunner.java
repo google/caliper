@@ -42,8 +42,10 @@ final class InProcessRunner {
     System.setOut(nullPrintStream());
     System.setErr(nullPrintStream());
     try {
-      Caliper caliper = new Caliper(arguments.getWarmupMillis(), arguments.getRunMillis());
+      Caliper caliper = new Caliper(arguments.getWarmupMillis(), arguments.getRunMillis(),
+          outStream);
 
+      log(outStream, LogConstants.SCENARIOS_STARTING);
       for (final Scenario scenario : scenarioSelection.select()) {
         Supplier<TimedRunnable> supplier = new Supplier<TimedRunnable>() {
           public TimedRunnable get() {
@@ -52,9 +54,11 @@ final class InProcessRunner {
         };
 
         double warmupNanosPerTrial = caliper.warmUp(supplier);
+        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + scenario);
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
-        outStream.println(measurementSet);
+        log(outStream, LogConstants.MEASUREMENT_PREFIX + measurementSet);
       }
+      log(outStream, LogConstants.SCENARIOS_FINISHED);
     } catch (UserException e) {
       throw e;
     } catch (Exception e) {
@@ -65,12 +69,17 @@ final class InProcessRunner {
     }
   }
 
+  private void log(PrintStream outStream, String message) {
+    outStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
+  }
+
   public static void main(String... args) {
     try {
       new InProcessRunner().run(args);
       System.exit(0); // user code may have leave non-daemon threads behind!
     } catch (UserException e) {
       e.display(); // TODO: send this to the host process
+      System.out.println(LogConstants.CALIPER_LOG_PREFIX + LogConstants.SCENARIOS_FINISHED);
       System.exit(1);
     }
   }
