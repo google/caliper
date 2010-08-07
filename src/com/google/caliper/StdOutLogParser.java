@@ -16,7 +16,7 @@
 
 package com.google.caliper;
 
-public final class StdOutLogProcessor implements LogProcessor {
+public final class StdOutLogParser implements LogParser {
 
   private boolean inTimedSection;
   private boolean logLine;
@@ -25,19 +25,49 @@ public final class StdOutLogProcessor implements LogProcessor {
 
   String lineToDisplay;
 
+  /**
+   * Parse a single line of log output.
+   *
+   * [caliper] [starting scenarios]
+   * [caliper] [starting warmup]
+   * [GC 2914K->336K(184576K), 0.0021600 secs]
+   * [Full GC 336K->274K(184576K), 0.0051340 secs]
+   * [GC 274K->274K(184576K), 0.0008710 secs]
+   * [Full GC 274K->274K(184576K), 0.0047980 secs]
+   * ...
+   * [caliper] [performing additional measurement with scale 1.00]
+   * [caliper] [running trial with 730146 reps]
+   * [GC 1263K->363K(184576K), 0.0006660 secs]
+   * [Full GC 363K->300K(184576K), 0.0053820 secs]
+   * [GC 300K->300K(184576K), 0.0002870 secs]
+   * [Full GC 300K->299K(184576K), 0.0047650 secs]
+   * [caliper] [starting timed section]
+   * [caliper] [done timed section]
+   * [caliper] [took 1361.90 nanoseconds per rep]
+   * [caliper] [scenario finished] 1361.902022335259 1363.5176334596094 1363.857496993752 1369.5888351654407 1369.762495902646 1370.3947457083925 1372.1379614488062 1372.5909804340502 1418.7606560879606 1423.6248983080097
+   * [caliper] [scenarios finished]
+   */
   @Override public void readLine(String line) {
     boolean caliperLog = line.startsWith(LogConstants.CALIPER_LOG_PREFIX);
+    // True if the line seems to indicate a garbage collection, like
+    // [GC 1263K->363K(184576K), 0.0006660 secs]
+    // or
+    // [Full GC 363K->300K(184576K), 0.0053820 secs]
     boolean gcLog = line.startsWith("[GC ") || line.startsWith("[Full GC ");
 
     if (caliperLog) {
       String caliperLogLine = line.substring(LogConstants.CALIPER_LOG_PREFIX.length());
 
+      // timed sections start with "[caliper] [starting timed section]"
+      // end with "[caliper] [done timed section]"
       if (caliperLogLine.equals(LogConstants.TIMED_SECTION_STARTING)) {
         inTimedSection = true;
       } else if (caliperLogLine.equals(LogConstants.TIMED_SECTION_DONE)) {
         inTimedSection = false;
       }
 
+      // get measurements from a line like this:
+      // "[caliper] [scenario finished] 1361.902022335259 ..."
       if (caliperLogLine.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
         try {
           measurementSet = MeasurementSet.valueOf(

@@ -16,13 +16,16 @@
 
 package com.google.caliper;
 
-import java.io.BufferedReader;
-import java.util.List;
-
-public interface Vm {
-  List<String> getVmSpecificOptions();
-  LogParser getLogProcessor();
-  BufferedReader getLogReader(Process process);
-  void init();
-  void cleanup();
+/**
+ * Reads a log of events created by the VM running the benchmarks, filtering them for both
+ * the event log, and for display in case of error.
+ */
+public interface LogParser {
+  void readLine(String line);
+  String lineToLog();
+  String lineToDisplay();
+  boolean logLine();
+  boolean displayLine();
+  boolean isLogDone();
+  MeasurementSet getMeasurementSet();
 }

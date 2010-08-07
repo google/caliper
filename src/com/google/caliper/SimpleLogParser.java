@@ -16,11 +16,11 @@
 
 package com.google.caliper;
 
-public final class SimpleLogProcessor implements LogProcessor {
+public final class SimpleLogParser implements LogParser {
   private MeasurementSet measurementSet;
 
-  protected boolean logLine = true;
-  protected boolean displayLine = true;
+  private boolean logLine = true;
+  private boolean displayLine = true;
 
   String lineToDisplay;
 

@@ -16,16 +16,27 @@
 
 package com.google.caliper;
 
-/**
- * Reads a log of events created by the VM running the benchmarks, filtering them for both
- * the event log, and for display in case of error.
- */
-public interface LogProcessor {
-  void readLine(String line);
-  String lineToLog();
-  String lineToDisplay();
-  boolean logLine();
-  boolean displayLine();
-  boolean isLogDone();
-  MeasurementSet getMeasurementSet();
+import java.io.Serializable;
+
+@SuppressWarnings("serial")
+public final class MeasurementSetMeta
+    implements Serializable /* for GWT Serialization */ {
+
+  private /*final*/ MeasurementSet measurementSet;
+  private /*final*/ String eventLog;
+
+  public MeasurementSetMeta(MeasurementSet measurementSet, String eventLog) {
+    this.measurementSet = measurementSet;
+    this.eventLog = eventLog;
+  }
+
+  public MeasurementSet getMeasurementSet() {
+    return measurementSet;
+  }
+
+  public String getEventLog() {
+    return eventLog;
+  }
+
+  private MeasurementSetMeta() {} // for GWT Serialization
 }

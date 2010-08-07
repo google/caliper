@@ -36,9 +36,12 @@ public final class Xml {
   private static final String RESULT_ELEMENT_NAME = "result";
   private static final String RUN_ELEMENT_NAME = "run";
   private static final String BENCHMARK_ATTRIBUTE = "benchmark";
-  private static final String API_KEY_ATTRIBUTE = "apiKey";
   private static final String EXECUTED_TIMESTAMP_ATTRIBUTE = "executedTimestamp";
-  private static final String SCENARIO_ELEMENT_NAME = "scenario";
+  private static final String OLD_SCENARIO_ELEMENT_NAME = "scenario";
+  // for backwards compatibility
+  private static final String SCENARIO_ELEMENT_NAME = "newScenario";
+  private static final String MEASUREMENTS_ELEMENT_NAME = "measurements";
+  private static final String EVENT_LOG_ELEMENT_NAME = "eventLog";
 
   private static Element createResultElement(Document doc, Result result) {
     Element topElement = doc.createElement(RESULT_ELEMENT_NAME);
@@ -87,7 +90,7 @@ public final class Xml {
         .format(run.getExecutedTimestamp());
     runElement.setAttribute(EXECUTED_TIMESTAMP_ATTRIBUTE, executedTimestampString);
 
-    for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
+    for (Map.Entry<Scenario, MeasurementSetMeta> entry : run.getMeasurements().entrySet()) {
       Element scenarioElement = doc.createElement(SCENARIO_ELEMENT_NAME);
       runElement.appendChild(scenarioElement);
 
@@ -95,8 +98,15 @@ public final class Xml {
       for (Map.Entry<String, String> parameter : scenario.getVariables().entrySet()) {
         scenarioElement.setAttribute(parameter.getKey(), parameter.getValue());
       }
-      scenarioElement.setTextContent(String.valueOf(entry.getValue()));
+      Element measurementElement = doc.createElement(MEASUREMENTS_ELEMENT_NAME);
+      scenarioElement.appendChild(measurementElement);
+      measurementElement.setTextContent(String.valueOf(entry.getValue().getMeasurementSet()));
+
+      Element eventLogElement = doc.createElement(EVENT_LOG_ELEMENT_NAME);
+      scenarioElement.appendChild(eventLogElement);
+      eventLogElement.setTextContent(entry.getValue().getEventLog());
     }
+
     return runElement;
   }
 
@@ -105,12 +115,38 @@ public final class Xml {
     String executedDateString = element.getAttribute(EXECUTED_TIMESTAMP_ATTRIBUTE);
     Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
 
-    ImmutableMap.Builder<Scenario, MeasurementSet> measurementsBuilder = ImmutableMap.builder();
-    for (Node node : XmlUtils.childrenOf(element)) {
-      Element scenarioElement = (Element) node;
+    ImmutableMap.Builder<Scenario, MeasurementSetMeta> measurementsBuilder = ImmutableMap.builder();
+    for (Node scenarioNode : XmlUtils.childrenOf(element)) {
+      Element scenarioElement = (Element) scenarioNode;
       Scenario scenario = new Scenario(XmlUtils.attributesOf(scenarioElement));
-      MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
-      measurementsBuilder.put(scenario, measurement);
+
+      // for backwards compatibility with older runs
+      MeasurementSetMeta measurementSetMeta;
+      if (scenarioNode.getNodeName().equals(OLD_SCENARIO_ELEMENT_NAME)) {
+        MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
+        measurementSetMeta = new MeasurementSetMeta(measurement, null);
+      } else if (scenarioNode.getNodeName().equals(SCENARIO_ELEMENT_NAME)) {
+        MeasurementSet measurementSet = null;
+        String eventLog = null;
+        for (Node node : XmlUtils.childrenOf(scenarioElement)) {
+          if (node.getNodeName().equals(MEASUREMENTS_ELEMENT_NAME)) {
+            measurementSet = MeasurementSet.valueOf(node.getTextContent());
+          } else if (node.getNodeName().equals(EVENT_LOG_ELEMENT_NAME)) {
+            eventLog = node.getTextContent();
+          } else {
+            throw new RuntimeException("illegal node name: " + node.getNodeName());
+          }
+        }
+        if (measurementSet == null || eventLog == null) {
+          throw new RuntimeException("missing node \"" + MEASUREMENTS_ELEMENT_NAME + "\" or \""
+              + EVENT_LOG_ELEMENT_NAME + "\"");
+        }
+        measurementSetMeta = new MeasurementSetMeta(measurementSet, eventLog);
+      } else {
+        throw new RuntimeException("illegal node name: " + scenarioNode.getNodeName());
+      }
+
+      measurementsBuilder.put(scenario, measurementSetMeta);
     }
 
     return new Run(measurementsBuilder.build(), benchmarkName, executedDate);
@@ -124,8 +160,14 @@ public final class Xml {
    * <run apiKey="56b35ad1-2985-4541-8f40-170471a46693"
    *      benchmark="examples.FooBenchmark"
    *      executedTimestamp="2010-07-12T11:38:47PDT">
-   *   <scenario bar="15" foo="A" vm="dalvikvm">1200.1</scenario>
-   *   <scenario bar="15" foo="B" vm="dalvikvm">1100.2</scenario>
+   *   <scenario bar="15" foo="A" vm="dalvikvm">
+   *     <measurements>1200.1</measurements>
+   *     <eventLog>...</eventLog>
+   *   </scenario>
+   *   <scenario bar="15" foo="B" vm="dalvikvm">
+   *     <measurements>1100.2</measurements>
+   *     <eventLog>...</eventLog>
+   *   </scenario>
    * </run>
    * }</pre>
    */
@@ -175,8 +217,14 @@ public final class Xml {
    *     <run apiKey="56b35ad1-2985-4541-8f40-170471a46693"
    *          benchmark="examples.FooBenchmark"
    *          executedTimestamp="2010-07-12T11:38:47PDT">
-   *       <scenario bar="15" foo="A" vm="dalvikvm">1200.1</scenario>
-   *       <scenario bar="15" foo="B" vm="dalvikvm">1100.2</scenario>
+   *       <scenario bar="15" foo="A" vm="dalvikvm">
+   *         <measurements>1200.1</measurements>
+   *         <eventLog>...</eventLog>
+   *       </scenario>
+   *       <scenario bar="15" foo="B" vm="dalvikvm">
+   *         <measurements>1100.2</measurements>
+   *         <eventLog>...</eventLog>
+   *       </scenario>
    *     </run>
    * </result>
    * }</pre>

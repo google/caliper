@@ -27,8 +27,8 @@ public final class StandardVm implements Vm {
     return Lists.newArrayList("-Xbatch", "-XX:-UseSerialGC");
   }
 
-  @Override public LogProcessor getLogProcessor() {
-    return new StdOutLogProcessor();
+  @Override public LogParser getLogProcessor() {
+    return new StdOutLogParser();
   }
 
   @Override public BufferedReader getLogReader(Process process) {

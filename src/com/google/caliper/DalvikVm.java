@@ -32,8 +32,8 @@ public final class DalvikVm implements Vm {
     return Lists.newArrayList("-Xlog-stdio");
   }
 
-  @Override public LogProcessor getLogProcessor() {
-    return new AdbLogProcessor();
+  @Override public LogParser getLogProcessor() {
+    return new AdbLogParser();
   }
 
   @Override public BufferedReader getLogReader(Process process) {

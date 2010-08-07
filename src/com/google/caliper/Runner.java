@@ -29,7 +29,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -181,7 +180,7 @@ public final class Runner {
     }
   }
 
-  private MeasurementSet executeForked(Scenario scenario, PrintStream logStream) {
+  private MeasurementSetMeta executeForked(Scenario scenario) {
     String classPath = System.getProperty("java.class.path");
     if (classPath == null || classPath.length() == 0) {
       throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
@@ -225,7 +224,7 @@ public final class Runner {
 
       vm.init();
       reader = vm.getLogReader(builder.start());
-      LogProcessor logProcessor = vm.getLogProcessor();
+      LogParser logParser = vm.getLogProcessor();
 
       List<String> outputLines = Lists.newArrayList();
 
@@ -234,27 +233,30 @@ public final class Runner {
       dateFormat.setLenient(true);
 
       String line;
+      StringBuilder scenarioEventLog = new StringBuilder();
       while ((line = reader.readLine()) != null) {
-        logProcessor.readLine(line);
+        logParser.readLine(line);
 
-        if (logProcessor.logLine()) {
-          logStream.println("[" + dateFormat.format(new Date()) + "] "
-              + logProcessor.lineToLog());
+        if (logParser.logLine()) {
+          String logEntry = "[" + dateFormat.format(new Date()) + "] "
+              + logParser.lineToLog() + "\n";
+          scenarioEventLog.append(logEntry);
         }
 
-        if (logProcessor.displayLine()) {
-          outputLines.add(logProcessor.lineToDisplay());
+        if (logParser.displayLine()) {
+          outputLines.add(logParser.lineToDisplay());
         }
 
-        if (logProcessor.isLogDone()) {
+        if (logParser.isLogDone()) {
           break;
         }
       }
       vm.cleanup();
       
-      MeasurementSet measurementSet = logProcessor.getMeasurementSet();
-      if (measurementSet != null) {
-        return measurementSet;
+      MeasurementSetMeta measurementSetMeta =
+          new MeasurementSetMeta(logParser.getMeasurementSet(), scenarioEventLog.toString());
+      if (measurementSetMeta != null) {
+        return measurementSetMeta;
       }
 
       String message = "Failed to execute " + Joiner.on(" ").join(command);
@@ -278,23 +280,16 @@ public final class Runner {
 
   private Result runOutOfProcess() {
     Date executedDate = new Date();
-    ImmutableMap.Builder<Scenario, MeasurementSet> resultsBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Scenario, MeasurementSetMeta> resultsBuilder = ImmutableMap.builder();
 
-    PrintStream logStream = null;
     try {
       List<Scenario> scenarios = scenarioSelection.select();
-
-      File caliperResultsDir = new File("caliper-results");
-      caliperResultsDir.mkdir();
-      File logFile = new File(caliperResultsDir, arguments.getSuiteClassName() + "_"
-          + createTimestamp() + ".log");
-      logStream = new PrintStream(new FileOutputStream(logFile));
 
       int i = 0;
       for (Scenario scenario : scenarios) {
         beforeMeasurement(i++, scenarios.size(), scenario);
-        MeasurementSet nanosPerTrial = executeForked(scenario, logStream);
-        afterMeasurement(nanosPerTrial);
+        MeasurementSetMeta nanosPerTrial = executeForked(scenario);
+        afterMeasurement(nanosPerTrial.getMeasurementSet());
         resultsBuilder.put(scenario, nanosPerTrial);
       }
       System.out.println();
@@ -305,10 +300,6 @@ public final class Runner {
           environment);
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
-    } finally {
-      if (logStream != null) {
-        logStream.close();
-      }
     }
   }
 

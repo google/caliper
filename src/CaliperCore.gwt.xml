@@ -7,6 +7,7 @@
     <include name="**/Environment.java"/>
     <include name="**/Run.java"/>
     <include name="**/MeasurementSet.java"/>
+    <include name="**/MeasurementSetMeta.java"/>
     <include name="**/Scenario.java"/>
   </source>
 </module>

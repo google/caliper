@@ -27,8 +27,8 @@ public final class UnknownVm implements Vm {
     return Lists.newArrayList();
   }
 
-  @Override public LogProcessor getLogProcessor() {
-    return new StdOutLogProcessor();
+  @Override public LogParser getLogProcessor() {
+    return new StdOutLogParser();
   }
 
   @Override public BufferedReader getLogReader(Process process) {

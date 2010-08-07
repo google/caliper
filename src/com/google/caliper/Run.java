@@ -30,24 +30,24 @@ import java.util.Map;
 public final class Run
     implements Serializable /* for GWT Serialization */ {
 
-  private /*final*/ Map<Scenario, MeasurementSet> measurements;
+  private /*final*/ Map<Scenario, MeasurementSetMeta> measurements;
   private /*final*/ String benchmarkName;
   private /*final*/ long executedTimestamp;
 
   // TODO: add more run properties such as checksums of the executed code
 
-  public Run(Map<Scenario, MeasurementSet> measurements,
+  public Run(Map<Scenario, MeasurementSetMeta> measurements,
       String benchmarkName, Date executedTimestamp) {
     if (benchmarkName == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
-    this.measurements = new LinkedHashMap<Scenario, MeasurementSet>(measurements);
+    this.measurements = new LinkedHashMap<Scenario, MeasurementSetMeta>(measurements);
     this.benchmarkName = benchmarkName;
     this.executedTimestamp = executedTimestamp.getTime();
   }
 
-  public Map<Scenario, MeasurementSet> getMeasurements() {
+  public Map<Scenario, MeasurementSetMeta> getMeasurements() {
     return measurements;
   }
 

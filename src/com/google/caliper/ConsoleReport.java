@@ -77,9 +77,9 @@ final class ConsoleReport {
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Variable> variablesBuilder = new ArrayList<Variable>();
-    for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
+    for (Map.Entry<Scenario, MeasurementSetMeta> entry : run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
-      double d = entry.getValue().median();
+      double d = entry.getValue().getMeasurementSet().median();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
@@ -105,15 +105,17 @@ final class ConsoleReport {
      * deviation implies higher influence on the measured result.
      */
     double sumOfAllMeasurements = 0;
-    for (MeasurementSet measurement : run.getMeasurements().values()) {
-      sumOfAllMeasurements += measurement.median();
+    for (MeasurementSetMeta measurement : run.getMeasurements().values()) {
+      sumOfAllMeasurements += measurement.getMeasurementSet().median();
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
-      for (Map.Entry<Scenario, MeasurementSet> entry : run.getMeasurements().entrySet()) {
+      for (Map.Entry<Scenario, MeasurementSetMeta> entry
+          : run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
-        sumForValue[variable.index(scenario)] += entry.getValue().median();
+        sumForValue[variable.index(scenario)] +=
+            entry.getValue().getMeasurementSet().median();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -257,7 +259,8 @@ final class ConsoleReport {
           System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement = run.getMeasurements().get(scenario).median();
+      double measurement =
+          run.getMeasurements().get(scenario).getMeasurementSet().median();
       sumOfLogs += Math.log(measurement);
 
       System.out.printf(numbersFormat, measurement / divideBy);
