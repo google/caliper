@@ -141,9 +141,7 @@ public final class Xml {
           throw new RuntimeException("missing node \"" + MEASUREMENTS_ELEMENT_NAME + "\" or \""
               + EVENT_LOG_ELEMENT_NAME + "\"");
         }
-        // temporarily don't attempt to insert eventLog since it can get too large to fit in
-        // appengine datastore.
-        measurementSetMeta = new MeasurementSetMeta(measurementSet, "");
+        measurementSetMeta = new MeasurementSetMeta(measurementSet, eventLog);
       } else {
         throw new RuntimeException("illegal node name: " + scenarioNode.getNodeName());
       }
