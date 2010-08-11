@@ -24,6 +24,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * Executes a benchmark in the current VM.
@@ -65,7 +67,7 @@ final class InProcessRunner {
         };
 
         ByteArrayOutputStream scenarioXml = new ByteArrayOutputStream();
-        normalizedScenario.getProperties().storeToXML(scenarioXml, "");
+        getScenarioProperties(normalizedScenario).storeToXML(scenarioXml, "");
         // output xml on a single line so it's easier to parse on the other side.
         outStream.println(LogConstants.SCENARIO_XML_PREFIX
             + scenarioXml.toString().replaceAll("\r\n|\r|\n", ""));
@@ -84,6 +86,14 @@ final class InProcessRunner {
       System.setOut(outStream);
       System.setErr(errStream);
     }
+  }
+
+  private Properties getScenarioProperties(Scenario scenario) {
+    Properties properties = new Properties();
+    for (Entry<String, String> entry : scenario.getVariables().entrySet()) {
+      properties.setProperty(entry.getKey(), entry.getValue());
+    }
+    return properties;
   }
 
   private void log(PrintStream outStream, String message) {

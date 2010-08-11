@@ -21,8 +21,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Properties;
 import java.util.Set;
 
 /**
@@ -50,14 +48,6 @@ public final class Scenario
 
   public Map<String, String> getVariables() {
     return variables;
-  }
-
-  public Properties getProperties() {
-    Properties properties = new Properties();
-    for (Entry<String, String> entry : variables.entrySet()) {
-      properties.setProperty(entry.getKey(), entry.getValue());
-    }
-    return properties;
   }
 
   /**

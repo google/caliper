@@ -124,7 +124,7 @@ public final class Xml {
       MeasurementSetMeta measurementSetMeta;
       if (scenarioNode.getNodeName().equals(OLD_SCENARIO_ELEMENT_NAME)) {
         MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
-        measurementSetMeta = new MeasurementSetMeta(measurement, null);
+        measurementSetMeta = new MeasurementSetMeta(measurement, scenario, null);
       } else if (scenarioNode.getNodeName().equals(SCENARIO_ELEMENT_NAME)) {
         MeasurementSet measurementSet = null;
         String eventLog = null;
@@ -141,7 +141,7 @@ public final class Xml {
           throw new RuntimeException("missing node \"" + MEASUREMENTS_ELEMENT_NAME + "\" or \""
               + EVENT_LOG_ELEMENT_NAME + "\"");
         }
-        measurementSetMeta = new MeasurementSetMeta(measurementSet, eventLog);
+        measurementSetMeta = new MeasurementSetMeta(measurementSet, scenario, eventLog);
       } else {
         throw new RuntimeException("illegal node name: " + scenarioNode.getNodeName());
       }
