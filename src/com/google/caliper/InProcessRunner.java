@@ -19,9 +19,11 @@ package com.google.caliper;
 import com.google.caliper.UserException.CantCustomizeInProcessVmException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.util.List;
 
 /**
  * Executes a benchmark in the current VM.
@@ -46,15 +48,30 @@ final class InProcessRunner {
           outStream);
 
       log(outStream, LogConstants.SCENARIOS_STARTING);
-      for (final Scenario scenario : scenarioSelection.select()) {
+      List<Scenario> scenarios = scenarioSelection.select();
+      // We only expect one scenario right now - if we have more, something has gone wrong.
+      // This matters for things like reading the measurements. This is only done once, so if
+      // multiple scenarios are executed, they will be ignored!
+      if (scenarios.size() != 1) {
+        throw new IllegalArgumentException("Invalid arguments to subprocess. Expected exactly one "
+            + "scenario but got " + scenarios.size());
+      }
+      for (Scenario scenario : scenarios) {
+        final Scenario normalizedScenario = scenarioSelection.normalizeScenario(scenario);
         Supplier<TimedRunnable> supplier = new Supplier<TimedRunnable>() {
           public TimedRunnable get() {
-            return scenarioSelection.createBenchmark(scenario);
+            return scenarioSelection.createBenchmark(normalizedScenario);
           }
         };
 
+        ByteArrayOutputStream scenarioXml = new ByteArrayOutputStream();
+        normalizedScenario.getProperties().storeToXML(scenarioXml, "");
+        // output xml on a single line so it's easier to parse on the other side.
+        outStream.println(LogConstants.SCENARIO_XML_PREFIX
+            + scenarioXml.toString().replaceAll("\r\n|\r|\n", ""));
+
         double warmupNanosPerTrial = caliper.warmUp(supplier);
-        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + scenario);
+        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + normalizedScenario);
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
         log(outStream, LogConstants.MEASUREMENT_PREFIX + measurementSet);
       }

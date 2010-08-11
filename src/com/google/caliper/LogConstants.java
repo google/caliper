@@ -18,6 +18,11 @@ package com.google.caliper;
 
 public final class LogConstants {
   /**
+   * Must be prepended to line of XML that represents normalized scenario.
+   */
+  public static final String SCENARIO_XML_PREFIX = "[scenario] ";
+
+  /**
    * Must be prepended to any logs that are to be included in the run event log.
    */
   public static final String CALIPER_LOG_PREFIX = "[caliper] ";

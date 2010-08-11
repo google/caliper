@@ -23,15 +23,21 @@ public final class MeasurementSetMeta
     implements Serializable /* for GWT Serialization */ {
 
   private /*final*/ MeasurementSet measurementSet;
+  private /*final*/ Scenario scenario;
   private /*final*/ String eventLog;
 
-  public MeasurementSetMeta(MeasurementSet measurementSet, String eventLog) {
+  public MeasurementSetMeta(MeasurementSet measurementSet, Scenario scenario, String eventLog) {
     this.measurementSet = measurementSet;
+    this.scenario = scenario;
     this.eventLog = eventLog;
   }
 
   public MeasurementSet getMeasurementSet() {
     return measurementSet;
+  }
+
+  public Scenario getScenario() {
+    return scenario;
   }
 
   public String getEventLog() {

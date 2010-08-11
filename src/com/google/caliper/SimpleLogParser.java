@@ -16,15 +16,36 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.Maps;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 public final class SimpleLogParser implements LogParser {
   private MeasurementSet measurementSet;
 
   private boolean logLine = true;
   private boolean displayLine = true;
+  private Scenario scenario;
 
-  String lineToDisplay;
+  private String lineToDisplay;
 
   @Override public void readLine(String line) {
+    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_XML_PREFIX);
+    if (scenarioLog) {
+      String scenarioString =
+          line.substring(LogConstants.SCENARIO_XML_PREFIX.length());
+      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
+      Properties properties = new Properties();
+      try {
+        properties.loadFromXML(scenarioXml);
+        scenario = new Scenario(Maps.fromProperties(properties));
+        scenarioXml.close();
+      } catch (IOException e) {
+        throw new RuntimeException("failed to load properties from xml", e);
+      }
+    }
+
     if (line.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
       try {
         measurementSet =
@@ -54,6 +75,10 @@ public final class SimpleLogParser implements LogParser {
 
   @Override public MeasurementSet getMeasurementSet() {
     return measurementSet;
+  }
+
+  @Override public Scenario getScenario() {
+    return scenario;
   }
 
   @Override public boolean isLogDone() {

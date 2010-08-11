@@ -70,6 +70,23 @@ public final class ScenarioSelection {
     return createScenarios();
   }
 
+  /**
+   * Returns a normalized version of {@code scenario}, with information from {@code suite}
+   * assisting in correcting problems.
+   */
+  public Scenario normalizeScenario(Scenario scenario) {
+    // This only applies to SimpleBenchmarks since they accept the special "benchmark"
+    // parameter. This is a special case because SimpleBenchmark is the most commonly
+    // used benchmark class. Have to do this horrible stuff since Benchmark API
+    // doesn't provide scenario-normalization (and it shouldn't), which SimpleBenchmark
+    // requires.
+    if (suite instanceof SimpleBenchmark) {
+      return ((SimpleBenchmark) suite).normalizeScenario(scenario);
+    }
+
+    return scenario;
+  }
+
   public TimedRunnable createBenchmark(Scenario scenario) {
     return suite.createBenchmark(scenario.getParameters());
   }

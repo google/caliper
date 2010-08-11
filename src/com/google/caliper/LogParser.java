@@ -28,4 +28,5 @@ public interface LogParser {
   boolean displayLine();
   boolean isLogDone();
   MeasurementSet getMeasurementSet();
+  Scenario getScenario();
 }

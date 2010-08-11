@@ -23,6 +23,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -112,10 +113,16 @@ public abstract class SimpleBenchmark implements Benchmark {
           + parameterNames() + " but was " + parameterValues.keySet());
     }
 
+    String methodName = parameterValues.get("benchmark");
+    final Method method = methods.get(methodName);
+    if (method == null) {
+      throw new IllegalArgumentException("Invalid parameters specified. \"time" + methodName + "\" "
+          + "is not a method of this benchmark.");
+    }
+
     try {
       @SuppressWarnings({"ClassNewInstance"}) // can throw any Exception, so we catch all Exceptions
       final SimpleBenchmark copyOfSelf = getClass().newInstance();
-      final Method method = methods.get(parameterValues.get("benchmark"));
 
       for (Map.Entry<String, String> entry : parameterValues.entrySet()) {
         String parameterName = entry.getKey();
@@ -145,6 +152,28 @@ public abstract class SimpleBenchmark implements Benchmark {
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }
+  }
+
+  public Scenario normalizeScenario(Scenario scenario) {
+    Map<String, String> variables =
+      new LinkedHashMap<String, String>(scenario.getVariables());
+    // Make sure the scenario contains method names without the prefixed "time". If
+    // it has "time" prefixed, then remove it. Also check whether the user has
+    // accidentally put a lower cased letter first, and fix it if necessary.
+    String benchmark = variables.get("benchmark");
+    Map<String, Method> timedMethods = createTimedMethods();
+    if (timedMethods.get(benchmark) == null) {
+      // try to upper case first character
+      char[] benchmarkChars = benchmark.toCharArray();
+      benchmarkChars[0] = Character.toUpperCase(benchmarkChars[0]);
+      String upperCasedBenchmark = String.valueOf(benchmarkChars);
+      if (timedMethods.get(upperCasedBenchmark) != null) {
+        variables.put("benchmark", upperCasedBenchmark);
+      } else if (benchmark.startsWith("time")) {
+        variables.put("benchmark", benchmark.substring(4));
+      }
+    }
+    return new Scenario(variables);
   }
 
   /**

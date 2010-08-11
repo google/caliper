@@ -218,6 +218,7 @@ public final class Runner {
     command.add(arguments.getSuiteClassName());
 
     BufferedReader reader = null;
+    Scenario normalizedScenario = null;
     try {
       builder.redirectErrorStream(true);
       builder.directory(new File(System.getProperty("user.dir")));
@@ -237,6 +238,14 @@ public final class Runner {
       while ((line = reader.readLine()) != null) {
         logParser.readLine(line);
 
+        if (normalizedScenario == null) {
+          if (logParser.getScenario() != null) {
+            normalizedScenario = logParser.getScenario();
+            System.out.print(normalizedScenario);
+            System.out.flush();
+          }
+        }
+
         if (logParser.logLine()) {
           String logEntry = "[" + dateFormat.format(new Date()) + "] "
               + logParser.lineToLog() + "\n";
@@ -252,11 +261,11 @@ public final class Runner {
         }
       }
       vm.cleanup();
-      
-      MeasurementSetMeta measurementSetMeta =
-          new MeasurementSetMeta(logParser.getMeasurementSet(), scenarioEventLog.toString());
-      if (measurementSetMeta != null) {
-        return measurementSetMeta;
+
+      MeasurementSet measurementSet = logParser.getMeasurementSet();
+      if (measurementSet != null && normalizedScenario != null) {
+        return new MeasurementSetMeta(measurementSet, normalizedScenario,
+            scenarioEventLog.toString());
       }
 
       String message = "Failed to execute " + Joiner.on(" ").join(command);
@@ -287,10 +296,11 @@ public final class Runner {
 
       int i = 0;
       for (Scenario scenario : scenarios) {
-        beforeMeasurement(i++, scenarios.size(), scenario);
+        beforeMeasurement(i++, scenarios.size());
         MeasurementSetMeta nanosPerTrial = executeForked(scenario);
         afterMeasurement(nanosPerTrial.getMeasurementSet());
-        resultsBuilder.put(scenario, nanosPerTrial);
+        // use normalized scenario provided by the subprocess
+        resultsBuilder.put(nanosPerTrial.getScenario(), nanosPerTrial);
       }
       System.out.println();
 
@@ -303,9 +313,9 @@ public final class Runner {
     }
   }
 
-  private void beforeMeasurement(int index, int total, Scenario scenario) {
+  private void beforeMeasurement(int index, int total) {
     double percentDone = (double) index / total;
-    System.out.printf("%2.0f%% %s", percentDone * 100, scenario);
+    System.out.printf("%2.0f%% ", percentDone * 100);
   }
 
   private void afterMeasurement(MeasurementSet measurementSet) {

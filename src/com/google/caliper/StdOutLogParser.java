@@ -16,12 +16,18 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.Maps;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
 public final class StdOutLogParser implements LogParser {
 
   private boolean inTimedSection;
   private boolean logLine;
   private boolean displayLine;
   private MeasurementSet measurementSet;
+  private Scenario scenario;
 
   String lineToDisplay;
 
@@ -48,6 +54,7 @@ public final class StdOutLogParser implements LogParser {
    * [caliper] [scenarios finished]
    */
   @Override public void readLine(String line) {
+    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_XML_PREFIX);
     boolean caliperLog = line.startsWith(LogConstants.CALIPER_LOG_PREFIX);
     // True if the line seems to indicate a garbage collection, like
     // [GC 1263K->363K(184576K), 0.0006660 secs]
@@ -55,7 +62,19 @@ public final class StdOutLogParser implements LogParser {
     // [Full GC 363K->300K(184576K), 0.0053820 secs]
     boolean gcLog = line.startsWith("[GC ") || line.startsWith("[Full GC ");
 
-    if (caliperLog) {
+    if (scenarioLog) {
+      String scenarioString =
+          line.substring(LogConstants.SCENARIO_XML_PREFIX.length());
+      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
+      Properties properties = new Properties();
+      try {
+        properties.loadFromXML(scenarioXml);
+        scenario = new Scenario(Maps.fromProperties(properties));
+        scenarioXml.close();
+      } catch (IOException e) {
+        throw new RuntimeException("failed to load properties from xml", e);
+      }
+    } else if (caliperLog) {
       String caliperLogLine = line.substring(LogConstants.CALIPER_LOG_PREFIX.length());
 
       // timed sections start with "[caliper] [starting timed section]"
@@ -78,7 +97,7 @@ public final class StdOutLogParser implements LogParser {
     }
 
     logLine = caliperLog || inTimedSection;
-    displayLine = !caliperLog && !gcLog;
+    displayLine = !caliperLog && !gcLog && !scenarioLog;
     lineToDisplay = line;
   }
 
@@ -100,6 +119,10 @@ public final class StdOutLogParser implements LogParser {
 
   @Override public MeasurementSet getMeasurementSet() {
     return measurementSet;
+  }
+
+  @Override public Scenario getScenario() {
+    return scenario;
   }
 
   @Override public boolean isLogDone() {

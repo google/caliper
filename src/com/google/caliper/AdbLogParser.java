@@ -16,6 +16,10 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.Maps;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +30,7 @@ public final class AdbLogParser implements LogParser {
   private boolean logLine;
   private boolean displayLine;
   private MeasurementSet measurementSet;
+  private Scenario scenario;
   private boolean isLogDone;
   private int processId;
 
@@ -109,12 +114,25 @@ public final class AdbLogParser implements LogParser {
     int messageStart = line.indexOf(':');
     String normalizedLine = line.substring(messageStart + 2);
 
+    boolean isScenarioLog = normalizedLine.startsWith(LogConstants.SCENARIO_XML_PREFIX);
     // true if this line indicates a garbage collection
     // e.g., "GC_EXPLICIT freed 191 objects / 39704 bytes in 7ms"
     boolean isGcLog = normalizedLine.startsWith("GC_");
     boolean isCaliperLog = normalizedLine.startsWith(LogConstants.CALIPER_LOG_PREFIX);
 
-    if (isCaliperLog) {
+    if (isScenarioLog) {
+      String scenarioString =
+          normalizedLine.substring(LogConstants.SCENARIO_XML_PREFIX.length());
+      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
+      Properties properties = new Properties();
+      try {
+        properties.loadFromXML(scenarioXml);
+        scenario = new Scenario(Maps.fromProperties(properties));
+        scenarioXml.close();
+      } catch (IOException e) {
+        throw new RuntimeException("failed to load properties from xml " + scenarioString, e);
+      }
+    } else if (isCaliperLog) {
       String caliperLogLine =
           normalizedLine.substring(LogConstants.CALIPER_LOG_PREFIX.length());
 
@@ -147,7 +165,7 @@ public final class AdbLogParser implements LogParser {
     }
 
     logLine = startLogging && (isCaliperLog || inTimedSection);
-    displayLine = isThisProcess && startLogging && !isCaliperLog && !isGcLog;
+    displayLine = isThisProcess && startLogging && !isCaliperLog && !isGcLog && !isScenarioLog;
     lineToLog = line;
     lineToDisplay = normalizedLine;
   }
@@ -170,6 +188,10 @@ public final class AdbLogParser implements LogParser {
 
   @Override public MeasurementSet getMeasurementSet() {
     return measurementSet;
+  }
+
+  @Override public Scenario getScenario() {
+    return scenario;
   }
 
   @Override public boolean isLogDone() {

@@ -203,7 +203,13 @@ public final class Arguments {
     System.out.println("        Multiple values can be supplied by separating them with the");
     System.out.println("        delimiter specified in the --delimiter argument.");
     System.out.println();
-    System.out.println("        For example: \"-DFoo=bar,baz,bat\"");
+    System.out.println("        For example: \"-Dfoo=bar,baz,bat\"");
+    System.out.println();
+    System.out.println("        \"benchmark\" is a special parameter that can be used to specify");
+    System.out.println("        which benchmark methods to run. For example, if a benchmark has");
+    System.out.println("        the method \"timeFoo\", it can be run alone by using");
+    System.out.println("        \"-Dbenchmark=Foo\". \"benchmark\" also accepts a delimiter");
+    System.out.println("        separated list of methods to run.");
     System.out.println();
     System.out.println("  --delimiter <delimiter>: character or string to use as a delimiter");
     System.out.println("        for parameter and vm values.");
