@@ -20,8 +20,15 @@ import com.google.common.collect.Maps;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 public final class StdOutLogParser implements LogParser {
+
+  // For -XX:+PrintCompilation integration. Designed to match stuff like:
+  //   1%  b   benchmarks.regression.StringBuilderBenchmark::timeAppendBoolean @ 18 (46 bytes)
+  //  14   b   benchmarks.regression.StringBuilderBenchmark::timeAppendBoolean (46 bytes)
+  private static final Pattern compilationPattern =
+      Pattern.compile("^\\s*\\d+%?\\s+.\\s+.+::.+\\s+\\(\\d+\\s+bytes\\)$");
 
   private boolean inTimedSection;
   private boolean logLine;
@@ -32,9 +39,17 @@ public final class StdOutLogParser implements LogParser {
   String lineToDisplay;
 
   /**
-   * Parse a single line of log output.
+   * Parse a single line of log output. The logs should look something like this:
    *
+   *   1   b   java.lang.String::indexOf (151 bytes)
+   *   2   b   java.lang.String::lastIndexOf (156 bytes)
+   *   3   b   java.lang.String::hashCode (60 bytes)
+   *   4   b   java.lang.String::replace (142 bytes)
+   * ...
+   *   8   b   java.lang.String::equals (88 bytes)
    * [caliper] [starting scenarios]
+   *   9   b   java.lang.String::charAt (33 bytes)
+   *  10   b   sun.net.www.ParseUtil::encodePath (336 bytes)
    * [caliper] [starting warmup]
    * [GC 2914K->336K(184576K), 0.0021600 secs]
    * [Full GC 336K->274K(184576K), 0.0051340 secs]
@@ -61,6 +76,7 @@ public final class StdOutLogParser implements LogParser {
     // or
     // [Full GC 363K->300K(184576K), 0.0053820 secs]
     boolean gcLog = line.startsWith("[GC ") || line.startsWith("[Full GC ");
+    boolean compilationLog = compilationPattern.matcher(line).matches();
 
     if (scenarioLog) {
       String scenarioString =
@@ -96,8 +112,8 @@ public final class StdOutLogParser implements LogParser {
       }
     }
 
-    logLine = caliperLog || inTimedSection;
-    displayLine = !caliperLog && !gcLog && !scenarioLog;
+    logLine = caliperLog || inTimedSection || compilationLog;
+    displayLine = !caliperLog && !gcLog && !compilationLog && !scenarioLog;
     lineToDisplay = line;
   }
 

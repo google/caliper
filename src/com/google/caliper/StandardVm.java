@@ -24,7 +24,7 @@ import java.util.List;
 public final class StandardVm implements Vm {
 
   @Override public List<String> getVmSpecificOptions() {
-    return Lists.newArrayList("-Xbatch", "-XX:-UseSerialGC");
+    return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC", "-XX:+PrintCompilation");
   }
 
   @Override public LogParser getLogProcessor() {
