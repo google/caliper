@@ -16,6 +16,8 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;
@@ -32,6 +34,9 @@ import java.util.TreeMap;
 
 /**
  * A parameter in a {@link SimpleBenchmark}.
+ *
+ * @param <T> the (possibly wrapped) type of the parameter field, such as {@link
+ *     String} or {@link Integer}
  */
 abstract class Parameter<T> {
 
@@ -42,7 +47,7 @@ abstract class Parameter<T> {
   }
 
   /**
-   * Returns all properties for the given class.
+   * Returns all parameters for the given class.
    */
   public static Map<String, Parameter<?>> forClass(Class<? extends Benchmark> suiteClass) {
     Map<String, Parameter<?>> parameters = new TreeMap<String, Parameter<?>>();
@@ -56,13 +61,14 @@ abstract class Parameter<T> {
     return parameters;
   }
 
-  private static Parameter<?> forField(
+  @VisibleForTesting
+  static Parameter<?> forField(
       Class<? extends Benchmark> suiteClass, final Field field) {
     // First check for String values on the annotation itself
     final Object[] defaults = field.getAnnotation(Param.class).value();
     if (defaults.length > 0) {
       return new Parameter<Object>(field) {
-        @Override public Collection<Object> values() throws Exception {
+        @Override public Iterable<Object> values() throws Exception {
           return Arrays.asList(defaults);
         }
       };
@@ -77,13 +83,16 @@ abstract class Parameter<T> {
     // Now check for a fooValues() method
     try {
       final Method valuesMethod = suiteClass.getDeclaredMethod(field.getName() + "Values");
+      if (!Modifier.isStatic(valuesMethod.getModifiers())) {
+        throw new ConfigurationException("Values method must be static " + member);
+      }
       valuesMethod.setAccessible(true);
       member = valuesMethod;
       returnType = valuesMethod.getGenericReturnType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        @Override public Collection<Object> values() throws Exception {
-          return (Collection<Object>) valuesMethod.invoke(null);
+        @Override public Iterable<Object> values() throws Exception {
+          return (Iterable<Object>) valuesMethod.invoke(null);
         }
       };
     } catch (NoSuchMethodException ignored) {
@@ -92,6 +101,9 @@ abstract class Parameter<T> {
     // Now check for a fooValues field
     try {
       final Field valuesField = suiteClass.getDeclaredField(field.getName() + "Values");
+      if (!Modifier.isStatic(valuesField.getModifiers())) {
+        throw new ConfigurationException("Values field must be static " + member);
+      }
       valuesField.setAccessible(true);
       member = valuesField;
       if (result != null) {
@@ -100,15 +112,11 @@ abstract class Parameter<T> {
       returnType = valuesField.getGenericType();
       result = new Parameter<Object>(field) {
         @SuppressWarnings("unchecked") // guarded below
-        @Override public Collection<Object> values() throws Exception {
-          return (Collection<Object>) valuesField.get(null);
+        @Override public Iterable<Object> values() throws Exception {
+          return (Iterable<Object>) valuesField.get(null);
         }
       };
     } catch (NoSuchFieldException ignored) {
-    }
-
-    if (member != null && !Modifier.isStatic(member.getModifiers())) {
-        throw new ConfigurationException("Values member must be static " + member);
     }
 
     // If there isn't a values member but the parameter is an enum, we default
@@ -119,18 +127,29 @@ abstract class Parameter<T> {
         // TODO: figure out the simplest way to make this compile and be green in IDEA too
         @SuppressWarnings({"unchecked", "RawUseOfParameterizedType", "RedundantCast"})
         // guarded above
-        @Override public Collection<Object> values() throws Exception {
+        @Override public Iterable<Object> values() throws Exception {
           Set<Enum> set = EnumSet.allOf((Class<Enum>) field.getType());
-          return (Collection) set;
+          return Collections.<Object>unmodifiableSet(set);
+        }
+      };
+    }
+
+    // If it's boolean, default to (true, false)
+    if (member == null && field.getType() == boolean.class) {
+      returnType = Collection.class;
+      result = new Parameter<Object>(field) {
+        @Override public Iterable<Object> values() throws Exception {
+          return Arrays.<Object>asList(Boolean.TRUE, Boolean.FALSE);
         }
       };
     }
 
     if (result == null) {
       return new Parameter<Object>(field) {
-        @Override public Collection<Object> values() {
+        @Override public Iterable<Object> values() {
           // TODO: need tests to make sure this fails properly when no cmdline params given and
-          // works properly when they are given
+          // works properly when they are given. Also, can we restructure the code so that we
+          // just throw here instead of later?
           return Collections.emptySet();
         }
       };
@@ -141,17 +160,18 @@ abstract class Parameter<T> {
     return result;
   }
 
-  private static boolean isValidReturnType(Type returnType) {
-    if (returnType == Collection.class) {
-      return true;
+  private static boolean isValidReturnType(Type type) {
+    if (type instanceof Class) {
+      return isIterableClass(type);
     }
-    if (returnType instanceof ParameterizedType) {
-      ParameterizedType type = (ParameterizedType) returnType;
-      if (type.getRawType() == Collection.class) {
-        return true;
-      }
+    if (type instanceof ParameterizedType) {
+      return isIterableClass(((ParameterizedType) type).getRawType());
     }
     return false;
+  }
+
+  private static boolean isIterableClass(Type returnClass) {
+    return Iterable.class.isAssignableFrom((Class<?>) returnClass);
   }
 
   /**
@@ -164,7 +184,7 @@ abstract class Parameter<T> {
   /**
    * Returns the available values of the property as specified by the suite.
    */
-  public abstract Collection<T> values() throws Exception;
+  public abstract Iterable<T> values() throws Exception;
 
   /**
    * Returns the parameter's type, such as double.class.

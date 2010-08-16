@@ -36,29 +36,9 @@ import java.util.Set;
  * static. They are not permitted to take parameters . . ..
  *
  * <h3>Parameters</h3>
- * Implementing classes may be configured using parameters. Each parameter is a
- * property of a benchmark, plus the default values that fulfill it. Parameters
- * are specified by annotated fields:
- * <pre>
- *   {@literal @}Param int length;
- * </pre>
- * The available values for a parameter are specified by another field with the
- * same name plus the {@code Values} suffix. The type of this field must be an
- * {@code Iterable} of the parameter's type.
- * <pre>
- *   Iterable&lt;Integer&gt; lengthValues = Arrays.asList(10, 100, 1000, 10000);
- * </pre>
- * Alternatively, the available values may be specified with a method. The
- * method's name follows the same naming convention and returns the same type.
- * Such methods may not accept parameters of their own.
- * <pre>
- *   Iterable&lt;Integer&gt; lengthValues() {
- *     return Arrays.asList(10, 100, 1000, 10000);
- *   }
- * </pre>
+ * See the {@link Param} documentation to learn about parameters.
  */
 public abstract class SimpleBenchmark implements Benchmark {
-
   private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 
   private final Map<String, Parameter<?>> parameters;
@@ -95,7 +75,7 @@ public abstract class SimpleBenchmark implements Benchmark {
       throw new IllegalArgumentException();
     }
     try {
-      Collection<?> values = parameter.values();
+      Iterable<?> values = parameter.values();
 
       ImmutableSet.Builder<String> result = ImmutableSet.builder();
       for (Object value : values) {

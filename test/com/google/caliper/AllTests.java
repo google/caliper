@@ -24,6 +24,7 @@ public class AllTests {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(CaliperTest.class);
     suite.addTestSuite(LinearTranslationTest.class);
+    suite.addTestSuite(ParameterTest.class);
     suite.addTestSuite(WarmupOverflowTest.class);
     return suite;
   }
