@@ -10,9 +10,11 @@
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
     <property name="guava" value="lib/guava-r05.jar"/>
+    <property name="gson" value="lib/gson-1.4.jar"/>
 
     <path id="dependencies">
         <pathelement location="${guava}"/>
+        <pathelement location="${gson}"/>
     </path>
 
     <path id="testdependencies">
@@ -76,7 +78,9 @@
         <jarjar jarfile="${installroot}/lib/caliper-${version}.jar">
             <fileset dir="${frameworkclasses}"/>
             <zipfileset src="${guava}"/>
+            <zipfileset src="${gson}"/>
             <rule pattern="com.google.common.**" result="com.google.caliper.internal.guava.@1"/>
+            <rule pattern="com.google.gson.**" result="com.google.caliper.internal.gson.@1"/>
             <keep pattern="com.google.caliper.**"/>
 
             <!-- include some files for GWT's benefit -->
@@ -85,6 +89,7 @@
                 <include name="com/google/caliper/LinearTranslation.java"/>
                 <include name="com/google/caliper/Environment.java"/>
                 <include name="com/google/caliper/Run.java"/>
+                <include name="com/google/caliper/Measurement.java"/>
                 <include name="com/google/caliper/MeasurementSet.java"/>
                 <include name="com/google/caliper/MeasurementSetMeta.java"/>
                 <include name="com/google/caliper/Scenario.java"/>

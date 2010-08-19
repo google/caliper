@@ -17,8 +17,9 @@
 package test;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.TimedRunnable;
+import com.google.caliper.ConfiguredBenchmark;
 import com.google.caliper.Runner;
+import com.google.common.collect.ImmutableMap;
 import java.util.Set;
 import java.util.Map;
 
@@ -33,19 +34,19 @@ public class TracingBenchmark implements Benchmark {
     this.delegate = new ThreadSleepBenchmark();
   }
 
-  public Set<String> parameterNames() {
+  @Override public Set<String> parameterNames() {
     return delegate.parameterNames();
   }
 
-  public Set<String> parameterValues(String parameterName) {
+  @Override public Set<String> parameterValues(String parameterName) {
     return delegate.parameterValues(parameterName);
   }
 
-  public TimedRunnable createBenchmark(Map<String, String> parameterValues) {
-    final TimedRunnable benchmark = delegate.createBenchmark(parameterValues);
+  @Override public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
+    final ConfiguredBenchmark benchmark = delegate.createBenchmark(parameterValues);
 
-    return new TimedRunnable() {
-      public Object run(int reps) throws Exception {
+    return new ConfiguredBenchmark(benchmark.getBenchmark()) {
+      @Override public Object run(int reps) throws Exception {
         // TODO: can we move the setup/tear down work out of the timed loop?
         Runtime.getRuntime().traceMethodCalls(true);
         try {
@@ -55,10 +56,18 @@ public class TracingBenchmark implements Benchmark {
         }
       }
 
-      public void close() throws Exception {
+      @Override public void close() throws Exception {
         benchmark.close();
       }
     };
+  }
+
+  @Override public Map<String, Integer> unitNames() {
+    return ImmutableMap.of("ns", 1, "us", 1000, "ms", 1000000, "s", 1000000000);
+  }
+
+  @Override public double nanosToUnits(double nanos) {
+    return nanos;
   }
 
   public static void main(String[] args) {

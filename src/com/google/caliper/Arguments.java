@@ -51,13 +51,7 @@ public final class Arguments {
 
   private long warmupMillis = 3000;
   private long runMillis = 1000;
-  private TimeUnit timeUnit = null;
-  private static final Map<String, TimeUnit> timeUnitMap = Maps.newHashMap();
-  static {
-    for (TimeUnit timeUnit : TimeUnit.getOptions()) {
-      timeUnitMap.put(timeUnit.toString(), timeUnit);
-    }
-  }
+  private String unit = null;
   private File xmlSaveFile = null;
   private File xmlUploadFile = null;
   private boolean printScore = false;
@@ -84,8 +78,8 @@ public final class Arguments {
     return runMillis;
   }
 
-  public TimeUnit getUnit() {
-    return timeUnit;
+  public String getUnit() {
+    return unit;
   }
 
   public File getXmlSaveFile() {
@@ -143,12 +137,8 @@ public final class Arguments {
       } else if ("--delimiter".equals(arg)) {
         delimiter = args.next();
         standardRun = true;
-      } else if ("--timeUnit".equals(arg)) {
-        String unit = args.next();
-        result.timeUnit = timeUnitMap.get(unit);
-        if (result.timeUnit == null) {
-          throw new UserException.InvalidParameterValueException(arg, unit);
-        }
+      } else if ("--unit".equals(arg)) {
+        result.unit = args.next();
         standardRun = true;
       } else if ("--xmlSave".equals(arg)) {
         result.xmlSaveFile = new File(args.next());
@@ -223,8 +213,9 @@ public final class Arguments {
     System.out.println("        in as a list separated by the delimiter specified in the");
     System.out.println("        --delimiter argument.");
     System.out.println();
-    System.out.println("  --timeUnit <timeUnit>: unit of time to use for result.");
-    System.out.println("        Options: ns, us, ms, s");
+    System.out.println("  --unit <unit>: unit of time to use for result. Depends on the units");
+    System.out.println("        defined in the benchmark's unitNames method, if defined.");
+    System.out.println("        Default Options: ns, us, ms, s");
     System.out.println();
     System.out.println("  --xmlSave <file/dir>: write XML results to this file or directory");
     System.out.println();

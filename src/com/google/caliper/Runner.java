@@ -319,8 +319,10 @@ public final class Runner {
   }
 
   private void afterMeasurement(MeasurementSet measurementSet) {
-    System.out.printf(" %.2fns; \u03C3=%.2fns @ %d trials%n", measurementSet.median(),
-        measurementSet.standardDeviation(), measurementSet.getMeasurements().length);
+    String unit =
+        ConsoleReport.UNIT_ORDERING.min(measurementSet.getUnitNames().entrySet()).getKey();
+    System.out.printf(" %.2f%s; \u03C3=%.2f%s @ %d trials%n", measurementSet.medianUnits(), unit,
+        measurementSet.standardDeviationUnits(), unit, measurementSet.getMeasurements().size());
   }
 
   public static void main(String... args) {

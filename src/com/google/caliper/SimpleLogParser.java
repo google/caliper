@@ -49,7 +49,7 @@ public final class SimpleLogParser implements LogParser {
     if (line.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
       try {
         measurementSet =
-            MeasurementSet.valueOf(line.substring(LogConstants.MEASUREMENT_PREFIX.length()));
+            Json.measurementSetFromJson(line.substring(LogConstants.MEASUREMENT_PREFIX.length()));
       } catch (IllegalArgumentException ignore) {
       }
     }

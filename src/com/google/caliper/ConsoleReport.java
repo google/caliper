@@ -24,9 +24,9 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Prints a report containing the tested values and the corresponding
@@ -45,32 +45,54 @@ final class ConsoleReport {
 
   private static final int barGraphWidth = 30;
 
-  private static final int NANOS_FOR_SCORE_100 = 1;
-  private static final int NANOS_FOR_SCORE_10 = 1000000000; // 1 s
+  private static final int UNITS_FOR_SCORE_100 = 1;
+  private static final int UNITS_FOR_SCORE_10 = 1000000000; // 1 s
 
   private static final LinearTranslation scoreTranslation =
-      new LinearTranslation(Math.log(NANOS_FOR_SCORE_10), 10,
-                            Math.log(NANOS_FOR_SCORE_100), 100);
+      new LinearTranslation(Math.log(UNITS_FOR_SCORE_10), 10,
+                            Math.log(UNITS_FOR_SCORE_100), 100);
+
+  public static final Ordering<Entry<String, Integer>> UNIT_ORDERING =
+      new Ordering<Entry<String, Integer>>() {
+        @Override public int compare(Entry<String, Integer> a, Entry<String, Integer> b) {
+          return a.getValue().compareTo(b.getValue());
+        }
+      };
 
   private final List<Variable> variables;
   private final Run run;
   private final List<Scenario> scenarios;
-
-  // Measurements made in nanoseconds
-  private final int measuredExponent = 9;
 
   private final double maxValue;
   private final double logMinValue;
   private final double logMaxValue;
   private final int decimalDigits;
   private final double divideBy;
-  private TimeUnit timeUnit;
+  private String unit;
   private final int measurementColumnLength;
   private boolean printScore;
 
   ConsoleReport(Run run, Arguments arguments) {
     this.run = run;
-    this.timeUnit = arguments.getUnit();
+    this.unit = arguments.getUnit();
+
+    Map<String, Integer> units = null;
+    for (MeasurementSetMeta measurementSetMeta : run.getMeasurements().values()) {
+      if (units == null) {
+        units = measurementSetMeta.getMeasurementSet().getUnitNames();
+      } else {
+        if (!units.equals(measurementSetMeta.getMeasurementSet().getUnitNames())) {
+          throw new RuntimeException("measurement sets for run contain multiple, incompatible unit"
+              + " sets.");
+        }
+      }
+    }
+    if (units == null) {
+      throw new RuntimeException("run has no measurements.");
+    }
+    if (units.isEmpty()) {
+      throw new RuntimeException("no units specified.");
+    }
 
     double min = Double.POSITIVE_INFINITY;
     double max = 0;
@@ -79,7 +101,7 @@ final class ConsoleReport {
     List<Variable> variablesBuilder = new ArrayList<Variable>();
     for (Map.Entry<Scenario, MeasurementSetMeta> entry : run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
-      double d = entry.getValue().getMeasurementSet().median();
+      double d = entry.getValue().getMeasurementSet().medianUnits();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
@@ -106,7 +128,7 @@ final class ConsoleReport {
      */
     double sumOfAllMeasurements = 0;
     for (MeasurementSetMeta measurement : run.getMeasurements().values()) {
-      sumOfAllMeasurements += measurement.getMeasurementSet().median();
+      sumOfAllMeasurements += measurement.getMeasurementSet().medianUnits();
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
@@ -115,7 +137,7 @@ final class ConsoleReport {
           : run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
         sumForValue[variable.index(scenario)] +=
-            entry.getValue().getMeasurementSet().median();
+            entry.getValue().getMeasurementSet().medianUnits();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -132,30 +154,33 @@ final class ConsoleReport {
     this.logMinValue = Math.log(min);
     this.logMaxValue = Math.log(max);
 
-    int numDigitsInMin = ceil(Math.log10(min));
-    if (timeUnit == null) {
-      List<TimeUnit> timeUnits = new ArrayList<TimeUnit>(TimeUnit.getOptions());
-      // Sort timeUnit in descending order of exponent
-      Collections.sort(timeUnits);
-      for (TimeUnit timeUnitToTest : timeUnits) {
-        int exponent = timeUnitToTest.getExponent();
-        if (numDigitsInMin > (measuredExponent - exponent)
-            || (measuredExponent - exponent) == 0) {
-          this.timeUnit = timeUnitToTest;
+    if (unit == null) {
+      List<Entry<String, Integer>> entries = UNIT_ORDERING.reverse().sortedCopy(units.entrySet());
+      for (Entry<String, Integer> entry : entries) {
+        if (min / entry.getValue() >= 1) {
+          unit = entry.getKey();
           break;
         }
       }
+      if (unit == null) {
+        // if no unit works, just use the smallest available unit.
+        unit = entries.get(entries.size() - 1).getKey();
+      }
+    } else {
+      if (!units.keySet().contains(unit)) {
+        throw new RuntimeException("\"" + unit + "\" is not a valid unit.");
+      }
     }
 
-    int exponent = timeUnit.getExponent();
-    divideBy = Math.pow(10, measuredExponent - exponent);
-    decimalDigits = Math.max(0, (measuredExponent - exponent) + 3 - numDigitsInMin);
+    divideBy = units.get(unit);
+    int numDigitsInMin = ceil(Math.log10(min));
+    decimalDigits = ceil(Math.max(0, Math.log10(divideBy) + 3 - numDigitsInMin));
 
     int digitsBeforeDecimal = Math.max(1, ceil(Math.log10(max / divideBy)));
     int decimalPoint = decimalDigits > 0 ? 1 : 0;
-    measurementColumnLength = max > 0
+    measurementColumnLength = Math.max(max > 0
         ?  digitsBeforeDecimal + decimalPoint + decimalDigits
-        : 1;
+        : 1, unit.length());
 
     this.printScore = arguments.printScore();
   }
@@ -241,7 +266,7 @@ final class ConsoleReport {
     boolean showGraphs = scenarios.size() > 1;
     boolean showLinear = scenarios.size() == 2;
 
-    System.out.printf("%" + measurementColumnLength + "s", timeUnit);
+    System.out.printf("%" + measurementColumnLength + "s", unit);
     if (showGraphs) {
       String comparisonType = showLinear ? "linear" : "logarithmic";
       System.out.printf(" %s runtime", comparisonType);
@@ -260,7 +285,7 @@ final class ConsoleReport {
         }
       }
       double measurement =
-          run.getMeasurements().get(scenario).getMeasurementSet().median();
+          run.getMeasurements().get(scenario).getMeasurementSet().medianUnits();
       sumOfLogs += Math.log(measurement);
 
       System.out.printf(numbersFormat, measurement / divideBy);
@@ -272,8 +297,8 @@ final class ConsoleReport {
 
     if (printScore) {
       // arithmetic mean of logs, aka log of geometric mean
-      double meanLogNanos = sumOfLogs / scenarios.size();
-      System.out.format("%nScore: %.3f%n", scoreTranslation.translate(meanLogNanos));
+      double meanLogUnits = sumOfLogs / scenarios.size();
+      System.out.format("%nScore: %.3f%n", scoreTranslation.translate(meanLogUnits));
     }
   }
 
@@ -301,7 +326,8 @@ final class ConsoleReport {
       LinearTranslation t = new LinearTranslation(logMinValue, 1, logMaxValue, barGraphWidth);
       graphLength = floor(t.translate(Math.log(value)));
     }
-
+    graphLength = Math.max(1, graphLength);
+    graphLength = Math.min(barGraphWidth, graphLength);
     return Strings.repeat("=", graphLength);
   }
 

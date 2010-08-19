@@ -22,6 +22,7 @@ import junit.framework.TestSuite;
 public class AllTests {
   public static Test suite() {
     TestSuite suite = new TestSuite();
+    suite.addTestSuite(MeasurementSetTest.class);
     suite.addTestSuite(CaliperTest.class);
     suite.addTestSuite(LinearTranslationTest.class);
     suite.addTestSuite(ParameterTest.class);

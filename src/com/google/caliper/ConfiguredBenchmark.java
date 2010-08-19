@@ -16,7 +16,15 @@
 
 package com.google.caliper;
 
-public interface TimedRunnable {
+import java.util.Map;
+
+public abstract class ConfiguredBenchmark {
+
+  private final Benchmark underlyingBenchmark;
+
+  protected ConfiguredBenchmark(Benchmark underlyingBenchmark) {
+    this.underlyingBenchmark = underlyingBenchmark;
+  }
 
   /**
    * Runs the benchmark through {@code trials} iterations.
@@ -25,7 +33,19 @@ public interface TimedRunnable {
    *      value to prevent the runtime from optimizing away the code under test.
    *      Such an accumulator value can be returned here.
    */
-  Object run(int reps) throws Exception;
+  public abstract Object run(int reps) throws Exception;
 
-  void close() throws Exception;
+  public abstract void close() throws Exception;
+
+  public final Benchmark getBenchmark() {
+    return underlyingBenchmark;
+  }
+
+  public final double nanosToUnits(double nanos) {
+    return underlyingBenchmark.nanosToUnits(nanos);
+  }
+
+  public final Map<String, Integer> unitNames() {
+    return underlyingBenchmark.unitNames();
+  }
 }

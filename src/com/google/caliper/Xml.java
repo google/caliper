@@ -100,7 +100,8 @@ public final class Xml {
       }
       Element measurementElement = doc.createElement(MEASUREMENTS_ELEMENT_NAME);
       scenarioElement.appendChild(measurementElement);
-      measurementElement.setTextContent(String.valueOf(entry.getValue().getMeasurementSet()));
+      measurementElement.setTextContent(
+          Json.measurementSetToJson(entry.getValue().getMeasurementSet()));
 
       Element eventLogElement = doc.createElement(EVENT_LOG_ELEMENT_NAME);
       scenarioElement.appendChild(eventLogElement);
@@ -123,14 +124,14 @@ public final class Xml {
       // for backwards compatibility with older runs
       MeasurementSetMeta measurementSetMeta;
       if (scenarioNode.getNodeName().equals(OLD_SCENARIO_ELEMENT_NAME)) {
-        MeasurementSet measurement = MeasurementSet.valueOf(scenarioElement.getTextContent());
+        MeasurementSet measurement = Json.measurementSetFromJson(scenarioElement.getTextContent());
         measurementSetMeta = new MeasurementSetMeta(measurement, scenario, null);
       } else if (scenarioNode.getNodeName().equals(SCENARIO_ELEMENT_NAME)) {
         MeasurementSet measurementSet = null;
         String eventLog = null;
         for (Node node : XmlUtils.childrenOf(scenarioElement)) {
           if (node.getNodeName().equals(MEASUREMENTS_ELEMENT_NAME)) {
-            measurementSet = MeasurementSet.valueOf(node.getTextContent());
+            measurementSet = Json.measurementSetFromJson(node.getTextContent());
           } else if (node.getNodeName().equals(EVENT_LOG_ELEMENT_NAME)) {
             eventLog = node.getTextContent();
           } else {

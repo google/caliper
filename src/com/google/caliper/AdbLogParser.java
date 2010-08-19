@@ -157,7 +157,7 @@ public final class AdbLogParser implements LogParser {
       // "I/stdout  (19051): [caliper] [scenario finished] 152048.58882153497 ..."
       if (caliperLogLine.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
         try {
-          measurementSet = MeasurementSet.valueOf(
+          measurementSet = Json.measurementSetFromJson(
               caliperLogLine.substring(LogConstants.MEASUREMENT_PREFIX.length()));
         } catch (IllegalArgumentException ignore) {
         }

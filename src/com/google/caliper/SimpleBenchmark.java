@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -58,14 +57,14 @@ public abstract class SimpleBenchmark implements Benchmark {
 
   protected void tearDown() throws Exception {}
 
-  public Set<String> parameterNames() {
+  @Override public Set<String> parameterNames() {
     return ImmutableSet.<String>builder()
         .add("benchmark")
         .addAll(parameters.keySet())
         .build();
   }
 
-  public Set<String> parameterValues(String parameterName) {
+  @Override public Set<String> parameterValues(String parameterName) {
     if ("benchmark".equals(parameterName)) {
       return methods.keySet();
     }
@@ -87,7 +86,7 @@ public abstract class SimpleBenchmark implements Benchmark {
     }
   }
 
-  public TimedRunnable createBenchmark(Map<String, String> parameterValues) {
+  @Override public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
     if (!parameterNames().equals(parameterValues.keySet())) {
       throw new IllegalArgumentException("Invalid parameters specified. Expected "
           + parameterNames() + " but was " + parameterValues.keySet());
@@ -116,18 +115,17 @@ public abstract class SimpleBenchmark implements Benchmark {
       }
       copyOfSelf.setUp();
 
-      TimedRunnable timedRunnable = new TimedRunnable() {
-        public Object run(int reps) throws Exception {
-          Object result = method.invoke(copyOfSelf, reps);
-          return result;
+      ConfiguredBenchmark configuredBenchmark = new ConfiguredBenchmark(copyOfSelf) {
+        @Override public Object run(int reps) throws Exception {
+          return method.invoke(copyOfSelf, reps);
         }
 
-        public void close() throws Exception {
+        @Override public void close() throws Exception {
           copyOfSelf.tearDown();
         }
       };
 
-      return timedRunnable;
+      return configuredBenchmark;
 
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
@@ -181,5 +179,13 @@ public abstract class SimpleBenchmark implements Benchmark {
     }
 
     return result.build();
+  }
+
+  @Override public Map<String, Integer> unitNames() {
+    return ImmutableMap.of("ns", 1, "us", 1000, "ms", 1000000, "s", 1000000000);
+  }
+
+  @Override public double nanosToUnits(double nanos) {
+    return nanos;
   }
 }

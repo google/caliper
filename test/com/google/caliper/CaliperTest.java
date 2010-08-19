@@ -19,6 +19,8 @@ package com.google.caliper;
 import com.google.common.base.Supplier;
 import com.google.common.io.NullOutputStream;
 import java.io.PrintStream;
+import java.util.Map;
+import java.util.Set;
 import junit.framework.TestCase;
 
 public final class CaliperTest extends TestCase {
@@ -36,13 +38,42 @@ public final class CaliperTest extends TestCase {
     }
   }
 
-  private static class NonLinearTimedRunnable implements Supplier<TimedRunnable>, TimedRunnable {
-    public TimedRunnable get() {
+  private static class NonLinearTimedRunnable extends ConfiguredBenchmark
+      implements Supplier<ConfiguredBenchmark> {
+    private NonLinearTimedRunnable() {
+      super(new NoOpBenchmark());
+    }
+
+    @Override public ConfiguredBenchmark get() {
       return this;
     }
-    public Object run(int reps) throws Exception {
+
+    @Override public Object run(int reps) throws Exception {
       return null; // broken! doesn't loop reps times.
     }
-    public void close() throws Exception {}
+
+    @Override public void close() throws Exception {}
+  }
+
+  private static class NoOpBenchmark implements Benchmark {
+    @Override public Set<String> parameterNames() {
+      return null;
+    }
+
+    @Override public Set<String> parameterValues(String parameterName) {
+      return null;
+    }
+
+    @Override public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
+      return null;
+    }
+
+    @Override public Map<String, Integer> unitNames() {
+      return null;
+    }
+
+    @Override public double nanosToUnits(double nanos) {
+      return 0;
+    }
   }
 }

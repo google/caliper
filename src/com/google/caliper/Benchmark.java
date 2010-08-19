@@ -28,5 +28,20 @@ public interface Benchmark {
 
   Set<String> parameterValues(String parameterName);
 
-  TimedRunnable createBenchmark(Map<String, String> parameterValues);
+  ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues);
+
+  /**
+   * A mapping of units to their values. Their values must be integers, but all values are relative,
+   * so if one unit is 1.5 times the size of another, then these units can be expressed as
+   * {"unit1"=10,"unit2"=15}. The smallest unit given by the function will be used to display
+   * immediate results when running at the command line.
+   *
+   * e.g. 0% Scenario{...} 16.08<SMALLEST-UNIT>; σ=1.72<SMALLEST-UNIT> @ 3 trials
+   */
+  Map<String, Integer> unitNames();
+
+  /**
+   * Converts nanoseconds to the smallest unit defined in {@link #unitNames()}.
+   */
+  double nanosToUnits(double nanos);
 }

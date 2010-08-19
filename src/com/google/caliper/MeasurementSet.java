@@ -17,7 +17,12 @@
 package com.google.caliper;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A collection of measurements of the same scenario.
@@ -26,123 +31,178 @@ import java.util.Arrays;
 public final class MeasurementSet
     implements Serializable /* for GWT Serialization */ {
 
-  private /*final*/ double[] measurements;
-  private /*final*/ double mean;
-  private /*final*/ double standardDeviation;
+  private /*final*/ List<Measurement> measurements;
+  /**
+   * Mapping of user-defined units to relative sizes.
+   */
+  private /*final*/ Map<String, Integer> unitNames;
 
-  public MeasurementSet(double... measurements) {
-    this.measurements = copyDoubleArray(measurements, new double[measurements.length]);
-    Arrays.sort(this.measurements);
+  public MeasurementSet(Measurement... measurements) {
+    this(getUnitNamesFromMeasurements(measurements), Arrays.asList(measurements));
+  }
 
+  private static Map<String, Integer> getUnitNamesFromMeasurements(Measurement... measurements) {
+    Map<String, Integer> unitNameToAssign = null;
+    for (Measurement measurement : measurements) {
+      if (unitNameToAssign == null) {
+        unitNameToAssign = new HashMap<String, Integer>(measurement.getUnitNames());
+      } else if (!unitNameToAssign.equals(measurement.getUnitNames())) {
+        throw new IllegalArgumentException("incompatible unit names: " + unitNameToAssign + " and "
+            + measurement.getUnitNames());
+      }
+    }
+    return unitNameToAssign;
+  }
+
+  /**
+   * Constructor to use directly from plusMeasurement. Skips some excessive checking and takes a
+   * list directly.
+   */
+  private MeasurementSet(Map<String, Integer> unitNames, List<Measurement> measurements) {
+    this.unitNames = unitNames;
+    this.measurements = measurements;
+  }
+
+  public Map<String, Integer> getUnitNames() {
+    return new HashMap<String, Integer>(unitNames);
+  }
+
+  public List<Measurement> getMeasurements() {
+    return new ArrayList<Measurement>(measurements);
+  }
+
+  public int size() {
+    return measurements.size();
+  }
+
+  public List<Double> getMeasurementNanos() {
+    List<Double> measurementNanos = new ArrayList<Double>();
+    for (Measurement measurement : measurements) {
+      measurementNanos.add(measurement.getNanosPerRep());
+    }
+    return measurementNanos;
+  }
+
+  public List<Double> getMeasurementUnits() {
+    List<Double> measurementUnits = new ArrayList<Double>();
+    for (Measurement measurement : measurements) {
+      measurementUnits.add(measurement.getUnitsPerRep());
+    }
+    return measurementUnits;
+  }
+
+  /**
+   * Returns the median measurement, with respect to nanoseconds.
+   */
+  public double medianNanos() {
+    return median(getMeasurementNanos());
+  }
+
+  /**
+   * Returns the median measurement, with respect to user-defined units.
+   */
+  public double medianUnits() {
+    return median(getMeasurementUnits());
+  }
+
+  private double median(List<Double> doubles) {
+    Collections.sort(doubles);
+    int n = doubles.size();
+    return (n % 2 == 0)
+        ? (doubles.get(n / 2 - 1) + doubles.get(n / 2)) / 2
+        : doubles.get(n / 2);
+  }
+
+  /**
+   * Returns the average measurement with respect to nanoseconds..
+   */
+  public double meanNanos() {
+    return mean(getMeasurementNanos());
+  }
+
+  /**
+   * Returns the average measurement with respect to user-defined units.
+   */
+  public double meanUnits() {
+    return mean(getMeasurementUnits());
+  }
+
+  private double mean(List<Double> doubles) {
     double sum = 0;
-    for (double d : measurements) {
+    for (double d : doubles) {
       sum += d;
     }
-    mean = sum / measurements.length;
-
-    double sumOfSquares = 0;
-    for (double d : measurements) {
-      double delta = (d - mean);
-      sumOfSquares += (delta * delta);
-    }
-    standardDeviation = Math.sqrt(sumOfSquares / (measurements.length - 1));
+    return sum / doubles.size();
   }
 
-  /**
-   * Returns the measurements in sorted order.
-   */
-  public double[] getMeasurements() {
-    return copyDoubleArray(measurements, new double[measurements.length]);
+  public double standardDeviationNanos() {
+    return standardDeviation(getMeasurementNanos());
   }
 
-  /**
-   * Returns the median measurement.
-   */
-  public double median() {
-    int n = measurements.length;
-    return (n % 2 == 0)
-        ? (measurements[n / 2 - 1] + measurements[n / 2]) / 2
-        : measurements[n / 2];
-  }
-
-  /**
-   * Returns the average measurement.
-   */
-  public double mean() {
-    return mean;
+  public double standardDeviationUnits() {
+    return standardDeviation(getMeasurementUnits());
   }
 
   /**
    * Returns the standard deviation of the measurements.
    */
-  public double standardDeviation() {
-    return standardDeviation;
+  private double standardDeviation(List<Double> doubles) {
+    double mean = mean(doubles);
+    double sumOfSquares = 0;
+    for (double d : doubles) {
+      double delta = (d - mean);
+      sumOfSquares += (delta * delta);
+    }
+    return Math.sqrt(sumOfSquares / (doubles.size() - 1));
+  }
+
+  public double minNanos() {
+    return min(getMeasurementNanos());
+  }
+
+  public double minUnits() {
+    return min(getMeasurementUnits());
   }
 
   /**
    * Returns the minimum measurement.
    */
-  public double min() {
-    return measurements[0];
+  private double min(List<Double> doubles) {
+    Collections.sort(doubles);
+    return doubles.get(0);
+  }
+
+  public double maxNanos() {
+    return max(getMeasurementNanos());
+  }
+
+  public double maxUnits() {
+    return max(getMeasurementUnits());
   }
 
   /**
    * Returns the maximum measurement.
    */
-  public double max() {
-    return measurements[measurements.length - 1];
+  private double max(List<Double> doubles) {
+    Collections.sort(doubles, Collections.reverseOrder());
+    return doubles.get(0);
   }
 
   /**
    * Returns a new measurement set that contains the measurements in this set
    * plus the given additional measurement.
    */
-  public MeasurementSet plusMeasurement(double measurement) {
-    double[] result = copyDoubleArray(measurements, new double[measurements.length + 1]);
-    result[measurements.length] = measurement;
-    return new MeasurementSet(result);
-  }
-
-  /**
-   * Creates a MeasurementSet from a string of space-separated measurements.
-   */
-  public static MeasurementSet valueOf(String value) {
-    try {
-      String[] measurementStrings = value.split("\\s+");
-      double[] measurements = new double[measurementStrings.length];
-      int i = 0;
-      for (String s : measurementStrings) {
-        measurements[i++] = Double.valueOf(s);
-      }
-      return new MeasurementSet(measurements);
-    } catch (NumberFormatException ignore) {
-      throw new IllegalArgumentException("Not a measurement set: " + value);
+  public MeasurementSet plusMeasurement(Measurement measurement) {
+    // verify that this Measurement is compatible with this MeasurementSet
+    if (unitNames != null && !unitNames.equals(measurement.getUnitNames())) {
+      throw new IllegalArgumentException("new measurement incompatible with units of measurement "
+          + "set. Expected " + unitNames + " but got " + measurement.getUnitNames());
     }
-  }
 
-  /**
-   * Returns a string of space-separated measurements.
-   */
-  @Override public String toString() {
-    StringBuilder result = new StringBuilder();
-    for (double measurement : measurements) {
-      if (result.length() > 0) {
-        result.append(" ");
-      }
-      result.append(measurement);
-    }
-    return result.toString();
-  }
-
-  /**
-   * Copies the input into the output. GWT doesn't support cloning arrays, so
-   * we need to do it by hand.
-   */
-  private double[] copyDoubleArray(double[] input, double[] output) {
-    for (int i = 0; i < input.length; i++) {
-      output[i] = input[i];
-    }
-    return output;
+    List<Measurement> resultMeasurements = new ArrayList<Measurement>(measurements);
+    resultMeasurements.add(measurement);
+    Map<String, Integer> newUnitNames = unitNames == null ? measurement.getUnitNames() : unitNames;
+    return new MeasurementSet(newUnitNames, resultMeasurements);
   }
 
   private MeasurementSet() {} // for GWT Serialization

@@ -87,7 +87,7 @@ public final class ScenarioSelection {
     return scenario;
   }
 
-  public TimedRunnable createBenchmark(Scenario scenario) {
+  public ConfiguredBenchmark createBenchmark(Scenario scenario) {
     return suite.createBenchmark(scenario.getParameters());
   }
 

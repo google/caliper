@@ -16,6 +16,7 @@
 
 package test;
 
+import com.google.caliper.Measurement;
 import com.google.caliper.MeasurementSet;
 import com.google.caliper.MeasurementSetMeta;
 import com.google.caliper.Run;
@@ -35,10 +36,22 @@ public class RunXmlTest extends TestCase {
     Scenario b15dalvik = new Scenario(ImmutableMap.of(
         "foo", "B", "bar", "15", "vm", "dalvikvm"));
 
+    Measurement[] measurements = new Measurement[3];
+    measurements[0] = new Measurement(ImmutableMap.of("doublens", 1), 1.1, 2.2);
+    measurements[1] = new Measurement(ImmutableMap.of("doublens", 1), 3.8, 7.6);
+    measurements[2] = new Measurement(ImmutableMap.of("doublens", 1), 2.3, 4.6);
+    MeasurementSet measurementSet = new MeasurementSet(measurements);
+
+    Measurement[] measurements2 = new Measurement[3];
+    measurements2[0] = new Measurement(ImmutableMap.of("doublens", 1), 1.0, 6.3);
+    measurements2[1] = new Measurement(ImmutableMap.of("doublens", 1), 1.3, 0.7);
+    measurements2[2] = new Measurement(ImmutableMap.of("doublens", 1), 1.1, 9.8);
+    MeasurementSet measurementSet2 = new MeasurementSet(measurements);
+
     Run toEncode = new Run(ImmutableMap.of(a15dalvik,
-        new MeasurementSetMeta(new MeasurementSet(1200.1, 1198.8), a15dalvik, ""),
+        new MeasurementSetMeta(measurementSet, a15dalvik, ""),
         b15dalvik,
-        new MeasurementSetMeta(new MeasurementSet(1100.2, 1110.0), b15dalvik, "")),
+        new MeasurementSetMeta(measurementSet2, b15dalvik, "")),
         "examples.FooBenchmark", new Date());
     ByteArrayOutputStream bytesOut = new ByteArrayOutputStream();
     Xml.runToXml(toEncode, bytesOut);

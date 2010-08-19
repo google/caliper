@@ -60,8 +60,8 @@ final class InProcessRunner {
       }
       for (Scenario scenario : scenarios) {
         final Scenario normalizedScenario = scenarioSelection.normalizeScenario(scenario);
-        Supplier<TimedRunnable> supplier = new Supplier<TimedRunnable>() {
-          public TimedRunnable get() {
+        Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
+          @Override public ConfiguredBenchmark get() {
             return scenarioSelection.createBenchmark(normalizedScenario);
           }
         };
@@ -75,7 +75,8 @@ final class InProcessRunner {
         double warmupNanosPerTrial = caliper.warmUp(supplier);
         log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + normalizedScenario);
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
-        log(outStream, LogConstants.MEASUREMENT_PREFIX + measurementSet);
+        log(outStream, LogConstants.MEASUREMENT_PREFIX
+            + Json.measurementSetToJson(measurementSet));
       }
       log(outStream, LogConstants.SCENARIOS_FINISHED);
     } catch (UserException e) {

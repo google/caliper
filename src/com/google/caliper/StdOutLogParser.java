@@ -105,7 +105,7 @@ public final class StdOutLogParser implements LogParser {
       // "[caliper] [scenario finished] 1361.902022335259 ..."
       if (caliperLogLine.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
         try {
-          measurementSet = MeasurementSet.valueOf(
+          measurementSet = Json.measurementSetFromJson(
               caliperLogLine.substring(LogConstants.MEASUREMENT_PREFIX.length()));
         } catch (IllegalArgumentException ignore) {
         }
