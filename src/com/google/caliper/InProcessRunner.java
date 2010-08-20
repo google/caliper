@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.caliper.UserException.CantCustomizeInProcessVmException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
 import java.io.ByteArrayOutputStream;
@@ -34,10 +33,6 @@ final class InProcessRunner {
 
   public void run(String... args) {
     Arguments arguments = Arguments.parse(args);
-
-    if (!arguments.getUserVms().isEmpty()) {
-      throw new CantCustomizeInProcessVmException();
-    }
 
     final ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
 

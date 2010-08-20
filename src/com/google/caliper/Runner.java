@@ -208,6 +208,11 @@ public final class Runner {
       command.add(option);
     }
     command.add(InProcessRunner.class.getName());
+    // TODO we have to pass this argument in because we roundtrip the Scenario through the
+    // subprocess. It would be better not to do this, in which case there would be no need
+    // to pass in a vm argument.
+    command.add("--vm");
+    command.add(scenario.getVariables().get(Scenario.VM_KEY));
     command.add("--warmupMillis");
     command.add(String.valueOf(arguments.getWarmupMillis()));
     command.add("--runMillis");
@@ -218,7 +223,6 @@ public final class Runner {
     command.add(arguments.getSuiteClassName());
 
     BufferedReader reader = null;
-    Scenario normalizedScenario = null;
     try {
       builder.redirectErrorStream(true);
       builder.directory(new File(System.getProperty("user.dir")));
@@ -235,6 +239,7 @@ public final class Runner {
 
       String line;
       StringBuilder scenarioEventLog = new StringBuilder();
+      Scenario normalizedScenario = null;
       while ((line = reader.readLine()) != null) {
         logParser.readLine(line);
 
