@@ -20,18 +20,18 @@ public final class LogConstants {
   /**
    * Must be prepended to line of XML that represents normalized scenario.
    */
-  public static final String SCENARIO_XML_PREFIX = "[scenario] ";
+  public static final String SCENARIO_JSON_PREFIX = "[scenario] ";
+  public static final String MEASUREMENT_JSON_PREFIX = "[measurement] ";
 
   /**
    * Must be prepended to any logs that are to be included in the run event log.
    */
   public static final String CALIPER_LOG_PREFIX = "[caliper] ";
-
   public static final String SCENARIOS_STARTING = "[starting scenarios]";
   public static final String STARTING_SCENARIO_PREFIX = "[starting scenario] ";
-  public static final String MEASUREMENT_PREFIX = "[scenario finished] ";
-  public static final String SCENARIOS_FINISHED = "[scenarios finished]";
+  public static final String SCENARIO_FINISHED = "[scenario finished]";
 
+  public static final String SCENARIOS_FINISHED = "[scenarios finished]";
   /**
    * All events will be logged from when {@code TIMED_SECTION_STARTING} is logged until
    * {@code TIMED_SECTION_DONE} is logged.

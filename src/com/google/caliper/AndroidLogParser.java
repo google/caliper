@@ -16,45 +16,37 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.Maps;
-import java.io.ByteArrayInputStream;
+import com.google.caliper.LogEntry.LogEntryBuilder;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public final class AdbLogParser implements LogParser {
+public final class AndroidLogParser implements LogParser {
 
+  private final BufferedReader logReader;
+  
   private boolean startLogging;
   private boolean inTimedSection;
-  private boolean logLine;
-  private boolean displayLine;
-  private MeasurementSet measurementSet;
-  private Scenario scenario;
-  private boolean isLogDone;
-  private int processId;
+  private int processId = -1;
+  private boolean isDone;
 
-  String lineToLog;
-  String lineToDisplay;
-
-  /**
-   * Extracts a pid from a line of log output that looks approximately like this:
-   * I/stdout  (19051): [caliper] [starting scenarios]
-   *            ^^^^^
-   */
-  private int getProcessId(String line) {
-    Pattern processIdPattern = Pattern.compile(".*\\((\\d+)\\):.*");
-    Matcher matcher = processIdPattern.matcher(line);
-    if (matcher.matches()) {
-      return Integer.valueOf(matcher.group(1));
-    }
-    return 0;
+  public AndroidLogParser(BufferedReader logReader) {
+    this.logReader = logReader;
   }
 
   /**
-   * Parse a single line of log output.
+   * Parse a chunk of log output and return a LogEntry representing the information for that chunk.
    *
-   * Expects input like this sample:
+   * A chunk is usually one line, but occasionally extends for more than one line if the
+   * log wraps a line.
+   *
+   * Expects input like this sample (note that long lines may be wrapped. Lines that are wrapped
+   * are ended with a !, and the line continues on the next line. Measurement set JSON output
+   * is often wrapped.):
    *
    * --------- beginning of /dev/log/main
    * D/dalvikvm(19051): creating instr width table
@@ -67,6 +59,7 @@ public final class AdbLogParser implements LogParser {
    * D/dalvikvm(19051): mprotect(RO) failed (13), file will remain read-write
    * D/dalvikvm(19051): mprotect(RO) failed (13), file will remain read-write
    * I/stdout  (19051): [caliper] [starting scenarios]
+   * I/stdout  (22476): [scenario] {"vm":"dalvikvm","benchmark":"ArrayCopyManual"}
    * I/stdout  (19051): [caliper] [starting warmup]
    * D/dalvikvm(19051): GC_EXPLICIT freed 1334 objects / 86264 bytes in 2ms
    * D/dalvikvm(19051): GC_EXPLICIT freed 4 objects / 168 bytes in 5ms
@@ -104,33 +97,83 @@ public final class AdbLogParser implements LogParser {
    * I/stdout  (19051): [caliper] [starting timed section]
    * I/stdout  (19051): [caliper] [done timed section]
    * I/stdout  (19051): [caliper] [took 152048.59 nanoseconds per rep]
-   * I/stdout  (19051): [caliper] [scenario finished] 152048.58882153497 152587.890567201 154102.31781283504
+   * I/stdout  (19051): [measurement] {"measurements":[{"unitNames":{"us":1000,"ns":1,"s":1000000000,"ms":1000000},"nanosPerRep":20.40590815869826,...
+   * I/stdout  (19051): [caliper] [scenario finished]
    * I/stdout  (19051): [caliper] [scenarios finished]
    */
-  @Override public void readLine(String line) {
-    boolean isThisProcess = getProcessId(line) == processId;
+  @Override public LogEntry getEntry() {
+    if (isDone) {
+      return null;
+    }
 
-    // strip off log stuff (e.g. "I/stdout  (19051): ...")
-    int messageStart = line.indexOf(':');
-    String normalizedLine = line.substring(messageStart + 2);
+    boolean isThisProcess = false;
 
-    boolean isScenarioLog = normalizedLine.startsWith(LogConstants.SCENARIO_XML_PREFIX);
+    StringBuilder normalizedLineBuilder = new StringBuilder();
+    StringBuilder lineBuilder = new StringBuilder();
+    boolean isFirstLine = true;
+    boolean isLineFinished = false;
+    while (!isLineFinished) {
+      String line;
+      try {
+        line = logReader.readLine();
+        if (line == null) {
+          System.out.println("logReader line is null");
+          isDone = true;
+          return null;
+        }
+      } catch (IOException e) {
+        throw new RuntimeException("failed to read from android log", e);
+      }
+
+      if (isFirstLine) {
+        isThisProcess = (processId != -1 && getProcessId(line) == processId);
+      }
+
+      // strip off log stuff (e.g. "I/stdout  (19051): ...")
+      int messageStart = line.indexOf(':');
+      String normalizedLine = line.substring(messageStart + 2);
+
+      // wrapped lines end with "!", so try to grab another line and don't set isLineFinished
+      if (normalizedLine.endsWith("!")) {
+        if (isFirstLine) {
+          lineBuilder.append(line.substring(0, line.length() - 1));
+        } else {
+          lineBuilder.append(normalizedLine.substring(0, normalizedLine.length() - 1));
+        }
+        normalizedLineBuilder.append(normalizedLine.substring(0, normalizedLine.length() - 1));
+      } else {
+        if (isFirstLine) {
+          lineBuilder.append(line);
+        } else {
+          lineBuilder.append(normalizedLine);
+        }
+        normalizedLineBuilder.append(normalizedLine);
+        isLineFinished = true;
+      }
+      isFirstLine = false;
+    }
+    String line = lineBuilder.toString();
+    String normalizedLine = normalizedLineBuilder.toString();
+
+    boolean isScenarioLog = normalizedLine.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
+    boolean isMeasurementLog = normalizedLine.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
     // true if this line indicates a garbage collection
     // e.g., "GC_EXPLICIT freed 191 objects / 39704 bytes in 7ms"
     boolean isGcLog = normalizedLine.startsWith("GC_");
     boolean isCaliperLog = normalizedLine.startsWith(LogConstants.CALIPER_LOG_PREFIX);
 
+    LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
+
     if (isScenarioLog) {
       String scenarioString =
-          normalizedLine.substring(LogConstants.SCENARIO_XML_PREFIX.length());
-      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
-      Properties properties = new Properties();
+          normalizedLine.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
+      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
+          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
+    } else if (isMeasurementLog) {
       try {
-        properties.loadFromXML(scenarioXml);
-        scenario = new Scenario(Maps.fromProperties(properties));
-        scenarioXml.close();
-      } catch (IOException e) {
-        throw new RuntimeException("failed to load properties from xml " + scenarioString, e);
+        logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
+            normalizedLine.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));
+      } catch (IllegalArgumentException ignore) {
       }
     } else if (isCaliperLog) {
       String caliperLogLine =
@@ -142,7 +185,7 @@ public final class AdbLogParser implements LogParser {
         startLogging = true;
         processId = getProcessId(line);
       } else if (caliperLogLine.equals(LogConstants.SCENARIOS_FINISHED)) {
-        isLogDone = true;
+        isDone = true;
       }
 
       // timed sections start with "I/stdout  (19051): [caliper] [starting timed section]"
@@ -152,49 +195,29 @@ public final class AdbLogParser implements LogParser {
       } else if (caliperLogLine.equals(LogConstants.TIMED_SECTION_DONE)) {
         inTimedSection = false;
       }
-
-      // get measurements from a line like this:
-      // "I/stdout  (19051): [caliper] [scenario finished] 152048.58882153497 ..."
-      if (caliperLogLine.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
-        try {
-          measurementSet = Json.measurementSetFromJson(
-              caliperLogLine.substring(LogConstants.MEASUREMENT_PREFIX.length()));
-        } catch (IllegalArgumentException ignore) {
-        }
-      }
     }
 
-    logLine = startLogging && (isCaliperLog || inTimedSection);
-    displayLine = isThisProcess && startLogging && !isCaliperLog && !isGcLog && !isScenarioLog;
-    lineToLog = line;
-    lineToDisplay = normalizedLine;
+    if (startLogging && (isCaliperLog || inTimedSection)) {
+      logEntryBuilder.setLogLine(line);
+    }
+    if (isThisProcess && startLogging && !isCaliperLog && !isGcLog && !isScenarioLog) {
+      logEntryBuilder.setDisplayLine(normalizedLine);
+    }
+
+    return logEntryBuilder.build();
   }
 
-  @Override public String lineToLog() {
-    return lineToLog;
-  }
-
-  @Override public String lineToDisplay() {
-    return lineToDisplay;
-  }
-
-  @Override public boolean logLine() {
-    return logLine;
-  }
-
-  @Override public boolean displayLine() {
-    return displayLine;
-  }
-
-  @Override public MeasurementSet getMeasurementSet() {
-    return measurementSet;
-  }
-
-  @Override public Scenario getScenario() {
-    return scenario;
-  }
-
-  @Override public boolean isLogDone() {
-    return isLogDone;
+  /**
+   * Extracts a pid from a line of log output that looks approximately like this:
+   * I/stdout  (19051): [caliper] [starting scenarios]
+   *            ^^^^^
+   */
+  private int getProcessId(String line) {
+    Pattern processIdPattern = Pattern.compile(".*\\((\\d+)\\):.*");
+    Matcher matcher = processIdPattern.matcher(line);
+    if (matcher.matches()) {
+      return Integer.valueOf(matcher.group(1));
+    }
+    return 0;
   }
 }

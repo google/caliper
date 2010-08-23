@@ -18,13 +18,11 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
-import java.io.ByteArrayOutputStream;
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
-import java.util.Map.Entry;
-import java.util.Properties;
 
 /**
  * Executes a benchmark in the current VM.
@@ -61,17 +59,15 @@ final class InProcessRunner {
           }
         };
 
-        ByteArrayOutputStream scenarioXml = new ByteArrayOutputStream();
-        getScenarioProperties(normalizedScenario).storeToXML(scenarioXml, "");
-        // output xml on a single line so it's easier to parse on the other side.
-        outStream.println(LogConstants.SCENARIO_XML_PREFIX
-            + scenarioXml.toString().replaceAll("\r\n|\r|\n", ""));
+        outStream.println(LogConstants.SCENARIO_JSON_PREFIX
+            + new Gson().toJson(scenario.getVariables()));
 
         double warmupNanosPerTrial = caliper.warmUp(supplier);
         log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + normalizedScenario);
         MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
-        log(outStream, LogConstants.MEASUREMENT_PREFIX
+        outStream.println(LogConstants.MEASUREMENT_JSON_PREFIX
             + Json.measurementSetToJson(measurementSet));
+        log(outStream, LogConstants.SCENARIO_FINISHED);
       }
       log(outStream, LogConstants.SCENARIOS_FINISHED);
     } catch (UserException e) {
@@ -82,14 +78,6 @@ final class InProcessRunner {
       System.setOut(outStream);
       System.setErr(errStream);
     }
-  }
-
-  private Properties getScenarioProperties(Scenario scenario) {
-    Properties properties = new Properties();
-    for (Entry<String, String> entry : scenario.getVariables().entrySet()) {
-      properties.setProperty(entry.getKey(), entry.getValue());
-    }
-    return properties;
   }
 
   private void log(PrintStream outStream, String message) {

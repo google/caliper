@@ -32,15 +32,16 @@ public final class DalvikVm implements Vm {
     return Lists.newArrayList("-Xlog-stdio");
   }
 
-  @Override public LogParser getLogProcessor() {
-    return new AdbLogParser();
-  }
+  @Override public LogParser getLogParser(BufferedReader logReader) {
+    // this implementation of Vm does not read directly from the subprocess (and instead reads
+    // from its own logcat subprocess), so logReader is unused.
 
-  @Override public BufferedReader getLogReader(Process process) {
     if (adbLogProcess == null) {
       throw new ConfigurationException("Running dalvikvm, but no adb log process started");
     }
-    return new BufferedReader(new InputStreamReader(adbLogProcess.getInputStream()));
+
+    return new AndroidLogParser(
+        new BufferedReader(new InputStreamReader(adbLogProcess.getInputStream())));
   }
 
   @Override public void init() {
@@ -73,7 +74,7 @@ public final class DalvikVm implements Vm {
 
   @Override public void cleanup() {
     if (adbLogProcess != null) {
-        adbLogProcess.destroy();
-      }
+      adbLogProcess.destroy();
+    }
   }
 }

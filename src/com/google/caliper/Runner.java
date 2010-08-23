@@ -222,14 +222,18 @@ public final class Runner {
     }
     command.add(arguments.getSuiteClassName());
 
-    BufferedReader reader = null;
+    builder.redirectErrorStream(true);
+    builder.directory(new File(System.getProperty("user.dir")));
+    vm.init();
+    Process process;
     try {
-      builder.redirectErrorStream(true);
-      builder.directory(new File(System.getProperty("user.dir")));
-
-      vm.init();
-      reader = vm.getLogReader(builder.start());
-      LogParser logParser = vm.getLogProcessor();
+      process = builder.start();
+    } catch (IOException e) {
+      throw new RuntimeException("failed to start subprocess", e);
+    }
+    BufferedReader logReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    try {
+      LogParser logParser = vm.getLogParser(logReader);
 
       List<String> outputLines = Lists.newArrayList();
 
@@ -237,37 +241,39 @@ public final class Runner {
       dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
       dateFormat.setLenient(true);
 
-      String line;
       StringBuilder scenarioEventLog = new StringBuilder();
       Scenario normalizedScenario = null;
-      while ((line = reader.readLine()) != null) {
-        logParser.readLine(line);
-
-        if (normalizedScenario == null) {
-          if (logParser.getScenario() != null) {
-            normalizedScenario = logParser.getScenario();
-            System.out.print(normalizedScenario);
-            System.out.flush();
+      MeasurementSet measurementSet = null;
+      LogEntry logEntry;
+      while ((logEntry = logParser.getEntry()) != null) {
+        if (logEntry.hasScenario()) {
+          if (normalizedScenario != null) {
+            throw new RuntimeException("received two normalized scenarios from the log parser");
           }
+          normalizedScenario = logEntry.getScenario();
+          System.out.print(normalizedScenario);
+          System.out.flush();
         }
 
-        if (logParser.logLine()) {
-          String logEntry = "[" + dateFormat.format(new Date()) + "] "
-              + logParser.lineToLog() + "\n";
-          scenarioEventLog.append(logEntry);
+        if (logEntry.hasMeasurementSet()) {
+          if (measurementSet != null) {
+            throw new RuntimeException("received two measurement sets from the log parser");
+          }
+          measurementSet = logEntry.getMeasurementSet();
         }
 
-        if (logParser.displayLine()) {
-          outputLines.add(logParser.lineToDisplay());
+        if (logEntry.log()) {
+          String logLine =
+              String.format("[%s] %s\n", dateFormat.format(new Date()), logEntry.logLine());
+          scenarioEventLog.append(logLine);
         }
 
-        if (logParser.isLogDone()) {
-          break;
+        if (logEntry.display()) {
+          outputLines.add(logEntry.displayLine());
         }
       }
       vm.cleanup();
 
-      MeasurementSet measurementSet = logParser.getMeasurementSet();
       if (measurementSet != null && normalizedScenario != null) {
         return new MeasurementSetMeta(measurementSet, normalizedScenario,
             scenarioEventLog.toString());
@@ -280,14 +286,10 @@ public final class Runner {
         System.err.println("  " + outputLine);
       }
       throw new ConfigurationException(message);
-    } catch (IOException e) {
-      throw new ConfigurationException(e);
     } finally {
-      if (reader != null) {
-        try {
-          reader.close();
-        } catch (IOException ignored) {
-        }
+      try {
+        logReader.close();
+      } catch (IOException ignored) {
       }
     }
   }

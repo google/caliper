@@ -21,8 +21,7 @@ import java.util.List;
 
 public interface Vm {
   List<String> getVmSpecificOptions();
-  LogParser getLogProcessor();
-  BufferedReader getLogReader(Process process);
   void init();
+  LogParser getLogParser(BufferedReader logReader);
   void cleanup();
 }

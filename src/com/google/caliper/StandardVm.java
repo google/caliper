@@ -18,7 +18,6 @@ package com.google.caliper;
 
 import com.google.common.collect.Lists;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.List;
 
 public final class StandardVm implements Vm {
@@ -27,12 +26,8 @@ public final class StandardVm implements Vm {
     return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC", "-XX:+PrintCompilation");
   }
 
-  @Override public LogParser getLogProcessor() {
-    return new StdOutLogParser();
-  }
-
-  @Override public BufferedReader getLogReader(Process process) {
-    return new BufferedReader(new InputStreamReader(process.getInputStream()));
+  @Override public LogParser getLogParser(BufferedReader logReader) {
+    return new StdOutLogParser(logReader);
   }
 
   @Override public void init() {

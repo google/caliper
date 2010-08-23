@@ -19,7 +19,6 @@ package com.google.caliper;
 import com.google.common.collect.ImmutableMap;
 import com.google.gson.Gson;
 import com.google.gson.JsonParseException;
-import com.google.gson.reflect.TypeToken;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public final class Json {
    */
   public static MeasurementSet measurementSetFromJson(String measurementSetJson) {
     try {
-      return new Gson().fromJson(measurementSetJson, new TypeToken<MeasurementSet>() {}.getType());
+      return new Gson().fromJson(measurementSetJson, MeasurementSet.class);
     } catch (JsonParseException e) {
       // might be an old MeasurementSet, so fall back on failure to the old, space separated
       // serialization method.

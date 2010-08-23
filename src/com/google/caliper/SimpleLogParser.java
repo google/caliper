@@ -16,74 +16,76 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.Maps;
-import java.io.ByteArrayInputStream;
+import com.google.caliper.LogEntry.LogEntryBuilder;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.Map;
 
 public final class SimpleLogParser implements LogParser {
-  private MeasurementSet measurementSet;
 
-  private boolean logLine = true;
-  private boolean displayLine = true;
-  private Scenario scenario;
+  private final BufferedReader logReader;
 
-  private String lineToDisplay;
+  private boolean isDone;
 
-  @Override public void readLine(String line) {
-    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_XML_PREFIX);
-    if (scenarioLog) {
-      String scenarioString =
-          line.substring(LogConstants.SCENARIO_XML_PREFIX.length());
-      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
-      Properties properties = new Properties();
-      try {
-        properties.loadFromXML(scenarioXml);
-        scenario = new Scenario(Maps.fromProperties(properties));
-        scenarioXml.close();
-      } catch (IOException e) {
-        throw new RuntimeException("failed to load properties from xml", e);
-      }
+  public SimpleLogParser(BufferedReader logReader) {
+    this.logReader = logReader;
+  }
+
+  /**
+   * Parse a single line of log output. This tries to assume the bar minimum about the format
+   * of the output, and exists only as a fallback in case StdOutLogParser cannot be used.
+   *
+   * Expects at some point to receive a line like this, representing a scenario:
+   *
+   * [scenario] {"vm":"/usr/lib/jvm/java-6-sun/bin/java","benchmark":"AppendBoolean","length":"50"}
+   *
+   * where the string after "[scenario] " is a JSON string from which a scenario can be extracted.
+   *
+   * And a line like this, representing a measurement set:
+   *
+   * [measurement] {"measurements":[{"nanosPerRep":663.935830809371, ... }]}
+   *
+   * where the string after "[measurement] " is a JSON string from which a measurement set can be
+   * extracted.
+   */
+  @Override public LogEntry getEntry() {
+    if (isDone) {
+      return null;
     }
 
-    if (line.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
+    String line;
+    try {
+      line = logReader.readLine();
+      if (line == null) {
+        isDone = true;
+        return null;
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("failed to read from log", e);
+    }
+
+    LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
+
+    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
+    boolean measurementLog = line.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
+    if (scenarioLog) {
+      String scenarioString =
+          line.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
+      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
+          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
+    } else if (measurementLog) {
       try {
-        measurementSet =
-            Json.measurementSetFromJson(line.substring(LogConstants.MEASUREMENT_PREFIX.length()));
+        logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
+            line.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));
       } catch (IllegalArgumentException ignore) {
       }
     }
 
-    lineToDisplay = line;
-  }
+    logEntryBuilder.setDisplayLine(line);
+    logEntryBuilder.setLogLine(line);
 
-  @Override public String lineToLog() {
-    return lineToDisplay;
-  }
-
-  @Override public String lineToDisplay() {
-    return lineToDisplay;
-  }
-
-  @Override public boolean logLine() {
-    return logLine;
-  }
-
-  @Override public boolean displayLine() {
-    return displayLine;
-  }
-
-  @Override public MeasurementSet getMeasurementSet() {
-    return measurementSet;
-  }
-
-  @Override public Scenario getScenario() {
-    return scenario;
-  }
-
-  @Override public boolean isLogDone() {
-    // When reading from stdout, the log will naturally end, and doesn't need to log
-    // manager to tell it to terminate, so this should always return false.
-    return false;
+    return logEntryBuilder.build();
   }
 }

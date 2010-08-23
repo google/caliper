@@ -16,10 +16,12 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.Maps;
-import java.io.ByteArrayInputStream;
+import com.google.caliper.LogEntry.LogEntryBuilder;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Properties;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public final class StdOutLogParser implements LogParser {
@@ -30,13 +32,14 @@ public final class StdOutLogParser implements LogParser {
   private static final Pattern compilationPattern =
       Pattern.compile("^\\s*\\d+%?\\s+.\\s+.+::.+\\s+\\(\\d+\\s+bytes\\)$");
 
-  private boolean inTimedSection;
-  private boolean logLine;
-  private boolean displayLine;
-  private MeasurementSet measurementSet;
-  private Scenario scenario;
+  private final BufferedReader logReader;
 
-  String lineToDisplay;
+  private boolean inTimedSection;
+  private boolean isDone;
+
+  public StdOutLogParser(BufferedReader logReader) {
+    this.logReader = logReader;
+  }
 
   /**
    * Parse a single line of log output. The logs should look something like this:
@@ -48,6 +51,7 @@ public final class StdOutLogParser implements LogParser {
    * ...
    *   8   b   java.lang.String::equals (88 bytes)
    * [caliper] [starting scenarios]
+   * [scenario] {"vm":"/usr/lib/jvm/java-6-sun/bin/java","benchmark":"AppendBoolean","length":"50"}
    *   9   b   java.lang.String::charAt (33 bytes)
    *  10   b   sun.net.www.ParseUtil::encodePath (336 bytes)
    * [caliper] [starting warmup]
@@ -65,11 +69,30 @@ public final class StdOutLogParser implements LogParser {
    * [caliper] [starting timed section]
    * [caliper] [done timed section]
    * [caliper] [took 1361.90 nanoseconds per rep]
-   * [caliper] [scenario finished] 1361.902022335259 1363.5176334596094 1363.857496993752 1369.5888351654407 1369.762495902646 1370.3947457083925 1372.1379614488062 1372.5909804340502 1418.7606560879606 1423.6248983080097
+   * [measurement] {"measurements":[{"nanosPerRep":663.935830809371, ... }]}
+   * [caliper] [scenario finished]
    * [caliper] [scenarios finished]
    */
-  @Override public void readLine(String line) {
-    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_XML_PREFIX);
+  @Override public LogEntry getEntry() {
+    if (isDone) {
+      return null;
+    }
+
+    String line;
+    try {
+      line = logReader.readLine();
+      if (line == null) {
+        isDone = true;
+        return null;
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("failed to read from log", e);
+    }
+
+    LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
+
+    boolean measurementLog = line.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
+    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
     boolean caliperLog = line.startsWith(LogConstants.CALIPER_LOG_PREFIX);
     // True if the line seems to indicate a garbage collection, like
     // [GC 1263K->363K(184576K), 0.0006660 secs]
@@ -80,15 +103,14 @@ public final class StdOutLogParser implements LogParser {
 
     if (scenarioLog) {
       String scenarioString =
-          line.substring(LogConstants.SCENARIO_XML_PREFIX.length());
-      ByteArrayInputStream scenarioXml = new ByteArrayInputStream(scenarioString.getBytes());
-      Properties properties = new Properties();
+          line.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
+      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
+          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
+    } else if (measurementLog) {
       try {
-        properties.loadFromXML(scenarioXml);
-        scenario = new Scenario(Maps.fromProperties(properties));
-        scenarioXml.close();
-      } catch (IOException e) {
-        throw new RuntimeException("failed to load properties from xml", e);
+        logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
+            line.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));
+      } catch (IllegalArgumentException ignore) {
       }
     } else if (caliperLog) {
       String caliperLogLine = line.substring(LogConstants.CALIPER_LOG_PREFIX.length());
@@ -100,50 +122,15 @@ public final class StdOutLogParser implements LogParser {
       } else if (caliperLogLine.equals(LogConstants.TIMED_SECTION_DONE)) {
         inTimedSection = false;
       }
-
-      // get measurements from a line like this:
-      // "[caliper] [scenario finished] 1361.902022335259 ..."
-      if (caliperLogLine.startsWith(LogConstants.MEASUREMENT_PREFIX)) {
-        try {
-          measurementSet = Json.measurementSetFromJson(
-              caliperLogLine.substring(LogConstants.MEASUREMENT_PREFIX.length()));
-        } catch (IllegalArgumentException ignore) {
-        }
-      }
     }
 
-    logLine = caliperLog || inTimedSection || compilationLog;
-    displayLine = !caliperLog && !gcLog && !compilationLog && !scenarioLog;
-    lineToDisplay = line;
-  }
+    if (caliperLog || inTimedSection || compilationLog) {
+      logEntryBuilder.setLogLine(line);
+    }
+    if (!caliperLog && !gcLog && !compilationLog && !scenarioLog) {
+      logEntryBuilder.setDisplayLine(line);
+    }
 
-  @Override public String lineToLog() {
-    return lineToDisplay;
-  }
-
-  @Override public String lineToDisplay() {
-    return lineToDisplay;
-  }
-
-  @Override public boolean logLine() {
-    return logLine;
-  }
-
-  @Override public boolean displayLine() {
-    return displayLine;
-  }
-
-  @Override public MeasurementSet getMeasurementSet() {
-    return measurementSet;
-  }
-
-  @Override public Scenario getScenario() {
-    return scenario;
-  }
-
-  @Override public boolean isLogDone() {
-    // When reading from stdout, the log will naturally end, and doesn't need the log
-    // manager to tell it to terminate, so this should always return false.
-    return false;
+    return logEntryBuilder.build();
   }
 }

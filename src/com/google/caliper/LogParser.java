@@ -17,16 +17,9 @@
 package com.google.caliper;
 
 /**
- * Reads a log of events created by the VM running the benchmarks, filtering them for both
- * the event log, and for display in case of error.
+ * Reads a log of events created by the VM running the benchmarks, transforming it into a series
+ * of LogEntrys.
  */
 public interface LogParser {
-  void readLine(String line);
-  String lineToLog();
-  String lineToDisplay();
-  boolean logLine();
-  boolean displayLine();
-  boolean isLogDone();
-  MeasurementSet getMeasurementSet();
-  Scenario getScenario();
+  LogEntry getEntry();
 }
