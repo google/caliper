@@ -66,7 +66,6 @@ public final class EnvironmentGetter {
       propertyMap.put("host.cpus", Integer.toString(cpuInfo.get("processor").size()));
       String s = "cpu cores";
       propertyMap.put("host.cpu.cores", describe(cpuInfo, s));
-      propertyMap.put("host.cpu.speeds", describe(cpuInfo, "cpu MHz"));
       propertyMap.put("host.cpu.names", describe(cpuInfo, "model name"));
       propertyMap.put("host.cpu.cachesize", describe(cpuInfo, "cache size"));
 
