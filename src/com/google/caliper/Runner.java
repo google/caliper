@@ -26,9 +26,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
@@ -43,9 +46,9 @@ import java.util.TimeZone;
  */
 public final class Runner {
 
-  private static final FileFilter xmlFilter = new FileFilter() {
+  private static final FileFilter UPLOAD_FILE_FILTER = new FileFilter() {
     @Override public boolean accept(File file) {
-      return file.getName().endsWith(".xml");
+      return file.getName().endsWith(".xml") || file.getName().endsWith(".json");
     }
   };
 
@@ -58,7 +61,7 @@ public final class Runner {
 
   private String createFileName(Result result) {
     String timestamp = createTimestamp();
-    return String.format("%s.%s.xml", result.getRun().getBenchmarkName(), timestamp);
+    return String.format("%s.%s.json", result.getRun().getBenchmarkName(), timestamp);
   }
 
   private String createTimestamp() {
@@ -70,77 +73,90 @@ public final class Runner {
 
   public void run(String... args) {
     this.arguments = Arguments.parse(args);
-    File xmlUploadFile = arguments.getXmlUploadFile();
-    if (xmlUploadFile != null) {
-      uploadXmlFileOrDir(xmlUploadFile);
+    File resultsUploadFile = arguments.getUploadResultsFile();
+    if (resultsUploadFile != null) {
+      uploadResultsFileOrDir(resultsUploadFile);
       return;
     }
     this.scenarioSelection = new ScenarioSelection(arguments);
     Result result = runOutOfProcess();
     new ConsoleReport(result.getRun(), arguments).displayResults();
-    boolean saveXmlLocally = arguments.getXmlSaveFile() != null;
+    boolean saveResultsLocally = arguments.getSaveResultsFile() != null;
     try {
       postResults(result);
     } catch (Exception e) {
       System.out.println();
       System.out.println(e);
-      saveXmlLocally = true;
+      saveResultsLocally = true;
     }
 
-    if (saveXmlLocally) {
-      saveResultsToXml(result);
+    if (saveResultsLocally) {
+      saveResults(result);
     }
   }
 
-  private void uploadXmlFileOrDir(File xmlUploadFile) {
+  private void uploadResultsFileOrDir(File resultsFileOrDir) {
     try {
-      if (xmlUploadFile.isDirectory()) {
-        for (File xmlFile : xmlUploadFile.listFiles(xmlFilter)) {
-          uploadXml(xmlFile);
+      if (resultsFileOrDir.isDirectory()) {
+        for (File resultsFile : resultsFileOrDir.listFiles(UPLOAD_FILE_FILTER)) {
+          uploadResults(resultsFile);
         }
       } else {
-        uploadXml(xmlUploadFile);
+        uploadResults(resultsFileOrDir);
       }
     } catch (Exception e) {
       throw new RuntimeException("uploading XML file failed", e);
     }
   }
 
-  private void uploadXml(File xmlUploadFile) throws IOException {
+  private void uploadResults(File resultsUploadFile) throws IOException {
     System.out.println();
-    System.out.println("Uploading " + xmlUploadFile.getCanonicalPath());
-    Result result = Xml.resultFromXml(new FileInputStream(xmlUploadFile));
-    postResults(result);
+    System.out.println("Uploading " + resultsUploadFile.getCanonicalPath());
+    InputStream inputStream = new FileInputStream(resultsUploadFile);
+    try {
+      Result result = new ResultsReader().getResult(inputStream);
+      postResults(result);
+    } finally {
+      inputStream.close();
+    }
   }
 
-  private void saveResultsToXml(Result result) {
-    File xmlSaveFile = arguments.getXmlSaveFile();
+  private void saveResults(Result result) {
+    File resultsFile = arguments.getSaveResultsFile();
     File destinationFile;
-    if (xmlSaveFile == null) {
+    if (resultsFile == null) {
       File dir = new File("./caliper-results");
       dir.mkdirs();
       destinationFile = new File(dir, createFileName(result));
-    } else if (xmlSaveFile.exists() && xmlSaveFile.isDirectory()) {
-      destinationFile = new File(xmlSaveFile, createFileName(result));
+    } else if (resultsFile.exists() && resultsFile.isDirectory()) {
+      destinationFile = new File(resultsFile, createFileName(result));
     } else {
       // assume this is a file
-      File parent = xmlSaveFile.getParentFile();
+      File parent = resultsFile.getParentFile();
       if (parent != null) {
         parent.mkdirs();
       }
-      destinationFile = xmlSaveFile;
+      destinationFile = resultsFile;
     }
+
+    PrintStream filePrintStream;
+    try {
+      filePrintStream = new PrintStream(new FileOutputStream(destinationFile));
+    } catch (FileNotFoundException e) {
+      throw new RuntimeException("can't open " + destinationFile, e);
+    }
+    String resultJson = Json.getGsonInstance().toJson(result);
     try {
       System.out.println();
-      System.out.println("Writing XML result to " + destinationFile.getCanonicalPath());
-      FileOutputStream fileOutputStream = new FileOutputStream(destinationFile.getCanonicalPath());
-      Xml.resultToXml(result, fileOutputStream);
-      fileOutputStream.close();
+      System.out.println("Writing results to " + destinationFile.getCanonicalPath());
+      filePrintStream.print(resultJson);
     } catch (Exception e) {
       System.out.println(e);
-      System.out.println("Failed to write XML results to file, writing to standard out instead:");
-      Xml.resultToXml(result, System.out);
+      System.out.println("Failed to write results to file, writing to standard out instead:");
+      System.out.println(resultJson);
       System.out.flush();
+    } finally {
+      filePrintStream.close();
     }
   }
 
@@ -157,7 +173,8 @@ public final class Runner {
       URL url = new URL(postUrl + apiKey + "/" + result.getRun().getBenchmarkName());
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
       urlConnection.setDoOutput(true);
-      Xml.resultToXml(result, urlConnection.getOutputStream());
+      String resultJson = Json.getGsonInstance().toJson(result);
+      urlConnection.getOutputStream().write(resultJson.getBytes());
       if (urlConnection.getResponseCode() == 200) {
         System.out.println("");
         System.out.println("View current and previous benchmark results online:");
@@ -180,81 +197,67 @@ public final class Runner {
     }
   }
 
-  private MeasurementSetMeta executeForked(Scenario scenario) {
-    String classPath = System.getProperty("java.class.path");
-    if (classPath == null || classPath.length() == 0) {
-      throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
+  private ScenarioResult runScenario(Scenario scenario) {
+    MeasurementResult timeMeasurementResult = measure(scenario, MeasurementType.TIME);
+    MeasurementSet allocationMeasurements = null;
+    String allocationEventLog = null;
+    MeasurementSet memoryMeasurements = null;
+    String memoryEventLog = null;
+    if (arguments.getMeasureMemory()) {
+      MeasurementResult allocationsMeasurementResult =
+          measure(scenario, MeasurementType.INSTANCE);
+      allocationMeasurements = allocationsMeasurementResult.getMeasurements();
+      allocationEventLog = allocationsMeasurementResult.getEventLog();
+      MeasurementResult memoryMeasurementResult =
+          measure(scenario, MeasurementType.MEMORY);
+      memoryMeasurements = memoryMeasurementResult.getMeasurements();
+      memoryEventLog = memoryMeasurementResult.getEventLog();
     }
 
-    ProcessBuilder builder = new ProcessBuilder();
-    List<String> command = builder.command();
-    List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
-    Vm vm = null;
-    if (!vmList.isEmpty()) {
-      if (vmList.get(0).endsWith("dalvikvm")) {
-        vm = new DalvikVm();
-      } else if (vmList.get(0).endsWith("java")) {
-        vm = new StandardVm();
-      }
-    }
-    if (vm == null) {
-      vm = new UnknownVm();
-    }
-    command.addAll(vmList);
-    command.add("-cp");
-    command.add(classPath);
-    command.add("-verbose:gc");
-    for (String option : vm.getVmSpecificOptions()) {
-      command.add(option);
-    }
-    command.add(InProcessRunner.class.getName());
-    // TODO we have to pass this argument in because we roundtrip the Scenario through the
-    // subprocess. It would be better not to do this, in which case there would be no need
-    // to pass in a vm argument.
-    command.add("--vm");
-    command.add(scenario.getVariables().get(Scenario.VM_KEY));
-    command.add("--warmupMillis");
-    command.add(String.valueOf(arguments.getWarmupMillis()));
-    command.add("--runMillis");
-    command.add(String.valueOf(arguments.getRunMillis()));
-    for (Entry<String, String> entry : scenario.getParameters().entrySet()) {
-      command.add("-D" + entry.getKey() + "=" + entry.getValue());
-    }
-    command.add(arguments.getSuiteClassName());
+    return new ScenarioResult(timeMeasurementResult.getMeasurements(),
+        timeMeasurementResult.getEventLog(),
+        allocationMeasurements, allocationEventLog,
+        memoryMeasurements, memoryEventLog);
+  }
 
-    builder.redirectErrorStream(true);
-    builder.directory(new File(System.getProperty("user.dir")));
+  private class MeasurementResult {
+    private final MeasurementSet measurements;
+    private final String eventLog;
+
+    MeasurementResult(MeasurementSet measurements, String eventLog) {
+      this.measurements = measurements;
+      this.eventLog = eventLog;
+    }
+
+    public MeasurementSet getMeasurements() {
+      return measurements;
+    }
+
+    public String getEventLog() {
+      return eventLog;
+    }
+  }
+
+  private MeasurementResult measure(Scenario scenario, MeasurementType type) {
+    Vm vm = new VmFactory().createVm(scenario);
+    // this must be done before starting the forked process on certain VMs
     vm.init();
-    Process process;
-    try {
-      process = builder.start();
-    } catch (IOException e) {
-      throw new RuntimeException("failed to start subprocess", e);
-    }
-    BufferedReader logReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+    List<String> command = createCommand(scenario, vm, type);
+    Process timeProcess = startForkedProcess(command);
+
+    SimpleDateFormat dateFormat = new SimpleDateFormat(LOG_DATE_FORMAT);
+    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    dateFormat.setLenient(true);
+
+    MeasurementSet measurementSet = null;
+    StringBuilder eventLog = new StringBuilder();
+    List<String> outputLines = Lists.newArrayList();
+    BufferedReader logReader = new BufferedReader(
+        new InputStreamReader(timeProcess.getInputStream()));
     try {
       LogParser logParser = vm.getLogParser(logReader);
-
-      List<String> outputLines = Lists.newArrayList();
-
-      SimpleDateFormat dateFormat = new SimpleDateFormat(LOG_DATE_FORMAT);
-      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-      dateFormat.setLenient(true);
-
-      StringBuilder scenarioEventLog = new StringBuilder();
-      Scenario normalizedScenario = null;
-      MeasurementSet measurementSet = null;
       LogEntry logEntry;
       while ((logEntry = logParser.getEntry()) != null) {
-        if (logEntry.hasScenario()) {
-          if (normalizedScenario != null) {
-            throw new RuntimeException("received two normalized scenarios from the log parser");
-          }
-          normalizedScenario = logEntry.getScenario();
-          System.out.print(normalizedScenario);
-          System.out.flush();
-        }
-
         if (logEntry.hasMeasurementSet()) {
           if (measurementSet != null) {
             throw new RuntimeException("received two measurement sets from the log parser");
@@ -265,20 +268,22 @@ public final class Runner {
         if (logEntry.log()) {
           String logLine =
               String.format("[%s] %s\n", dateFormat.format(new Date()), logEntry.logLine());
-          scenarioEventLog.append(logLine);
+          eventLog.append(logLine);
         }
 
         if (logEntry.display()) {
           outputLines.add(logEntry.displayLine());
         }
       }
-      vm.cleanup();
-
-      if (measurementSet != null && normalizedScenario != null) {
-        return new MeasurementSetMeta(measurementSet, normalizedScenario,
-            scenarioEventLog.toString());
+    } finally {
+      try {
+        logReader.close();
+      } catch (IOException ignored) {
       }
+    }
+    vm.cleanup();
 
+    if (measurementSet == null) {
       String message = "Failed to execute " + Joiner.on(" ").join(command);
       System.err.println();
       System.err.println("  " + message);
@@ -286,28 +291,68 @@ public final class Runner {
         System.err.println("  " + outputLine);
       }
       throw new ConfigurationException(message);
-    } finally {
-      try {
-        logReader.close();
-      } catch (IOException ignored) {
-      }
+    }
+
+    return new MeasurementResult(measurementSet, eventLog.toString());
+  }
+
+  private List<String> createCommand(Scenario scenario, Vm vm, MeasurementType type) {
+    String classPath = System.getProperty("java.class.path");
+    if (classPath == null || classPath.length() == 0) {
+      throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
+    }
+
+    List<String> command = Lists.newArrayList();
+    List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
+    command.addAll(vmList);
+    command.add("-cp");
+    command.add(classPath);
+    command.add("-verbose:gc");
+    if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
+      command.add("-javaagent:" + System.getenv("ALLOCATION_JAR"));
+    }
+    for (String option : vm.getVmSpecificOptions(type)) {
+      command.add(option);
+    }
+    command.add(InProcessRunner.class.getName());
+    command.add("--warmupMillis");
+    command.add(String.valueOf(arguments.getWarmupMillis()));
+    command.add("--runMillis");
+    command.add(String.valueOf(arguments.getRunMillis()));
+    for (Entry<String, String> entry : scenario.getParameters().entrySet()) {
+      command.add("-D" + entry.getKey() + "=" + entry.getValue());
+    }
+    command.add("--measurementType");
+    command.add(type.toString());
+    command.add(arguments.getSuiteClassName());
+    return command;
+  }
+
+  private Process startForkedProcess(List<String> command) {
+    ProcessBuilder builder = new ProcessBuilder();
+    builder.command(command);
+    builder.redirectErrorStream(true);
+    builder.directory(new File(System.getProperty("user.dir")));
+    try {
+      return builder.start();
+    } catch (IOException e) {
+      throw new RuntimeException("failed to start subprocess", e);
     }
   }
 
   private Result runOutOfProcess() {
     Date executedDate = new Date();
-    ImmutableMap.Builder<Scenario, MeasurementSetMeta> resultsBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<Scenario, ScenarioResult> resultsBuilder = ImmutableMap.builder();
 
     try {
       List<Scenario> scenarios = scenarioSelection.select();
 
       int i = 0;
       for (Scenario scenario : scenarios) {
-        beforeMeasurement(i++, scenarios.size());
-        MeasurementSetMeta nanosPerTrial = executeForked(scenario);
-        afterMeasurement(nanosPerTrial.getMeasurementSet());
-        // use normalized scenario provided by the subprocess
-        resultsBuilder.put(nanosPerTrial.getScenario(), nanosPerTrial);
+        beforeMeasurement(i++, scenarios.size(), scenario);
+        ScenarioResult scenarioResult = runScenario(scenario);
+        afterMeasurement(arguments.getMeasureMemory(), scenarioResult);
+        resultsBuilder.put(scenario, scenarioResult);
       }
       System.out.println();
 
@@ -320,16 +365,32 @@ public final class Runner {
     }
   }
 
-  private void beforeMeasurement(int index, int total) {
+  private void beforeMeasurement(int index, int total, Scenario scenario) {
     double percentDone = (double) index / total;
-    System.out.printf("%2.0f%% ", percentDone * 100);
+    System.out.printf("%2.0f%% %s", percentDone * 100, scenario);
   }
 
-  private void afterMeasurement(MeasurementSet measurementSet) {
+  private void afterMeasurement(boolean memoryMeasured, ScenarioResult scenarioResult) {
+    String memoryMeasurements = "";
+    if (memoryMeasured) {
+      MeasurementSet instanceMeasurementSet =
+          scenarioResult.getMeasurementSet(MeasurementType.INSTANCE);
+      String instanceUnit =
+        ConsoleReport.UNIT_ORDERING.min(instanceMeasurementSet.getUnitNames().entrySet()).getKey();
+      MeasurementSet memoryMeasurementSet = scenarioResult.getMeasurementSet(MeasurementType.MEMORY);
+      String memoryUnit =
+        ConsoleReport.UNIT_ORDERING.min(memoryMeasurementSet.getUnitNames().entrySet()).getKey();
+      memoryMeasurements = String.format(", allocated %s%s for a total of %s%s",
+          Math.round(instanceMeasurementSet.medianUnits()), instanceUnit,
+          Math.round(memoryMeasurementSet.medianUnits()), memoryUnit);
+    }
+
+    MeasurementSet timeMeasurementSet = scenarioResult.getMeasurementSet(MeasurementType.TIME);
     String unit =
-        ConsoleReport.UNIT_ORDERING.min(measurementSet.getUnitNames().entrySet()).getKey();
-    System.out.printf(" %.2f%s; \u03C3=%.2f%s @ %d trials%n", measurementSet.medianUnits(), unit,
-        measurementSet.standardDeviationUnits(), unit, measurementSet.getMeasurements().size());
+        ConsoleReport.UNIT_ORDERING.min(timeMeasurementSet.getUnitNames().entrySet()).getKey();
+    System.out.printf(" %.2f %s; \u03C3=%.2f %s @ %d trials%s%n", timeMeasurementSet.medianUnits(),
+        unit, timeMeasurementSet.standardDeviationUnits(), unit,
+        timeMeasurementSet.getMeasurements().size(), memoryMeasurements);
   }
 
   public static void main(String... args) {

@@ -14,15 +14,27 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import com.google.common.base.Supplier;
+import java.io.PrintStream;
 
-public class AllTests {
-  public static Test suite() {
-    TestSuite suite = new TestSuite();
-    suite.addTestSuite(ErrorsInUserCodeTest.class);
-    return suite;
+abstract class Measurer {
+
+  private final PrintStream verboseStream;
+
+  Measurer(PrintStream verboseStream) {
+    this.verboseStream = verboseStream;
+  }
+
+  public abstract MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier) throws Exception;
+
+  protected void prepareForTest() {
+    System.gc();
+    System.gc();
+  }
+
+  protected final void log(String message) {
+    verboseStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 }

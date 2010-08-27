@@ -43,7 +43,8 @@ public class WarmupOverflowTest extends TestCase {
       timeLimiter.callWithTimeout(new Callable<Void>() {
         @Override public Void call() throws Exception {
           InProcessRunner runner = new InProcessRunner();
-          runner.run(OptimizedAwayBenchmark.class.getName(), "--warmupMillis", "3000");
+          runner.run(OptimizedAwayBenchmark.class.getName(), "--warmupMillis", "3000",
+              "--measurementType", "TIME");
           return null;
         }
       }, 90, TimeUnit.SECONDS, false);
@@ -56,7 +57,7 @@ public class WarmupOverflowTest extends TestCase {
       @Override public Void call() throws Exception {
         InProcessRunner runner = new InProcessRunner();
         runner.run(RelativelyFastBenchmark.class.getName(), "--warmupMillis", "8000",
-            "--runMillis", "51");
+            "--runMillis", "51", "--measurementType", "TIME");
         return null;
       }
     }, 90, TimeUnit.SECONDS, false);

@@ -16,12 +16,22 @@
 
 package com.google.caliper;
 
-import java.io.BufferedReader;
-import java.util.List;
+import java.io.PrintStream;
 
-public interface Vm {
-  List<String> getVmSpecificOptions(MeasurementType type);
-  void init();
-  LogParser getLogParser(BufferedReader logReader);
-  void cleanup();
+public final class InstancesAllocationMeasurer extends AllocationMeasurer {
+
+  InstancesAllocationMeasurer(PrintStream outStream) {
+    super(outStream);
+    type = "instance";
+  }
+
+  @Override protected long incrementAllocationCount(long oldAllocationCount, int arrayCount,
+      long size) {
+    return oldAllocationCount + 1;
+  }
+
+  @Override protected Measurement getMeasurement(ConfiguredBenchmark benchmark, long allocations) {
+    return new Measurement(benchmark.instanceUnitNames(), allocations,
+        benchmark.instancesToUnits(allocations));
+  }
 }

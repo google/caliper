@@ -38,10 +38,18 @@ public interface Benchmark {
    *
    * e.g. 0% Scenario{...} 16.08<SMALLEST-UNIT>; σ=1.72<SMALLEST-UNIT> @ 3 trials
    */
-  Map<String, Integer> unitNames();
+  Map<String, Integer> timeUnitNames();
+
+  Map<String, Integer> instanceUnitNames();
+
+  Map<String, Integer> memoryUnitNames();
 
   /**
-   * Converts nanoseconds to the smallest unit defined in {@link #unitNames()}.
+   * Converts nanoseconds to the smallest unit defined in {@link #timeUnitNames()}.
    */
   double nanosToUnits(double nanos);
+
+  double instancesToUnits(long instances);
+
+  double bytesToUnits(long bytes);
 }

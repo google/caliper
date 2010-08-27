@@ -23,7 +23,9 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -63,35 +65,37 @@ final class ConsoleReport {
   private final Run run;
   private final List<Scenario> scenarios;
 
+  private final List<MeasurementType> orderedMeasurementTypes;
+  private final MeasurementType type;
   private final double maxValue;
   private final double logMinValue;
   private final double logMaxValue;
-  private final int decimalDigits;
-  private final double divideBy;
-  private String unit;
-  private final int measurementColumnLength;
+  private final EnumMap<MeasurementType, Integer> decimalDigitsMap =
+      new EnumMap<MeasurementType, Integer>(MeasurementType.class);
+  private final EnumMap<MeasurementType, Double> divideByMap =
+      new EnumMap<MeasurementType, Double>(MeasurementType.class);
+  private final EnumMap<MeasurementType, String> unitMap =
+      new EnumMap<MeasurementType, String>(MeasurementType.class);
+  private final EnumMap<MeasurementType, Integer> measurementColumnLengthMap =
+      new EnumMap<MeasurementType, Integer>(MeasurementType.class);
   private boolean printScore;
 
   ConsoleReport(Run run, Arguments arguments) {
     this.run = run;
-    this.unit = arguments.getUnit();
+    unitMap.put(MeasurementType.TIME, arguments.getTimeUnit());
+    unitMap.put(MeasurementType.INSTANCE, arguments.getInstanceUnit());
+    unitMap.put(MeasurementType.MEMORY, arguments.getMemoryUnit());
 
-    Map<String, Integer> units = null;
-    for (MeasurementSetMeta measurementSetMeta : run.getMeasurements().values()) {
-      if (units == null) {
-        units = measurementSetMeta.getMeasurementSet().getUnitNames();
-      } else {
-        if (!units.equals(measurementSetMeta.getMeasurementSet().getUnitNames())) {
-          throw new RuntimeException("measurement sets for run contain multiple, incompatible unit"
-              + " sets.");
-        }
-      }
+    if (arguments.getMeasureMemory()) {
+      orderedMeasurementTypes = Arrays.asList(MeasurementType.values());
+    } else {
+      orderedMeasurementTypes = Arrays.asList(MeasurementType.TIME);
     }
-    if (units == null) {
-      throw new RuntimeException("run has no measurements.");
-    }
-    if (units.isEmpty()) {
-      throw new RuntimeException("no units specified.");
+
+    if (arguments.getPrimaryMeasurementType() != null) {
+      this.type = arguments.getPrimaryMeasurementType();
+    } else {
+      this.type = MeasurementType.TIME;
     }
 
     double min = Double.POSITIVE_INFINITY;
@@ -99,20 +103,20 @@ final class ConsoleReport {
 
     Multimap<String, String> nameToValues = LinkedHashMultimap.create();
     List<Variable> variablesBuilder = new ArrayList<Variable>();
-    for (Map.Entry<Scenario, MeasurementSetMeta> entry : run.getMeasurements().entrySet()) {
+    for (Entry<Scenario, ScenarioResult> entry : this.run.getMeasurements().entrySet()) {
       Scenario scenario = entry.getKey();
-      double d = entry.getValue().getMeasurementSet().medianUnits();
+      double d = entry.getValue().getMeasurementSet(type).medianUnits();
 
       min = Math.min(min, d);
       max = Math.max(max, d);
 
-      for (Map.Entry<String, String> variable : scenario.getVariables().entrySet()) {
+      for (Entry<String, String> variable : scenario.getVariables().entrySet()) {
         String name = variable.getKey();
         nameToValues.put(name, variable.getValue());
       }
     }
 
-    for (Map.Entry<String, Collection<String>> entry : nameToValues.asMap().entrySet()) {
+    for (Entry<String, Collection<String>> entry : nameToValues.asMap().entrySet()) {
       Variable variable = new Variable(entry.getKey(), entry.getValue());
       variablesBuilder.add(variable);
     }
@@ -127,17 +131,17 @@ final class ConsoleReport {
      * deviation implies higher influence on the measured result.
      */
     double sumOfAllMeasurements = 0;
-    for (MeasurementSetMeta measurement : run.getMeasurements().values()) {
-      sumOfAllMeasurements += measurement.getMeasurementSet().medianUnits();
+    for (ScenarioResult measurement : this.run.getMeasurements().values()) {
+      sumOfAllMeasurements += measurement.getMeasurementSet(type).medianUnits();
     }
     for (Variable variable : variablesBuilder) {
       int numValues = variable.values.size();
       double[] sumForValue = new double[numValues];
-      for (Map.Entry<Scenario, MeasurementSetMeta> entry
-          : run.getMeasurements().entrySet()) {
+      for (Entry<Scenario, ScenarioResult> entry
+          : this.run.getMeasurements().entrySet()) {
         Scenario scenario = entry.getKey();
         sumForValue[variable.index(scenario)] +=
-            entry.getValue().getMeasurementSet().medianUnits();
+            entry.getValue().getMeasurementSet(type).medianUnits();
       }
       double mean = sumOfAllMeasurements / sumForValue.length;
       double stdDeviationSquared = 0;
@@ -149,40 +153,87 @@ final class ConsoleReport {
     }
 
     this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
-    this.scenarios = new ByVariablesOrdering().sortedCopy(run.getMeasurements().keySet());
+    this.scenarios = new ByVariablesOrdering().sortedCopy(this.run.getMeasurements().keySet());
     this.maxValue = max;
     this.logMinValue = Math.log(min);
     this.logMaxValue = Math.log(max);
 
-    if (unit == null) {
+    EnumMap<MeasurementType, Integer> digitsBeforeDecimalMap =
+      new EnumMap<MeasurementType, Integer>(MeasurementType.class);
+    EnumMap<MeasurementType, Integer> decimalPointMap =
+      new EnumMap<MeasurementType, Integer>(MeasurementType.class);
+    for (MeasurementType measurementType : orderedMeasurementTypes) {
+      double maxForType = 0;
+      double minForType = Double.POSITIVE_INFINITY;
+      for (Entry<Scenario, ScenarioResult> entry : this.run.getMeasurements().entrySet()) {
+        double d = entry.getValue().getMeasurementSet(measurementType).medianUnits();
+        minForType = Math.min(minForType, d);
+        maxForType = Math.max(maxForType, d);
+      }
+
+      unitMap.put(measurementType,
+          getUnit(unitMap.get(measurementType), measurementType, minForType));
+
+      divideByMap.put(measurementType,
+          (double) getUnits(measurementType).get(unitMap.get(measurementType)));
+
+      int numDigitsInMin = ceil(Math.log10(minForType));
+      decimalDigitsMap.put(measurementType,
+          ceil(Math.max(0, Math.log10(divideByMap.get(measurementType)) + 3 - numDigitsInMin)));
+
+      digitsBeforeDecimalMap.put(measurementType,
+          Math.max(1, ceil(Math.log10(maxForType / divideByMap.get(measurementType)))));
+
+      decimalPointMap.put(measurementType, decimalDigitsMap.get(measurementType) > 0 ? 1 : 0);
+
+      measurementColumnLengthMap.put(measurementType, Math.max(maxForType > 0
+          ?  digitsBeforeDecimalMap.get(measurementType) + decimalPointMap.get(measurementType)
+              + decimalDigitsMap.get(measurementType)
+          : 1, unitMap.get(measurementType).trim().length()));
+    }
+
+    this.printScore = arguments.printScore();
+  }
+
+  private String getUnit(String userSuppliedUnit, MeasurementType measurementType, double min) {
+    Map<String, Integer> units = getUnits(measurementType);
+
+    if (userSuppliedUnit == null) {
       List<Entry<String, Integer>> entries = UNIT_ORDERING.reverse().sortedCopy(units.entrySet());
       for (Entry<String, Integer> entry : entries) {
         if (min / entry.getValue() >= 1) {
-          unit = entry.getKey();
-          break;
+          return entry.getKey();
         }
       }
-      if (unit == null) {
-        // if no unit works, just use the smallest available unit.
-        unit = entries.get(entries.size() - 1).getKey();
-      }
-    } else {
-      if (!units.keySet().contains(unit)) {
-        throw new RuntimeException("\"" + unit + "\" is not a valid unit.");
-      }
+      // if no unit works, just use the smallest available unit.
+      return entries.get(entries.size() - 1).getKey();
     }
 
-    divideBy = units.get(unit);
-    int numDigitsInMin = ceil(Math.log10(min));
-    decimalDigits = ceil(Math.max(0, Math.log10(divideBy) + 3 - numDigitsInMin));
+    if (!units.keySet().contains(userSuppliedUnit)) {
+      throw new RuntimeException("\"" + unitMap.get(measurementType) + "\" is not a valid unit.");
+    }
+    return userSuppliedUnit;
+  }
 
-    int digitsBeforeDecimal = Math.max(1, ceil(Math.log10(max / divideBy)));
-    int decimalPoint = decimalDigits > 0 ? 1 : 0;
-    measurementColumnLength = Math.max(max > 0
-        ?  digitsBeforeDecimal + decimalPoint + decimalDigits
-        : 1, unit.length());
-
-    this.printScore = arguments.printScore();
+  private Map<String, Integer> getUnits(MeasurementType measurementType) {
+    Map<String, Integer> units = null;
+    for (Entry<Scenario, ScenarioResult> entry : run.getMeasurements().entrySet()) {
+      if (units == null) {
+        units = entry.getValue().getMeasurementSet(measurementType).getUnitNames();
+      } else {
+        if (!units.equals(entry.getValue().getMeasurementSet(measurementType).getUnitNames())) {
+          throw new RuntimeException("measurement sets for run contain multiple, incompatible unit"
+              + " sets.");
+        }
+      }
+    }
+    if (units == null) {
+      throw new RuntimeException("run has no measurements.");
+    }
+    if (units.isEmpty()) {
+      throw new RuntimeException("no units specified.");
+    }
+    return units;
   }
 
   /**
@@ -266,15 +317,26 @@ final class ConsoleReport {
     boolean showGraphs = scenarios.size() > 1;
     boolean showLinear = scenarios.size() == 2;
 
-    System.out.printf("%" + measurementColumnLength + "s", unit);
+    EnumMap<MeasurementType, String> numbersFormatMap =
+        new EnumMap<MeasurementType, String>(MeasurementType.class);
+    for (MeasurementType measurementType : orderedMeasurementTypes) {
+      if (measurementType != type) {
+        System.out.printf("%" + measurementColumnLengthMap.get(measurementType) + "s ",
+            unitMap.get(measurementType).trim());
+      }
+
+      numbersFormatMap.put(measurementType,
+          "%" + measurementColumnLengthMap.get(measurementType)
+              + "." + decimalDigitsMap.get(measurementType) + "f"
+              + (type == measurementType ? "" : " "));
+    }
+
+    System.out.printf("%" + measurementColumnLengthMap.get(type) + "s", unitMap.get(type).trim());
     if (showGraphs) {
       String comparisonType = showLinear ? "linear" : "logarithmic";
       System.out.printf(" %s runtime", comparisonType);
     }
     System.out.println();
-
-    // rows
-    String numbersFormat = "%" + measurementColumnLength + "." + decimalDigits + "f";
 
     double sumOfLogs = 0.0;
 
@@ -284,13 +346,21 @@ final class ConsoleReport {
           System.out.printf("%" + variable.maxLength + "s ", variable.get(scenario));
         }
       }
-      double measurement =
-          run.getMeasurements().get(scenario).getMeasurementSet().medianUnits();
-      sumOfLogs += Math.log(measurement);
+      ScenarioResult measurement = run.getMeasurements().get(scenario);
+      sumOfLogs += Math.log(measurement.getMeasurementSet(type).medianUnits());
 
-      System.out.printf(numbersFormat, measurement / divideBy);
+      for (MeasurementType measurementType : orderedMeasurementTypes) {
+        if (measurementType != type) {
+          System.out.printf(numbersFormatMap.get(measurementType),
+              measurement.getMeasurementSet(measurementType).medianUnits() / divideByMap.get(measurementType));
+        }
+      }
+
+      System.out.printf(numbersFormatMap.get(type),
+          measurement.getMeasurementSet(type).medianUnits() / divideByMap.get(type));
       if (showGraphs) {
-        System.out.printf(" %s", barGraph(measurement, showLinear));
+        System.out.printf(" %s", barGraph(measurement.getMeasurementSet(type).medianUnits(),
+            showLinear));
       }
       System.out.println();
     }

@@ -45,7 +45,23 @@ public abstract class ConfiguredBenchmark {
     return underlyingBenchmark.nanosToUnits(nanos);
   }
 
-  public final Map<String, Integer> unitNames() {
-    return underlyingBenchmark.unitNames();
+  public final Map<String, Integer> timeUnitNames() {
+    return underlyingBenchmark.timeUnitNames();
+  }
+
+  public final double instancesToUnits(long instances) {
+    return underlyingBenchmark.instancesToUnits(instances);
+  }
+
+  public final Map<String, Integer> instanceUnitNames() {
+    return underlyingBenchmark.instanceUnitNames();
+  }
+
+  public final double bytesToUnits(long bytes) {
+    return underlyingBenchmark.bytesToUnits(bytes);
+  }
+
+  public final Map<String, Integer> memoryUnitNames() {
+    return underlyingBenchmark.memoryUnitNames();
   }
 }

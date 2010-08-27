@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import java.util.Arrays;
+import java.util.List;
 
-public class AllTests {
-  public static Test suite() {
-    TestSuite suite = new TestSuite();
-    suite.addTestSuite(ErrorsInUserCodeTest.class);
-    return suite;
+public final class VmFactory {
+  public Vm createVm(Scenario scenario) {
+    List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
+    Vm vm = null;
+    if (!vmList.isEmpty()) {
+      if (vmList.get(0).endsWith("dalvikvm")) {
+        vm = new DalvikVm();
+      } else if (vmList.get(0).endsWith("java")) {
+        vm = new StandardVm();
+      }
+    }
+    if (vm == null) {
+      vm = new UnknownVm();
+    }
+    return vm;
   }
 }

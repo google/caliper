@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
-
-public class AllTests {
-  public static Test suite() {
-    TestSuite suite = new TestSuite();
-    suite.addTestSuite(ErrorsInUserCodeTest.class);
-    return suite;
-  }
+public enum MeasurementType {
+  TIME, INSTANCE, MEMORY
 }

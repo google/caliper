@@ -17,11 +17,8 @@
 package com.google.caliper;
 
 import com.google.caliper.LogEntry.LogEntryBuilder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.regex.Pattern;
 
 public final class StdOutLogParser implements LogParser {
@@ -30,7 +27,7 @@ public final class StdOutLogParser implements LogParser {
   //   1%  b   benchmarks.regression.StringBuilderBenchmark::timeAppendBoolean @ 18 (46 bytes)
   //  14   b   benchmarks.regression.StringBuilderBenchmark::timeAppendBoolean (46 bytes)
   private static final Pattern compilationPattern =
-      Pattern.compile("^\\s*\\d+%?\\s+.\\s+.+::.+\\s+\\(\\d+\\s+bytes\\)$");
+      Pattern.compile(".*\\(\\d+\\s+bytes\\)$|^---.*");
 
   private final BufferedReader logReader;
 
@@ -92,7 +89,6 @@ public final class StdOutLogParser implements LogParser {
     LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
 
     boolean measurementLog = line.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
-    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
     boolean caliperLog = line.startsWith(LogConstants.CALIPER_LOG_PREFIX);
     // True if the line seems to indicate a garbage collection, like
     // [GC 1263K->363K(184576K), 0.0006660 secs]
@@ -101,12 +97,7 @@ public final class StdOutLogParser implements LogParser {
     boolean gcLog = line.startsWith("[GC ") || line.startsWith("[Full GC ");
     boolean compilationLog = compilationPattern.matcher(line).matches();
 
-    if (scenarioLog) {
-      String scenarioString =
-          line.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
-      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
-          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
-    } else if (measurementLog) {
+    if (measurementLog) {
       try {
         logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
             line.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));
@@ -117,9 +108,9 @@ public final class StdOutLogParser implements LogParser {
 
       // timed sections start with "[caliper] [starting timed section]"
       // end with "[caliper] [done timed section]"
-      if (caliperLogLine.equals(LogConstants.TIMED_SECTION_STARTING)) {
+      if (caliperLogLine.equals(LogConstants.MEASURED_SECTION_STARTING)) {
         inTimedSection = true;
-      } else if (caliperLogLine.equals(LogConstants.TIMED_SECTION_DONE)) {
+      } else if (caliperLogLine.equals(LogConstants.MEASURED_SECTION_DONE)) {
         inTimedSection = false;
       }
     }
@@ -127,7 +118,7 @@ public final class StdOutLogParser implements LogParser {
     if (caliperLog || inTimedSection || compilationLog) {
       logEntryBuilder.setLogLine(line);
     }
-    if (!caliperLog && !gcLog && !compilationLog && !scenarioLog) {
+    if (!caliperLog && !gcLog && !compilationLog) {
       logEntryBuilder.setDisplayLine(line);
     }
 

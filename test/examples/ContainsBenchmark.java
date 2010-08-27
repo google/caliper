@@ -50,7 +50,7 @@ public class ContainsBenchmark extends SimpleBenchmark {
     Collections.shuffle(queries, new Random(0));
   }
 
-  @Override public Map<String, Integer> unitNames() {
+  @Override public Map<String, Integer> timeUnitNames() {
     Map<String, Integer> unitNames = new HashMap<String, Integer>();
     unitNames.put("ns/contains", 1);
     unitNames.put("us/contains", 1000);

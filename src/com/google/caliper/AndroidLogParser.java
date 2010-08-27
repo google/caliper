@@ -17,11 +17,8 @@
 package com.google.caliper;
 
 import com.google.caliper.LogEntry.LogEntryBuilder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -97,7 +94,7 @@ public final class AndroidLogParser implements LogParser {
    * I/stdout  (19051): [caliper] [starting timed section]
    * I/stdout  (19051): [caliper] [done timed section]
    * I/stdout  (19051): [caliper] [took 152048.59 nanoseconds per rep]
-   * I/stdout  (19051): [measurement] {"measurements":[{"unitNames":{"us":1000,"ns":1,"s":1000000000,"ms":1000000},"nanosPerRep":20.40590815869826,...
+   * I/stdout  (19051): [measurement] {"measurements":[{"timeUnitNames":{"us":1000,"ns":1,"s":1000000000,"ms":1000000},"nanosPerRep":20.40590815869826,...
    * I/stdout  (19051): [caliper] [scenario finished]
    * I/stdout  (19051): [caliper] [scenarios finished]
    */
@@ -155,7 +152,6 @@ public final class AndroidLogParser implements LogParser {
     String line = lineBuilder.toString();
     String normalizedLine = normalizedLineBuilder.toString();
 
-    boolean isScenarioLog = normalizedLine.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
     boolean isMeasurementLog = normalizedLine.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
     // true if this line indicates a garbage collection
     // e.g., "GC_EXPLICIT freed 191 objects / 39704 bytes in 7ms"
@@ -164,12 +160,7 @@ public final class AndroidLogParser implements LogParser {
 
     LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
 
-    if (isScenarioLog) {
-      String scenarioString =
-          normalizedLine.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
-      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
-          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
-    } else if (isMeasurementLog) {
+    if (isMeasurementLog) {
       try {
         logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
             normalizedLine.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));
@@ -190,9 +181,9 @@ public final class AndroidLogParser implements LogParser {
 
       // timed sections start with "I/stdout  (19051): [caliper] [starting timed section]"
       // end with "I/stdout  (19051): [caliper] [done timed section]"
-      if (caliperLogLine.equals(LogConstants.TIMED_SECTION_STARTING)) {
+      if (caliperLogLine.equals(LogConstants.MEASURED_SECTION_STARTING)) {
         inTimedSection = true;
-      } else if (caliperLogLine.equals(LogConstants.TIMED_SECTION_DONE)) {
+      } else if (caliperLogLine.equals(LogConstants.MEASURED_SECTION_DONE)) {
         inTimedSection = false;
       }
     }
@@ -200,7 +191,7 @@ public final class AndroidLogParser implements LogParser {
     if (startLogging && (isCaliperLog || inTimedSection)) {
       logEntryBuilder.setLogLine(line);
     }
-    if (isThisProcess && startLogging && !isCaliperLog && !isGcLog && !isScenarioLog) {
+    if (isThisProcess && startLogging && !isCaliperLog && !isGcLog) {
       logEntryBuilder.setDisplayLine(normalizedLine);
     }
 

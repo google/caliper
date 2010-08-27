@@ -17,11 +17,8 @@
 package com.google.caliper;
 
 import com.google.caliper.LogEntry.LogEntryBuilder;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.Map;
 
 public final class SimpleLogParser implements LogParser {
 
@@ -68,14 +65,8 @@ public final class SimpleLogParser implements LogParser {
 
     LogEntryBuilder logEntryBuilder = new LogEntryBuilder();
 
-    boolean scenarioLog = line.startsWith(LogConstants.SCENARIO_JSON_PREFIX);
     boolean measurementLog = line.startsWith(LogConstants.MEASUREMENT_JSON_PREFIX);
-    if (scenarioLog) {
-      String scenarioString =
-          line.substring(LogConstants.SCENARIO_JSON_PREFIX.length());
-      logEntryBuilder.setScenario(new Scenario(new Gson().<Map<String, String>>fromJson(
-          scenarioString, new TypeToken<Map<String, String>>() {}.getType())));
-    } else if (measurementLog) {
+    if (measurementLog) {
       try {
         logEntryBuilder.setMeasurementSet(Json.measurementSetFromJson(
             line.substring(LogConstants.MEASUREMENT_JSON_PREFIX.length())));

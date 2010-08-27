@@ -8,7 +8,8 @@
     <include name="**/Run.java"/>
     <include name="**/Measurement.java"/>
     <include name="**/MeasurementSet.java"/>
-    <include name="**/MeasurementSetMeta.java"/>
+    <include name="**/ScenarioResult.java"/>
+    <include name="**/MeasurementType.java"/>
     <include name="**/Scenario.java"/>
   </source>
 </module>

@@ -18,6 +18,7 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.IncompatibleArgumentsException;
+import com.google.caliper.UserException.InvalidParameterValueException;
 import com.google.caliper.UserException.MalformedParameterException;
 import com.google.caliper.UserException.MultipleBenchmarkClassesException;
 import com.google.caliper.UserException.NoBenchmarkClassException;
@@ -51,10 +52,15 @@ public final class Arguments {
 
   private long warmupMillis = 3000;
   private long runMillis = 1000;
-  private String unit = null;
-  private File xmlSaveFile = null;
-  private File xmlUploadFile = null;
+  private String timeUnit = null;
+  private String instanceUnit = null;
+  private String memoryUnit = null;
+  private File saveResultsFile = null;
+  private File uploadResultsFile = null;
   private boolean printScore = false;
+  private boolean measureMemory = false;
+  private MeasurementType measurementType;
+  private MeasurementType primaryMeasurementType;
 
   private static final String defaultDelimiter = ",";
 
@@ -78,20 +84,40 @@ public final class Arguments {
     return runMillis;
   }
 
-  public String getUnit() {
-    return unit;
+  public String getTimeUnit() {
+    return timeUnit;
   }
 
-  public File getXmlSaveFile() {
-    return xmlSaveFile;
+  public String getInstanceUnit() {
+    return instanceUnit;
   }
 
-  public File getXmlUploadFile() {
-    return xmlUploadFile;
+  public String getMemoryUnit() {
+    return memoryUnit;
+  }
+
+  public File getSaveResultsFile() {
+    return saveResultsFile;
+  }
+
+  public File getUploadResultsFile() {
+    return uploadResultsFile;
   }
 
   public boolean printScore() {
     return printScore;
+  }
+
+  public boolean getMeasureMemory() {
+    return measureMemory;
+  }
+
+  public MeasurementType getMeasurementType() {
+    return measurementType;
+  }
+
+  public MeasurementType getPrimaryMeasurementType() {
+    return primaryMeasurementType;
   }
 
   public static Arguments parse(String[] argsArray) {
@@ -137,16 +163,35 @@ public final class Arguments {
       } else if ("--delimiter".equals(arg)) {
         delimiter = args.next();
         standardRun = true;
-      } else if ("--unit".equals(arg)) {
-        result.unit = args.next();
+      } else if ("--timeUnit".equals(arg)) {
+        result.timeUnit = args.next();
         standardRun = true;
-      } else if ("--xmlSave".equals(arg)) {
-        result.xmlSaveFile = new File(args.next());
+      } else if ("--saveResults".equals(arg)) {
+        result.saveResultsFile = new File(args.next());
         standardRun = true;
-      } else if ("--xmlUpload".equals(arg)) {
-        result.xmlUploadFile = new File(args.next());
+      } else if ("--uploadResults".equals(arg)) {
+        result.uploadResultsFile = new File(args.next());
       } else if ("--printScore".equals(arg)) {
         result.printScore = true;
+        standardRun = true;
+      } else if ("--measureMemory".equals(arg)) {
+        result.measureMemory = true;
+        standardRun = true;
+      } else if ("--measurementType".equals(arg)) {
+        String measurementType = args.next();
+        try {
+          result.measurementType = MeasurementType.valueOf(measurementType);
+        } catch (Exception e) {
+          throw new InvalidParameterValueException(arg, measurementType);
+        }
+        standardRun = true;
+      } else if ("--primaryMeasurementType".equals(arg)) {
+        String measurementType = args.next().toUpperCase();
+        try {
+          result.primaryMeasurementType = MeasurementType.valueOf(measurementType);
+        } catch (Exception e) {
+          throw new InvalidParameterValueException(arg, measurementType);
+        }
         standardRun = true;
       } else if (arg.startsWith("-")) {
         throw new UnrecognizedOptionException(arg);
@@ -170,12 +215,18 @@ public final class Arguments {
       result.userParameters.putAll(name, delimiterSplitter.split(userParameterEntry.getValue()));
     }
 
-    if (standardRun && result.xmlUploadFile != null) {
+    if (standardRun && result.uploadResultsFile != null) {
       throw new IncompatibleArgumentsException("--xmlUpload");
     }
 
-    if (result.suiteClassName == null && result.xmlUploadFile == null) {
+    if (result.suiteClassName == null && result.uploadResultsFile == null) {
       throw new NoBenchmarkClassException();
+    }
+
+    if (result.primaryMeasurementType != null
+        && result.primaryMeasurementType != MeasurementType.TIME && !result.measureMemory) {
+      throw new IncompatibleArgumentsException(
+          "--primaryMeasurementType " + result.primaryMeasurementType.toString().toLowerCase());
     }
 
     return result;
@@ -209,22 +260,36 @@ public final class Arguments {
     System.out.println();
     System.out.println("  --runMillis <millis>: duration to execute each benchmark");
     System.out.println();
+    System.out.println("  --measureMemory: measure the number of allocations done and the amount of");
+    System.out.println("        memory used by invocations of the benchmark.");
+    System.out.println("        Default: off");
+    System.out.println();
     System.out.println("  --vm <vm>: executable to test benchmark on. Multiple VMs may be passed");
     System.out.println("        in as a list separated by the delimiter specified in the");
     System.out.println("        --delimiter argument.");
     System.out.println();
-    System.out.println("  --unit <unit>: unit of time to use for result. Depends on the units");
-    System.out.println("        defined in the benchmark's unitNames method, if defined.");
+    System.out.println("  --timeUnit <unit>: unit of time to use for result. Depends on the units");
+    System.out.println("        defined in the benchmark's timeUnitNames method, if defined.");
     System.out.println("        Default Options: ns, us, ms, s");
     System.out.println();
-    System.out.println("  --xmlSave <file/dir>: write XML results to this file or directory");
+    System.out.println("  --instanceUnit <unit>: unit to use for allocation instances result.");
+    System.out.println("        Depends on the units defined in the benchmark's instanceUnitNames");
+    System.out.println("        method, if defined.");
+    System.out.println("        Default Options: instances, K instances, M instances, B instances");
+    System.out.println();
+    System.out.println("  --memoryUnit <unit>: unit to use for allocation memory size result.");
+    System.out.println("        Depends on the units defined in the benchmark's memoryUnitNames");
+    System.out.println("        method, if defined.");
+    System.out.println("        Default Options: B, KB, MB, GB");
+    System.out.println();
+    System.out.println("  --saveResults <file/dir>: write results to this file or directory");
     System.out.println();
     System.out.println("  --printScore: if present, also display an aggregate score for this run,");
     System.out.println("        where higher is better. This number has no particular meaning,");
     System.out.println("        but can be compared to scores from other runs that use the exact");
     System.out.println("        same arguments.");
     System.out.println();
-    System.out.println("  --xmlUpload <file/dir>: upload this XML file or directory of XML files");
+    System.out.println("  --uploadResults <file/dir>: upload this file or directory of files");
     System.out.println("        to the web app. This argument ends Caliper early and is thus");
     System.out.println("        incompatible with all other arguments.");
 

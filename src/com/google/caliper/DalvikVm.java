@@ -25,7 +25,7 @@ import java.util.List;
 public final class DalvikVm implements Vm {
   private Process adbLogProcess;
 
-  @Override public List<String> getVmSpecificOptions() {
+  @Override public List<String> getVmSpecificOptions(MeasurementType type) {
     // this redirects all output to log (accessible with adb logcat). Need to do this
     // since GC information is written to the log, and cannot be redirected to standard
     // out.

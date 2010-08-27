@@ -30,9 +30,9 @@ public final class CaliperTest extends TestCase {
    * @throws Exception
    */
   public void testBenchmarkScalesNonLinearly() throws Exception {
-    Caliper caliper = new Caliper(1000, 1000, new PrintStream(new NullOutputStream()));
+    TimeMeasurer timeMeasurer = new TimeMeasurer(1000, 1000, new PrintStream(new NullOutputStream()));
     try {
-      caliper.warmUp(new NonLinearTimedRunnable());
+      timeMeasurer.run(new NonLinearTimedRunnable());
       fail();
     } catch (UserException.DoesNotScaleLinearlyException e) {
     }
@@ -68,11 +68,27 @@ public final class CaliperTest extends TestCase {
       return null;
     }
 
-    @Override public Map<String, Integer> unitNames() {
+    @Override public Map<String, Integer> timeUnitNames() {
+      return null;
+    }
+
+    @Override public Map<String, Integer> instanceUnitNames() {
+      return null;
+    }
+
+    @Override public Map<String, Integer> memoryUnitNames() {
       return null;
     }
 
     @Override public double nanosToUnits(double nanos) {
+      return 0;
+    }
+
+    @Override public double instancesToUnits(long instances) {
+      return 0;
+    }
+
+    @Override public double bytesToUnits(long bytes) {
       return 0;
     }
   }

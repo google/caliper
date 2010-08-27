@@ -138,6 +138,14 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class NonConstantMemoryUsage extends ErrorInUsageException {
+    public NonConstantMemoryUsage() {
+      super("Not all reps of the inner loop allocate the same number of times! "
+          + "The reps loop should use a constant number of allocations. "
+          + "Are you using the value of reps inside the loop?");
+    }
+  }
+
   public static class AbstractBenchmarkException extends ErrorInUserCodeException {
     public AbstractBenchmarkException(Class<?> specifiedClass) {
       super("Class [" + specifiedClass.getName() + "] is abstract.", "Specify a concrete class.");

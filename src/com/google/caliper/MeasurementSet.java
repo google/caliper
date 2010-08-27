@@ -63,6 +63,17 @@ public final class MeasurementSet
     this.measurements = measurements;
   }
 
+  /**
+   * This is the same as getUnitNames(), but is for backwards compatibility on the server
+   * when null pointer exceptions need to be avoided.
+   */
+  public Map<String, Integer> getUnitNames(Map<String, Integer> defaultValue) {
+    if (unitNames == null) {
+      return defaultValue;
+    }
+    return new HashMap<String, Integer>(unitNames);
+  }
+
   public Map<String, Integer> getUnitNames() {
     return new HashMap<String, Integer>(unitNames);
   }
@@ -75,27 +86,27 @@ public final class MeasurementSet
     return measurements.size();
   }
 
-  public List<Double> getMeasurementNanos() {
-    List<Double> measurementNanos = new ArrayList<Double>();
+  public List<Double> getMeasurementsRaw() {
+    List<Double> measurementRaw = new ArrayList<Double>();
     for (Measurement measurement : measurements) {
-      measurementNanos.add(measurement.getNanosPerRep());
+      measurementRaw.add(measurement.getRaw());
     }
-    return measurementNanos;
+    return measurementRaw;
   }
 
   public List<Double> getMeasurementUnits() {
     List<Double> measurementUnits = new ArrayList<Double>();
     for (Measurement measurement : measurements) {
-      measurementUnits.add(measurement.getUnitsPerRep());
+      measurementUnits.add(measurement.getProcessed());
     }
     return measurementUnits;
   }
 
   /**
-   * Returns the median measurement, with respect to nanoseconds.
+   * Returns the median measurement, with respect to raw units.
    */
-  public double medianNanos() {
-    return median(getMeasurementNanos());
+  public double medianRaw() {
+    return median(getMeasurementsRaw());
   }
 
   /**
@@ -114,10 +125,10 @@ public final class MeasurementSet
   }
 
   /**
-   * Returns the average measurement with respect to nanoseconds..
+   * Returns the average measurement with respect to raw units.
    */
-  public double meanNanos() {
-    return mean(getMeasurementNanos());
+  public double meanRaw() {
+    return mean(getMeasurementsRaw());
   }
 
   /**
@@ -135,8 +146,8 @@ public final class MeasurementSet
     return sum / doubles.size();
   }
 
-  public double standardDeviationNanos() {
-    return standardDeviation(getMeasurementNanos());
+  public double standardDeviationRaw() {
+    return standardDeviation(getMeasurementsRaw());
   }
 
   public double standardDeviationUnits() {
@@ -156,8 +167,8 @@ public final class MeasurementSet
     return Math.sqrt(sumOfSquares / (doubles.size() - 1));
   }
 
-  public double minNanos() {
-    return min(getMeasurementNanos());
+  public double minRaw() {
+    return min(getMeasurementsRaw());
   }
 
   public double minUnits() {
@@ -172,8 +183,8 @@ public final class MeasurementSet
     return doubles.get(0);
   }
 
-  public double maxNanos() {
-    return max(getMeasurementNanos());
+  public double maxRaw() {
+    return max(getMeasurementsRaw());
   }
 
   public double maxUnits() {

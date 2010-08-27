@@ -26,7 +26,7 @@ import java.io.PrintStream;
 /**
  * Measure's the benchmark's per-trial execution time.
  */
-class Caliper {
+class TimeMeasurer extends Measurer {
 
   private final long warmupNanos;
   private final long runNanos;
@@ -39,18 +39,17 @@ class Caliper {
 
   private final int MAX_TRIALS = 10;
 
-  private final PrintStream verboseStream;
+  TimeMeasurer(long warmupMillis, long runMillis, PrintStream verboseStream) {
+    super(verboseStream);
 
-  Caliper(long warmupMillis, long runMillis, PrintStream verboseStream) {
     checkArgument(warmupMillis > 50);
     checkArgument(runMillis > 50);
 
     this.warmupNanos = warmupMillis * 1000000;
     this.runNanos = runMillis * 1000000;
-    this.verboseStream = verboseStream;
   }
 
-  public double warmUp(Supplier<ConfiguredBenchmark> testSupplier) throws Exception {
+  private double warmUp(Supplier<ConfiguredBenchmark> testSupplier) throws Exception {
     long elapsedNanos = 0;
     long netReps = 0;
     int reps = 1;
@@ -119,25 +118,27 @@ class Caliper {
    *      depends on which memory was allocated. See SetContainsBenchmark for an
    *      example.
    */
-  public MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier, double estimatedNanosPerRep)
+  @Override public MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier)
       throws Exception {
+    double estimatedNanosPerRep = warmUp(testSupplier);
+
     log("[measuring nanos per rep with scale 1.00]");
     Measurement measurement100 = measure(testSupplier, 1.00, estimatedNanosPerRep);
     log("[measuring nanos per rep with scale 0.50]");
-    Measurement measurement050 = measure(testSupplier, 0.50, measurement100.getNanosPerRep());
+    Measurement measurement050 = measure(testSupplier, 0.50, measurement100.getRaw());
     log("[measuring nanos per rep with scale 1.50]");
-    Measurement measurement150 = measure(testSupplier, 1.50, measurement100.getNanosPerRep());
+    Measurement measurement150 = measure(testSupplier, 1.50, measurement100.getRaw());
     MeasurementSet measurementSet =
         new MeasurementSet(measurement100, measurement050, measurement150);
 
     for (int i = 3; i < MAX_TRIALS; i++) {
-      double threshold = SHORT_CIRCUIT_TOLERANCE * measurementSet.meanNanos();
-      if (measurementSet.standardDeviationNanos() < threshold) {
+      double threshold = SHORT_CIRCUIT_TOLERANCE * measurementSet.meanRaw();
+      if (measurementSet.standardDeviationRaw() < threshold) {
         return measurementSet;
       }
 
       log("[performing additional measurement with scale 1.00]");
-      Measurement measurement = measure(testSupplier, 1.00, measurement100.getNanosPerRep());
+      Measurement measurement = measure(testSupplier, 1.00, measurement100.getRaw());
       measurementSet = measurementSet.plusMeasurement(measurement);
     }
 
@@ -160,7 +161,8 @@ class Caliper {
     long elapsedTime = measureReps(benchmark, reps);
     double nanosPerRep = elapsedTime / (double) reps;
     log(String.format("[took %.2f nanoseconds per rep]", nanosPerRep));
-    return new Measurement(benchmark.unitNames(), nanosPerRep, benchmark.nanosToUnits(nanosPerRep));
+    return new Measurement(benchmark.timeUnitNames(), nanosPerRep,
+        benchmark.nanosToUnits(nanosPerRep));
   }
 
   /**
@@ -168,21 +170,12 @@ class Caliper {
    */
   private long measureReps(ConfiguredBenchmark benchmark, int reps) throws Exception {
     prepareForTest();
-    log(LogConstants.TIMED_SECTION_STARTING);
+    log(LogConstants.MEASURED_SECTION_STARTING);
     long startNanos = System.nanoTime();
     benchmark.run(reps);
     long endNanos = System.nanoTime();
-    log(LogConstants.TIMED_SECTION_DONE);
+    log(LogConstants.MEASURED_SECTION_DONE);
     benchmark.close();
     return endNanos - startNanos;
-  }
-
-  private void prepareForTest() {
-    System.gc();
-    System.gc();
-  }
-
-  private void log(String message) {
-    verboseStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 }

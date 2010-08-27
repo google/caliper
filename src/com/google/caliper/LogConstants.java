@@ -30,14 +30,14 @@ public final class LogConstants {
   public static final String SCENARIOS_STARTING = "[starting scenarios]";
   public static final String STARTING_SCENARIO_PREFIX = "[starting scenario] ";
   public static final String SCENARIO_FINISHED = "[scenario finished]";
-
   public static final String SCENARIOS_FINISHED = "[scenarios finished]";
+
   /**
-   * All events will be logged from when {@code TIMED_SECTION_STARTING} is logged until
-   * {@code TIMED_SECTION_DONE} is logged.
+   * All events will be logged from when {@code MEASURED_SECTION_STARTING} is logged until
+   * {@code MEASURED_SECTION_DONE} is logged.
    */
-  public static final String TIMED_SECTION_STARTING = "[starting timed section]";
-  public static final String TIMED_SECTION_DONE = "[done timed section]";
+  public static final String MEASURED_SECTION_STARTING = "[starting measured section]";
+  public static final String MEASURED_SECTION_DONE = "[done measured section]";
 
   private LogConstants() {}
 }

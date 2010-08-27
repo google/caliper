@@ -30,40 +30,40 @@ public final class Measurement
 
   public static final Comparator<Measurement> SORT_BY_NANOS = new Comparator<Measurement>() {
     @Override public int compare(Measurement a, Measurement b) {
-      double aNanos = a.getNanosPerRep();
-      double bNanos = b.getNanosPerRep();
+      double aNanos = a.getRaw();
+      double bNanos = b.getRaw();
       return Double.compare(aNanos, bNanos);
     }
   };
 
   public static final Comparator<Measurement> SORT_BY_UNITS = new Comparator<Measurement>() {
     @Override public int compare(Measurement a, Measurement b) {
-      double aNanos = a.getUnitsPerRep();
-      double bNanos = b.getUnitsPerRep();
+      double aNanos = a.getProcessed();
+      double bNanos = b.getProcessed();
       return Double.compare(aNanos, bNanos);
     }
   };
 
-  private /*final*/ double nanosPerRep;
-  private /*final*/ double unitsPerRep;
+  private /*final*/ double raw;
+  private /*final*/ double processed;
   private /*final*/ Map<String, Integer> unitNames;
 
-  public Measurement(Map<String, Integer> unitNames, double nanosPerRep, double unitsPerRep) {
+  public Measurement(Map<String, Integer> unitNames, double raw, double processed) {
     this.unitNames = new HashMap<String, Integer>(unitNames);
-    this.nanosPerRep = nanosPerRep;
-    this.unitsPerRep = unitsPerRep;
+    this.raw = raw;
+    this.processed = processed;
   }
 
   public Map<String, Integer> getUnitNames() {
     return new HashMap<String, Integer>(unitNames);
   }
 
-  public double getNanosPerRep() {
-    return nanosPerRep;
+  public double getRaw() {
+    return raw;
   }
 
-  public double getUnitsPerRep() {
-    return unitsPerRep;
+  public double getProcessed() {
+    return processed;
   }
 
   private Measurement() {} /* for GWT */

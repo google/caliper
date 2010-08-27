@@ -22,8 +22,14 @@ import java.util.List;
 
 public final class StandardVm implements Vm {
 
-  @Override public List<String> getVmSpecificOptions() {
-    return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC", "-XX:+PrintCompilation");
+  @Override public List<String> getVmSpecificOptions(MeasurementType type) {
+    if (type == MeasurementType.TIME) {
+      return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC", "-XX:+PrintCompilation");
+    } else {
+      // don't bother printing compilation if we're not measuring time. It spews a bunch of
+      // useless information when measuring, for example, instances allocated.
+      return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC");
+    }
   }
 
   @Override public LogParser getLogParser(BufferedReader logReader) {

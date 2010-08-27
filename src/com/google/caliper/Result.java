@@ -21,8 +21,8 @@ package com.google.caliper;
  * in which the run occurred.
  */
 public final class Result {
-  private final Run run;
-  private final Environment environment;
+  private /*final*/ Run run;
+  private /*final*/ Environment environment;
 
   public Result(Run run, Environment environment) {
     this.run = run;
@@ -36,4 +36,6 @@ public final class Result {
   public Environment getEnvironment() {
     return environment;
   }
+
+  private Result() {} // for gson
 }

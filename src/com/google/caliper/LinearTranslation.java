@@ -21,6 +21,8 @@ public class LinearTranslation {
   private final double m;
   private final double b;
 
+  private static final double EQUALITY_TOLERANCE = 1.0E-6;
+
   /**
    * Constructs a linear translation for which {@code translate(in1) == out1}
    * and {@code translate(in2) == out2}.
@@ -28,6 +30,9 @@ public class LinearTranslation {
    * @throws IllegalArgumentException if {@code in1 == in2}
    */
   public LinearTranslation(double in1, double out1, double in2, double out2) {
+    if (Math.abs(in1 - in2) < EQUALITY_TOLERANCE) {
+      throw new IllegalArgumentException("in1 and in2 are approximately equal");
+    }
     double divisor = in1 - in2;
     this.m = (out1 - out2) / divisor;
     this.b = (in1 * out2 - in2 * out1) / divisor;

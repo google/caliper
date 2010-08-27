@@ -26,6 +26,10 @@ import java.util.Set;
 /**
  * A configured benchmark.
  *
+ * WARNING: a JSON representation of this class is stored on the app engine server. If any changes
+ * are made to this class, a deserialization adapter must be written for this class to ensure
+ * backwards compatibility.
+ *
  * <p>Gwt-safe.
  */
 @SuppressWarnings("serial")

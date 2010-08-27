@@ -23,7 +23,7 @@ import java.util.List;
 
 public final class UnknownVm implements Vm {
 
-  @Override public List<String> getVmSpecificOptions() {
+  @Override public List<String> getVmSpecificOptions(MeasurementType type) {
     return Lists.newArrayList();
   }
 

@@ -22,25 +22,14 @@ package com.google.caliper;
  */
 public final class LogEntry {
 
-  private final Scenario scenario;
   private final MeasurementSet measurementSet;
   private final String logLine;
   private final String displayLine;
 
-  public LogEntry(Scenario scenario, MeasurementSet measurementSet, String logLine,
-      String displayLine) {
-    this.scenario = scenario;
+  public LogEntry(MeasurementSet measurementSet, String logLine, String displayLine) {
     this.measurementSet = measurementSet;
     this.logLine = logLine;
     this.displayLine = displayLine;
-  }
-
-  public boolean hasScenario() {
-    return scenario != null;
-  }
-
-  public Scenario getScenario() {
-    return scenario;
   }
 
   public boolean hasMeasurementSet() {
@@ -68,15 +57,9 @@ public final class LogEntry {
   }
 
   public static class LogEntryBuilder {
-    private Scenario builderScenario;
     private MeasurementSet builderMeasurementSet;
     private String builderLogLine;
     private String builderDisplayLine;
-
-    public LogEntryBuilder setScenario(Scenario scenario) {
-      this.builderScenario = scenario;
-      return this;
-    }
 
     public LogEntryBuilder setMeasurementSet(MeasurementSet measurementSet) {
       this.builderMeasurementSet = measurementSet;
@@ -94,8 +77,7 @@ public final class LogEntry {
     }
 
     public LogEntry build() {
-      return new LogEntry(builderScenario, builderMeasurementSet, builderLogLine,
-          builderDisplayLine);
+      return new LogEntry(builderMeasurementSet, builderLogLine, builderDisplayLine);
     }
   }
 }

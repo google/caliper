@@ -18,7 +18,6 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -39,8 +38,7 @@ final class InProcessRunner {
     System.setOut(nullPrintStream());
     System.setErr(nullPrintStream());
     try {
-      Caliper caliper = new Caliper(arguments.getWarmupMillis(), arguments.getRunMillis(),
-          outStream);
+      Measurer measurer = getMeasurer(arguments, outStream);
 
       log(outStream, LogConstants.SCENARIOS_STARTING);
       List<Scenario> scenarios = scenarioSelection.select();
@@ -51,20 +49,15 @@ final class InProcessRunner {
         throw new IllegalArgumentException("Invalid arguments to subprocess. Expected exactly one "
             + "scenario but got " + scenarios.size());
       }
-      for (Scenario scenario : scenarios) {
-        final Scenario normalizedScenario = scenarioSelection.normalizeScenario(scenario);
+      for (final Scenario scenario : scenarios) {
         Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
           @Override public ConfiguredBenchmark get() {
-            return scenarioSelection.createBenchmark(normalizedScenario);
+            return scenarioSelection.createBenchmark(scenario);
           }
         };
 
-        outStream.println(LogConstants.SCENARIO_JSON_PREFIX
-            + new Gson().toJson(scenario.getVariables()));
-
-        double warmupNanosPerTrial = caliper.warmUp(supplier);
-        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + normalizedScenario);
-        MeasurementSet measurementSet = caliper.run(supplier, warmupNanosPerTrial);
+        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + scenario);
+        MeasurementSet measurementSet = measurer.run(supplier);
         outStream.println(LogConstants.MEASUREMENT_JSON_PREFIX
             + Json.measurementSetToJson(measurementSet));
         log(outStream, LogConstants.SCENARIO_FINISHED);
@@ -80,11 +73,24 @@ final class InProcessRunner {
     }
   }
 
+  private Measurer getMeasurer(Arguments arguments, PrintStream outStream) {
+    if (arguments.getMeasurementType() == MeasurementType.TIME) {
+      return new TimeMeasurer(arguments.getWarmupMillis(), arguments.getRunMillis(), outStream);
+    } else if (arguments.getMeasurementType() == MeasurementType.INSTANCE) {
+      return new InstancesAllocationMeasurer(outStream);
+    } else if (arguments.getMeasurementType() == MeasurementType.MEMORY) {
+      return new MemoryAllocationMeasurer(outStream);
+    } else {
+      throw new IllegalArgumentException("unrecognized measurement type: "
+          + arguments.getMeasurementType());
+    }
+  }
+
   private void log(PrintStream outStream, String message) {
     outStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws Exception {
     try {
       new InProcessRunner().run(args);
       System.exit(0); // user code may have leave non-daemon threads behind!

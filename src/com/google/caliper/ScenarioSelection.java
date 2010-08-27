@@ -204,7 +204,7 @@ public final class ScenarioSelection {
 
     List<Scenario> result = new ArrayList<Scenario>();
     for (ScenarioBuilder builder : builders) {
-      result.add(builder.build());
+      result.add(normalizeScenario(builder.build()));
     }
 
     return result;

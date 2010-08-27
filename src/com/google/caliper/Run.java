@@ -24,30 +24,34 @@ import java.util.Map;
 /**
  * The complete result of a benchmark suite run.
  *
+ * WARNING: a JSON representation of this class is stored on the app engine server. If any changes
+ * are made to this class, a deserialization adapter must be written for this class to ensure
+ * backwards compatibility.
+ *
  * <p>Gwt-safe.
  */
 @SuppressWarnings("serial")
 public final class Run
     implements Serializable /* for GWT Serialization */ {
 
-  private /*final*/ Map<Scenario, MeasurementSetMeta> measurements;
+  private /*final*/ Map<Scenario, ScenarioResult> measurements;
   private /*final*/ String benchmarkName;
   private /*final*/ long executedTimestamp;
 
   // TODO: add more run properties such as checksums of the executed code
 
-  public Run(Map<Scenario, MeasurementSetMeta> measurements,
+  public Run(Map<Scenario, ScenarioResult> measurements,
       String benchmarkName, Date executedTimestamp) {
     if (benchmarkName == null || executedTimestamp == null) {
       throw new NullPointerException();
     }
 
-    this.measurements = new LinkedHashMap<Scenario, MeasurementSetMeta>(measurements);
+    this.measurements = new LinkedHashMap<Scenario, ScenarioResult>(measurements);
     this.benchmarkName = benchmarkName;
     this.executedTimestamp = executedTimestamp.getTime();
   }
 
-  public Map<Scenario, MeasurementSetMeta> getMeasurements() {
+  public Map<Scenario, ScenarioResult> getMeasurements() {
     return measurements;
   }
 
