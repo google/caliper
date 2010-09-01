@@ -179,7 +179,7 @@ final class ConsoleReport {
 
       int numDigitsInMin = ceil(Math.log10(minForType));
       decimalDigitsMap.put(measurementType,
-          ceil(Math.max(0, Math.log10(divideByMap.get(measurementType)) + 3 - numDigitsInMin)));
+          ceil(Math.max(0, ceil(Math.log10(divideByMap.get(measurementType))) + 3 - numDigitsInMin)));
 
       digitsBeforeDecimalMap.put(measurementType,
           Math.max(1, ceil(Math.log10(maxForType / divideByMap.get(measurementType)))));

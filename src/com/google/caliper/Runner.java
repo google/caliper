@@ -22,6 +22,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -95,7 +96,7 @@ public final class Runner {
     }
   }
 
-  private void uploadResultsFileOrDir(File resultsFileOrDir) {
+  void uploadResultsFileOrDir(File resultsFileOrDir) {
     try {
       if (resultsFileOrDir.isDirectory()) {
         for (File resultsFile : resultsFileOrDir.listFiles(UPLOAD_FILE_FILTER)) {
@@ -309,7 +310,11 @@ public final class Runner {
     command.add(classPath);
     command.add("-verbose:gc");
     if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
-      command.add("-javaagent:" + System.getenv("ALLOCATION_JAR"));
+      String allocationJarFile = System.getenv("ALLOCATION_JAR");
+
+
+
+      command.add("-javaagent:" + allocationJarFile);
     }
     for (String option : vm.getVmSpecificOptions(type)) {
       command.add(option);

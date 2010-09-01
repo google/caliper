@@ -166,7 +166,8 @@ public final class Arguments {
       } else if ("--timeUnit".equals(arg)) {
         result.timeUnit = args.next();
         standardRun = true;
-      } else if ("--saveResults".equals(arg)) {
+      } else if ("--saveResults".equals(arg) || "--xmlSave".equals(arg)) {
+        // TODO: unsupport legacy --xmlSave
         result.saveResultsFile = new File(args.next());
         standardRun = true;
       } else if ("--uploadResults".equals(arg)) {
@@ -216,7 +217,7 @@ public final class Arguments {
     }
 
     if (standardRun && result.uploadResultsFile != null) {
-      throw new IncompatibleArgumentsException("--xmlUpload");
+      throw new IncompatibleArgumentsException("--uploadResults");
     }
 
     if (result.suiteClassName == null && result.uploadResultsFile == null) {
