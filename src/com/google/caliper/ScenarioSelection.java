@@ -44,6 +44,7 @@ public final class ScenarioSelection {
   private final String suiteClassName;
   private final Multimap<String, String> userParameters;
   private final Set<String> userVms;
+  private final int trials;
 
   private Benchmark suite;
 
@@ -51,14 +52,15 @@ public final class ScenarioSelection {
   private final Multimap<String, String> parameters = LinkedHashMultimap.create();
 
   public ScenarioSelection(Arguments arguments) {
-    this(arguments.getSuiteClassName(), arguments.getUserParameters(), arguments.getUserVms());
+    this(arguments.getSuiteClassName(), arguments.getUserParameters(), arguments.getUserVms(), arguments.getTrials());
   }
 
   public ScenarioSelection(String suiteClassName,
-      Multimap<String, String> userParameters, Set<String> userVms) {
+      Multimap<String, String> userParameters, Set<String> userVms, int trials) {
     this.suiteClassName = suiteClassName;
     this.userParameters = userParameters;
     this.userVms = userVms;
+    this.trials = trials;
   }
 
   /**
@@ -172,9 +174,12 @@ public final class ScenarioSelection {
         ? defaultVms()
         : userVms;
     for (String vm : vms) {
-      ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
-      scenarioBuilder.parameters.put(Scenario.VM_KEY, vm);
-      builders.add(scenarioBuilder);
+      for (int i = 0; i < trials; i++) {
+        ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
+        scenarioBuilder.parameters.put(Scenario.VM_KEY, vm);
+        scenarioBuilder.parameters.put(Scenario.TRIAL_KEY, "" + i);
+        builders.add(scenarioBuilder);
+      }
     }
 
     for (Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {

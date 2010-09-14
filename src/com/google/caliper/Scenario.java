@@ -37,12 +37,14 @@ public final class Scenario
     implements Serializable /* for GWT */  {
 
   static final String VM_KEY = "vm";
+  static final String TRIAL_KEY = "trial";
 
   /**
    * The subset of variable names that are managed by the system. It is an error
    * to create a parameter with the same name as one of these variables.
    */
-  static final Set<String> SYSTEM_VARIABLES = new HashSet<String>(Arrays.asList(VM_KEY));
+  static final Set<String> SYSTEM_VARIABLES =
+      new HashSet<String>(Arrays.asList(VM_KEY, TRIAL_KEY));
 
   private /*final*/ Map<String, String> variables;
 

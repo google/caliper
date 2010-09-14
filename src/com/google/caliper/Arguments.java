@@ -50,6 +50,7 @@ public final class Arguments {
    */
   private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
 
+  private int trials = 1;
   private long warmupMillis = 3000;
   private long runMillis = 1000;
   private String timeUnit = null;
@@ -70,6 +71,10 @@ public final class Arguments {
 
   public Set<String> getUserVms() {
     return userVms;
+  }
+
+  public int getTrials() {
+    return trials;
   }
 
   public Multimap<String, String> getUserParameters() {
@@ -153,6 +158,18 @@ public final class Arguments {
         standardRun = true;
       } else if ("--runMillis".equals(arg)) {
         result.runMillis = Long.parseLong(args.next());
+        standardRun = true;
+      } else if ("--trials".equals(arg)) {
+        String value = args.next();
+        try {
+
+          result.trials = Integer.parseInt(value);
+          if (result.trials < 1) {
+            throw new UserException.InvalidTrialsException(value);
+          }
+        } catch (NumberFormatException e) {
+          throw new UserException.InvalidTrialsException(value);
+        }
         standardRun = true;
       } else if ("--vm".equals(arg)) {
         if (vmString != null) {

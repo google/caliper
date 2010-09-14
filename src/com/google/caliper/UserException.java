@@ -111,6 +111,12 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class InvalidTrialsException extends ErrorInUsageException {
+    public InvalidTrialsException(String arg) {
+      super("Invalid trials: " + arg);
+    }
+  }
+
   public static class CantCustomizeInProcessVmException extends ErrorInUsageException {
     public CantCustomizeInProcessVmException() {
       super("Can't customize VM when running in process.");
