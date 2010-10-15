@@ -22,7 +22,8 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
-
+import com.google.common.io.Closeables;
+import com.google.gson.JsonObject;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
@@ -54,7 +55,6 @@ public final class Runner {
   };
 
   private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ssZ";
-  private static final String LOG_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ss.SSSZ";
 
   /** Command line arguments to the process */
   private Arguments arguments;
@@ -242,55 +242,36 @@ public final class Runner {
   private MeasurementResult measure(Scenario scenario, MeasurementType type) {
     Vm vm = new VmFactory().createVm(scenario);
     // this must be done before starting the forked process on certain VMs
-    vm.init();
     List<String> command = createCommand(scenario, vm, type);
     Process timeProcess = startForkedProcess(command);
 
-    SimpleDateFormat dateFormat = new SimpleDateFormat(LOG_DATE_FORMAT);
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-    dateFormat.setLenient(true);
-
     MeasurementSet measurementSet = null;
     StringBuilder eventLog = new StringBuilder();
-    List<String> outputLines = Lists.newArrayList();
-    BufferedReader logReader = new BufferedReader(
-        new InputStreamReader(timeProcess.getInputStream()));
+    InterleavedReader reader = null;
     try {
-      LogParser logParser = vm.getLogParser(logReader);
-      LogEntry logEntry;
-      while ((logEntry = logParser.getEntry()) != null) {
-        if (logEntry.hasMeasurementSet()) {
-          if (measurementSet != null) {
-            throw new RuntimeException("received two measurement sets from the log parser");
-          }
-          measurementSet = logEntry.getMeasurementSet();
-        }
-
-        if (logEntry.log()) {
-          String logLine =
-              String.format("[%s] %s\n", dateFormat.format(new Date()), logEntry.logLine());
-          eventLog.append(logLine);
-        }
-
-        if (logEntry.display()) {
-          outputLines.add(logEntry.displayLine());
+      reader = new InterleavedReader(arguments.getMarker(),
+          new InputStreamReader(timeProcess.getInputStream()));
+      Object o;
+      while ((o = reader.read()) != null) {
+        if (o instanceof String) {
+          eventLog.append(o);
+        } else if (measurementSet == null) {
+          JsonObject jsonObject = (JsonObject) o;
+          measurementSet = Json.measurementSetFromJson(jsonObject);
+        } else {
+          throw new RuntimeException("Unexpected value: " + o);
         }
       }
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     } finally {
-      try {
-        logReader.close();
-      } catch (IOException ignored) {
-      }
+      Closeables.closeQuietly(reader);
     }
-    vm.cleanup();
 
     if (measurementSet == null) {
       String message = "Failed to execute " + Joiner.on(" ").join(command);
-      System.err.println();
       System.err.println("  " + message);
-      for (String outputLine : outputLines) {
-        System.err.println("  " + outputLine);
-      }
+      System.err.println(eventLog.toString());
       throw new ConfigurationException(message);
     }
 
@@ -311,9 +292,6 @@ public final class Runner {
     command.add("-verbose:gc");
     if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
       String allocationJarFile = System.getenv("ALLOCATION_JAR");
-
-
-
       command.add("-javaagent:" + allocationJarFile);
     }
     for (String option : vm.getVmSpecificOptions(type)) {
@@ -329,6 +307,8 @@ public final class Runner {
     }
     command.add("--measurementType");
     command.add(type.toString());
+    command.add("--marker");
+    command.add(arguments.getMarker());
     command.add(arguments.getSuiteClassName());
     return command;
   }

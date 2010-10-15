@@ -17,25 +17,11 @@
 package com.google.caliper;
 
 import com.google.common.collect.Lists;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.util.List;
 
 public final class UnknownVm implements Vm {
 
   @Override public List<String> getVmSpecificOptions(MeasurementType type) {
     return Lists.newArrayList();
-  }
-
-  @Override public LogParser getLogParser(BufferedReader logReader) {
-    return new StdOutLogParser(logReader);
-  }
-
-  @Override public void init() {
-    // nothing to do
-  }
-
-  @Override public void cleanup() {
-    // nothing to do
   }
 }

@@ -17,7 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.Member;
 import java.lang.reflect.Method;

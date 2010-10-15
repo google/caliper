@@ -17,8 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
-import com.google.common.io.NullOutputStream;
-import java.io.PrintStream;
 import java.util.Map;
 import java.util.Set;
 import junit.framework.TestCase;
@@ -30,7 +28,7 @@ public final class CaliperTest extends TestCase {
    * @throws Exception
    */
   public void testBenchmarkScalesNonLinearly() throws Exception {
-    TimeMeasurer timeMeasurer = new TimeMeasurer(1000, 1000, new PrintStream(new NullOutputStream()));
+    TimeMeasurer timeMeasurer = new TimeMeasurer(1000, 1000);
     try {
       timeMeasurer.run(new NonLinearTimedRunnable());
       fail();

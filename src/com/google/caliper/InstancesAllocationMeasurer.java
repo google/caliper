@@ -16,12 +16,9 @@
 
 package com.google.caliper;
 
-import java.io.PrintStream;
-
 public final class InstancesAllocationMeasurer extends AllocationMeasurer {
 
-  InstancesAllocationMeasurer(PrintStream outStream) {
-    super(outStream);
+  InstancesAllocationMeasurer() {
     type = "instance";
   }
 

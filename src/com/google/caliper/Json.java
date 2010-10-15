@@ -84,6 +84,10 @@ public final class Json {
     }
   }
 
+  public static MeasurementSet measurementSetFromJson(JsonObject measurementSetJson) {
+    return getGsonInstance().fromJson(measurementSetJson, MeasurementSet.class);
+  }
+
   /**
    * Backwards compatibility!
    */

@@ -16,12 +16,9 @@
 
 package com.google.caliper;
 
-import java.io.PrintStream;
-
 public final class MemoryAllocationMeasurer extends AllocationMeasurer {
 
-  public MemoryAllocationMeasurer(PrintStream outStream) {
-    super(outStream);
+  public MemoryAllocationMeasurer() {
     type = "byte";
   }
 

@@ -25,9 +25,9 @@ import com.google.caliper.UserException.NoBenchmarkClassException;
 import com.google.caliper.UserException.UnrecognizedOptionException;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import java.io.File;
@@ -62,6 +62,12 @@ public final class Arguments {
   private boolean measureMemory = false;
   private MeasurementType measurementType;
   private MeasurementType primaryMeasurementType;
+
+  /**
+   * A signal that indicates a JSON object interleaved with the process output.
+   * Should be short, but unlikely to show up in the processes natural output.
+   */
+  private String marker = "//ZxJ/";
 
   private static final String defaultDelimiter = ",";
 
@@ -123,6 +129,10 @@ public final class Arguments {
 
   public MeasurementType getPrimaryMeasurementType() {
     return primaryMeasurementType;
+  }
+
+  public String getMarker() {
+    return marker;
   }
 
   public static Arguments parse(String[] argsArray) {
@@ -195,6 +205,8 @@ public final class Arguments {
       } else if ("--measureMemory".equals(arg)) {
         result.measureMemory = true;
         standardRun = true;
+      } else if ("--marker".equals(arg)) {
+        result.marker = args.next();
       } else if ("--measurementType".equals(arg)) {
         String measurementType = args.next();
         try {

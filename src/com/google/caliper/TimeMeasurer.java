@@ -16,12 +16,10 @@
 
 package com.google.caliper;
 
-
 import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.caliper.UserException.RuntimeOutOfRangeException;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Supplier;
-import java.io.PrintStream;
 
 /**
  * Measure's the benchmark's per-trial execution time.
@@ -39,9 +37,7 @@ class TimeMeasurer extends Measurer {
 
   private final int MAX_TRIALS = 10;
 
-  TimeMeasurer(long warmupMillis, long runMillis, PrintStream verboseStream) {
-    super(verboseStream);
-
+  TimeMeasurer(long warmupMillis, long runMillis) {
     checkArgument(warmupMillis > 50);
     checkArgument(runMillis > 50);
 

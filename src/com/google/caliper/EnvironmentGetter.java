@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.ImmutableMap.Builder;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multimap;

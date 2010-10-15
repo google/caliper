@@ -17,15 +17,8 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
-import java.io.PrintStream;
 
 abstract class Measurer {
-
-  private final PrintStream verboseStream;
-
-  Measurer(PrintStream verboseStream) {
-    this.verboseStream = verboseStream;
-  }
 
   public abstract MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier) throws Exception;
 
@@ -35,6 +28,6 @@ abstract class Measurer {
   }
 
   protected final void log(String message) {
-    verboseStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
+    System.out.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 }

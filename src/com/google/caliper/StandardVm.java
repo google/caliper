@@ -17,7 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.collect.Lists;
-import java.io.BufferedReader;
 import java.util.List;
 
 public final class StandardVm implements Vm {
@@ -30,17 +29,5 @@ public final class StandardVm implements Vm {
       // useless information when measuring, for example, instances allocated.
       return Lists.newArrayList("-Xbatch", "-XX:+UseSerialGC");
     }
-  }
-
-  @Override public LogParser getLogParser(BufferedReader logReader) {
-    return new StdOutLogParser(logReader);
-  }
-
-  @Override public void init() {
-    // nothing to do
-  }
-
-  @Override public void cleanup() {
-    // nothing to do
   }
 }

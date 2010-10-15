@@ -20,7 +20,6 @@ import com.google.caliper.UserException.NonConstantMemoryUsage;
 import com.google.common.base.Supplier;
 import com.google.monitoring.runtime.instrumentation.AllocationRecorder;
 import com.google.monitoring.runtime.instrumentation.Sampler;
-import java.io.PrintStream;
 
 public abstract class AllocationMeasurer extends Measurer {
 
@@ -35,9 +34,7 @@ public abstract class AllocationMeasurer extends Measurer {
   private boolean recordAllocations;
   protected String type;
 
-  protected AllocationMeasurer(PrintStream outStream) {
-    super(outStream);
-
+  protected AllocationMeasurer() {
     log = false;
     allocationsToIgnore = 0;
     numberOfAllocations = 0;

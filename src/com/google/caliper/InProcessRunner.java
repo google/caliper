@@ -18,7 +18,6 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;
@@ -33,14 +32,8 @@ final class InProcessRunner {
 
     final ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
 
-    PrintStream outStream = System.out;
-    PrintStream errStream = System.err;
-    System.setOut(nullPrintStream());
-    System.setErr(nullPrintStream());
     try {
-      Measurer measurer = getMeasurer(arguments, outStream);
-
-      log(outStream, LogConstants.SCENARIOS_STARTING);
+      Measurer measurer = getMeasurer(arguments);
       List<Scenario> scenarios = scenarioSelection.select();
       // We only expect one scenario right now - if we have more, something has gone wrong.
       // This matters for things like reading the measurements. This is only done once, so if
@@ -49,45 +42,35 @@ final class InProcessRunner {
         throw new IllegalArgumentException("Invalid arguments to subprocess. Expected exactly one "
             + "scenario but got " + scenarios.size());
       }
-      for (final Scenario scenario : scenarios) {
-        Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
-          @Override public ConfiguredBenchmark get() {
-            return scenarioSelection.createBenchmark(scenario);
-          }
-        };
+      final Scenario scenario = scenarios.get(0);
 
-        log(outStream, LogConstants.STARTING_SCENARIO_PREFIX + scenario);
-        MeasurementSet measurementSet = measurer.run(supplier);
-        outStream.println(LogConstants.MEASUREMENT_JSON_PREFIX
-            + Json.measurementSetToJson(measurementSet));
-        log(outStream, LogConstants.SCENARIO_FINISHED);
-      }
-      log(outStream, LogConstants.SCENARIOS_FINISHED);
+      Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
+        @Override public ConfiguredBenchmark get() {
+          return scenarioSelection.createBenchmark(scenario);
+        }
+      };
+
+      System.out.println("starting " + scenario);
+      MeasurementSet measurementSet = measurer.run(supplier);
+      System.out.println(arguments.getMarker() + Json.measurementSetToJson(measurementSet));
     } catch (UserException e) {
       throw e;
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
-    } finally {
-      System.setOut(outStream);
-      System.setErr(errStream);
     }
   }
 
-  private Measurer getMeasurer(Arguments arguments, PrintStream outStream) {
+  private Measurer getMeasurer(Arguments arguments) {
     if (arguments.getMeasurementType() == MeasurementType.TIME) {
-      return new TimeMeasurer(arguments.getWarmupMillis(), arguments.getRunMillis(), outStream);
+      return new TimeMeasurer(arguments.getWarmupMillis(), arguments.getRunMillis());
     } else if (arguments.getMeasurementType() == MeasurementType.INSTANCE) {
-      return new InstancesAllocationMeasurer(outStream);
+      return new InstancesAllocationMeasurer();
     } else if (arguments.getMeasurementType() == MeasurementType.MEMORY) {
-      return new MemoryAllocationMeasurer(outStream);
+      return new MemoryAllocationMeasurer();
     } else {
       throw new IllegalArgumentException("unrecognized measurement type: "
           + arguments.getMeasurementType());
     }
-  }
-
-  private void log(PrintStream outStream, String message) {
-    outStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 
   public static void main(String... args) throws Exception {
@@ -103,7 +86,7 @@ final class InProcessRunner {
 
   public PrintStream nullPrintStream() {
     return new PrintStream(new OutputStream() {
-      public void write(int b) throws IOException {}
+      public void write(int b) {}
     });
   }
 }

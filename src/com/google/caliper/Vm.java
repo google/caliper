@@ -16,12 +16,8 @@
 
 package com.google.caliper;
 
-import java.io.BufferedReader;
 import java.util.List;
 
 public interface Vm {
   List<String> getVmSpecificOptions(MeasurementType type);
-  void init();
-  LogParser getLogParser(BufferedReader logReader);
-  void cleanup();
 }
