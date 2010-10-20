@@ -19,5 +19,5 @@ package com.google.caliper;
 import java.util.List;
 
 public interface Vm {
-  List<String> getVmSpecificOptions(MeasurementType type);
+  List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments);
 }

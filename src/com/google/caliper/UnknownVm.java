@@ -16,12 +16,12 @@
 
 package com.google.caliper;
 
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableList;
 import java.util.List;
 
 public final class UnknownVm implements Vm {
 
-  @Override public List<String> getVmSpecificOptions(MeasurementType type) {
-    return Lists.newArrayList();
+  @Override public List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments) {
+    return ImmutableList.of();
   }
 }

@@ -58,6 +58,7 @@ public final class Arguments {
   private String memoryUnit = null;
   private File saveResultsFile = null;
   private File uploadResultsFile = null;
+  private boolean captureVmLog = false;
   private boolean printScore = false;
   private boolean measureMemory = false;
   private MeasurementType measurementType;
@@ -115,6 +116,10 @@ public final class Arguments {
     return uploadResultsFile;
   }
 
+  public boolean getCaptureVmLog() {
+    return captureVmLog;
+  }
+
   public boolean printScore() {
     return printScore;
   }
@@ -163,6 +168,9 @@ public final class Arguments {
         }
         standardRun = true;
       // TODO: move warmup/run to caliperrc
+      } else if ("--captureVmLog".equals(arg)) {
+        result.captureVmLog = true;
+        standardRun = true;
       } else if ("--warmupMillis".equals(arg)) {
         result.warmupMillis = Long.parseLong(args.next());
         standardRun = true;
@@ -289,6 +297,9 @@ public final class Arguments {
     System.out.println("  --warmupMillis <millis>: duration to warmup each benchmark");
     System.out.println();
     System.out.println("  --runMillis <millis>: duration to execute each benchmark");
+    System.out.println();
+    System.out.println("  --captureVmLog: record the VM's just-in-time compiler and GC logs.");
+    System.out.println("        This may slow down or break benchmark display tools.");
     System.out.println();
     System.out.println("  --measureMemory: measure the number of allocations done and the amount of");
     System.out.println("        memory used by invocations of the benchmark.");

@@ -17,13 +17,21 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableList;
+import java.util.ArrayList;
 import java.util.List;
 
 public final class DalvikVm implements Vm {
 
-  @Override public List<String> getVmSpecificOptions(MeasurementType type) {
-    // TODO:
-    // Capture GC. Currently it goes to logcat.
-    return ImmutableList.of();
+  @Override public List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments) {
+    if (!arguments.getCaptureVmLog()) {
+      return ImmutableList.of();
+    }
+
+    List<String> result = new ArrayList<String>();
+    if (arguments.getCaptureVmLog()) {
+      // TODO: currently GC goes to logcat.
+      // result.add("-verbose:gc");
+    }
+    return result;
   }
 }

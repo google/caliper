@@ -289,12 +289,11 @@ public final class Runner {
     command.addAll(vmList);
     command.add("-cp");
     command.add(classPath);
-    command.add("-verbose:gc");
     if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
       String allocationJarFile = System.getenv("ALLOCATION_JAR");
       command.add("-javaagent:" + allocationJarFile);
     }
-    for (String option : vm.getVmSpecificOptions(type)) {
+    for (String option : vm.getVmSpecificOptions(type, arguments)) {
       command.add(option);
     }
     command.add(InProcessRunner.class.getName());
