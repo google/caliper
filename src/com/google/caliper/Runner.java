@@ -19,8 +19,9 @@ package com.google.caliper;
 import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.ObjectArrays;
 import com.google.common.io.Closeables;
 import com.google.gson.JsonObject;
@@ -37,11 +38,12 @@ import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
+import java.util.regex.Pattern;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -55,6 +57,9 @@ public final class Runner {
   };
 
   private static final String FILE_NAME_DATE_FORMAT = "yyyy-MM-dd'T'HH-mm-ssZ";
+
+  private static final Splitter ARGUMENT_SPLITTER
+      = Splitter.on(Pattern.compile("\\s+")).omitEmptyStrings();
 
   /** Command line arguments to the process */
   private Arguments arguments;
@@ -284,32 +289,35 @@ public final class Runner {
       throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
     }
 
-    List<String> command = Lists.newArrayList();
-    List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
-    command.addAll(vmList);
-    command.add("-cp");
-    command.add(classPath);
+    ImmutableList.Builder<String> command = ImmutableList.builder();
+    command.addAll(ARGUMENT_SPLITTER.split(scenario.getVariables().get(Scenario.VM_KEY)));
+    command.add("-cp").add(classPath);
     if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
       String allocationJarFile = System.getenv("ALLOCATION_JAR");
       command.add("-javaagent:" + allocationJarFile);
     }
-    for (String option : vm.getVmSpecificOptions(type, arguments)) {
-      command.add(option);
+    command.addAll(vm.getVmSpecificOptions(type, arguments));
+
+    Map<String, String> vmParameters = scenario.getVariables(
+        scenarioSelection.getVmParameterNames());
+    for (String vmParameter : vmParameters.values()) {
+      command.addAll(ARGUMENT_SPLITTER.split(vmParameter));
     }
+
     command.add(InProcessRunner.class.getName());
-    command.add("--warmupMillis");
-    command.add(String.valueOf(arguments.getWarmupMillis()));
-    command.add("--runMillis");
-    command.add(String.valueOf(arguments.getRunMillis()));
-    for (Entry<String, String> entry : scenario.getParameters().entrySet()) {
+    command.add("--warmupMillis").add(Long.toString(arguments.getWarmupMillis()));
+    command.add("--runMillis").add(Long.toString(arguments.getRunMillis()));
+
+    Map<String,String> userParameters = scenario.getVariables(
+        scenarioSelection.getUserParameterNames());
+    for (Entry<String, String> entry : userParameters.entrySet()) {
       command.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
-    command.add("--measurementType");
-    command.add(type.toString());
-    command.add("--marker");
-    command.add(arguments.getMarker());
+
+    command.add("--measurementType").add(type.toString());
+    command.add("--marker").add(arguments.getMarker());
     command.add(arguments.getSuiteClassName());
-    return command;
+    return command.build();
   }
 
   private Process startForkedProcess(List<String> command) {

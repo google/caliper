@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import java.util.Arrays;
+import java.util.Set;
 
 /**
  * Signifies a problem that should be explained in user-friendly terms on the command line, without
@@ -102,6 +103,9 @@ public abstract class UserException extends RuntimeException {
   public static class DuplicateParameterException extends ErrorInUsageException {
     public DuplicateParameterException(String arg) {
       super("Duplicate parameter: " + arg);
+    }
+    public DuplicateParameterException(Set<String> arg) {
+      super("Duplicate parameters: " + arg);
     }
   }
 

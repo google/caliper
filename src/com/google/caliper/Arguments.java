@@ -19,7 +19,6 @@ package com.google.caliper;
 import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.IncompatibleArgumentsException;
 import com.google.caliper.UserException.InvalidParameterValueException;
-import com.google.caliper.UserException.MalformedParameterException;
 import com.google.caliper.UserException.MultipleBenchmarkClassesException;
 import com.google.caliper.UserException.NoBenchmarkClassException;
 import com.google.caliper.UserException.UnrecognizedOptionException;
@@ -49,6 +48,11 @@ public final class Arguments {
    * no value in this multimap will get their values from the benchmark suite.
    */
   private final Multimap<String, String> userParameters = LinkedHashMultimap.create();
+
+  /**
+   * VM parameters like {memory=[-Xmx64,-Xmx128],jit=[-client,-server]}
+   */
+  private final Multimap<String, String> vmParameters = LinkedHashMultimap.create();
 
   private int trials = 1;
   private long warmupMillis = 3000;
@@ -82,6 +86,10 @@ public final class Arguments {
 
   public int getTrials() {
     return trials;
+  }
+
+  public Multimap<String, String> getVmParameters() {
+    return vmParameters;
   }
 
   public Multimap<String, String> getUserParameters() {
@@ -146,6 +154,7 @@ public final class Arguments {
     Iterator<String> args = Iterators.forArray(argsArray);
     String delimiter = defaultDelimiter;
     Map<String, String> userParameterStrings = Maps.newLinkedHashMap();
+    Map<String, String> vmParameterStrings = Maps.newLinkedHashMap();
     String vmString = null;
     boolean standardRun = false;
     while (args.hasNext()) {
@@ -155,15 +164,39 @@ public final class Arguments {
         throw new DisplayUsageException();
       }
 
-      if (arg.startsWith("-D")) {
+      if (arg.startsWith("-D") || arg.startsWith("-J")) {
+
+        /*
+         * Handle user parameters (-D) and VM parameters (-J) of these forms:
+         *
+         * -Dlength=100
+         * -Jmemory=-Xmx1024M
+         * -Dlength=100,200
+         * -Jmemory=-Xmx1024M,-Xmx2048M
+         * -Dlength 100
+         * -Jmemory -Xmx1024M
+         * -Dlength 100,200
+         * -Jmemory -Xmx1024M,-Xmx2048M
+         */
+
+        String name;
+        String value;
         int equalsSign = arg.indexOf('=');
         if (equalsSign == -1) {
-          throw new MalformedParameterException(arg);
+          name = arg.substring(2);
+          value = args.next();
+        } else {
+          name = arg.substring(2, equalsSign);
+          value = arg.substring(equalsSign + 1);
         }
-        String name = arg.substring(2, equalsSign);
-        String value = arg.substring(equalsSign + 1);
-        String oldValue = userParameterStrings.put(name, value);
-        if (oldValue != null) {
+
+        String previousValue;
+        if (arg.startsWith("-D")) {
+          previousValue = userParameterStrings.put(name, value);
+        } else {
+          previousValue = vmParameterStrings.put(name, value);
+        }
+        if (previousValue != null) {
           throw new UserException.DuplicateParameterException(arg);
         }
         standardRun = true;
@@ -248,9 +281,17 @@ public final class Arguments {
       Iterables.addAll(result.userVms, delimiterSplitter.split(vmString));
     }
 
-    for (Map.Entry<String, String> userParameterEntry : userParameterStrings.entrySet()) {
-      String name = userParameterEntry.getKey();
-      result.userParameters.putAll(name, delimiterSplitter.split(userParameterEntry.getValue()));
+    Set<String> duplicates = Sets.intersection(
+        userParameterStrings.keySet(), vmParameterStrings.keySet());
+    if (!duplicates.isEmpty()) {
+      throw new UserException.DuplicateParameterException(duplicates);
+    }
+
+    for (Map.Entry<String, String> entry : userParameterStrings.entrySet()) {
+      result.userParameters.putAll(entry.getKey(), delimiterSplitter.split(entry.getValue()));
+    }
+    for (Map.Entry<String, String> entry : vmParameterStrings.entrySet()) {
+      result.vmParameters.putAll(entry.getKey(), delimiterSplitter.split(entry.getValue()));
     }
 
     if (standardRun && result.uploadResultsFile != null) {
@@ -289,6 +330,12 @@ public final class Arguments {
     System.out.println("        the method \"timeFoo\", it can be run alone by using");
     System.out.println("        \"-Dbenchmark=Foo\". \"benchmark\" also accepts a delimiter");
     System.out.println("        separated list of methods to run.");
+    System.out.println();
+    System.out.println("  -J<param>=<value>: set a JVM argument to the given value.");
+    System.out.println("        Multiple values can be supplied by separating them with the");
+    System.out.println("        delimiter specified in the --delimiter argument.");
+    System.out.println();
+    System.out.println("        For example: \"-JmemoryMax=-Xmx32M,-Xmx512M\"");
     System.out.println();
     System.out.println("  --delimiter <delimiter>: character or string to use as a delimiter");
     System.out.println("        for parameter and vm values.");

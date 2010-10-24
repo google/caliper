@@ -41,25 +41,38 @@ import java.util.Set;
  */
 public final class ScenarioSelection {
 
-  private final String suiteClassName;
-  private final Multimap<String, String> userParameters;
   private final Set<String> userVms;
-  private final int trials;
+  private final Multimap<String, String> vmParameters;
+  private final String suiteClassName;
 
+  /**
+   * The user parameters specified on the command line. This may be a subset of
+   * the effective user parameters because parameters not specified here may get
+   * default values from the benchmark class.
+   */
+  private final Multimap<String, String> userParameterArguments;
+
+  /**
+   * The actual user parameters we'll use to run in the benchmark. This contains
+   * the userParameterArguments plus the default user parameters.
+   */
+  private Multimap<String, String> userParameters;
+
+  private final int trials;
   private Benchmark suite;
 
-  /** Effective parameters to run in the benchmark. */
-  private final Multimap<String, String> parameters = LinkedHashMultimap.create();
 
   public ScenarioSelection(Arguments arguments) {
-    this(arguments.getSuiteClassName(), arguments.getUserParameters(), arguments.getUserVms(), arguments.getTrials());
+    this(arguments.getUserVms(), arguments.getVmParameters(), arguments.getSuiteClassName(),
+        arguments.getUserParameters(), arguments.getTrials());
   }
 
-  public ScenarioSelection(String suiteClassName,
-      Multimap<String, String> userParameters, Set<String> userVms, int trials) {
-    this.suiteClassName = suiteClassName;
-    this.userParameters = userParameters;
+  public ScenarioSelection(Set<String> userVms, Multimap<String, String> vmParameters,
+      String suiteClassName, Multimap<String, String> userParameterArguments, int trials) {
     this.userVms = userVms;
+    this.vmParameters = vmParameters;
+    this.suiteClassName = suiteClassName;
+    this.userParameterArguments = userParameterArguments;
     this.trials = trials;
   }
 
@@ -68,7 +81,7 @@ public final class ScenarioSelection {
    */
   public List<Scenario> select() {
     prepareSuite();
-    prepareParameters();
+    userParameters = computeUserParameters();
     return createScenarios();
   }
 
@@ -89,8 +102,19 @@ public final class ScenarioSelection {
     return scenario;
   }
 
+  public Set<String> getUserParameterNames() {
+    if (userParameters == null) {
+      throw new IllegalStateException();
+    }
+    return userParameters.keySet();
+  }
+
+  public Set<String> getVmParameterNames() {
+    return vmParameters.keySet();
+  }
+
   public ConfiguredBenchmark createBenchmark(Scenario scenario) {
-    return suite.createBenchmark(scenario.getParameters());
+    return suite.createBenchmark(scenario.getVariables(getUserParameterNames()));
   }
 
   private void prepareSuite() {
@@ -137,12 +161,13 @@ public final class ScenarioSelection {
     }
   }
 
-  private void prepareParameters() {
+  private Multimap<String, String> computeUserParameters() {
+    Multimap<String, String> result = LinkedHashMultimap.create();
     for (String key : suite.parameterNames()) {
       // first check if the user has specified values
-      Collection<String> userValues = userParameters.get(key);
+      Collection<String> userValues = userParameterArguments.get(key);
       if (!userValues.isEmpty()) {
-        parameters.putAll(key, userValues);
+        result.putAll(key, userValues);
         // TODO: type convert 'em to validate?
 
       } else { // otherwise use the default values from the suite
@@ -151,9 +176,10 @@ public final class ScenarioSelection {
           throw new ConfigurationException(key + " has no values. "
               + "Did you forget a -D" + key + "=<value> command line argument?");
         }
-        parameters.putAll(key, values);
+        result.putAll(key, values);
       }
     }
+    return result;
   }
 
   private ImmutableSet<String> defaultVms() {
@@ -163,36 +189,27 @@ public final class ScenarioSelection {
   }
 
   /**
-   * Returns a complete set of scenarios with every combination of values and
-   * benchmark classes.
+   * Returns a complete set of scenarios with every combination of variables.
    */
   private List<Scenario> createScenarios() {
     List<ScenarioBuilder> builders = new ArrayList<ScenarioBuilder>();
+    builders.add(new ScenarioBuilder());
 
-    // create scenarios for each VM
-    Set<String> vms = userVms.isEmpty()
-        ? defaultVms()
-        : userVms;
-    for (String vm : vms) {
-      for (int i = 0; i < trials; i++) {
-        ScenarioBuilder scenarioBuilder = new ScenarioBuilder();
-        scenarioBuilder.parameters.put(Scenario.VM_KEY, vm);
-        scenarioBuilder.parameters.put(Scenario.TRIAL_KEY, "" + i);
-        builders.add(scenarioBuilder);
-      }
-    }
+    Map<String, Collection<String>> variables = new LinkedHashMap<String, Collection<String>>();
+    variables.put(Scenario.VM_KEY, userVms.isEmpty() ? defaultVms() : userVms);
+    variables.put(Scenario.TRIAL_KEY, newListOfSize(trials));
+    variables.putAll(userParameters.asMap());
+    variables.putAll(vmParameters.asMap());
 
-    for (Entry<String, Collection<String>> parameter : parameters.asMap().entrySet()) {
-      Iterator<String> values = parameter.getValue().iterator();
+    for (Entry<String, Collection<String>> entry : variables.entrySet()) {
+      Iterator<String> values = entry.getValue().iterator();
       if (!values.hasNext()) {
-        throw new ConfigurationException("Not enough values for " + parameter);
+        throw new ConfigurationException("Not enough values for " + entry);
       }
-
-      String key = parameter.getKey();
 
       String firstValue = values.next();
       for (ScenarioBuilder builder : builders) {
-        builder.parameters.put(key, firstValue);
+        builder.variables.put(entry.getKey(), firstValue);
       }
 
       // multiply the size of the specs by the number of alternate values
@@ -201,7 +218,7 @@ public final class ScenarioSelection {
         String alternate = values.next();
         for (int s = 0; s < size; s++) {
           ScenarioBuilder copy = builders.get(s).copy();
-          copy.parameters.put(key, alternate);
+          copy.variables.put(entry.getKey(), alternate);
           builders.add(copy);
         }
       }
@@ -215,17 +232,28 @@ public final class ScenarioSelection {
     return result;
   }
 
+  /**
+   * Returns a list containing {@code count} distinct elements.
+   */
+  private Collection<String> newListOfSize(int count) {
+    List<String> result = new ArrayList<String>();
+    for (int i = 0; i < count; i++) {
+      result.add(Integer.toString(i));
+    }
+    return result;
+  }
+
   private static class ScenarioBuilder {
-    final Map<String, String> parameters = new LinkedHashMap<String, String>();
+    final Map<String, String> variables = new LinkedHashMap<String, String>();
 
     ScenarioBuilder copy() {
       ScenarioBuilder result = new ScenarioBuilder();
-      result.parameters.putAll(parameters);
+      result.variables.putAll(variables);
       return result;
     }
 
     public Scenario build() {
-      return new Scenario(parameters);
+      return new Scenario(variables);
     }
   }
 }

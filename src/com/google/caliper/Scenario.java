@@ -17,8 +17,6 @@
 package com.google.caliper;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -39,13 +37,6 @@ public final class Scenario
   static final String VM_KEY = "vm";
   static final String TRIAL_KEY = "trial";
 
-  /**
-   * The subset of variable names that are managed by the system. It is an error
-   * to create a parameter with the same name as one of these variables.
-   */
-  static final Set<String> SYSTEM_VARIABLES =
-      new HashSet<String>(Arrays.asList(VM_KEY, TRIAL_KEY));
-
   private /*final*/ Map<String, String> variables;
 
   public Scenario(Map<String, String> variables) {
@@ -57,16 +48,13 @@ public final class Scenario
   }
 
   /**
-   * Returns the user-specified parameters. This is the (possibly-empty) set of
-   * variables that may be varied from scenario to scenario in the same
-   * environment.
+   * Returns the named set of variables.
    */
-  public Map<String, String> getParameters() {
-    Map<String, String> result = new LinkedHashMap<String, String>();
-    for (Map.Entry<String, String> entry : variables.entrySet()) {
-      if (!SYSTEM_VARIABLES.contains(entry.getKey())) {
-        result.put(entry.getKey(), entry.getValue());
-      }
+  public Map<String, String> getVariables(Set<String> names) {
+    Map<String, String> result = new LinkedHashMap<String, String>(variables);
+    result.keySet().retainAll(names);
+    if (!result.keySet().equals(names)) {
+      throw new IllegalArgumentException("Not all of " + names + " are in " + result.keySet());
     }
     return result;
   }
