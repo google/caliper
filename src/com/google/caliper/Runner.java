@@ -85,6 +85,10 @@ public final class Runner {
       return;
     }
     this.scenarioSelection = new ScenarioSelection(arguments);
+    if (arguments.getDebug()) {
+      runInProcess();
+      return;
+    }
     Result result = runOutOfProcess();
     new ConsoleReport(result.getRun(), arguments).displayResults();
     boolean saveResultsLocally = arguments.getSaveResultsFile() != null;
@@ -305,6 +309,11 @@ public final class Runner {
     }
 
     command.add(InProcessRunner.class.getName());
+    createCommand(command, scenario, type);
+    return command.build();
+  }
+
+  private void createCommand(ImmutableList.Builder<String> command, Scenario scenario, MeasurementType type) {
     command.add("--warmupMillis").add(Long.toString(arguments.getWarmupMillis()));
     command.add("--runMillis").add(Long.toString(arguments.getRunMillis()));
 
@@ -317,7 +326,6 @@ public final class Runner {
     command.add("--measurementType").add(type.toString());
     command.add("--marker").add(arguments.getMarker());
     command.add(arguments.getSuiteClassName());
-    return command.build();
   }
 
   private Process startForkedProcess(List<String> command) {
@@ -329,6 +337,19 @@ public final class Runner {
       return builder.start();
     } catch (IOException e) {
       throw new RuntimeException("failed to start subprocess", e);
+    }
+  }
+
+  private void runInProcess() {
+    try { 
+      for (Scenario scenario : scenarioSelection.select()) {
+        ImmutableList.Builder<String> builder = ImmutableList.builder();
+        createCommand(builder, scenario, MeasurementType.DEBUG);
+        List<String> command = builder.build();
+        new InProcessRunner().run(command.toArray(new String[command.size()]));
+      }
+    } catch (Exception e) {
+      throw new ExceptionFromUserCodeException(e);
     }
   }
 

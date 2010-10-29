@@ -65,6 +65,8 @@ public final class Arguments {
   private boolean captureVmLog = false;
   private boolean printScore = false;
   private boolean measureMemory = false;
+  private boolean debug = false;
+  private int debugReps = defaultDebugReps;
   private MeasurementType measurementType;
   private MeasurementType primaryMeasurementType;
 
@@ -75,6 +77,7 @@ public final class Arguments {
   private String marker = "//ZxJ/";
 
   private static final String defaultDelimiter = ",";
+  private static final int defaultDebugReps = 1000;
 
   public String getSuiteClassName() {
     return suiteClassName;
@@ -142,6 +145,14 @@ public final class Arguments {
 
   public MeasurementType getPrimaryMeasurementType() {
     return primaryMeasurementType;
+  }
+
+  public boolean getDebug() {
+    return debug;
+  }
+
+  public int getDebugReps() {
+    return debugReps;
   }
 
   public String getMarker() {
@@ -213,7 +224,6 @@ public final class Arguments {
       } else if ("--trials".equals(arg)) {
         String value = args.next();
         try {
-
           result.trials = Integer.parseInt(value);
           if (result.trials < 1) {
             throw new UserException.InvalidTrialsException(value);
@@ -246,6 +256,18 @@ public final class Arguments {
       } else if ("--measureMemory".equals(arg)) {
         result.measureMemory = true;
         standardRun = true;
+      } else if ("--debug".equals(arg)) {
+        result.debug = true;
+      } else if ("--debug-reps".equals(arg)) {
+        String value = args.next();
+        try {
+          result.debugReps = Integer.parseInt(value);
+          if (result.debugReps < 1) {
+            throw new UserException.InvalidDebugRepsException(value);
+          }
+        } catch (NumberFormatException e) {
+          throw new UserException.InvalidDebugRepsException(value);
+        }
       } else if ("--marker".equals(arg)) {
         result.marker = args.next();
       } else if ("--measurementType".equals(arg)) {
@@ -380,6 +402,11 @@ public final class Arguments {
     System.out.println("  --uploadResults <file/dir>: upload this file or directory of files");
     System.out.println("        to the web app. This argument ends Caliper early and is thus");
     System.out.println("        incompatible with all other arguments.");
+    System.out.println();
+    System.out.println("  --debug: run without measurement for use with debugger or profiling.");
+    System.out.println();
+    System.out.println("  --debug-reps: fixed number of reps to run with --debug.");
+    System.out.println("        Default: \"" + defaultDebugReps + "\"");
 
     // adding new options? don't forget to update executeForked()
   }

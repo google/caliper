@@ -17,5 +17,5 @@
 package com.google.caliper;
 
 public enum MeasurementType {
-  TIME, INSTANCE, MEMORY
+  TIME, INSTANCE, MEMORY, DEBUG
 }

@@ -27,7 +27,7 @@ public abstract class ConfiguredBenchmark {
   }
 
   /**
-   * Runs the benchmark through {@code trials} iterations.
+   * Runs the benchmark through {@code reps} iterations.
    *
    * @return any object or null. Benchmark implementors may keep an accumulating
    *      value to prevent the runtime from optimizing away the code under test.

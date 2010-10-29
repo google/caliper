@@ -67,6 +67,8 @@ final class InProcessRunner {
       return new InstancesAllocationMeasurer();
     } else if (arguments.getMeasurementType() == MeasurementType.MEMORY) {
       return new MemoryAllocationMeasurer();
+    } else if (arguments.getMeasurementType() == MeasurementType.DEBUG) {
+      return new DebugMeasurer(arguments.getDebugReps());
     } else {
       throw new IllegalArgumentException("unrecognized measurement type: "
           + arguments.getMeasurementType());

@@ -176,6 +176,12 @@ public abstract class UserException extends RuntimeException {
     }
   }
 
+  public static class InvalidDebugRepsException extends ErrorInUsageException {
+    public InvalidDebugRepsException(String arg) {
+      super("Invalid debug reps: " + arg);
+    }
+  }
+
   // TODO: should remove the caliper stack frames....
   public static class ExceptionFromUserCodeException extends UserException {
     public ExceptionFromUserCodeException(Throwable t) {
