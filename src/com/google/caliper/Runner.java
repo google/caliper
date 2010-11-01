@@ -275,6 +275,7 @@ public final class Runner {
       throw new RuntimeException(e);
     } finally {
       Closeables.closeQuietly(reader);
+      timeProcess.destroy();
     }
 
     if (measurementSet == null) {

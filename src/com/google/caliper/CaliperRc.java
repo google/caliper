@@ -19,12 +19,9 @@ package com.google.caliper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Properties;
 
-/**
- * Created by IntelliJ IDEA. User: kevinb Date: Jan 20, 2010 Time: 9:37:37 AM To change this
- * template use File | Settings | File Templates.
- */
 public class CaliperRc {
   public static final CaliperRc INSTANCE = new CaliperRc();
 
@@ -37,7 +34,9 @@ public class CaliperRc {
           ? new File(System.getProperty("user.home"), ".caliperrc")
           : new File(caliperRcEnvVar);
       if (caliperRcFile.exists()) {
-        properties.load(new FileInputStream(caliperRcFile));
+        InputStream in = new FileInputStream(caliperRcFile);
+        properties.load(in);
+        in.close();
       } else {
         // create it with a template
       }
