@@ -86,7 +86,7 @@ public final class Runner {
     }
     this.scenarioSelection = new ScenarioSelection(arguments);
     if (arguments.getDebug()) {
-      runInProcess();
+      debug();
       return;
     }
     Result result = runOutOfProcess();
@@ -340,13 +340,14 @@ public final class Runner {
     }
   }
 
-  private void runInProcess() {
-    try { 
+  private void debug() {
+    try {
+      int debugReps = arguments.getDebugReps();
+      InProcessRunner runner = new InProcessRunner();
+      DebugMeasurer measurer = new DebugMeasurer(debugReps);
       for (Scenario scenario : scenarioSelection.select()) {
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        createCommand(builder, scenario, MeasurementType.DEBUG);
-        List<String> command = builder.build();
-        new InProcessRunner().run(command.toArray(new String[command.size()]));
+        System.out.println("running " + debugReps + " debug reps of " + scenario);
+        runner.run(scenarioSelection, scenario, measurer);
       }
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);

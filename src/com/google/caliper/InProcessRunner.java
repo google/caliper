@@ -30,7 +30,7 @@ final class InProcessRunner {
   public void run(String... args) {
     Arguments arguments = Arguments.parse(args);
 
-    final ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
+    ScenarioSelection scenarioSelection = new ScenarioSelection(arguments);
 
     try {
       Measurer measurer = getMeasurer(arguments);
@@ -42,22 +42,27 @@ final class InProcessRunner {
         throw new IllegalArgumentException("Invalid arguments to subprocess. Expected exactly one "
             + "scenario but got " + scenarios.size());
       }
-      final Scenario scenario = scenarios.get(0);
-
-      Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
-        @Override public ConfiguredBenchmark get() {
-          return scenarioSelection.createBenchmark(scenario);
-        }
-      };
+      Scenario scenario = scenarios.get(0);
 
       System.out.println("starting " + scenario);
-      MeasurementSet measurementSet = measurer.run(supplier);
+      MeasurementSet measurementSet = run(scenarioSelection, scenario, measurer);
       System.out.println(arguments.getMarker() + Json.measurementSetToJson(measurementSet));
     } catch (UserException e) {
       throw e;
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }
+  }
+
+  public MeasurementSet run(final ScenarioSelection scenarioSelection, final Scenario scenario,
+      Measurer measurer) throws Exception {
+    Supplier<ConfiguredBenchmark> supplier = new Supplier<ConfiguredBenchmark>() {
+      @Override public ConfiguredBenchmark get() {
+        return scenarioSelection.createBenchmark(scenario);
+      }
+    };
+
+    return measurer.run(supplier);
   }
 
   private Measurer getMeasurer(Arguments arguments) {

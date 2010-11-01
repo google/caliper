@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2010 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,8 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.caliper.UserException.DoesNotScaleLinearlyException;
-import com.google.caliper.UserException.RuntimeOutOfRangeException;
 import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Supplier;
 
@@ -35,11 +33,9 @@ class DebugMeasurer extends Measurer {
 
   @Override public MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier)
       throws Exception {
-    log("[running debug trial with " + reps + " reps]");
     ConfiguredBenchmark benchmark = testSupplier.get();
     benchmark.run(reps);
     benchmark.close();
-    log("[trial completed]");
     return null;
   }
 }
