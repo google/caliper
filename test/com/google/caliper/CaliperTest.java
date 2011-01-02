@@ -66,15 +66,15 @@ public final class CaliperTest extends TestCase {
       return null;
     }
 
-    @Override public Map<String, Integer> timeUnitNames() {
+    @Override public Map<String, Integer> getTimeUnitNames() {
       return null;
     }
 
-    @Override public Map<String, Integer> instanceUnitNames() {
+    @Override public Map<String, Integer> getInstanceUnitNames() {
       return null;
     }
 
-    @Override public Map<String, Integer> memoryUnitNames() {
+    @Override public Map<String, Integer> getMemoryUnitNames() {
       return null;
     }
 

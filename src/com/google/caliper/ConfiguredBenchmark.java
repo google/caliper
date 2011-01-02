@@ -46,7 +46,7 @@ public abstract class ConfiguredBenchmark {
   }
 
   public final Map<String, Integer> timeUnitNames() {
-    return underlyingBenchmark.timeUnitNames();
+    return underlyingBenchmark.getTimeUnitNames();
   }
 
   public final double instancesToUnits(long instances) {
@@ -54,7 +54,7 @@ public abstract class ConfiguredBenchmark {
   }
 
   public final Map<String, Integer> instanceUnitNames() {
-    return underlyingBenchmark.instanceUnitNames();
+    return underlyingBenchmark.getInstanceUnitNames();
   }
 
   public final double bytesToUnits(long bytes) {
@@ -62,6 +62,6 @@ public abstract class ConfiguredBenchmark {
   }
 
   public final Map<String, Integer> memoryUnitNames() {
-    return underlyingBenchmark.memoryUnitNames();
+    return underlyingBenchmark.getMemoryUnitNames();
   }
 }

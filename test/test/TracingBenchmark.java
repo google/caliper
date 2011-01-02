@@ -62,7 +62,7 @@ public class TracingBenchmark implements Benchmark {
     };
   }
 
-  @Override public Map<String, Integer> timeUnitNames() {
+  @Override public Map<String, Integer> getTimeUnitNames() {
     return ImmutableMap.of("ns", 1, "us", 1000, "ms", 1000000, "s", 1000000000);
   }
 
@@ -70,7 +70,7 @@ public class TracingBenchmark implements Benchmark {
     return nanos;
   }
 
-  @Override public Map<String, Integer> instanceUnitNames() {
+  @Override public Map<String, Integer> getInstanceUnitNames() {
     return ImmutableMap.of(" instances", 1, "K instances", 1000, "M instances", 1000000,
         "B instances", 1000000000);
   }
@@ -79,7 +79,7 @@ public class TracingBenchmark implements Benchmark {
     return instances;
   }
 
-  @Override public Map<String, Integer> memoryUnitNames() {
+  @Override public Map<String, Integer> getMemoryUnitNames() {
     return ImmutableMap.of("B", 1, "KB", 1024, "MB", 1048576, "GB", 1073741824);
   }
 

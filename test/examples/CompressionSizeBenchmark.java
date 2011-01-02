@@ -80,7 +80,7 @@ public class CompressionSizeBenchmark extends SimpleBenchmark {
     return bos.toByteArray();
   }
 
-  @Override public Map<String, Integer> timeUnitNames() {
+  @Override public Map<String, Integer> getTimeUnitNames() {
     Map<String, Integer> unitNames = new HashMap<String, Integer>();
     unitNames.put(" compression ratio (higher is better)", 1);
     return unitNames;
