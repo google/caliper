@@ -16,22 +16,30 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.ImmutableSet;
 import java.util.Arrays;
 import java.util.List;
 
 public final class VmFactory {
+  public static ImmutableSet<String> defaultVms() {
+    String vmName = DalvikVm.isDalvikVm()
+        ? DalvikVm.vmName()
+        : StandardVm.defaultVmName();
+    return ImmutableSet.of(vmName);
+  }
+
   public Vm createVm(Scenario scenario) {
     List<String> vmList = Arrays.asList(scenario.getVariables().get(Scenario.VM_KEY).split("\\s+"));
     Vm vm = null;
     if (!vmList.isEmpty()) {
-      if (vmList.get(0).endsWith("dalvikvm")) {
+      if (vmList.get(0).endsWith("app_process")) {
         vm = new DalvikVm();
       } else if (vmList.get(0).endsWith("java")) {
         vm = new StandardVm();
       }
     }
     if (vm == null) {
-      vm = new UnknownVm();
+      vm = new Vm();
     }
     return vm;
   }

@@ -21,7 +21,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class StandardVm implements Vm {
+final class StandardVm extends Vm {
 
   @Override public List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments) {
     if (!arguments.getCaptureVmLog()) {
@@ -37,5 +37,9 @@ public final class StandardVm implements Vm {
     }
 
     return result;
+  }
+
+  public static String defaultVmName() {
+    return "java";
   }
 }

@@ -21,7 +21,6 @@ import com.google.caliper.UserException.DoesntImplementBenchmarkException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.caliper.UserException.NoParameterlessConstructorException;
 import com.google.caliper.UserException.NoSuchClassException;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import java.lang.reflect.Constructor;
@@ -182,12 +181,6 @@ public final class ScenarioSelection {
     return result;
   }
 
-  private ImmutableSet<String> defaultVms() {
-    return "Dalvik".equals(System.getProperty("java.vm.name"))
-        ? ImmutableSet.of("dalvikvm")
-        : ImmutableSet.of("java");
-  }
-
   /**
    * Returns a complete set of scenarios with every combination of variables.
    */
@@ -196,7 +189,7 @@ public final class ScenarioSelection {
     builders.add(new ScenarioBuilder());
 
     Map<String, Collection<String>> variables = new LinkedHashMap<String, Collection<String>>();
-    variables.put(Scenario.VM_KEY, userVms.isEmpty() ? defaultVms() : userVms);
+    variables.put(Scenario.VM_KEY, userVms.isEmpty() ? VmFactory.defaultVms() : userVms);
     variables.put(Scenario.TRIAL_KEY, newListOfSize(trials));
     variables.putAll(userParameters.asMap());
     variables.putAll(vmParameters.asMap());

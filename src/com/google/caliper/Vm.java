@@ -16,8 +16,30 @@
 
 package com.google.caliper;
 
+import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.util.List;
 
-public interface Vm {
-  List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments);
+class Vm {
+  public List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments) {
+    return ImmutableList.of();
+  }
+
+  /**
+   * Returns a process builder to run this VM.
+   *
+   * @param vmArgs the path to the VM followed by VM arguments.
+   * @param applicationArgs arguments to the target process
+   */
+  public ProcessBuilder newProcessBuilder(File workingDirectory, String classPath,
+      ImmutableList<String> vmArgs, String className, ImmutableList<String> applicationArgs) {
+    ProcessBuilder result = new ProcessBuilder();
+    result.directory(workingDirectory);
+    result.command().addAll(vmArgs);
+    result.command().add("-cp");
+    result.command().add(classPath);
+    result.command().add(className);
+    result.command().addAll(applicationArgs);
+    return result;
+  }
 }

@@ -251,8 +251,14 @@ public final class Runner {
   private MeasurementResult measure(Scenario scenario, MeasurementType type) {
     Vm vm = new VmFactory().createVm(scenario);
     // this must be done before starting the forked process on certain VMs
-    List<String> command = createCommand(scenario, vm, type);
-    Process timeProcess = startForkedProcess(command);
+    ProcessBuilder processBuilder = createCommand(scenario, vm, type)
+        .redirectErrorStream(true);
+    Process timeProcess;
+    try {
+      timeProcess = processBuilder.start();
+    } catch (IOException e) {
+      throw new RuntimeException("failed to start subprocess", e);
+    }
 
     MeasurementSet measurementSet = null;
     StringBuilder eventLog = new StringBuilder();
@@ -279,7 +285,7 @@ public final class Runner {
     }
 
     if (measurementSet == null) {
-      String message = "Failed to execute " + Joiner.on(" ").join(command);
+      String message = "Failed to execute " + Joiner.on(" ").join(processBuilder.command());
       System.err.println("  " + message);
       System.err.println(eventLog.toString());
       throw new ConfigurationException(message);
@@ -288,57 +294,43 @@ public final class Runner {
     return new MeasurementResult(measurementSet, eventLog.toString());
   }
 
-  private List<String> createCommand(Scenario scenario, Vm vm, MeasurementType type) {
+  private ProcessBuilder createCommand(Scenario scenario, Vm vm, MeasurementType type) {
+    File workingDirectory = new File(System.getProperty("user.dir"));
+
     String classPath = System.getProperty("java.class.path");
     if (classPath == null || classPath.length() == 0) {
       throw new IllegalStateException("java.class.path is undefined in " + System.getProperties());
     }
 
-    ImmutableList.Builder<String> command = ImmutableList.builder();
-    command.addAll(ARGUMENT_SPLITTER.split(scenario.getVariables().get(Scenario.VM_KEY)));
-    command.add("-cp").add(classPath);
+    ImmutableList.Builder<String> vmArgs = ImmutableList.builder();
+    vmArgs.addAll(ARGUMENT_SPLITTER.split(scenario.getVariables().get(Scenario.VM_KEY)));
     if (type == MeasurementType.INSTANCE || type == MeasurementType.MEMORY) {
       String allocationJarFile = System.getenv("ALLOCATION_JAR");
-      command.add("-javaagent:" + allocationJarFile);
+      vmArgs.add("-javaagent:" + allocationJarFile);
     }
-    command.addAll(vm.getVmSpecificOptions(type, arguments));
+    vmArgs.addAll(vm.getVmSpecificOptions(type, arguments));
 
     Map<String, String> vmParameters = scenario.getVariables(
         scenarioSelection.getVmParameterNames());
     for (String vmParameter : vmParameters.values()) {
-      command.addAll(ARGUMENT_SPLITTER.split(vmParameter));
+      vmArgs.addAll(ARGUMENT_SPLITTER.split(vmParameter));
     }
 
-    command.add(InProcessRunner.class.getName());
-    createCommand(command, scenario, type);
-    return command.build();
-  }
-
-  private void createCommand(ImmutableList.Builder<String> command, Scenario scenario, MeasurementType type) {
-    command.add("--warmupMillis").add(Long.toString(arguments.getWarmupMillis()));
-    command.add("--runMillis").add(Long.toString(arguments.getRunMillis()));
+    ImmutableList.Builder<String> caliperArgs = ImmutableList.builder();
+    caliperArgs.add("--warmupMillis").add(Long.toString(arguments.getWarmupMillis()));
+    caliperArgs.add("--runMillis").add(Long.toString(arguments.getRunMillis()));
+    caliperArgs.add("--measurementType").add(type.toString());
+    caliperArgs.add("--marker").add(arguments.getMarker());
 
     Map<String,String> userParameters = scenario.getVariables(
         scenarioSelection.getUserParameterNames());
     for (Entry<String, String> entry : userParameters.entrySet()) {
-      command.add("-D" + entry.getKey() + "=" + entry.getValue());
+      caliperArgs.add("-D" + entry.getKey() + "=" + entry.getValue());
     }
+    caliperArgs.add(arguments.getSuiteClassName());
 
-    command.add("--measurementType").add(type.toString());
-    command.add("--marker").add(arguments.getMarker());
-    command.add(arguments.getSuiteClassName());
-  }
-
-  private Process startForkedProcess(List<String> command) {
-    ProcessBuilder builder = new ProcessBuilder();
-    builder.command(command);
-    builder.redirectErrorStream(true);
-    builder.directory(new File(System.getProperty("user.dir")));
-    try {
-      return builder.start();
-    } catch (IOException e) {
-      throw new RuntimeException("failed to start subprocess", e);
-    }
+    return vm.newProcessBuilder(workingDirectory, classPath,
+        vmArgs.build(), InProcessRunner.class.getName(), caliperArgs.build());
   }
 
   private void debug() {

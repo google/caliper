@@ -17,10 +17,22 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class DalvikVm implements Vm {
+/**
+ * The dalvikvm run on Android devices via the app_process executable.
+ */
+final class DalvikVm extends Vm {
+
+  public static boolean isDalvikVm() {
+    return "Dalvik".equals(System.getProperty("java.vm.name"));
+  }
+
+  public static String vmName() {
+    return "app_process";
+  }
 
   @Override public List<String> getVmSpecificOptions(MeasurementType type, Arguments arguments) {
     if (!arguments.getCaptureVmLog()) {
@@ -32,6 +44,18 @@ public final class DalvikVm implements Vm {
       // TODO: currently GC goes to logcat.
       // result.add("-verbose:gc");
     }
+    return result;
+  }
+
+  @Override public ProcessBuilder newProcessBuilder(File workingDirectory, String classPath,
+      ImmutableList<String> vmArgs, String className, ImmutableList<String> applicationArgs) {
+    ProcessBuilder result = new ProcessBuilder();
+    result.directory(workingDirectory);
+    result.command().addAll(vmArgs);
+    result.command().add("-Djava.class.path=" + classPath);
+    result.command().add(workingDirectory.getPath());
+    result.command().add(className);
+    result.command().addAll(applicationArgs);
     return result;
   }
 }
