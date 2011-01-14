@@ -19,6 +19,7 @@ package com.google.caliper;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -115,18 +116,26 @@ public abstract class SimpleBenchmark implements Benchmark {
       }
       copyOfSelf.setUp();
 
-      ConfiguredBenchmark configuredBenchmark = new ConfiguredBenchmark(copyOfSelf) {
+      return new ConfiguredBenchmark(copyOfSelf) {
         @Override public Object run(int reps) throws Exception {
-          return method.invoke(copyOfSelf, reps);
+          try {
+            return method.invoke(copyOfSelf, reps);
+          } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof Exception) {
+              throw (Exception) cause;
+            } else if (cause instanceof Error) {
+              throw (Error) cause;
+            } else {
+              throw e;
+            }
+          }
         }
 
         @Override public void close() throws Exception {
           copyOfSelf.tearDown();
         }
       };
-
-      return configuredBenchmark;
-
     } catch (Exception e) {
       throw new ExceptionFromUserCodeException(e);
     }
