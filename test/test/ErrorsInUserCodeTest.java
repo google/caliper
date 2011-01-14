@@ -134,8 +134,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  // TODO: enable
-  public void XXXtestExceptionInMethod() {
+  public void testExceptionInMethod() {
     try {
       new Runner().run(ExceptionInMethodBenchmark.class.getName());
       fail();
@@ -143,7 +142,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  static class ExceptionInMethodBenchmark extends SimpleBenchmark {
+  public static class ExceptionInMethodBenchmark extends SimpleBenchmark {
     public void timeSomething(int reps) {
       throw new SomeUserException();
     }
