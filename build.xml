@@ -34,6 +34,7 @@
                debug="on"
                source="1.5"
                target="1.5"
+               includeantruntime="false"
                classpathref="dependencies">
             <compilerarg value="-Xlint"/>
             <!--compilerarg value="-Werror"/-->
@@ -44,7 +45,8 @@
                debug="on"
                destdir="${testclasses}"
                source="1.5"
-               target="1.5">
+               target="1.5"
+               includeantruntime="false">
             <compilerarg value="-Xlint"/>
             <!--compilerarg value="-Werror"/-->
             <classpath>
