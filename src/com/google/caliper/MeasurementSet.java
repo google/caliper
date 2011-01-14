@@ -37,8 +37,11 @@ public final class MeasurementSet
    */
   private /*final*/ Map<String, Integer> unitNames;
 
+  private /*final*/ int systemOutCharCount;
+  private /*final*/ int systemErrCharCount;
+
   public MeasurementSet(Measurement... measurements) {
-    this(getUnitNamesFromMeasurements(measurements), Arrays.asList(measurements));
+    this(0, 0, getUnitNamesFromMeasurements(measurements), Arrays.asList(measurements));
   }
 
   private static Map<String, Integer> getUnitNamesFromMeasurements(Measurement... measurements) {
@@ -58,7 +61,10 @@ public final class MeasurementSet
    * Constructor to use directly from plusMeasurement. Skips some excessive checking and takes a
    * list directly.
    */
-  private MeasurementSet(Map<String, Integer> unitNames, List<Measurement> measurements) {
+  private MeasurementSet(int systemOutCharCount, int systemErrCharCount,
+      Map<String, Integer> unitNames, List<Measurement> measurements) {
+    this.systemOutCharCount = systemOutCharCount;
+    this.systemErrCharCount = systemErrCharCount;
     this.unitNames = unitNames;
     this.measurements = measurements;
   }
@@ -84,6 +90,14 @@ public final class MeasurementSet
 
   public int size() {
     return measurements.size();
+  }
+
+  public int getSystemOutCharCount() {
+    return systemOutCharCount;
+  }
+
+  public int getSystemErrCharCount() {
+    return systemErrCharCount;
   }
 
   public List<Double> getMeasurementsRaw() {
@@ -213,7 +227,13 @@ public final class MeasurementSet
     List<Measurement> resultMeasurements = new ArrayList<Measurement>(measurements);
     resultMeasurements.add(measurement);
     Map<String, Integer> newUnitNames = unitNames == null ? measurement.getUnitNames() : unitNames;
-    return new MeasurementSet(newUnitNames, resultMeasurements);
+    return new MeasurementSet(systemOutCharCount, systemErrCharCount,
+        newUnitNames, resultMeasurements);
+  }
+
+  public MeasurementSet plusCharCounts(int systemOutCharCount, int systemErrCharCount) {
+    return new MeasurementSet(this.systemOutCharCount + systemOutCharCount,
+        this.systemErrCharCount + systemErrCharCount, unitNames, measurements);
   }
 
   private MeasurementSet() {} // for GWT Serialization

@@ -61,7 +61,7 @@ public final class ScenarioResult
   }
 
   @Override public String toString() {
-    return "measurementSetMap: "+measurementSetMap+", eventLogMap: "+eventLogMap;
+    return "measurementSetMap: " + measurementSetMap + ", eventLogMap: " + eventLogMap;
   }
 
   private ScenarioResult() {} // for GWT Serialization

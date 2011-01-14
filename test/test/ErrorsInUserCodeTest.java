@@ -147,4 +147,16 @@ public class ErrorsInUserCodeTest extends TestCase {
       throw new SomeUserException();
     }
   }
+
+  public void testUserCodePrintsOutput() {
+    new Runner().run(UserCodePrintsBenchmark.class.getName(), "--debug",
+        "--warmupMillis", "100", "--runMillis", "100");
+  }
+
+  public static class UserCodePrintsBenchmark extends SimpleBenchmark {
+    public void timeSomething(int reps) throws InterruptedException {
+      System.out.println("output to System.out!");
+      Thread.sleep(reps);
+    }
+  }
 }

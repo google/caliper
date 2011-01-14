@@ -62,7 +62,23 @@ final class InProcessRunner {
       }
     };
 
-    return measurer.run(supplier);
+    PrintStream out = System.out;
+    PrintStream err = System.err;
+    CountingPrintStream countedOut = new CountingPrintStream(out);
+    CountingPrintStream countedErr = new CountingPrintStream(err);
+    System.setOut(countedOut);
+    System.setErr(countedErr);
+    try {
+      MeasurementSet measurementSet = measurer.run(supplier);
+      if (measurementSet != null) {
+        measurementSet = measurementSet.plusCharCounts(
+            countedOut.getCount(), countedErr.getCount());
+      }
+      return measurementSet;
+    } finally {
+      System.setOut(out);
+      System.setErr(err);
+    }
   }
 
   private Measurer getMeasurer(Arguments arguments) {

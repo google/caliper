@@ -300,6 +300,27 @@ final class ConsoleReport {
     printValues();
     System.out.println();
     printUninterestingVariables();
+    printCharCounts();
+  }
+
+  private void printCharCounts() {
+    int systemOutCharCount = 0;
+    int systemErrCharCount = 0;
+    for (ScenarioResult scenarioResult : run.getMeasurements().values()) {
+      for (MeasurementType measurementType : MeasurementType.values()) {
+        MeasurementSet measurementSet = scenarioResult.getMeasurementSet(measurementType);
+        if (measurementSet != null) {
+          systemOutCharCount += measurementSet.getSystemOutCharCount();
+          systemErrCharCount += measurementSet.getSystemErrCharCount();
+        }
+      }
+    }
+    if (systemOutCharCount > 0 || systemErrCharCount > 0) {
+      System.out.println();
+      System.out.println("Note: benchmarks printed " + systemOutCharCount
+          + " characters to System.out and " + systemErrCharCount + " characters to System.err."
+          + " Use --debug to see this output.");
+    }
   }
 
   /**
