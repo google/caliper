@@ -65,9 +65,11 @@ class TimeMeasurer extends Measurer {
       reps *= 2;
 
       // if reps overflowed, that's suspicious! Check that it time scales with reps
-      if (reps <= 0 && !definitelyScalesLinearly) {
-        checkScalesLinearly(testSupplier);
-        definitelyScalesLinearly = true;
+      if (reps <= 0) {
+        if (!definitelyScalesLinearly) {
+          checkScalesLinearly(testSupplier);
+          definitelyScalesLinearly = true;
+        }
         reps = Integer.MAX_VALUE;
       }
     }
