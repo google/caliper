@@ -22,9 +22,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://caliper.googlecode.com/svn/trunk</connection>
-    <developerConnection>scm:svn:https://caliper.googlecode.com/svn/trunk</developerConnection>
-    <url>http://caliper.codegoogle.com/svn/trunk</url>
+    <connection>scm:svn:http://caliper.googlecode.com/svn/trunk/caliper</connection>
+    <developerConnection>scm:svn:https://caliper.googlecode.com/svn/trunk/caliper</developerConnection>
+    <url>http://caliper.codegoogle.com/svn/trunk/caliper</url>
   </scm>
   <issueManagement>
     <system>Google Code Issue Tracking</system>
