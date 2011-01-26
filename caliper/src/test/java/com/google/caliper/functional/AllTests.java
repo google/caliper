@@ -14,24 +14,15 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper.functional;
 
-import com.google.caliper.SimpleBenchmark;
-import com.google.caliper.Runner;
+import junit.framework.Test;
+import junit.framework.TestSuite;
 
-/**
- * Demonstrates that the benchmark can emit output without consequence.
- */
-public class SystemOutAndErrBenchmark extends SimpleBenchmark {
-  
-  public void timeSystemOutAndSystemErr(int reps) {
-    for (int i = 0; i < reps; i++) {
-      System.out.println("hello, out");
-      System.err.println("hello, err");
-    }
-  }
-
-  public static void main(String[] args) {
-    Runner.main(SystemOutAndErrBenchmark.class, args);
+public class AllTests {
+  public static Test suite() {
+    TestSuite suite = new TestSuite();
+    suite.addTestSuite(ErrorsInUserCodeTest.class);
+    return suite;
   }
 }

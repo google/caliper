@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper.functional;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
 /**
- * This fails with a runtime out of range error.
+ * Should fail with a measurement error.
  */
-public class BrokenNoOpBenchmark extends SimpleBenchmark {
-
-  public void timeNoOp(int reps) {
-    for (int i = 0; i < reps; i++) {}
+public class BrokenSleepBenchmark extends SimpleBenchmark {
+  // And look, IDEA tries to warn you
+  @SuppressWarnings({"UnusedDeclaration", "UnusedParameters"})
+  public void timeSleepOneSecond(int reps) {
+    try {
+      Thread.sleep(1000);
+    } catch (InterruptedException ignored) {
+    }
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(BrokenNoOpBenchmark.class, args);
+    Runner.main(BrokenSleepBenchmark.class, args);
   }
 }

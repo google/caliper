@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2009 Google Inc.
+/*
+ * Copyright (C) 2010 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,25 +14,24 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper.functional;
 
-import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
+import com.google.caliper.Runner;
 
 /**
- * If everything is working properly, this should report runtime very close to
- * 1ms.
+ * Demonstrates that the benchmark can emit output without consequence.
  */
-public class ThreadSleepBenchmark extends SimpleBenchmark {
-
-  public void timeSleep(int reps) {
-    try {
-      Thread.sleep(reps);
-    } catch (InterruptedException ignored) {
+public class SystemOutAndErrBenchmark extends SimpleBenchmark {
+  
+  public void timeSystemOutAndSystemErr(int reps) {
+    for (int i = 0; i < reps; i++) {
+      System.out.println("hello, out");
+      System.err.println("hello, err");
     }
   }
 
-  public static void main(String[] args) throws Exception {
-    Runner.main(ThreadSleepBenchmark.class, args);
+  public static void main(String[] args) {
+    Runner.main(SystemOutAndErrBenchmark.class, args);
   }
 }

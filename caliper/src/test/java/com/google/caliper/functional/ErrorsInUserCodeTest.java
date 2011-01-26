@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package test;
+package com.google.caliper.functional;
 
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
