@@ -28,7 +28,7 @@
     <target name="compile"
             description="Compile all Java source code">
         <mkdir dir="${frameworkclasses}"/>
-        <javac srcdir="src"
+        <javac srcdir="caliper/src/main/java"
                includes="com/**"
                destdir="${frameworkclasses}"
                debug="on"
@@ -41,7 +41,7 @@
         </javac>
 
         <mkdir dir="${testclasses}"/>
-        <javac srcdir="test"
+        <javac srcdir="caliper/src/test/java"
                debug="on"
                destdir="${testclasses}"
                source="1.5"
@@ -88,7 +88,7 @@
             <keep pattern="com.google.caliper.**"/>
 
             <!-- include some files for GWT's benefit -->
-            <zipfileset dir="src">
+            <zipfileset dir="caliper/src/main/java">
                 <!-- Adding a file? Don't forget to update CaliperCore.gwt.xml! -->
                 <include name="com/google/caliper/LinearTranslation.java"/>
                 <include name="com/google/caliper/Environment.java"/>
@@ -98,6 +98,8 @@
                 <include name="com/google/caliper/ScenarioResult.java"/>
                 <include name="com/google/caliper/MeasurementType.java"/>
                 <include name="com/google/caliper/Scenario.java"/>
+            </zipfileset>
+            <zipfileset dir="caliper/src/main/resources">
                 <include name="CaliperCore.gwt.xml" />
             </zipfileset>
         </jarjar>
@@ -114,7 +116,7 @@
                  protected="true"
                  windowtitle="Caliper ${version}">
             <sourcepath>
-                <pathelement location="src"/>
+                <pathelement location="caliper/src/main/java"/>
             </sourcepath>
             <classpath refid="dependencies"/>
             <link href="http://guava-libraries.googlecode.com/svn/trunk/javadoc/"/>
@@ -126,11 +128,11 @@
             description="Create a complete installation tree in ./build/caliper-*">
         <mkdir dir="${installroot}"/>
         <zip zipfile="${installroot}/src-${version}.zip">
-            <fileset dir="src"/>
+            <fileset dir="caliper/src/main/java"/>
         </zip>
 
         <copy toDir="${installroot}" file="COPYING"/>
-        <copy toDir="${installroot}" file="src/scripts/caliper">
+        <copy toDir="${installroot}" file="scripts/caliper">
             <filterset>
                 <filter token="VERSION" value="${version}"/>
             </filterset>
