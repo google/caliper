@@ -74,10 +74,9 @@ public final class Measurement
   }
 
   @Override public int hashCode() {
-    long longHash = Double.doubleToLongBits(raw)
-        + Double.doubleToLongBits(processed) * 37
-        + unitNames.hashCode() * 1373L;
-    return (int) (longHash ^ longHash >>> 32);
+    return (int) raw // Double.doubleToLongBits doesn't exist on GWT
+        + (int) processed * 37
+        + unitNames.hashCode() * 1373;
   }
 
   @Override public String toString() {

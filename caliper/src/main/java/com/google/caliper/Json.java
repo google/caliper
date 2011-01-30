@@ -181,11 +181,18 @@ public final class Json {
 
     @Override public synchronized Date deserialize(JsonElement jsonElement, Type type,
         JsonDeserializationContext jsonDeserializationContext) {
+      String dateString = jsonElement.getAsString();
+      // first try to parse as an ISO 8601 date
       try {
-        return dateFormat.parse(jsonElement.getAsString());
-      } catch (ParseException e) {
-        throw new JsonParseException(e);
+        return dateFormat.parse(dateString);
+      } catch (ParseException ignored) {
       }
+      // next, try a GSON-style locale-specific dates (for Caliper r282 and earlier)
+      try {
+        return DateFormat.getDateTimeInstance().parse(dateString);
+      } catch (ParseException ignored) {
+      }
+      throw new JsonParseException(dateString);
     }
   }
 

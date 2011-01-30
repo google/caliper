@@ -17,8 +17,18 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
+import java.io.PrintStream;
 
 abstract class Measurer {
+
+  private PrintStream logStream = System.out;
+
+  /**
+   * Sets the stream used to log caliper events.
+   */
+  void setLogStream(PrintStream logStream) {
+    this.logStream = logStream;
+  }
 
   public abstract MeasurementSet run(Supplier<ConfiguredBenchmark> testSupplier) throws Exception;
 
@@ -28,6 +38,6 @@ abstract class Measurer {
   }
 
   protected final void log(String message) {
-    System.out.println(LogConstants.CALIPER_LOG_PREFIX + message);
+    logStream.println(LogConstants.CALIPER_LOG_PREFIX + message);
   }
 }
