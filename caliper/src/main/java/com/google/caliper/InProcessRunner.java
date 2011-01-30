@@ -64,6 +64,7 @@ final class InProcessRunner {
 
     PrintStream out = System.out;
     PrintStream err = System.err;
+    measurer.setLogStream(out);
     CountingPrintStream countedOut = new CountingPrintStream(out);
     CountingPrintStream countedErr = new CountingPrintStream(err);
     System.setOut(countedOut);
