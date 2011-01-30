@@ -66,5 +66,25 @@ public final class Measurement
     return processed;
   }
 
+  @Override public boolean equals(Object o) {
+    return o instanceof Measurement
+        && ((Measurement) o).raw == raw
+        && ((Measurement) o).processed == processed
+        && ((Measurement) o).unitNames.equals(unitNames);
+  }
+
+  @Override public int hashCode() {
+    long longHash = Double.doubleToLongBits(raw)
+        + Double.doubleToLongBits(processed) * 37
+        + unitNames.hashCode() * 1373L;
+    return (int) (longHash ^ longHash >>> 32);
+  }
+
+  @Override public String toString() {
+    return (raw != processed
+        ? raw + "/" + processed
+        : Double.toString(raw));
+  }
+
   private Measurement() {} /* for GWT */
 }

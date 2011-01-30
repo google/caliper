@@ -236,5 +236,25 @@ public final class MeasurementSet
         this.systemErrCharCount + systemErrCharCount, unitNames, measurements);
   }
 
+  @Override public boolean equals(Object o) {
+    return o instanceof MeasurementSet
+        && ((MeasurementSet) o).measurements.equals(measurements)
+        && ((MeasurementSet) o).unitNames.equals(unitNames)
+        && ((MeasurementSet) o).systemOutCharCount == systemOutCharCount
+        && ((MeasurementSet) o).systemErrCharCount == systemErrCharCount;
+  }
+
+  @Override public int hashCode() {
+    return measurements.hashCode()
+        + unitNames.hashCode() * 37
+        + systemOutCharCount * 1373
+        + systemErrCharCount * 53549;
+  }
+
+  @Override public String toString() {
+    return measurements.toString() + " " + unitNames + " "
+        + systemOutCharCount + "/" + systemErrCharCount;
+  }
+
   private MeasurementSet() {} // for GWT Serialization
 }

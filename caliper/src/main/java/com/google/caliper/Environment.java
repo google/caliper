@@ -42,5 +42,18 @@ public final class Environment
     return propertyMap;
   }
 
+  @Override public boolean equals(Object o) {
+    return o instanceof Environment
+        && ((Environment) o).propertyMap.equals(propertyMap);
+  }
+
+  @Override public int hashCode() {
+    return propertyMap.hashCode();
+  }
+
+  @Override public String toString() {
+    return propertyMap.toString();
+  }
+
   private Environment() {} // for GWT Serialization
 }

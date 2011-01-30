@@ -24,15 +24,21 @@ import com.google.gson.JsonDeserializer;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
+import com.google.gson.JsonPrimitive;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 
 /**
  * Ordinarily serialization should be done within the class that is being serialized. However,
@@ -46,6 +52,7 @@ public final class Json {
    */
   private static final Gson GSON_INSTANCE =
       new GsonBuilder()
+          .registerTypeAdapter(Date.class, new DateTypeAdapter())
           .registerTypeAdapter(Run.class, new RunTypeAdapter())
           .registerTypeAdapter(Measurement.class, new MeasurementDeserializer())
           .create();
@@ -138,7 +145,7 @@ public final class Json {
 
       Date executedTimestamp = context.deserialize(
           jsonElement.getAsJsonObject().get("executedTimestamp"), Date.class);
-      
+
       return new Run(measurements, benchmarkName, executedTimestamp);
     }
 
@@ -156,6 +163,29 @@ public final class Json {
           new TypeToken<List<KeyValuePair<Scenario, ScenarioResult>>>() {}.getType()));
 
       return result;
+    }
+  }
+
+  private static class DateTypeAdapter implements JsonSerializer<Date>, JsonDeserializer<Date> {
+    private final DateFormat dateFormat;
+
+    private DateTypeAdapter() {
+      dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssz", Locale.US);
+      dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    }
+
+    @Override public synchronized JsonElement serialize(Date date, Type type,
+        JsonSerializationContext jsonSerializationContext) {
+      return new JsonPrimitive(dateFormat.format(date));
+    }
+
+    @Override public synchronized Date deserialize(JsonElement jsonElement, Type type,
+        JsonDeserializationContext jsonDeserializationContext) {
+      try {
+        return dateFormat.parse(jsonElement.getAsString());
+      } catch (ParseException e) {
+        throw new JsonParseException(e);
+      }
     }
   }
 

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import javax.xml.parsers.DocumentBuilderFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -70,7 +71,8 @@ public final class Xml {
   private static Run readRunElement(Element element) throws Exception {
     String benchmarkName = element.getAttribute(BENCHMARK_ATTRIBUTE);
     String executedDateString = element.getAttribute(EXECUTED_TIMESTAMP_ATTRIBUTE);
-    Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING).parse(executedDateString);
+    Date executedDate = new SimpleDateFormat(DATE_FORMAT_STRING, Locale.US)
+        .parse(executedDateString);
 
     ImmutableMap.Builder<Scenario, ScenarioResult> measurementsBuilder = ImmutableMap.builder();
     for (Node scenarioNode : XmlUtils.childrenOf(element)) {

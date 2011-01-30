@@ -44,12 +44,18 @@ public final class ScenarioResult
       String timeEventLog, MeasurementSet instanceMeasurementSet,
       String instanceEventLog, MeasurementSet memoryMeasurementSet,
       String memoryEventLog) {
-    measurementSetMap.put(MeasurementType.TIME.toString(), timeMeasurementSet);
-    measurementSetMap.put(MeasurementType.INSTANCE.toString(), instanceMeasurementSet);
-    measurementSetMap.put(MeasurementType.MEMORY.toString(), memoryMeasurementSet);
-    eventLogMap.put(MeasurementType.TIME.toString(), timeEventLog);
-    eventLogMap.put(MeasurementType.INSTANCE.toString(), instanceEventLog);
-    eventLogMap.put(MeasurementType.MEMORY.toString(), memoryEventLog);
+    if (timeMeasurementSet != null) {
+      measurementSetMap.put(MeasurementType.TIME.toString(), timeMeasurementSet);
+      eventLogMap.put(MeasurementType.TIME.toString(), timeEventLog);
+    }
+    if (instanceMeasurementSet != null) {
+      measurementSetMap.put(MeasurementType.INSTANCE.toString(), instanceMeasurementSet);
+      eventLogMap.put(MeasurementType.INSTANCE.toString(), instanceEventLog);
+    }
+    if (memoryMeasurementSet != null) {
+      measurementSetMap.put(MeasurementType.MEMORY.toString(), memoryMeasurementSet);
+      eventLogMap.put(MeasurementType.MEMORY.toString(), memoryEventLog);
+    }
   }
 
   public MeasurementSet getMeasurementSet(MeasurementType type) {
@@ -58,6 +64,16 @@ public final class ScenarioResult
 
   public String getEventLog(MeasurementType type) {
     return eventLogMap.get(type.toString());
+  }
+
+  @Override public boolean equals(Object o) {
+    return o instanceof ScenarioResult
+        && ((ScenarioResult) o).measurementSetMap.equals(measurementSetMap)
+        && ((ScenarioResult) o).eventLogMap.equals(eventLogMap);
+  }
+
+  @Override public int hashCode() {
+    return measurementSetMap.hashCode() * 37 + eventLogMap.hashCode();
   }
 
   @Override public String toString() {

@@ -40,6 +40,7 @@ import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
@@ -71,7 +72,7 @@ public final class Runner {
   }
 
   private String createTimestamp() {
-    SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_DATE_FORMAT);
+    SimpleDateFormat dateFormat = new SimpleDateFormat(FILE_NAME_DATE_FORMAT, Locale.US);
     dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
     dateFormat.setLenient(true);
     return dateFormat.format(new Date());

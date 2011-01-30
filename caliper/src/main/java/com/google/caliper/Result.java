@@ -37,5 +37,19 @@ public final class Result {
     return environment;
   }
 
+  @Override public boolean equals(Object o) {
+    return o instanceof Result
+        && ((Result) o).run.equals(run)
+        && ((Result) o).environment.equals(environment);
+  }
+
+  @Override public int hashCode() {
+    return run.hashCode() * 37 + environment.hashCode();
+  }
+
+  @Override public String toString() {
+    return run + "@" + environment;
+  }
+
   private Result() {} // for gson
 }
