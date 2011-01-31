@@ -36,7 +36,7 @@ import java.util.Map.Entry;
  * Alongside numeric values, quick-glance ascii art bar charts are printed.
  * Sample output (this may not represent the exact form that is produced):
  * <pre>
- *              benchmark          d     ns logarithmic runtime
+ *              benchmark          d     ns linear runtime
  * ConcatenationBenchmark 3.14159265   4397 ========================
  * ConcatenationBenchmark       -0.0    223 ===============
  *     FormatterBenchmark 3.14159265  33999 ==============================
@@ -333,10 +333,9 @@ final class ConsoleReport {
         System.out.printf("%" + variable.maxLength + "s ", variable.name);
       }
     }
-    // doesn't make sense to show logarithmic scale for 2 scenarios, or any graphs at all for 1
-    // scenario, since these lead to vacuous graphs.
+    // doesn't make sense to show graphs at all for 1
+    // scenario, since it leads to vacuous graphs.
     boolean showGraphs = scenarios.size() > 1;
-    boolean showLinear = scenarios.size() == 2;
 
     EnumMap<MeasurementType, String> numbersFormatMap =
         new EnumMap<MeasurementType, String>(MeasurementType.class);
@@ -354,8 +353,7 @@ final class ConsoleReport {
 
     System.out.printf("%" + measurementColumnLengthMap.get(type) + "s", unitMap.get(type).trim());
     if (showGraphs) {
-      String comparisonType = showLinear ? "linear" : "logarithmic";
-      System.out.printf(" %s runtime", comparisonType);
+      System.out.print(" linear runtime");
     }
     System.out.println();
 
@@ -380,8 +378,7 @@ final class ConsoleReport {
       System.out.printf(numbersFormatMap.get(type),
           measurement.getMeasurementSet(type).medianUnits() / divideByMap.get(type));
       if (showGraphs) {
-        System.out.printf(" %s", barGraph(measurement.getMeasurementSet(type).medianUnits(),
-            showLinear));
+        System.out.printf(" %s", barGraph(measurement.getMeasurementSet(type).medianUnits()));
       }
       System.out.println();
     }
@@ -408,15 +405,8 @@ final class ConsoleReport {
    * Returns a string containing a bar of proportional width to the specified
    * value.
    */
-  private String barGraph(double value, boolean showLinear) {
-    int graphLength;
-    if (showLinear) {
-      graphLength = floor(value / maxValue * barGraphWidth);
-    } else {
-      // smallest value becomes 1 bar, largest becomes full-width
-      LinearTranslation t = new LinearTranslation(logMinValue, 1, logMaxValue, barGraphWidth);
-      graphLength = floor(t.translate(Math.log(value)));
-    }
+  private String barGraph(double value) {
+    int graphLength = floor(value / maxValue * barGraphWidth);
     graphLength = Math.max(1, graphLength);
     graphLength = Math.min(barGraphWidth, graphLength);
     return Strings.repeat("=", graphLength);
