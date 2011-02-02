@@ -87,7 +87,8 @@ final class ConsoleReport {
     unitMap.put(MeasurementType.MEMORY, arguments.getMemoryUnit());
 
     if (arguments.getMeasureMemory()) {
-      orderedMeasurementTypes = Arrays.asList(MeasurementType.values());
+      orderedMeasurementTypes = Arrays.asList(
+          MeasurementType.TIME, MeasurementType.INSTANCE, MeasurementType.MEMORY);
     } else {
       orderedMeasurementTypes = Arrays.asList(MeasurementType.TIME);
     }
