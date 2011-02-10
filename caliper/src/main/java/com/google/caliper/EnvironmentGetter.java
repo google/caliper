@@ -129,6 +129,7 @@ public final class EnvironmentGetter {
         result.put(parts[0], parts[1]);
       }
     }
+    in.close();
 
     return result.build();
   }

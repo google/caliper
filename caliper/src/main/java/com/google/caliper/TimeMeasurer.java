@@ -33,9 +33,9 @@ class TimeMeasurer extends Measurer {
    * If the standard deviation of our measurements is within this tolerance, we
    * won't bother to perform additional measurements.
    */
-  private final double SHORT_CIRCUIT_TOLERANCE = 0.01;
+  private static final double SHORT_CIRCUIT_TOLERANCE = 0.01;
 
-  private final int MAX_TRIALS = 10;
+  private static final int MAX_TRIALS = 10;
 
   TimeMeasurer(long warmupMillis, long runMillis) {
     checkArgument(warmupMillis > 50);

@@ -30,7 +30,7 @@ public final class InterleavedReader implements Closeable {
 
   /**
    * The length of the scratch buffer to search for markers in. Also acts as an
-   * uppor bound on the length of returned strings. Not used as an I/O buffer.
+   * upper bound on the length of returned strings. Not used as an I/O buffer.
    */
   private static final int BUFFER_LENGTH = 80;
 

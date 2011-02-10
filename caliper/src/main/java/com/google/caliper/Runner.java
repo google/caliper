@@ -192,6 +192,7 @@ public final class Runner {
         BufferedReader in = new BufferedReader(
             new InputStreamReader(urlConnection.getInputStream()));
         System.out.println("  " + in.readLine());
+        in.close();
         return;
       }
 
@@ -203,6 +204,7 @@ public final class Runner {
       while ((line = reader.readLine()) != null) {
         System.out.println(line);
       }
+      reader.close();
     } catch (IOException e) {
       throw new RuntimeException("Posting to " + postUrl + " failed.", e);
     }
@@ -231,7 +233,7 @@ public final class Runner {
         memoryMeasurements, memoryEventLog);
   }
 
-  private class MeasurementResult {
+  private static class MeasurementResult {
     private final MeasurementSet measurements;
     private final String eventLog;
 

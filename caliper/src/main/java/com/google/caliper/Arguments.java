@@ -244,6 +244,12 @@ public final class Arguments {
       } else if ("--timeUnit".equals(arg)) {
         result.timeUnit = args.next();
         standardRun = true;
+      } else if ("--instanceUnit".equals(arg)) {
+        result.instanceUnit = args.next();
+        standardRun = true;
+      } else if ("--memoryUnit".equals(arg)) {
+        result.memoryUnit = args.next();
+        standardRun = true;
       } else if ("--saveResults".equals(arg) || "--xmlSave".equals(arg)) {
         // TODO: unsupport legacy --xmlSave
         result.saveResultsFile = new File(args.next());
