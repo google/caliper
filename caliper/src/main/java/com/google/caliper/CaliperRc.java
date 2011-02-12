@@ -52,4 +52,12 @@ public class CaliperRc {
   public String getPostUrl() {
     return properties.getProperty("postUrl");
   }
+
+  /**
+   * The HTTP proxy host name and port number separated by a colon, such as
+   * foo.com:8080
+   */
+  public String getProxy() {
+    return properties.getProperty("proxy");
+  }
 }

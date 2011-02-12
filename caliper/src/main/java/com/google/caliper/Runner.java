@@ -36,6 +36,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -182,7 +184,7 @@ public final class Runner {
 
     try {
       URL url = new URL(postUrl + apiKey + "/" + result.getRun().getBenchmarkName());
-      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+      HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(getProxy());
       urlConnection.setDoOutput(true);
       String resultJson = Json.getGsonInstance().toJson(result);
       urlConnection.getOutputStream().write(resultJson.getBytes());
@@ -208,6 +210,17 @@ public final class Runner {
     } catch (IOException e) {
       throw new RuntimeException("Posting to " + postUrl + " failed.", e);
     }
+  }
+
+  private Proxy getProxy() {
+    String proxyAddress = CaliperRc.INSTANCE.getProxy();
+    if (proxyAddress == null) {
+      return Proxy.NO_PROXY;
+    }
+
+    String[] proxyHostAndPort = proxyAddress.trim().split(":");
+    return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(
+        proxyHostAndPort[0], Integer.parseInt(proxyHostAndPort[1])));
   }
 
   private ScenarioResult runScenario(Scenario scenario) {
