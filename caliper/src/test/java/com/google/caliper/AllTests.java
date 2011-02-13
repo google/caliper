@@ -19,14 +19,18 @@ package com.google.caliper;
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
+import com.google.caliper.runner.ParsedOptionsTest;
+
 public class AllTests {
   public static Test suite() {
     TestSuite suite = new TestSuite();
-    suite.addTestSuite(MeasurementSetTest.class);
     suite.addTestSuite(CaliperTest.class);
     suite.addTestSuite(LinearTranslationTest.class);
+    suite.addTestSuite(MeasurementSetTest.class);
     suite.addTestSuite(ParameterTest.class);
     suite.addTestSuite(WarmupOverflowTest.class);
+
+    suite.addTestSuite(ParsedOptionsTest.class);
     return suite;
   }
 }
