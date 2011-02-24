@@ -55,5 +55,6 @@ public final class Environment
     return propertyMap.toString();
   }
 
+  @SuppressWarnings("unused")
   private Environment() {} // for GWT Serialization
 }

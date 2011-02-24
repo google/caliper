@@ -17,13 +17,6 @@ package com.google.caliper.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Arrays.asList;
 
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -33,9 +26,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
 
 // based on r135 of OptionParser.java from vogar
 // NOTE: this class is still pretty messy but will be cleaned up further and possibly offered to

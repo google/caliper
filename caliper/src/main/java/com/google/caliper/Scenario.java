@@ -72,5 +72,6 @@ public final class Scenario
     return "Scenario" + variables;
   }
 
+  @SuppressWarnings("unused")
   private Scenario() {} // for GWT
 }

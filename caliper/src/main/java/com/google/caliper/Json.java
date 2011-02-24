@@ -217,6 +217,7 @@ public final class Json {
       return v;
     }
 
+    @SuppressWarnings("unused")
     private KeyValuePair() {} // for gson
   }
 

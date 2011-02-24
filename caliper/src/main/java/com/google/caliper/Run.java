@@ -85,5 +85,6 @@ public final class Run
     return measurements.toString();
   }
 
+  @SuppressWarnings("unused")
   private Run() {} // for GWT Serialization
 }

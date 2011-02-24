@@ -256,5 +256,6 @@ public final class MeasurementSet
         + systemOutCharCount + "/" + systemErrCharCount;
   }
 
+  @SuppressWarnings("unused")
   private MeasurementSet() {} // for GWT Serialization
 }

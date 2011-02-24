@@ -85,5 +85,6 @@ public final class Measurement
         : Double.toString(raw));
   }
 
+  @SuppressWarnings("unused")
   private Measurement() {} /* for GWT */
 }

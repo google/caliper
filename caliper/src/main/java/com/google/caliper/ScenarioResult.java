@@ -80,5 +80,6 @@ public final class ScenarioResult
     return "measurementSetMap: " + measurementSetMap + ", eventLogMap: " + eventLogMap;
   }
 
+  @SuppressWarnings("unused")
   private ScenarioResult() {} // for GWT Serialization
 }

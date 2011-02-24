@@ -51,5 +51,6 @@ public final class Result {
     return run + "@" + environment;
   }
 
+  @SuppressWarnings("unused")
   private Result() {} // for gson
 }
