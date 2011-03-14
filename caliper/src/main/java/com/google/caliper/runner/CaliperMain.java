@@ -14,45 +14,61 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.collect.ObjectArrays.concat;
+
+import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.HelpRequestedException;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.base.Objects;
 
 import java.io.PrintWriter;
 
+/**
+ * Primary entry point for the caliper benchmark runner application; run with {@code --help} for
+ * details.
+ */
 public final class CaliperMain {
-  private CaliperMain() {}
+  /**
+   * Form of {@link #main(String[])} more suitable for invoking programmatically; returns the exit
+   * code as an {@code int} instead of calling {@link System#exit}.
+   */
+  public static int main(Class<? extends Benchmark> benchmarkClass, String... args) {
+    // Later we parse the string back into a class again; oh well, it's still cleaner this way
+    return main2(concat(args, benchmarkClass.getName()));
+  }
 
   /**
-   * Convenient form of {@link #main(String[])} that appends the name of {@code benchmarkClass} to
-   * the argument list.
+   * Primary entry point for the caliper benchmark runner application; run with {@code --help} for
+   * details. This method is not intended to be invoked programmatically; see the other overload for
+   * that.
    */
-  public static void main(Class<? /*extends Benchmark*/> benchmarkClass, String... args) {
+  public static void main(String[] args) {
+    System.exit(main2(args));
+  }
+
+  private static int main2(String[] args) {
     PrintWriter writer = new PrintWriter(System.out);
-    CaliperOptions options = null;
+
+    FilesystemFacade filesystem = new RealFilesystem();
+
+    String rcFilename = Objects.firstNonNull(
+          System.getenv("CALIPERRC"),
+          System.getProperty("user.home") + "/.caliperrc");
 
     try {
-      options = ParsedOptions.from(benchmarkClass, args);
+      CaliperRun run = Wiring.wireItUp(writer, filesystem, rcFilename, args);
+      run.execute();
+      return 0;
 
     } catch (HelpRequestedException e) {
       ParsedOptions.printUsage(writer);
-      System.exit(0);
+      return 0;
 
     } catch (InvalidCommandException e) {
       writer.println(e.getMessage());
       writer.println();
       ParsedOptions.printUsage(writer);
-      System.exit(1); // technically should exit(0) for --help...
+      return 1;
     }
-
-    new CaliperRun(options, writer).run();
-  }
-
-  /**
-   * Main entry point for the caliper benchmark runner application; run with --help for details.
-   * This method is not intented to be invoked programmatically; see the other overload for that.
-   */
-  public static void main(String[] args) {
-    // I dislike the null trick but it saves a ton of repetition...
-    main(null, args);
   }
 }

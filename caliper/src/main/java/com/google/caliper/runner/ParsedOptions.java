@@ -14,68 +14,49 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.spi.Instrument;
 import com.google.caliper.util.CommandLineParser;
+import com.google.caliper.util.CommandLineParser.Leftovers;
 import com.google.caliper.util.CommandLineParser.Option;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
+import com.google.common.collect.Ordering;
 
-import java.io.File;
 import java.io.PrintWriter;
+import java.util.Iterator;
 
 public final class ParsedOptions implements CaliperOptions {
-  public static CaliperOptions from(
-      Class<? /*extends Benchmark*/> benchmarkClass, String... rawArguments)
+  public static ParsedOptions from(String[] args, FilesystemFacade filesystem, CaliperRc rc)
       throws InvalidCommandException {
-    ParsedOptions options = new ParsedOptions();
-    if (benchmarkClass != null) {
-      options.parse(benchmarkClass, rawArguments);
-    } else {
-      options.parse(rawArguments);
-    }
+    CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
+    ParsedOptions options = new ParsedOptions(filesystem, rc);
+    parser.parseAndInject(args, options);
     return options;
   }
 
-  private final CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(getClass());
+  private final FilesystemFacade filesystem;
+  private final CaliperRc rc;
 
-  private ParsedOptions() {}
-
-  void parse(Class<? /*extends Benchmark*/> benchmarkClass, String[] rawArguments)
-      throws InvalidCommandException {
-    this.benchmarkClass = checkNotNull(benchmarkClass);
-    ImmutableList<String> leftovers = parser.parse(rawArguments, this);
-    if (!leftovers.isEmpty()) {
-      throw new InvalidCommandException("Extra stuff on command line: " + leftovers);
-    }
-  }
-
-  void parse(String[] rawArguments) throws InvalidCommandException {
-    ImmutableList<String> leftovers = parser.parse(rawArguments, this);
-
-    if (leftovers.isEmpty()) {
-      throw new InvalidCommandException("No benchmark class specified");
-    }
-    if (leftovers.size() > 1) {
-      throw new InvalidCommandException("Extra stuff, expected only class name: " + leftovers);
-    }
-    try {
-      benchmarkClass = Class.forName(leftovers.get(0));
-    } catch (ClassNotFoundException e) {
-      throw new InvalidCommandException("Not a benchmark class: " + benchmarkClass);
-    }
+  private ParsedOptions(FilesystemFacade filesystem, CaliperRc rc) {
+    this.filesystem = checkNotNull(filesystem);
+    this.rc = checkNotNull(rc);
   }
 
   // --------------------------------------------------------------------------
   // Dry run -- simple boolean, needs to be checked in some methods
   // --------------------------------------------------------------------------
 
-  @Option({"-n", "--dry-run"})
+  // TODO(kevinb): remove legacy --debug alias
+  @Option({"-n", "--dry-run", "--debug"})
   private boolean dryRun;
 
   @Override public boolean dryRun() {
@@ -96,41 +77,53 @@ public final class ParsedOptions implements CaliperOptions {
   @Option({"-d", "--delimiter"})
   private String delimiter = ",";
 
-  private ImmutableList<String> split(String string) {
-    return ImmutableList.copyOf(Splitter.on(delimiter).split(string));
+  private ImmutableSet<String> split(String string) {
+    return ImmutableSet.copyOf(Splitter.on(delimiter).split(string));
   }
 
   // --------------------------------------------------------------------------
   // Benchmark method names to run
   // --------------------------------------------------------------------------
 
-  private ImmutableList<String> benchmarkMethodNames = ImmutableList.of();
+  private ImmutableSet<String> benchmarkNames = ImmutableSet.of();
 
-  @Option({"-m", "--method"})
-  private void setBenchmarkMethodNames(String benchmarksString) {
-    benchmarkMethodNames = split(benchmarksString);
+  @Option({"-b", "--benchmark"})
+  private void setBenchmarkNames(String benchmarksString) {
+    benchmarkNames = split(benchmarksString);
   }
 
-  @Override public ImmutableList<String> benchmarkMethodNames() {
-    return benchmarkMethodNames;
+  @Override public ImmutableSet<String> benchmarkNames() {
+    return benchmarkNames;
   }
 
   // --------------------------------------------------------------------------
   // Verbose?
   // --------------------------------------------------------------------------
 
-  private boolean verbose;
-
   @Option({"-v", "--verbose"})
-  private void setVerbose(boolean b) throws InvalidCommandException {
-    if (b) {
-      dryRunIncompatible("verbose");
-    }
-    this.verbose = b;
-  }
+  private boolean verbose = false;
 
   @Override public boolean verbose() {
     return verbose;
+  }
+
+  // --------------------------------------------------------------------------
+  // Generate detailed logs?
+  // --------------------------------------------------------------------------
+
+  private boolean detailedLogging = false;
+
+  // TODO(kevinb): remove legacy --captureVmLog alias
+  @Option({"-l", "--logging", "--captureVmLog"})
+  private void setDetailedLogging(boolean b) throws InvalidCommandException {
+    if (b) {
+      dryRunIncompatible("verbose");
+    }
+    this.detailedLogging = b;
+  }
+
+  @Override public boolean detailedLogging() {
+    return detailedLogging;
   }
 
   // --------------------------------------------------------------------------
@@ -153,10 +146,10 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
-  // Warmup
+  // Warmup -- technically instrument-specific
   // --------------------------------------------------------------------------
 
-  private int warmupSeconds = 10;
+  private int warmupSeconds = -1;
 
   @Option({"-w", "--warmup"})
   private void setWarmupSeconds(int seconds) throws InvalidCommandException {
@@ -168,42 +161,62 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   @Override public int warmupSeconds() {
-    return warmupSeconds;
+    return (warmupSeconds >= 0) ? warmupSeconds : rc.defaultWarmupSeconds();
   }
 
   // --------------------------------------------------------------------------
-  // JRE home directories
+  // VM specifications
   // --------------------------------------------------------------------------
 
-  // Let this be injected early (field injection happens first)
-  @Option({"-b", "--jre-base"})
-  private String jreBaseDir;
+  private ImmutableList<VirtualMachine> vms = ImmutableList.of(hostVm());
 
-  @Override public String jreBaseDir() {
-    return jreBaseDir;
-  }
+  private VirtualMachine findVm(String vmChoice) throws InvalidCommandException {
+    String vmString = rc.vmAliases().get(vmChoice);
+    String baseDir = rc.vmBaseDirectory();
 
-  private ImmutableList<String> jreHomes;
+    if (vmString != null) {
+      Iterator<String> parts = Splitter.onPattern("\\s+").split(vmString).iterator();
+      String vmExec = parts.next();
+      ImmutableList<String> args = ImmutableList.copyOf(parts);
 
-  @Option({"-j", "--jre-home"})
-  private void setJreHomes(String jreHomesString) throws InvalidCommandException {
-    dryRunIncompatible("jre-home");
-    jreHomes = split(jreHomesString);
-
-    for (String jre : jreHomes) {
-      File home = new File(jre);
-      if (!home.isAbsolute() && jreBaseDir != null) {
-        home = new File(jreBaseDir, jre);
-      }
-      File bin = new File(home, "bin");
-      if (!new File(bin, "java").exists()) {
-        throw new InvalidCommandException("Not a JRE home: " + home);
-      }
+      vmExec = filesystem.makeAbsolute(vmExec, baseDir);
+      return new VirtualMachine(vmChoice, vmExec, args);
     }
+
+    String vmExec = filesystem.makeAbsolute(vmString, baseDir);
+    if (filesystem.isDirectory(vmExec)) {
+      vmExec = filesystem.makeAbsolute("bin/java", vmExec);
+    }
+    return new VirtualMachine(vmChoice, vmExec, ImmutableList.<String>of());
   }
 
-  @Override public ImmutableList<String> jreHomeDirs() {
-    return jreHomes;
+  private VirtualMachine hostVm() {
+    String home = System.getProperty("java.home");
+    String base = home.replaceFirst(".*/", "");
+    return new VirtualMachine(
+        base,
+        home + "/bin/java",
+        ImmutableList.<String>of());
+  }
+
+  @Option({"-m", "--vm"})
+  private void setVms(String vmsString) throws InvalidCommandException {
+    dryRunIncompatible("vm");
+
+    ImmutableSet<String> vmChoices = split(vmsString);
+    ImmutableList.Builder<VirtualMachine> vmsBuilder = ImmutableList.builder();
+    for (String vmChoice : vmChoices) {
+      VirtualMachine spec = findVm(vmChoice);
+      if (!filesystem.exists(spec.execPath)) {
+        throw new InvalidCommandException("VM executable not found: " + spec.execPath);
+      }
+      vmsBuilder.add(spec);
+    }
+    this.vms = vmsBuilder.build();
+  }
+
+  @Override public ImmutableList<VirtualMachine> vms() {
+    return vms;
   }
 
   // --------------------------------------------------------------------------
@@ -212,7 +225,8 @@ public final class ParsedOptions implements CaliperOptions {
 
   private String outputFileOrDir;
 
-  @Option({"-o", "--output"})
+  // TODO(kevinb): remove legacy --saveResults alias
+  @Option({"-o", "--output", "--saveResults"})
   private void setOutputFileOrDir(String s) throws InvalidCommandException {
     dryRunIncompatible("output");
     this.outputFileOrDir = s;
@@ -228,7 +242,9 @@ public final class ParsedOptions implements CaliperOptions {
 
   private boolean calculateAggregateScore;
 
-  @Option({"-s", "--score"})
+  // Undocumented feature?
+  // TODO(kevinb): remove legacy --printScore alias
+  @Option({"-s", "--score", "--printScore"})
   private void setCalculateAggregateScore(boolean b) throws InvalidCommandException {
     if (b) {
       dryRunIncompatible("score");
@@ -244,17 +260,20 @@ public final class ParsedOptions implements CaliperOptions {
   // Measuring instruments to use
   // --------------------------------------------------------------------------
 
-  private ImmutableList<String> instrumentNames = ImmutableList.of("time");
+  private Instrument instrument = new MicrobenchmarkInstrument();
 
   @Option({"-i", "--instrument"})
-  private void setInstruments(String instrumentsString) throws InvalidCommandException {
-    dryRunIncompatible("instrument");
-    this.instrumentNames = split(instrumentsString);
-    // TODO: check em
+  private void setInstrument(String instrumentName) throws InvalidCommandException {
+    String name = firstNonNull(rc.instrumentAliases().get(instrumentName), instrumentName);
+    try {
+      instrument = Class.forName(name).asSubclass(Instrument.class).newInstance();
+    } catch (Exception e) { // TODO: sloppy, I know
+      throw new InvalidCommandException("Invalid instrument: " + instrumentName, e);
+    }
   }
 
-  @Override public ImmutableList<String> instrumentNames() {
-    return instrumentNames;
+  @Override public Instrument instrument() {
+    return instrument;
   }
 
   // --------------------------------------------------------------------------
@@ -268,33 +287,56 @@ public final class ParsedOptions implements CaliperOptions {
     addToMultimap(nameAndValues, parameterValues);
   }
 
-  @Override public ImmutableMultimap<String, String> benchmarkParameters() {
-    return ImmutableMultimap.copyOf(parameterValues);
+  @Override public ImmutableSetMultimap<String, String> userParameters() {
+    // de-dup values, but keep in order
+    return new ImmutableSetMultimap.Builder<String, String>()
+        .orderKeysBy(Ordering.natural())
+        .putAll(parameterValues)
+        .build();
   }
 
   // --------------------------------------------------------------------------
-  // JVM arguments
+  // VM arguments
   // --------------------------------------------------------------------------
 
-  private Multimap<String, String> jvmArguments = ArrayListMultimap.create();
+  private Multimap<String, String> vmArguments = ArrayListMultimap.create();
 
   @Option("-J")
-  private void addJvmArgumentsSpec(String nameAndValues) throws InvalidCommandException {
+  private void addVmArgumentsSpec(String nameAndValues) throws InvalidCommandException {
     dryRunIncompatible("-J");
-    addToMultimap(nameAndValues, jvmArguments);
+    addToMultimap(nameAndValues, vmArguments);
   }
 
-  @Override public ImmutableMultimap<String, String> jvmArguments() {
-    return ImmutableMultimap.copyOf(jvmArguments);
+  @Override public ImmutableSetMultimap<String, String> vmArguments() {
+    // de-dup values, but keep in order
+    return new ImmutableSetMultimap.Builder<String, String>()
+        .orderKeysBy(Ordering.natural())
+        .putAll(vmArguments)
+        .build();
   }
 
   // --------------------------------------------------------------------------
   // Leftover - benchmark class name
   // --------------------------------------------------------------------------
 
-  private Class<? /*extends Benchmark*/> benchmarkClass;
+  private BenchmarkClass benchmarkClass;
 
-  @Override public Class<? /*extends Benchmark*/> benchmarkClass() {
+  @Leftovers
+  private void setLeftovers(ImmutableList<String> leftovers) throws InvalidCommandException {
+    if (leftovers.isEmpty()) {
+      throw new InvalidCommandException("No benchmark class specified");
+    }
+    if (leftovers.size() > 1) {
+      throw new InvalidCommandException("Extra stuff, expected only class name: " + leftovers);
+    }
+    try {
+      this.benchmarkClass = BenchmarkClass.forName(leftovers.get(0));
+    } catch (IllegalArgumentException e) {
+      throw new InvalidCommandException(e.getMessage());
+    }
+  }
+
+  @Override public BenchmarkClass benchmarkClass() {
     return benchmarkClass;
   }
 
@@ -320,14 +362,13 @@ public final class ParsedOptions implements CaliperOptions {
   @Override public String toString() {
     return Objects.toStringHelper(this)
         .add("benchmarkClass", this.benchmarkClass())
-        .add("benchmarkMethodNames", this.benchmarkMethodNames())
-        .add("benchmarkParameters", this.benchmarkParameters())
+        .add("benchmarkMethodNames", this.benchmarkNames())
+        .add("benchmarkParameters", this.userParameters())
         .add("calculateAggregateScore", this.calculateAggregateScore())
         .add("dryRun", this.dryRun())
-        .add("instrumentNames", this.instrumentNames())
-        .add("jreBaseDir", this.jreBaseDir())
-        .add("jreHomeDirs", this.jreHomeDirs())
-        .add("jvmArguments", this.jvmArguments())
+        .add("instrumentNames", this.instrument())
+        .add("vms", this.vms())
+        .add("vmArguments", this.vmArguments())
         .add("outputFileOrDir", this.outputFileOrDir())
         .add("trials", this.trials())
         .add("verbose", this.verbose())
@@ -339,37 +380,37 @@ public final class ParsedOptions implements CaliperOptions {
   // TODO(kevinb): kinda nice if CommandLineParser could autogenerate most of this...
   public static void printUsage(PrintWriter pw) {
     pw.println("Usage:");
-    pw.println(" caliper [options...] <benchmark class name>");
-    pw.println(" java <benchmark class name> [options...]");
+    pw.println(" caliper [options...] <benchmark_class_name>");
+    pw.println(" java <benchmark_class_name> [options...]");
     pw.println();
     pw.println("Options:");
     pw.println(" -h, --help        print this message");
     pw.println(" -n, --dry-run     instead of measuring, execute a single 'rep' of each");
     pw.println("                   benchmark scenario in-process (for debugging); only options");
-    pw.println("                   -m, -d and -D are available in this mode");
-    pw.println(" -i, --instrument  comma-separated list of measuring instruments to use;");
-    pw.println("                   options include 'time', 'allocation', and 'memory_size'");
-    pw.println("                   (default: time)");
-    pw.println(" -w, --warmup      minimum time in seconds to warm up before each measurement;");
-    pw.println("                   a positive integer (default: 10)");
-    pw.println(" -m, --method      comma-separated list of benchmarks to run; 'foo' is an");
-    pw.println("                   alias for 'timeFoo' (default: all found in class)");
-    pw.println(" -v, --verbose     generate extremely detailed logs and include them in the");
-    pw.println("                   result datafile (does not change console output)");
+    pw.println("                   -b, -d and -D are available in this mode");
+    pw.println(" -b, --benchmark   comma-separated list of benchmark methods to run; 'foo' is");
+    pw.println("                   an alias for 'timeFoo' (default: all found in class)");
+    pw.println(" -m, --vm          comma-separated list of vms to test on; possible values are");
+    pw.println("                   configured in ~/.caliperrc (default: only the vm caliper");
+    pw.println("                   itself is running in)");
+    pw.println(" -i, --instrument  measuring instrument to use; possible values are configured");
+    pw.println("                   in ~/.caliperrc (default: 'microbench')");
     pw.println(" -t, --trials      number of independent measurements to take per benchmark");
     pw.println("                   scenario; a positive integer (default: 1)");
-    pw.println(" -b, --jre-base    base directory that JRE homes specified with --jre are");
-    pw.println("                   considered relative to (default: paths must be absolute)");
-    pw.println(" -j, --jre-home    comma-separated list of JRE home directories to test on;");
-    pw.println("                   each may be either absolute or relative to --jre_base");
-    pw.println("                   (default: only the JRE caliper itself is running in)");
+    pw.println(" -w, --warmup      minimum time in seconds to warm up before each measurement;");
+    pw.println("                   a positive integer (default: 10, or as given in .caliperrc)");
     pw.println(" -o, --output      name of file or directory in which to store the results");
     pw.println("                   data file; if a directory a unique filename is chosen; if a");
-    pw.println("                   file it is overwritten");
+    pw.println("                   file it is overwritten (default: ?TODO?)");
+    pw.println(" -l, --logging     generate extremely detailed event logs (GC, compilation");
+    pw.println("                   events, etc.) and include them in the output data file");
+    pw.println("                   (does not affect console display)");
+    pw.println(" -v, --verbose     instead of normal console output, display a raw feed of");
+    pw.println("                   very detailed information");
     pw.println(" -s, --score       also calculate and display an aggregate score for this run;");
     pw.println("                   higher is better; this score can be compared to other runs");
     pw.println("                   with the exact same arguments but otherwise means nothing");
-    pw.println(" -d, --delimiter   separator used to parse --jre, --measure, --benchmark, -D");
+    pw.println(" -d, --delimiter   separator character used to parse --vm, --benchmark, -D");
     pw.println("                   and -J options (default: ',')");
     pw.println();
     pw.println(" -Dparam=val1,val2,... ");
@@ -378,10 +419,10 @@ public final class ParsedOptions implements CaliperOptions {
     pw.println(" if multiple values or parameters are specified in this way, caliper will test");
     pw.println(" all possible combinations.");
     pw.println();
-    pw.println(" -JdisplayName='jre arg list choice 1,jre arg list choice 2,...'");
+    pw.println(" -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'");
     pw.println();
-    pw.println(" Specifies alternate sets of JVM arguments to pass. displayName is any name");
-    pw.println(" you would like this variable to appear as in reports. caliper will test all");
+    pw.println(" Specifies alternate sets of VM arguments to pass. displayName is any name you");
+    pw.println(" would like this variable to appear as in reports. caliper will test all");
     pw.println(" possible combinations. Example: '-Jmemory=-Xms32m -Xmx32m,-Xms512m -Xmx512m'");
     pw.println();
   }

@@ -17,10 +17,18 @@ package com.google.caliper.util;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Arrays.asList;
 
+import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterators;
+import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -28,13 +36,6 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
 
 // based on r135 of OptionParser.java from vogar
 // NOTE: this class is still pretty messy but will be cleaned up further and possibly offered to
@@ -97,9 +98,10 @@ import com.google.common.primitives.Primitives;
  * the POSIX "Utility Syntax Guidelines" (http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap12.html#tag_12_02)
  * the GNU "Standards for Command Line Interfaces" (http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces)
  */
-public class CommandLineParser<T> {
+public final class CommandLineParser<T> {
   /**
-   * Annotates a field as representing a command-line option for OptionsInjector.
+   * Annotates a field or method in an options class to signify that parsed values should be
+   * injected.
    */
   @Retention(RetentionPolicy.RUNTIME)
   @Target({ElementType.FIELD, ElementType.METHOD})
@@ -111,12 +113,51 @@ public class CommandLineParser<T> {
     String[] value();
   }
 
+  /**
+   * Annotates a single method in an options class to receive any "leftover" arguments. The method
+   * must accept {@code ImmutableList<String>} or a supertype. The method will be invoked even if
+   * the list is empty.
+   */
+  @Retention(RetentionPolicy.RUNTIME)
+  @Target({ElementType.FIELD, ElementType.METHOD})
+  public @interface Leftovers {}
+
   public static <T> CommandLineParser<T> forClass(Class<? extends T> c) {
     return new CommandLineParser<T>(c);
   }
 
+  public static <T> T parse(String[] args, Class<T> optionsClass)
+      throws InvalidCommandException {
+    CommandLineParser<T> parser = forClass(optionsClass);
+    T options = null;
+
+    Constructor<T> constructor = null;
+    try {
+      constructor = optionsClass.getDeclaredConstructor();
+    } catch (NoSuchMethodException e) {
+      throw new IllegalArgumentException(
+          "Class has no parameterless constructor: " + optionsClass.getName(), e);
+    }
+
+    try {
+      constructor.setAccessible(true);
+      options = constructor.newInstance();
+    } catch (InvocationTargetException e) {
+      throw new IllegalArgumentException(e);
+    } catch (InstantiationException e) {
+      throw new IllegalArgumentException("Class is abstract: " + optionsClass.getName(), e);
+    } catch (IllegalAccessException e) {
+      throw new AssertionError(e);
+    }
+
+    parser.parseAndInject(args, options);
+    return options;
+  }
+
+  private final InjectionMap injectionMap;
   private T injectee;
-  private final ImmutableMap<String, InjectableOption> nameToInjectable;
+
+  // TODO(kevinb): make a helper object that can be mutated during processing
   private final List<PendingInjection> pendingInjections = Lists.newArrayList();
 
   /**
@@ -126,7 +167,7 @@ public class CommandLineParser<T> {
    *     name
    */
   private CommandLineParser(Class<? extends T> c) {
-    this.nameToInjectable = createNameToInjectableMap(c);
+    this.injectionMap = InjectionMap.forClass(c);
   }
 
   /**
@@ -134,11 +175,11 @@ public class CommandLineParser<T> {
    * provided to the constructor. Returns a list of the positional arguments left over after
    * processing all options.
    */
-  public ImmutableList<String> parse(String[] args, T injectee) throws InvalidCommandException {
+  public void parseAndInject(String[] args, T injectee) throws InvalidCommandException {
     this.injectee = injectee;
     pendingInjections.clear();
     Iterator<String> argsIter = Iterators.forArray(args);
-    ImmutableList.Builder<String> leftovers = ImmutableList.builder();
+    ImmutableList.Builder<String> builder = ImmutableList.builder();
 
     while (argsIter.hasNext()) {
       String arg = argsIter.next();
@@ -150,7 +191,7 @@ public class CommandLineParser<T> {
         parseShortOptions(arg, argsIter);
       } else {
         // The first non-option marks the end of options.
-        leftovers.add(arg);
+        builder.add(arg);
         break;
       }
     }
@@ -159,8 +200,8 @@ public class CommandLineParser<T> {
       pi.injectableOption.inject(pi.value, injectee);
     }
 
-    // Package up the leftovers.
-    return leftovers.addAll(argsIter).build();
+    ImmutableList<String> leftovers = builder.addAll(argsIter).build();
+    invokeMethod(injectee, injectionMap.leftoversMethod, leftovers);
   }
 
   // Private stuff from here on down
@@ -173,63 +214,88 @@ public class CommandLineParser<T> {
     }
   }
 
-  private static ImmutableMap<String, InjectableOption> createNameToInjectableMap(
-      Class<?> injectedClass) {
-    ImmutableMap.Builder<String, InjectableOption> builder = ImmutableMap.builder();
+  private static class InjectionMap {
+    public static InjectionMap forClass(Class<?> injectedClass) {
+      ImmutableMap.Builder<String, InjectableOption> builder = ImmutableMap.builder();
 
-    InjectableOption helpOption = new InjectableOption() {
-      @Override boolean isBoolean() {
-        return true;
-      }
-      @Override void inject(String valueText, Object injectee) throws HelpRequestedException {
-        throw new HelpRequestedException();
-      }
-    };
-    builder.put("-h", helpOption);
-    builder.put("--help", helpOption);
+      InjectableOption helpOption = new InjectableOption() {
+        @Override boolean isBoolean() {
+          return true;
+        }
+        @Override void inject(String valueText, Object injectee) throws HelpRequestedException {
+          throw new HelpRequestedException();
+        }
+      };
+      builder.put("-h", helpOption);
+      builder.put("--help", helpOption);
 
-    for (Field field : injectedClass.getDeclaredFields()) {
-      Option option = field.getAnnotation(Option.class);
-      if (option != null) {
-        InjectableOption injectable = createInjectable(field);
-        for (String optionName : option.value()) {
-          builder.put(optionName, injectable);
+      Method leftoverMethod = null;
+
+      for (Field field : injectedClass.getDeclaredFields()) {
+        checkArgument(!field.isAnnotationPresent(Leftovers.class),
+            "Sorry, @Leftovers only works for methods at present"); // TODO(kevinb)
+        Option option = field.getAnnotation(Option.class);
+        if (option != null) {
+          InjectableOption injectable = FieldOption.create(field);
+          for (String optionName : option.value()) {
+            builder.put(optionName, injectable);
+          }
         }
       }
-    }
-    for (Method method : injectedClass.getDeclaredMethods()) {
-      Option option = method.getAnnotation(Option.class);
-      if (option != null) {
-        int modifiers = method.getModifiers();
-        checkArgument(!(Modifier.isStatic(modifiers) || Modifier.isAbstract(modifiers)));
-        InjectableOption injectable = createInjectable(method);
-        for (String optionName : option.value()) {
-          builder.put(optionName, injectable);
+      for (Method method : injectedClass.getDeclaredMethods()) {
+        if (method.isAnnotationPresent(Leftovers.class)) {
+          checkArgument(!isStaticOrAbstract(method),
+              "@Leftovers method cannot be static or abstract");
+          checkArgument(!method.isAnnotationPresent(Option.class),
+              "method has both @Option and @Leftovers");
+          checkArgument(leftoverMethod == null, "Two methods have @Leftovers");
+
+          method.setAccessible(true);
+          leftoverMethod = method;
+
+          // TODO: check type is a supertype of ImmutableList<String>
+        }
+        Option option = method.getAnnotation(Option.class);
+        if (option != null) {
+          InjectableOption injectable = MethodOption.create(method);
+          for (String optionName : option.value()) {
+            builder.put(optionName, injectable);
+          }
         }
       }
+
+      ImmutableMap<String, InjectableOption> optionMap = builder.build();
+      return new InjectionMap(optionMap, leftoverMethod);
     }
-    // TODO(kevinb): refactor duplication away..
-    return builder.build();
-  }
 
-  private static InjectableOption createInjectable(Field field) {
-    field.setAccessible(true);
-    Type type = field.getGenericType();
+    final ImmutableMap<String, InjectableOption> optionMap;
+    final Method leftoversMethod;
 
-    if (type instanceof Class) {
-      return new FieldOption(field, (Class<?>) type);
+    InjectionMap(ImmutableMap<String, InjectableOption> optionMap, Method leftoversMethod) {
+      this.optionMap = optionMap;
+      this.leftoversMethod = leftoversMethod;
     }
-    throw new IllegalArgumentException("can't inject parameterized types etc.");
-  }
 
-  private static InjectableOption createInjectable(Method method) {
-    method.setAccessible(true);
-    Class<?>[] classes = method.getParameterTypes();
-    checkArgument(classes.length == 1, "Method does not have exactly one argument: " + method);
-    return new MethodOption(method, classes[0]);
+    InjectableOption getInjectableOption(String optionName) throws InvalidCommandException {
+      InjectableOption injectable = optionMap.get(optionName);
+      if (injectable == null) {
+        throw new InvalidCommandException("Invalid option: %s", optionName);
+      }
+      return injectable;
+    }
   }
 
   private static class FieldOption extends InjectableOption {
+    private static InjectableOption create(Field field) {
+      field.setAccessible(true);
+      Type type = field.getGenericType();
+
+      if (type instanceof Class) {
+        return new FieldOption(field, (Class<?>) type);
+      }
+      throw new IllegalArgumentException("can't inject parameterized types etc.");
+    }
+
     private Field field;
     private boolean isBoolean;
     private Converter converter;
@@ -258,6 +324,14 @@ public class CommandLineParser<T> {
   }
 
   private static class MethodOption extends InjectableOption {
+    private static InjectableOption create(Method method) {
+      checkArgument(!isStaticOrAbstract(method),
+          "@Option methods cannot be static or abstract");
+      Class<?>[] classes = method.getParameterTypes();
+      checkArgument(classes.length == 1, "Method does not have exactly one argument: " + method);
+      return new MethodOption(method, classes[0]);
+    }
+
     private Method method;
     private boolean isBoolean;
     private Converter converter;
@@ -266,6 +340,8 @@ public class CommandLineParser<T> {
       this.method = method;
       this.isBoolean = c == boolean.class || c == Boolean.class;
       this.converter = findConverter(c);
+
+      method.setAccessible(true);
     }
 
     @Override boolean isBoolean() {
@@ -277,16 +353,7 @@ public class CommandLineParser<T> {
     }
 
     @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
-      try {
-        Object value = converter.convert(valueText);
-        method.invoke(injectee, value);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        Throwable cause = e.getCause();
-        Throwables.propagateIfPossible(cause, InvalidCommandException.class);
-        throw new RuntimeException(e);
-      }
+      invokeMethod(injectee, method, converter.convert(valueText));
     }
   }
 
@@ -301,7 +368,7 @@ public class CommandLineParser<T> {
       name = name.substring(0, equalsIndex);
     }
 
-    InjectableOption injectable = getInjectableOption(name);
+    InjectableOption injectable = injectionMap.getInjectableOption(name);
 
     if (value == null) {
       value = injectable.isBoolean()
@@ -339,7 +406,7 @@ public class CommandLineParser<T> {
   private void parseShortOptions(String arg, Iterator<String> args) throws InvalidCommandException {
     for (int i = 1; i < arg.length(); ++i) {
       String name = "-" + arg.charAt(i);
-      InjectableOption injectable = getInjectableOption(name);
+      InjectableOption injectable = injectionMap.getInjectableOption(name);
 
       String value;
       if (injectable.isBoolean()) {
@@ -359,24 +426,6 @@ public class CommandLineParser<T> {
     }
   }
 
-  private InjectableOption getInjectableOption(String optionName)
-      throws InvalidCommandException {
-    InjectableOption injectable = nameToInjectable.get(optionName);
-    if (injectable == null) {
-      throw new InvalidCommandException("Invalid option: %s", optionName);
-    }
-    return injectable;
-  }
-
-  private String grabNextValue(Iterator<String> args, String name)
-      throws InvalidCommandException {
-    if (args.hasNext()) {
-      return args.next();
-    } else {
-      throw new InvalidCommandException("option '" + name + "' requires an argument");
-    }
-  }
-
   private abstract static class Converter {
     abstract Object convert(String in) throws InvalidCommandException;
   }
@@ -391,7 +440,7 @@ public class CommandLineParser<T> {
     }
 
     c = Primitives.wrap(c);
-    for (String methodName : asList("valueOf", "fromString")) {
+    for (String methodName : asList("fromString", "valueOf")) {
       final Method method;
       try {
         method = c.getDeclaredMethod(methodName, String.class);
@@ -415,5 +464,32 @@ public class CommandLineParser<T> {
     }
     throw new IllegalArgumentException(
         "No static valueOf(String) or fromString(String) method found in class: " + c);
+  }
+
+  private static void invokeMethod(Object injectee, Method method, Object value)
+      throws InvalidCommandException {
+    try {
+      method.invoke(injectee, value);
+    } catch (IllegalAccessException impossible) {
+      throw new AssertionError(impossible);
+    } catch (InvocationTargetException e) {
+      Throwable cause = e.getCause();
+      Throwables.propagateIfPossible(cause, InvalidCommandException.class);
+      throw new RuntimeException(e);
+    }
+  }
+
+  private String grabNextValue(Iterator<String> args, String name)
+      throws InvalidCommandException {
+    if (args.hasNext()) {
+      return args.next();
+    } else {
+      throw new InvalidCommandException("option '" + name + "' requires an argument");
+    }
+  }
+
+  private static boolean isStaticOrAbstract(Method method) {
+    int modifiers = method.getModifiers();
+    return Modifier.isStatic(modifiers) || Modifier.isAbstract(modifiers);
   }
 }

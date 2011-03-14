@@ -14,23 +14,25 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.spi.Instrument;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 
 /**
  * @author Kevin Bourrillion
  */
 public interface CaliperOptions {
-  Class<? /*extends Benchmark*/> benchmarkClass();
-  ImmutableList<String> benchmarkMethodNames();
-  ImmutableMultimap<String, String> benchmarkParameters();
-  String jreBaseDir();
-  ImmutableList<String> jreHomeDirs();
-  ImmutableMultimap<String, String> jvmArguments();
-  ImmutableList<String> instrumentNames();
+  BenchmarkClass benchmarkClass();
+  ImmutableSet<String> benchmarkNames();
+  ImmutableList<VirtualMachine> vms();
+  ImmutableSetMultimap<String, String> userParameters();
+  ImmutableSetMultimap<String, String> vmArguments();
+  Instrument instrument();
   int trials();
   int warmupSeconds();
   String outputFileOrDir();
+  boolean detailedLogging();
   boolean verbose();
   boolean calculateAggregateScore();
   boolean dryRun();

@@ -14,10 +14,22 @@
 
 package com.google.caliper.runner;
 
-import java.io.PrintWriter;
+import com.google.caliper.spi.Instrument;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Maps;
 
-/** Future home of the caliper runner. */
-public final class CaliperRun implements Runnable {
+import java.io.PrintWriter;
+import java.util.Collection;
+
+/**
+ * A single execution of the benchmark runner, for a particular set of options.
+ */
+public final class CaliperRun {
   private final CaliperOptions options;
   private final PrintWriter writer;
 
@@ -29,7 +41,45 @@ public final class CaliperRun implements Runnable {
     this.writer = writer;
   }
 
-  public void run() {
-    // this is where we'll do stuff
+  public void execute() {
+    BenchmarkClass benchmarkClass = options.benchmarkClass();
+    Collection<BenchmarkMethod> methods = findBenchmarkMethods(options);
+
+    ImmutableSetMultimap<String,String> userParameters =
+        benchmarkClass.resolveUserParameters(options.userParameters());
+
+    ImmutableList<VirtualMachine> vms = options.vms();
+
+    ScenarioSet scenarios = new ScenarioSet(
+        methods, vms, userParameters, options.vmArguments());
+
+    if (options.dryRun()) {
+      for (Scenario scenario : scenarios) {
+        options.instrument().dryRun(scenario);
+      }
+    }
+    displayEstimate(scenarios);
+  }
+
+  @VisibleForTesting
+  static Collection<BenchmarkMethod> findBenchmarkMethods(CaliperOptions options) {
+    Instrument instrument = options.instrument();
+    ImmutableMap<String, BenchmarkMethod> methodMap =
+        options.benchmarkClass().findAllBenchmarkMethods(instrument);
+
+    ImmutableSet<String> names = options.benchmarkNames();
+    return names.isEmpty()
+        ? methodMap.values()
+        : Maps.filterKeys(methodMap, Predicates.in(names)).values();
+  }
+
+  private void displayEstimate(ScenarioSet scenarios) {
+    writer.format("Measuring %s trials each of %s scenarios.", options.trials(), scenarios.size());
+    try {
+      int estimate = options.instrument().estimateRuntimeSeconds(scenarios, options);
+      writer.format(" Estimated runtime: %s minutes.%n", (estimate + 59) / 60);
+    } catch (UnsupportedOperationException e) {
+      writer.format(" (Cannot estimate runtime.)%n");
+    }
   }
 }

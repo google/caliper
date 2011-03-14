@@ -14,6 +14,11 @@
 
 package com.google.caliper.util;
 
-public class HelpRequestedException extends InvalidCommandException {
+/**
+ * Exception used to abort command-line processing because the user has asked for help (using either
+ * --help or -h).
+ */
+@SuppressWarnings("serial") // who would serialize a command-line parsing error?
+public final class HelpRequestedException extends InvalidCommandException {
   public HelpRequestedException() {}
 }
