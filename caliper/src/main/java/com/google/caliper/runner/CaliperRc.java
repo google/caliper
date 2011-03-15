@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.common.collect.ImmutableMap;
 
+import java.io.File;
 import java.util.Map;
 
 /**
@@ -38,8 +39,9 @@ class CaliperRc {
     instrumentAliases = getPrefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
   }
 
-  public String vmBaseDirectory() {
-    return props.get("vm.baseDirectory");
+  public File vmBaseDirectory() {
+    String str = props.get("vm.baseDirectory");
+    return (str != null) ? new File(str) : null;
   }
 
   public String vmCommonArguments() {

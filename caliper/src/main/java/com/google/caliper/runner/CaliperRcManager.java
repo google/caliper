@@ -18,29 +18,27 @@ package com.google.caliper.runner;
 
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
 class CaliperRcManager {
-  private final FilesystemFacade fsi;
+  CaliperRcManager() {}
 
-  CaliperRcManager(FilesystemFacade fsi) {
-    this.fsi = fsi;
-  }
-
-  CaliperRc loadOrCreate(String rcFileName) throws IOException {
+  CaliperRc loadOrCreate(File rcFile) throws IOException {
     // TODO(kevinb): deal with migration issue from old-style .caliperrc
-    if (!fsi.exists(rcFileName)) {
+    if (!rcFile.exists()) {
       InputSupplier<InputStream> supplier = Util.resourceSupplier(getClass(), "default.caliperrc");
-      fsi.copy(supplier, rcFileName);
+      Files.copy(supplier, rcFile);
     }
-    ImmutableMap<String,String> props = fsi.loadProperties(rcFileName);
+    ImmutableMap<String,String> props = Util.loadProperties(rcFile);
     CaliperRc caliperRc = new CaliperRc(props);
 
-    String dir = caliperRc.vmBaseDirectory();
-    if (dir != null && !fsi.isDirectory(dir)) {
+    File dir = caliperRc.vmBaseDirectory();
+    if (dir != null && !dir.isDirectory()) {
       throw new RuntimeException("No such dir: " + dir); // TODO
     }
     return caliperRc;

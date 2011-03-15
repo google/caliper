@@ -31,23 +31,22 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.Iterator;
 
 public final class ParsedOptions implements CaliperOptions {
-  public static ParsedOptions from(String[] args, FilesystemFacade filesystem, CaliperRc rc)
+  public static ParsedOptions from(String[] args, CaliperRc rc)
       throws InvalidCommandException {
     CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
-    ParsedOptions options = new ParsedOptions(filesystem, rc);
+    ParsedOptions options = new ParsedOptions(rc);
     parser.parseAndInject(args, options);
     return options;
   }
 
-  private final FilesystemFacade filesystem;
   private final CaliperRc rc;
 
-  private ParsedOptions(FilesystemFacade filesystem, CaliperRc rc) {
-    this.filesystem = checkNotNull(filesystem);
+  private ParsedOptions(CaliperRc rc) {
     this.rc = checkNotNull(rc);
   }
 
@@ -168,35 +167,31 @@ public final class ParsedOptions implements CaliperOptions {
   // VM specifications
   // --------------------------------------------------------------------------
 
-  private ImmutableList<VirtualMachine> vms = ImmutableList.of(hostVm());
+  private ImmutableList<VirtualMachine> vms = ImmutableList.of(VirtualMachine.hostVm());
 
+  /**
+   *
+   * @param vmChoice
+   * @return
+   * @throws InvalidCommandException
+   */
   private VirtualMachine findVm(String vmChoice) throws InvalidCommandException {
-    String vmString = rc.vmAliases().get(vmChoice);
-    String baseDir = rc.vmBaseDirectory();
 
-    if (vmString != null) {
-      Iterator<String> parts = Splitter.onPattern("\\s+").split(vmString).iterator();
+    String vmSpecFromRc = rc.vmAliases().get(vmChoice);
+    if (vmSpecFromRc != null) {
+      Iterator<String> parts = Splitter.onPattern("\\s+").split(vmSpecFromRc).iterator();
       String vmExec = parts.next();
       ImmutableList<String> args = ImmutableList.copyOf(parts);
+      File vmExecutable = new File(rc.vmBaseDirectory(), vmExec);
+      return new VirtualMachine(vmChoice, vmExecutable, args);
 
-      vmExec = filesystem.makeAbsolute(vmExec, baseDir);
-      return new VirtualMachine(vmChoice, vmExec, args);
+    } else {
+      File vmExecutable = new File(rc.vmBaseDirectory(), vmChoice);
+      if (vmExecutable.isDirectory()) {
+        vmExecutable = new File(vmExecutable, "bin/java");
+      }
+      return new VirtualMachine(vmChoice, vmExecutable, ImmutableList.<String>of());
     }
-
-    String vmExec = filesystem.makeAbsolute(vmString, baseDir);
-    if (filesystem.isDirectory(vmExec)) {
-      vmExec = filesystem.makeAbsolute("bin/java", vmExec);
-    }
-    return new VirtualMachine(vmChoice, vmExec, ImmutableList.<String>of());
-  }
-
-  private VirtualMachine hostVm() {
-    String home = System.getProperty("java.home");
-    String base = home.replaceFirst(".*/", "");
-    return new VirtualMachine(
-        base,
-        home + "/bin/java",
-        ImmutableList.<String>of());
   }
 
   @Option({"-m", "--vm"})
@@ -207,7 +202,7 @@ public final class ParsedOptions implements CaliperOptions {
     ImmutableList.Builder<VirtualMachine> vmsBuilder = ImmutableList.builder();
     for (String vmChoice : vmChoices) {
       VirtualMachine spec = findVm(vmChoice);
-      if (!filesystem.exists(spec.execPath)) {
+      if (!spec.execPath.exists()) {
         throw new InvalidCommandException("VM executable not found: " + spec.execPath);
       }
       vmsBuilder.add(spec);

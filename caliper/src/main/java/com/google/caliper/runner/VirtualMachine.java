@@ -18,21 +18,41 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+
+import java.io.File;
 
 /**
 * @author Kevin Bourrillion
 */
 public class VirtualMachine {
+  static VirtualMachine hostVm() {
+    String home = System.getProperty("java.home");
+    File executable = new File(home, "bin/java");
+    String baseName = home.replaceFirst(".*/", "");
+    try {
+      return new VirtualMachine(baseName, executable, ImmutableList.<String>of());
+    } catch (InvalidCommandException e) {
+      throw new AssertionError(e);
+    }
+  }
+
+
   final String name;
-  final String execPath;
+  final File execPath;
   final ImmutableList<String> arguments;
 
-  VirtualMachine(String name, String execPath, ImmutableList<String> arguments) {
+  VirtualMachine(String name, File execPath, ImmutableList<String> arguments)
+      throws InvalidCommandException {
     this.name = checkNotNull(name);
     this.execPath = checkNotNull(execPath);
     this.arguments = checkNotNull(arguments);
+
+    if (!execPath.exists()) {
+      throw new InvalidCommandException("vm does not exist: " + execPath);
+    }
   }
 
   // ImmutableMap<String, String> detectProperties() {}

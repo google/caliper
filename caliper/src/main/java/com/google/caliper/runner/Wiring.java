@@ -18,26 +18,26 @@ package com.google.caliper.runner;
 
 import com.google.caliper.util.InvalidCommandException;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
 final class Wiring {
   private Wiring() {}
 
-  static CaliperRun wireItUp(
-      PrintWriter writer, FilesystemFacade filesystem, String rcFilename, String[] args)
-          throws InvalidCommandException {
+  static CaliperRun wireItUp(PrintWriter writer, File rcFile, String[] args)
+      throws InvalidCommandException {
 
-    CaliperRcManager crm = new CaliperRcManager(filesystem);
+    CaliperRcManager crm = new CaliperRcManager();
 
     CaliperRc caliperRc = null;
     try {
-      caliperRc = crm.loadOrCreate(rcFilename);
+      caliperRc = crm.loadOrCreate(rcFile);
     } catch (IOException e) {
       throw new InvalidCommandException(e.getMessage()); // TODO?
     }
 
-    CaliperOptions options = ParsedOptions.from(args, filesystem, caliperRc);
+    CaliperOptions options = ParsedOptions.from(args, caliperRc);
     return new CaliperRun(options, writer);
   }
 }

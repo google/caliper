@@ -23,32 +23,47 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 
 public class ParsedOptionsTest extends TestCase {
   private CaliperRc caliperRc;
-  private FilesystemFacade filesystem;
+  private File tempDir;
 
-  @Override protected void setUp() {
+  @Override protected void setUp() throws IOException {
+    tempDir = Files.createTempDir();
+    makeTestVmTree(tempDir);
+
     ImmutableMap<String, String> map = ImmutableMap.of(
-        "instrument.microbenchmark.defaultWarmupSeconds", "10",
-        "vm.baseDirectory", "/vms/go/here",
-        "vm.alias.testVm", "testvmhome/bin/java",
+        "instrument.microbenchmark.defaultWarmupSeconds", "15",
+        "vm.baseDirectory", tempDir.toString(),
         "instrument.alias.testInstrument", FakeInstrument.class.getName());
     caliperRc = new CaliperRc(map);
+  }
 
-    filesystem = new FakeFilesystem();
+  @Override protected void tearDown() throws IOException {
+    if (tempDir != null) {
+      Files.deleteRecursively(tempDir);
+    }
+  }
+
+  private static void makeTestVmTree(File baseDir) throws IOException {
+    File bin = new File(baseDir, "testVm/bin");
+    bin.mkdirs();
+    File java = new File(bin, "java");
+    Files.touch(java);
   }
 
   public void testNoOptions() throws InvalidCommandException {
     try {
-      ParsedOptions.from(new String[] {}, filesystem, caliperRc);
+      ParsedOptions.from(new String[] {}, caliperRc);
       fail();
     } catch (InvalidCommandException expected) {
       assertEquals("No benchmark class specified", expected.getMessage());
@@ -57,67 +72,67 @@ public class ParsedOptionsTest extends TestCase {
 
   public void testHelp() throws InvalidCommandException {
     try {
-      ParsedOptions.from(new String[] {"--help"}, filesystem, caliperRc);
+      ParsedOptions.from(new String[] {"--help"}, caliperRc);
       fail();
     } catch (HelpRequestedException expected) {
     }
   }
+  
   public void testDefaults() throws InvalidCommandException {
-    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, filesystem, caliperRc);
+    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, caliperRc);
 
     assertEquals(new BenchmarkClass(FakeBenchmark.class), options.benchmarkClass());
     assertTrue(options.benchmarkNames().isEmpty());
-    assertTrue(options.userParameters().isEmpty());
     assertFalse(options.calculateAggregateScore());
+    assertFalse(options.detailedLogging());
     assertFalse(options.dryRun());
     assertEquals(new MicrobenchmarkInstrument(), options.instrument());
-    assertEquals(1, options.vms().size());
-    assertTrue(options.vmArguments().isEmpty());
     assertNull(options.outputFileOrDir());
     assertEquals(1, options.trials());
+    assertTrue(options.userParameters().isEmpty());
     assertFalse(options.verbose());
-    assertFalse(options.detailedLogging());
-    assertEquals(10, options.warmupSeconds());
+    assertTrue(options.vmArguments().isEmpty());
+    assertEquals(1, options.vms().size());
+    assertEquals(15, options.warmupSeconds());
   }
 
-  public void testEverything() throws InvalidCommandException {
+  public void testKitchenSink() throws InvalidCommandException {
     String[] args = {
         "--benchmark=foo;bar;qux",
-        "--vm=testVm",
-        "--instrument=testInstrument",
-        "--trials=2",
-        "--warmup=20",
-        "--output=outputdir",
-        "--logging",
-        "--verbose",
-        "--delimiter=;",
         "--score",
+        "--logging",
+        "--instrument=testInstrument",
+        "--output=outputdir",
+        "--trials=2",
         "-Dx=a;b;c",
         "-Dy=b;d",
+        "--verbose",
         "-JmemoryMax=-Xmx32m;-Xmx64m",
+        "--vm=testVm",
+        "--warmup=20",
+        "--delimiter=;",
         CLASS_NAME,
     };
-    CaliperOptions options = ParsedOptions.from(args, filesystem, caliperRc);
+    CaliperOptions options = ParsedOptions.from(args, caliperRc);
 
     assertEquals(new BenchmarkClass(FakeBenchmark.class), options.benchmarkClass());
     assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkNames());
-    assertEquals(ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
-        options.userParameters());
     assertTrue(options.calculateAggregateScore());
+    assertTrue(options.detailedLogging());
     assertFalse(options.dryRun());
     assertEquals(FakeInstrument.class, options.instrument().getClass());
-
-    VirtualMachine vm = Iterables.getOnlyElement(options.vms());
-    assertEquals("testVm", vm.name);
-    assertEquals("/vms/go/here/testvmhome/bin/java", vm.execPath);
-
+    assertEquals("outputdir", options.outputFileOrDir());
+    assertEquals(2, options.trials());
+    assertEquals(ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
+        options.userParameters());
+    assertTrue(options.verbose());
     assertEquals(ImmutableSetMultimap.of("memoryMax", "-Xmx32m", "memoryMax", "-Xmx64m"),
         options.vmArguments());
 
-    assertEquals("outputdir", options.outputFileOrDir());
-    assertEquals(2, options.trials());
-    assertTrue(options.verbose());
-    assertTrue(options.detailedLogging());
+    VirtualMachine vm = Iterables.getOnlyElement(options.vms());
+    assertEquals("testVm", vm.name);
+    assertEquals(new File(tempDir, "testVm/bin/java"), vm.execPath);
+
     assertEquals(20, options.warmupSeconds());
   }
 
@@ -135,33 +150,6 @@ public class ParsedOptionsTest extends TestCase {
       return null;
     }
 
-    @Override public void dryRun(Scenario scenario) {
-    }
-  }
-
-  static class FakeFilesystem implements FilesystemFacade {
-    @Override public boolean exists(String filename) {
-      return filename.equals("/vms/go/here/testvmhome")
-          || filename.equals("/vms/go/here/testvmhome/bin/java");
-    }
-
-    @Override public boolean isDirectory(String filename) {
-      return filename.equals("/vms/go/here/testvmhome");
-    }
-
-    @Override
-    public void copy(InputSupplier<InputStream> in, String rcFileName) throws IOException {
-    }
-
-    @Override
-    public ImmutableMap<String, String> loadProperties(String propFileName) throws IOException {
-      return null;
-    }
-
-    @Override public String makeAbsolute(String name, String baseDir) {
-      return name.startsWith("/")
-          ? name
-          : baseDir + "/" + name;
-    }
+    @Override public void dryRun(Scenario scenario) {}
   }
 }

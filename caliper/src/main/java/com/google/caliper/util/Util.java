@@ -16,14 +16,32 @@
 
 package com.google.caliper.util;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
+import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * @author Kevin Bourrillion
  */
 public class Util {
+  public static ImmutableMap<String, String> loadProperties(File propsFile) throws IOException {
+    Properties props = new Properties();
+    InputStream is = new FileInputStream(propsFile);
+    try {
+      props.load(is);
+    } finally {
+      Closeables.closeQuietly(is);
+    }
+    return Maps.fromProperties(props);
+  }
+
   // TODO: this is similar to Resources.getResource
   public static InputSupplier<InputStream> resourceSupplier(final Class<?> c, final String name) {
     return new InputSupplier<InputStream>() {

@@ -21,6 +21,7 @@ import com.google.caliper.util.HelpRequestedException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Objects;
 
+import java.io.File;
 import java.io.PrintWriter;
 
 /**
@@ -49,14 +50,12 @@ public final class CaliperMain {
   private static int main2(String[] args) {
     PrintWriter writer = new PrintWriter(System.out);
 
-    FilesystemFacade filesystem = new RealFilesystem();
-
-    String rcFilename = Objects.firstNonNull(
+    File rcFile = new File(Objects.firstNonNull(
           System.getenv("CALIPERRC"),
-          System.getProperty("user.home") + "/.caliperrc");
+          System.getProperty("user.home") + "/.caliperrc"));
 
     try {
-      CaliperRun run = Wiring.wireItUp(writer, filesystem, rcFilename, args);
+      CaliperRun run = Wiring.wireItUp(writer, rcFile, args);
       run.execute();
       return 0;
 
