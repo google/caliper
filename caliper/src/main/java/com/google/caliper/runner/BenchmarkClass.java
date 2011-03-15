@@ -16,14 +16,18 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.api.Param;
 import com.google.caliper.spi.Instrument;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Iterables;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 /**
@@ -44,7 +48,7 @@ public final class BenchmarkClass {
   }
 
   private final Class<? extends Benchmark> theClass;
-  private final ImmutableSet<Object /*Parameter*/> parameters;
+  private final ImmutableMap<String, Parameter> parameters;
 
   public BenchmarkClass(Class<? extends Benchmark> theClass) {
     this.theClass = checkNotNull(theClass);
@@ -57,10 +61,11 @@ public final class BenchmarkClass {
           "Not public or lacks public constructor: " + theClass.getName());
     }
 
-    this.parameters = ImmutableSet.of(); // TODO: find them all
+    this.parameters = findParameters(theClass);
   }
 
-  public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(Instrument instrument) {
+  public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
+      Instrument instrument) {
     ImmutableSortedMap.Builder<String, BenchmarkMethod> result = ImmutableSortedMap.naturalOrder();
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
@@ -71,11 +76,32 @@ public final class BenchmarkClass {
     return result.build();
   }
 
+  private static ImmutableMap<String, Parameter> findParameters(
+      Class<? extends Benchmark> theClass) {
+    // deterministic order, not reflection order
+    ImmutableMap.Builder<String, Parameter> parametersBuilder = ImmutableSortedMap.naturalOrder();
+
+    for (Field field : theClass.getDeclaredFields()) {
+      if (field.isAnnotationPresent(Param.class)) {
+        Parameter parameter = new Parameter(field);
+        parametersBuilder.put(field.getName(), parameter);
+      }
+    }
+    return parametersBuilder.build();
+  }
+
   public ImmutableSetMultimap<String, String> resolveUserParameters(
       ImmutableSetMultimap<String, String> commandLineOverrides) {
     ImmutableSetMultimap.Builder<String, String> mergedParams = ImmutableSetMultimap.builder();
-    for (Object parameter : parameters) {
-      
+
+    for (Parameter parameter : parameters.values()) {
+      String name = parameter.name();
+      if (commandLineOverrides.containsKey(name)) {
+        mergedParams.putAll(name, commandLineOverrides.get(name));
+      } else {
+        Iterable<String> defaultsAsStrings = asStrings(parameter.defaults());
+        mergedParams.putAll(name, defaultsAsStrings);
+      }
     }
     return null;
   }
@@ -94,5 +120,9 @@ public final class BenchmarkClass {
 
   @Override public String toString() {
     return theClass.getName();
+  }
+
+  private static Iterable<String> asStrings(Iterable<?> in) {
+    return Iterables.transform(in, toStringFunction());
   }
 }

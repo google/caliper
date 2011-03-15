@@ -169,14 +169,7 @@ public final class ParsedOptions implements CaliperOptions {
 
   private ImmutableList<VirtualMachine> vms = ImmutableList.of(VirtualMachine.hostVm());
 
-  /**
-   *
-   * @param vmChoice
-   * @return
-   * @throws InvalidCommandException
-   */
   private VirtualMachine findVm(String vmChoice) throws InvalidCommandException {
-
     String vmSpecFromRc = rc.vmAliases().get(vmChoice);
     if (vmSpecFromRc != null) {
       Iterator<String> parts = Splitter.onPattern("\\s+").split(vmSpecFromRc).iterator();
