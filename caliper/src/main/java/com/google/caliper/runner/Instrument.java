@@ -14,27 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.caliper.spi;
+package com.google.caliper.runner;
 
-import com.google.caliper.runner.BenchmarkClass;
-import com.google.caliper.runner.BenchmarkMethod;
-import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.MicrobenchmarkInstrument;
-import com.google.caliper.runner.Scenario;
-import com.google.caliper.runner.ScenarioSet;
-import com.google.common.collect.ImmutableMap;
+import com.google.caliper.api.Benchmark;
 
 import java.lang.reflect.Method;
 
 public abstract class Instrument {
-  public int estimateRuntimeSeconds(ScenarioSet scenarios, CaliperOptions options) {
+  public int estimateRuntimeSeconds(int scenarioCount, CaliperOptions options) {
     throw new UnsupportedOperationException();
   }
 
   public abstract boolean isBenchmarkMethod(Method method);
 
   public abstract BenchmarkMethod createBenchmarkMethod(
-      BenchmarkClass benchmarkClass, Method method);
+      BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Scenario scenario);
+  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method);
 }

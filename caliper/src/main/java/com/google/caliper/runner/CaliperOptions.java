@@ -14,7 +14,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.spi.Instrument;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -23,8 +22,8 @@ import com.google.common.collect.ImmutableSetMultimap;
  * @author Kevin Bourrillion
  */
 public interface CaliperOptions {
-  BenchmarkClass benchmarkClass();
-  ImmutableSet<String> benchmarkNames();
+  String benchmarkClassName();
+  ImmutableSet<String> benchmarkMethodNames();
   ImmutableList<VirtualMachine> vms();
   ImmutableSetMultimap<String, String> userParameters();
   ImmutableSetMultimap<String, String> vmArguments();

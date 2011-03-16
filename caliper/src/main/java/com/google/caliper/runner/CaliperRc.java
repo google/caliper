@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
@@ -24,7 +25,7 @@ import java.util.Map;
 /**
  * @author Kevin Bourrillion
  */
-class CaliperRc {
+public class CaliperRc {
   private final ImmutableMap<String, String> props;
   private final ImmutableMap<String, String> vmAliases;
   private final ImmutableMap<String, String> instrumentAliases;
@@ -32,11 +33,11 @@ class CaliperRc {
   private static final String VM_ALIAS_PREFIX = "vm.alias.";
   private static final String INSTRUMENT_ALIAS_PREFIX = "instrument.alias.";
 
-  CaliperRc(Map<String, String> props) {
+  public CaliperRc(Map<String, String> props) {
     this.props = ImmutableMap.copyOf(props);
 
-    vmAliases = getPrefixedSubmap(props, VM_ALIAS_PREFIX);
-    instrumentAliases = getPrefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
+    vmAliases = Util.getPrefixedSubmap(props, VM_ALIAS_PREFIX);
+    instrumentAliases = Util.getPrefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
   }
 
   public File vmBaseDirectory() {
@@ -66,17 +67,5 @@ class CaliperRc {
   public int defaultWarmupSeconds() {
     String str = props.get("instrument.microbenchmark.defaultWarmupSeconds");
     return (str == null) ? 10 : Integer.parseInt(str);
-  }
-
-  private static ImmutableMap<String, String> getPrefixedSubmap(
-      Map<String, String> props, String prefix) {
-    ImmutableMap.Builder<String, String> vmAliasesBuilder = ImmutableMap.builder();
-    for (Map.Entry<String, String> entry : props.entrySet()) {
-      String name = entry.getKey();
-      if (name.startsWith(prefix)) {
-        vmAliasesBuilder.put(name.substring(prefix.length()), entry.getValue());
-      }
-    }
-    return vmAliasesBuilder.build();
   }
 }

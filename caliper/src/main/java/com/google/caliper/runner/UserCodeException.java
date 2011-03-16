@@ -18,8 +18,8 @@ package com.google.caliper.runner;
  * Signifies that the user's benchmark code threw an exception.
  */
 @SuppressWarnings("serial")
-class UserCodeException extends RuntimeException {
-  UserCodeException(Throwable cause) {
+public class UserCodeException extends InvalidBenchmarkException {
+  public UserCodeException(Throwable cause) {
     super("An exception was thrown from the benchmark code.", cause);
   }
 }

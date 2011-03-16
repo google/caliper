@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * @author Kevin Bourrillion
@@ -27,10 +26,7 @@ import java.lang.reflect.Modifier;
 public final class ReflectionHelper {
   private ReflectionHelper() {}
 
-  static Object invokeStatic(Method staticMethod) {
-    if (!Modifier.isStatic(staticMethod.getModifiers())) {
-      throw new InvalidBenchmarkException("Method expected to be static " + staticMethod);
-    }
+  public static Object invokeStatic(Method staticMethod) {
     staticMethod.setAccessible(true);
     try {
       return staticMethod.invoke(null);
@@ -41,11 +37,8 @@ public final class ReflectionHelper {
     }
   }
 
-  static Object getStatic(Field staticField) {
+  public static Object getStatic(Field staticField) {
     staticField.setAccessible(true);
-    if (!Modifier.isStatic(staticField.getModifiers())) {
-      throw new InvalidBenchmarkException("Field expected to be static " + staticField);
-    }
     try {
       return staticField.get(null);
     } catch (IllegalAccessException e) {

@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 
 import java.util.Map;
@@ -24,17 +25,18 @@ import java.util.Map;
 /**
  * A single "premise" for making benchmark measurements: which class and method to invoke, which VM
  * to use, which choices for user parameters and vmArguments to fill in. A caliper run will compute
- * all possible scenarios using {@link ScenarioSet}, and will run one or more trials of each.
+ * all possible scenarios using {@link FullCartesianScenarioSelection}, and will run one or more
+ * trials of each.
  */
-public final class Scenario {
+public class Scenario {
   private final BenchmarkMethod benchmarkMethod;
   private final VirtualMachine vm;
-  private final ImmutableSortedMap<String, String> userParameters;
+  private final ImmutableSortedMap<String, Object> userParameters;
   private final ImmutableSortedMap<String, String> vmArguments;
 
   public Scenario(
       BenchmarkMethod benchmarkMethod,
-      Map<String, String> userParameters,
+      Map<String, Object> userParameters,
       Map<String, String> vmArguments,
       VirtualMachine vm) {
     this.benchmarkMethod = benchmarkMethod;
@@ -47,7 +49,7 @@ public final class Scenario {
     return benchmarkMethod;
   }
 
-  public ImmutableSortedMap<String, String> userParameters() {
+  public ImmutableSortedMap<String, Object> userParameters() {
     return userParameters;
   }
 
@@ -57,6 +59,10 @@ public final class Scenario {
 
   public ImmutableSortedMap<String, String> vmArguments() {
     return vmArguments;
+  }
+
+  public ImmutableMap<String, String> asFlattenedMap() {
+    throw new UnsupportedOperationException("TODO");
   }
 
   @Override public boolean equals(Object object) {

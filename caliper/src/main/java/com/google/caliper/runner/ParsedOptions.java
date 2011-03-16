@@ -17,11 +17,11 @@ package com.google.caliper.runner;
 import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.caliper.spi.Instrument;
 import com.google.caliper.util.CommandLineParser;
 import com.google.caliper.util.CommandLineParser.Leftovers;
 import com.google.caliper.util.CommandLineParser.Option;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.Util;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ArrayListMultimap;
@@ -91,7 +91,7 @@ public final class ParsedOptions implements CaliperOptions {
     benchmarkNames = split(benchmarksString);
   }
 
-  @Override public ImmutableSet<String> benchmarkNames() {
+  @Override public ImmutableSet<String> benchmarkMethodNames() {
     return benchmarkNames;
   }
 
@@ -171,20 +171,26 @@ public final class ParsedOptions implements CaliperOptions {
 
   private VirtualMachine findVm(String vmChoice) throws InvalidCommandException {
     String vmSpecFromRc = rc.vmAliases().get(vmChoice);
+
+    // TODO(kevinb): move summa this into the Vm class itself?
+    File vmExecutable;
+    ImmutableList<String> args = ImmutableList.of();
+
     if (vmSpecFromRc != null) {
-      Iterator<String> parts = Splitter.onPattern("\\s+").split(vmSpecFromRc).iterator();
-      String vmExec = parts.next();
-      ImmutableList<String> args = ImmutableList.copyOf(parts);
-      File vmExecutable = new File(rc.vmBaseDirectory(), vmExec);
-      return new VirtualMachine(vmChoice, vmExecutable, args);
+      Iterator<String> parts = WHITESPACE_SPLITTER.split(vmSpecFromRc).iterator();
+      vmExecutable = new File(rc.vmBaseDirectory(), parts.next());
+      args = ImmutableList.copyOf(parts);
 
     } else {
-      File vmExecutable = new File(rc.vmBaseDirectory(), vmChoice);
+      vmExecutable = new File(rc.vmBaseDirectory(), vmChoice);
       if (vmExecutable.isDirectory()) {
         vmExecutable = new File(vmExecutable, "bin/java");
       }
-      return new VirtualMachine(vmChoice, vmExecutable, ImmutableList.<String>of());
     }
+    if (!vmExecutable.exists()) {
+      throw new InvalidCommandException("vm does not exist: " + vmExecutable);
+    }
+    return new VirtualMachine(vmChoice, vmExecutable, args);
   }
 
   @Option({"-m", "--vm"})
@@ -194,11 +200,8 @@ public final class ParsedOptions implements CaliperOptions {
     ImmutableSet<String> vmChoices = split(vmsString);
     ImmutableList.Builder<VirtualMachine> vmsBuilder = ImmutableList.builder();
     for (String vmChoice : vmChoices) {
-      VirtualMachine spec = findVm(vmChoice);
-      if (!spec.execPath.exists()) {
-        throw new InvalidCommandException("VM executable not found: " + spec.execPath);
-      }
-      vmsBuilder.add(spec);
+      VirtualMachine vm = findVm(vmChoice);
+      vmsBuilder.add(vm);
     }
     this.vms = vmsBuilder.build();
   }
@@ -254,7 +257,7 @@ public final class ParsedOptions implements CaliperOptions {
   private void setInstrument(String instrumentName) throws InvalidCommandException {
     String name = firstNonNull(rc.instrumentAliases().get(instrumentName), instrumentName);
     try {
-      instrument = Class.forName(name).asSubclass(Instrument.class).newInstance();
+      instrument = Util.lenientClassForName(name).asSubclass(Instrument.class).newInstance();
     } catch (Exception e) { // TODO: sloppy, I know
       throw new InvalidCommandException("Invalid instrument: " + instrumentName, e);
     }
@@ -307,7 +310,7 @@ public final class ParsedOptions implements CaliperOptions {
   // Leftover - benchmark class name
   // --------------------------------------------------------------------------
 
-  private BenchmarkClass benchmarkClass;
+  private String benchmarkClassName;
 
   @Leftovers
   private void setLeftovers(ImmutableList<String> leftovers) throws InvalidCommandException {
@@ -317,15 +320,11 @@ public final class ParsedOptions implements CaliperOptions {
     if (leftovers.size() > 1) {
       throw new InvalidCommandException("Extra stuff, expected only class name: " + leftovers);
     }
-    try {
-      this.benchmarkClass = BenchmarkClass.forName(leftovers.get(0));
-    } catch (IllegalArgumentException e) {
-      throw new InvalidCommandException(e.getMessage());
-    }
+    this.benchmarkClassName = leftovers.get(0);
   }
 
-  @Override public BenchmarkClass benchmarkClass() {
-    return benchmarkClass;
+  @Override public String benchmarkClassName() {
+    return benchmarkClassName;
   }
 
   // --------------------------------------------------------------------------
@@ -349,8 +348,8 @@ public final class ParsedOptions implements CaliperOptions {
 
   @Override public String toString() {
     return Objects.toStringHelper(this)
-        .add("benchmarkClass", this.benchmarkClass())
-        .add("benchmarkMethodNames", this.benchmarkNames())
+        .add("benchmarkClassName", this.benchmarkClassName())
+        .add("benchmarkMethodNames", this.benchmarkMethodNames())
         .add("benchmarkParameters", this.userParameters())
         .add("calculateAggregateScore", this.calculateAggregateScore())
         .add("dryRun", this.dryRun())
@@ -364,6 +363,12 @@ public final class ParsedOptions implements CaliperOptions {
         .add("delimiter", this.delimiter)
         .toString();
   }
+
+  private static final Splitter WHITESPACE_SPLITTER = Splitter.onPattern("\\s+");
+
+  // --------------------------------------------------------------------------
+  // Usage
+  // --------------------------------------------------------------------------
 
   // TODO(kevinb): kinda nice if CommandLineParser could autogenerate most of this...
   public static void printUsage(PrintWriter pw) {

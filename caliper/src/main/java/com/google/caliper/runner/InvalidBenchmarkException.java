@@ -18,7 +18,7 @@ package com.google.caliper.runner;
  *
  */
 @SuppressWarnings("serial")
-class InvalidBenchmarkException extends RuntimeException {
+public class InvalidBenchmarkException extends Exception {
   InvalidBenchmarkException(String message, Object... args) {
     super(String.format(message, args));
   }

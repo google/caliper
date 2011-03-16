@@ -16,56 +16,57 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Functions.toStringFunction;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.Param;
-import com.google.caliper.spi.Instrument;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSetMultimap;
+import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.api.VmParam;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 /**
- * An instance of this type represents a user-provided class that extends Benchmark.
+ * An instance of this type represents a user-provided class that extends Benchmark. It manages
+ * creating, setting up and destroying instances of that class.
  */
 public final class BenchmarkClass {
-  public static BenchmarkClass forName(String name) {
-    Class<?> aClass = null;
+  private final Class<? extends Benchmark> theClass;
+  private final ParameterSet<Object> userParameters;
+  private final ParameterSet<String> injectableVmArguments;
+
+  public BenchmarkClass(Class<?> aClass)
+      throws InvalidBenchmarkException {
     try {
-      aClass = Class.forName(name);
-    } catch (ClassNotFoundException e) {
-      throw new IllegalArgumentException("Class not found: " + name);
+      this.theClass = aClass.asSubclass(Benchmark.class);
+    } catch (ClassCastException e) {
+      throw new InvalidBenchmarkException("Does not extend Benchmark: " + aClass.getName());
     }
-    if (!Benchmark.class.isAssignableFrom(aClass)) {
-      throw new IllegalArgumentException("Does not extend Benchmark: " + name);
-    }
-    return new BenchmarkClass(aClass.asSubclass(Benchmark.class));
+    this.userParameters = ParameterSet.create(theClass, Param.class);
+    this.injectableVmArguments = ParameterSet.create(theClass, VmParam.class, String.class);
+
+    validate();
   }
 
-  private final Class<? extends Benchmark> theClass;
-  private final ImmutableMap<String, Parameter> parameters;
-
-  public BenchmarkClass(Class<? extends Benchmark> theClass) {
-    this.theClass = checkNotNull(theClass);
-    try {
-      theClass.newInstance();
-    } catch (InstantiationException e) {
-      throw new IllegalArgumentException("Could not instantiate: " + theClass.getName());
-    } catch (IllegalAccessException e) {
-      throw new IllegalArgumentException(
-          "Not public or lacks public constructor: " + theClass.getName());
+  private void validate() throws InvalidBenchmarkException {
+    Set<String> both = Sets.intersection(
+        userParameters.names(),
+        injectableVmArguments.names());
+    if (!both.isEmpty()) {
+      throw new InvalidBenchmarkException("fields are both @Param and @VmParam: " + both);
     }
+  }
 
-    this.parameters = findParameters(theClass);
+  public ParameterSet<Object> userParameters() {
+    return userParameters;
+  }
+
+  public ParameterSet<String> injectableVmArguments() {
+    return injectableVmArguments;
   }
 
   public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
-      Instrument instrument) {
+      Instrument instrument) throws InvalidBenchmarkException {
     ImmutableSortedMap.Builder<String, BenchmarkMethod> result = ImmutableSortedMap.naturalOrder();
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
@@ -76,34 +77,36 @@ public final class BenchmarkClass {
     return result.build();
   }
 
-  private static ImmutableMap<String, Parameter> findParameters(
-      Class<? extends Benchmark> theClass) {
-    // deterministic order, not reflection order
-    ImmutableMap.Builder<String, Parameter> parametersBuilder = ImmutableSortedMap.naturalOrder();
+  public Benchmark createAndStage(Scenario scenario) throws InvalidBenchmarkException {
+    Benchmark benchmark = createBenchmarkInstance(theClass);
+    userParameters.injectAll(benchmark, scenario.userParameters());
+    injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
-    for (Field field : theClass.getDeclaredFields()) {
-      if (field.isAnnotationPresent(Param.class)) {
-        Parameter parameter = new Parameter(field);
-        parametersBuilder.put(field.getName(), parameter);
-      }
+    try {
+      benchmark.setUp();
+    } catch (SkipThisScenarioException e) {
+      throw e;
+    } catch (Exception e) {
+      throw new UserCodeException(e);
     }
-    return parametersBuilder.build();
+    return benchmark;
   }
 
-  public ImmutableSetMultimap<String, String> resolveUserParameters(
-      ImmutableSetMultimap<String, String> commandLineOverrides) {
-    ImmutableSetMultimap.Builder<String, String> mergedParams = ImmutableSetMultimap.builder();
+  private static Benchmark createBenchmarkInstance(Class<? extends Benchmark> theClass)
+      throws InvalidBenchmarkException {
+    Benchmark benchmark;
+    try {
+      benchmark = theClass.newInstance();
 
-    for (Parameter parameter : parameters.values()) {
-      String name = parameter.name();
-      if (commandLineOverrides.containsKey(name)) {
-        mergedParams.putAll(name, commandLineOverrides.get(name));
-      } else {
-        Iterable<String> defaultsAsStrings = asStrings(parameter.defaults());
-        mergedParams.putAll(name, defaultsAsStrings);
-      }
+    } catch (InstantiationException e) {
+      throw new InvalidBenchmarkException("Class is abstract: " + theClass.getName());
+    } catch (IllegalAccessException e) {
+      throw new InvalidBenchmarkException(
+          "Not public or lacks public constructor: " + theClass.getName());
+    } catch (Exception e) {
+      throw new UserCodeException(e);
     }
-    return null;
+    return benchmark;
   }
 
   @Override public boolean equals(Object object) {
@@ -120,9 +123,5 @@ public final class BenchmarkClass {
 
   @Override public String toString() {
     return theClass.getName();
-  }
-
-  private static Iterable<String> asStrings(Iterable<?> in) {
-    return Iterables.transform(in, toStringFunction());
   }
 }

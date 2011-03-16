@@ -15,14 +15,12 @@
 package com.google.caliper.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Arrays.asList;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.primitives.Primitives;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -34,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
+import java.text.ParseException;
 import java.util.Iterator;
 import java.util.List;
 
@@ -298,12 +297,12 @@ public final class CommandLineParser<T> {
 
     private Field field;
     private boolean isBoolean;
-    private Converter converter;
+    private Parser<?> parser;
 
     private FieldOption(Field field, Class<?> c) {
       this.field = field;
       this.isBoolean = c == boolean.class || c == Boolean.class;
-      this.converter = findConverter(c);
+      this.parser = Parsers.byConventionParser(c);
     }
 
     @Override boolean isBoolean() {
@@ -312,7 +311,7 @@ public final class CommandLineParser<T> {
 
     @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
       try {
-        Object value = converter.convert(valueText);
+        Object value = convert(parser, valueText);
         field.set(injectee, value);
       } catch (IllegalArgumentException e) {
         // from the converter
@@ -334,12 +333,12 @@ public final class CommandLineParser<T> {
 
     private Method method;
     private boolean isBoolean;
-    private Converter converter;
+    private Parser<?> converter;
 
     private MethodOption(Method method, Class<?> c) {
       this.method = method;
       this.isBoolean = c == boolean.class || c == Boolean.class;
-      this.converter = findConverter(c);
+      this.converter = Parsers.byConventionParser(c);
 
       method.setAccessible(true);
     }
@@ -353,8 +352,18 @@ public final class CommandLineParser<T> {
     }
 
     @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
-      invokeMethod(injectee, method, converter.convert(valueText));
+      invokeMethod(injectee, method, convert(converter, valueText));
     }
+  }
+
+  private static Object convert(Parser<?> parser, String valueText) throws InvalidCommandException {
+    Object value;
+    try {
+      value = parser.parse(valueText);
+    } catch (ParseException e) {
+      throw new InvalidCommandException("wrong datatype: " + e.getMessage());
+    }
+    return value;
   }
 
   private void parseLongOption(String arg, Iterator<String> args) throws InvalidCommandException {
@@ -424,46 +433,6 @@ public final class CommandLineParser<T> {
       }
       injectNowOrLater(injectable, value);
     }
-  }
-
-  private abstract static class Converter {
-    abstract Object convert(String in) throws InvalidCommandException;
-  }
-
-  private static Converter findConverter(Class<?> c) {
-    if (c == String.class) {
-      return new Converter() {
-        @Override Object convert(String in) {
-          return in;
-        }
-      };
-    }
-
-    c = Primitives.wrap(c);
-    for (String methodName : asList("fromString", "valueOf")) {
-      final Method method;
-      try {
-        method = c.getDeclaredMethod(methodName, String.class);
-      } catch (Exception e) {
-        continue; // we don't care what went wrong, we just try again
-      }
-      method.setAccessible(true); // to permit inner enums, etc.
-      if (Modifier.isStatic(method.getModifiers())) {
-        return new Converter() {
-          @Override public Object convert(String input) throws InvalidCommandException {
-            try {
-              return method.invoke(null, input);
-            } catch (IllegalAccessException impossible) {
-              throw new AssertionError(impossible);
-            } catch (InvocationTargetException e) {
-              throw new InvalidCommandException("Wrong argument format: " + input);
-            }
-          }
-        };
-      }
-    }
-    throw new IllegalArgumentException(
-        "No static valueOf(String) or fromString(String) method found in class: " + c);
   }
 
   private static void invokeMethod(Object injectee, Method method, Object value)

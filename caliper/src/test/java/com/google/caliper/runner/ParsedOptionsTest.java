@@ -15,22 +15,18 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.spi.Instrument;
 import com.google.caliper.util.HelpRequestedException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 
 import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Method;
 
 public class ParsedOptionsTest extends TestCase {
@@ -81,8 +77,8 @@ public class ParsedOptionsTest extends TestCase {
   public void testDefaults() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, caliperRc);
 
-    assertEquals(new BenchmarkClass(FakeBenchmark.class), options.benchmarkClass());
-    assertTrue(options.benchmarkNames().isEmpty());
+    assertEquals(FakeBenchmark.class.getName(), options.benchmarkClassName());
+    assertTrue(options.benchmarkMethodNames().isEmpty());
     assertFalse(options.calculateAggregateScore());
     assertFalse(options.detailedLogging());
     assertFalse(options.dryRun());
@@ -115,8 +111,8 @@ public class ParsedOptionsTest extends TestCase {
     };
     CaliperOptions options = ParsedOptions.from(args, caliperRc);
 
-    assertEquals(new BenchmarkClass(FakeBenchmark.class), options.benchmarkClass());
-    assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkNames());
+    assertEquals(FakeBenchmark.class.getName(), options.benchmarkClassName());
+    assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkMethodNames());
     assertTrue(options.calculateAggregateScore());
     assertTrue(options.detailedLogging());
     assertFalse(options.dryRun());
@@ -141,15 +137,14 @@ public class ParsedOptionsTest extends TestCase {
   private static final String CLASS_NAME = FakeBenchmark.class.getName();
 
   public static class FakeInstrument extends Instrument {
-    @Override public boolean isBenchmarkMethod(Method method) {
+    @Override public boolean isBenchmarkMethod(Method m) {
       return false;
     }
 
-    @Override
-    public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
+    @Override public BenchmarkMethod createBenchmarkMethod(BenchmarkClass c, Method m) {
       return null;
     }
 
-    @Override public void dryRun(Scenario scenario) {}
+    @Override public void dryRun(Benchmark b, BenchmarkMethod m) {}
   }
 }

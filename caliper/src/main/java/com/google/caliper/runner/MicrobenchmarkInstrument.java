@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.spi.Instrument;
+import com.google.caliper.api.Benchmark;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -24,8 +24,8 @@ import java.util.Arrays;
 
 public final class MicrobenchmarkInstrument extends Instrument {
 
-  @Override public int estimateRuntimeSeconds(ScenarioSet scenarios, CaliperOptions options) {
-    return scenarios.size() * options.trials() * options.warmupSeconds() * 2; // rough
+  @Override public int estimateRuntimeSeconds(int scenarioCount, CaliperOptions options) {
+    return scenarioCount * options.trials() * options.warmupSeconds() * 2; // rough
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -33,13 +33,12 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   @Override public BenchmarkMethod createBenchmarkMethod(
-      BenchmarkClass benchmarkClass, Method method) {
+      BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException {
     int modifiers = method.getModifiers();
     if (!Modifier.isPublic(modifiers)
         || Modifier.isStatic(modifiers)
         || !Arrays.equals(method.getParameterTypes(), new Class<?>[] {int.class})) {
-      // TODO(kevinb): (gasp) checked exception?
-      throw new IllegalArgumentException("Timed methods must be public, "
+      throw new InvalidBenchmarkException("Timed methods must be public, "
           + "non-static and take a single int parameter: " + method);
     }
 
@@ -48,7 +47,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return new BenchmarkMethod(benchmarkClass, method, shortName);
   }
 
-  @Override public void dryRun(Scenario scenario) {
+  @Override public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod) {
     // wow, this is a _really_ dry run...
   }
 
@@ -61,6 +60,6 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   @Override public String toString() {
-    return "TimeInstrument";
+    return "microbenchmark";
   }
 }

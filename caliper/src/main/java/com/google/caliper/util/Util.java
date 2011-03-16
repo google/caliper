@@ -16,28 +16,45 @@
 
 package com.google.caliper.util;
 
+import static com.google.common.primitives.Primitives.wrap;
+
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * @author Kevin Bourrillion
  */
 public class Util {
-  public static ImmutableMap<String, String> loadProperties(File propsFile) throws IOException {
-    Properties props = new Properties();
-    InputStream is = new FileInputStream(propsFile);
+  // Users have no idea that nested classes are identified with '$', not '.', so if class lookup
+  // fails try replacing the last . with $.
+  public static Class<?> lenientClassForName(String className) throws ClassNotFoundException {
     try {
-      props.load(is);
+      return Class.forName(className);
+    } catch (ClassNotFoundException ignored) {
+      // try replacing the last dot with a $, in case that helps
+      // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
+      // amusingly, the $ character means three different things in this one line alone
+      String newName = className.replaceFirst("\\.([^.]+)$", "\\$$1");
+      return Class.forName(newName);
+    }
+  }
+
+  public static ImmutableMap<String, String> loadProperties(
+      InputSupplier<? extends InputStream> is) throws IOException {
+    Properties props = new Properties();
+    InputStream in = is.getInput();
+    try {
+      props.load(in);
     } finally {
-      Closeables.closeQuietly(is);
+      Closeables.closeQuietly(in);
     }
     return Maps.fromProperties(props);
   }
@@ -49,5 +66,32 @@ public class Util {
         return c.getResourceAsStream(name);
       }
     };
+  }
+
+  // TODO: replace with common.text.Parser when in Guava
+
+  public static boolean extendsIgnoringWrapping(Class<?> possibleSub, Class<?> possibleSuper) {
+    return wrap(possibleSuper).isAssignableFrom(wrap(possibleSub));
+  }
+
+  // wow, I finally found an actual use for this...
+  public static <T> Function<Object, T> castFunction(final Class<T> type) {
+    return new Function<Object, T>() {
+      @Override public T apply(Object input) {
+        return type.cast(input);
+      }
+    };
+  }
+
+  public static ImmutableMap<String, String> getPrefixedSubmap(
+      Map<String, String> props, String prefix) {
+    ImmutableMap.Builder<String, String> vmAliasesBuilder = ImmutableMap.builder();
+    for (Map.Entry<String, String> entry : props.entrySet()) {
+      String name = entry.getKey();
+      if (name.startsWith(prefix)) {
+        vmAliasesBuilder.put(name.substring(prefix.length()), entry.getValue());
+      }
+    }
+    return vmAliasesBuilder.build();
   }
 }

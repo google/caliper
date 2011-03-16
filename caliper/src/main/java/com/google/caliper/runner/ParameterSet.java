@@ -1,0 +1,113 @@
+/*
+ * Copyright (C) 2011 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.google.caliper.runner;
+
+import com.google.caliper.api.Benchmark;
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Ordering;
+import com.google.common.collect.Sets;
+
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Represents all the injectable parameter fields of a single kind (@Param or @VmParam) found in a
+ * benchmark class. Has nothing to do with particular choices of <i>values</i> for these parameters
+ * (except that it knows how to find the <i>default</i> values).
+ */
+public class ParameterSet<B> {
+  public static ParameterSet<Object> create(
+      Class<? extends Benchmark> theClass, Class<? extends Annotation> annotationClass)
+          throws InvalidBenchmarkException {
+    return create(theClass, annotationClass, Object.class);
+  }
+
+  public static <B> ParameterSet<B> create(Class<? extends Benchmark> theClass,
+      Class<? extends Annotation> annotationClass, Class<B> requiredBaseType)
+          throws InvalidBenchmarkException {
+    // deterministic order, not reflection order
+    ImmutableMap.Builder<String, Parameter<? extends B>> parametersBuilder =
+        ImmutableSortedMap.naturalOrder();
+
+    for (Field field : theClass.getDeclaredFields()) {
+      if (field.isAnnotationPresent(annotationClass)) {
+        Class<? extends B> type;
+        try {
+          type = field.getType().asSubclass(requiredBaseType);
+        } catch (ClassCastException e) {
+          throw new InvalidBenchmarkException("Bad type: " + field); // TODO(kevinb): better
+        }
+        Parameter<? extends B> parameter = Parameter.create(field, type);
+        parametersBuilder.put(field.getName(), parameter);
+      }
+    }
+    return new ParameterSet<B>(requiredBaseType, parametersBuilder.build());
+  }
+
+  final Class<B> requiredType;
+  final ImmutableMap<String, Parameter<? extends B>> map;
+
+  private ParameterSet(
+      Class<B> requiredType, ImmutableMap<String, Parameter<? extends B>> map) {
+    this.requiredType = requiredType;
+    this.map = map;
+  }
+
+  public Set<String> names() {
+    return map.keySet();
+  }
+
+  public Parameter<? extends B> get(String name) {
+    return map.get(name);
+  }
+
+  public ImmutableSetMultimap<String, B> fillInDefaultsFor(
+      ImmutableSetMultimap<String, B> explicitValues) {
+    ImmutableSetMultimap.Builder<String, B> combined = ImmutableSetMultimap.builder();
+
+    // For user parameters, this'll actually be the same as fromClass.keySet(), since any extras
+    // given at the command line are treated as errors; for VM parameters this is not the case.
+    for (String name : Sets.union(map.keySet(), explicitValues.keySet())) {
+      Parameter<? extends B> parameter = map.get(name);
+      ImmutableCollection<? extends B> values = explicitValues.containsKey(name)
+          ? explicitValues.get(name)
+          : parameter.defaults();
+
+      combined.putAll(name, values); // TODO(kevinb): what if defaults empty? problem?
+    }
+    return combined.orderKeysBy(Ordering.natural()).build();
+  }
+
+  public void injectAll(Benchmark benchmark, Map<String, B> actualValues) {
+    for (Parameter<? extends B> parameter : map.values()) {
+      B value = actualValues.get(parameter.name());
+
+      /*
+       * Pretend this can accept any B, because we know it can accept *this* kind, but we've lost
+       * the correspondence.
+       */
+      @SuppressWarnings("unchecked")
+      Parameter<B> p = (Parameter<B>) parameter;
+      p.inject(benchmark, value);
+    }
+  }
+}

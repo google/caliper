@@ -17,7 +17,6 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.util.Util;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 
@@ -25,22 +24,41 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-class CaliperRcManager {
-  CaliperRcManager() {}
-
-  CaliperRc loadOrCreate(File rcFile) throws IOException {
+// TODO(kevinb): move these methods to CaliperRc class?
+public class CaliperRcManager {
+  public static CaliperRc loadOrCreate(File rcFile) {
     // TODO(kevinb): deal with migration issue from old-style .caliperrc
-    if (!rcFile.exists()) {
-      InputSupplier<InputStream> supplier = Util.resourceSupplier(getClass(), "default.caliperrc");
-      Files.copy(supplier, rcFile);
-    }
-    ImmutableMap<String,String> props = Util.loadProperties(rcFile);
-    CaliperRc caliperRc = new CaliperRc(props);
 
-    File dir = caliperRc.vmBaseDirectory();
-    if (dir != null && !dir.isDirectory()) {
-      throw new RuntimeException("No such dir: " + dir); // TODO
+    if (rcFile.exists()) {
+      try {
+        return loadFrom(Files.newInputStreamSupplier(rcFile));
+      } catch (IOException keepGoing) {
+      }
     }
-    return caliperRc;
+
+    InputSupplier<InputStream> supplier =
+        Util.resourceSupplier(CaliperRc.class, "default.caliperrc");
+    tryCopyIfNeeded(supplier, rcFile);
+
+    try {
+      return loadFrom(supplier);
+    } catch (IOException e) {
+      throw new AssertionError(e); // class path must be messed up
+    }
+  }
+
+  private static CaliperRc loadFrom(InputSupplier<? extends InputStream> supplier)
+      throws IOException {
+    return new CaliperRc(Util.loadProperties(supplier));
+  }
+
+  private static void tryCopyIfNeeded(InputSupplier<? extends InputStream> supplier, File rcFile) {
+    if (!rcFile.exists()) {
+      try {
+        Files.copy(supplier, rcFile);
+      } catch (IOException e) {
+        rcFile.delete();
+      }
+    }
   }
 }
