@@ -56,6 +56,6 @@ public final class BenchmarkMethod {
   }
 
   @Override public String toString() {
-    return benchmarkClass + "." + shortName;
+    return name();
   }
 }

@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.caliper.api;
+package com.google.caliper.runner;
 
 /**
- * This is the class users must extend.
- * TODO(kevinb): full javadoc.
+ * @author Kevin Bourrillion
  */
-public abstract class Benchmark {
-  protected Benchmark() {}
-
-  public void setUp() throws Exception {}
-
-  public void tearDown() throws Exception {}
+public interface ConsoleWriter {
+  void flush();
+  void describe(ScenarioSelection selection);
+  void beforeDryRun(int count);
+  void beforeRun(int trials, int scenarioCount, int estimatedSeconds);
 }

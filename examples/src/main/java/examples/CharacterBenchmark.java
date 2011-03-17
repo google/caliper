@@ -32,7 +32,7 @@ public class CharacterBenchmark extends SimpleBenchmark {
 
     private char[] chars;
 
-    @Override protected void setUp() throws Exception {
+    @Override public void setUp() throws Exception {
         this.chars = characterSet.chars;
     }
 

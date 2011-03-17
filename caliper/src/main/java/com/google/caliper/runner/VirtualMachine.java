@@ -27,7 +27,7 @@ public final class VirtualMachine {
   public static VirtualMachine hostVm() {
     String home = System.getProperty("java.home");
     File executable = new File(home, "bin/java");
-    String baseName = home.replaceFirst(".*/", "");
+    String baseName = home.replaceFirst("/jre$", "").replaceFirst(".*/", "");
     return new VirtualMachine(baseName, executable, ImmutableList.<String>of());
   }
 
@@ -58,10 +58,6 @@ public final class VirtualMachine {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
-        .add("name", name)
-        .add("execPath", execPath)
-        .add("arguments", arguments)
-        .toString();
+    return name;
   }
 }

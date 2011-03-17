@@ -89,7 +89,7 @@ public class BitSetBenchmark extends SimpleBenchmark {
   private BitSet bitSet;
   private char[] bitString;
 
-  @Override protected void setUp() throws Exception {
+  @Override public void setUp() throws Exception {
     bitSet = new BitSet(64);
     bitString = new char[64];
     Random r = new Random();

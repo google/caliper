@@ -18,8 +18,9 @@ package com.google.caliper.runner;
 
 import static com.google.common.collect.Iterables.isEmpty;
 
+import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.Param;
+import com.google.caliper.api.VmParam;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.TypedField;
@@ -63,10 +64,11 @@ public final class Parameter<T> {
     }
 
     try {
+      // TODO(kevinb): perhaps have custom converters listed in .caliperrc or something.
       this.parser = Parsers.byConventionParser(type);
     } catch (IllegalArgumentException e) {
       throw new InvalidBenchmarkException(
-          "Type '%s' of parameter field '%s' has no static 'fromString(String)' or " 
+          "Type '%s' of parameter field '%s' has no static 'fromString(String)' or "
               + "'valueOf(String)' method", typedField.fieldType(), typedField.name());
     }
 
@@ -155,7 +157,12 @@ public final class Parameter<T> {
       @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
           throws InvalidBenchmarkException {
         List<T> list = Lists.newArrayList();
-        String[] defaultsAsStrings = field.getAnnotation(Param.class).value();
+
+        Param annotation = field.getAnnotation(Param.class);
+        String[] defaultsAsStrings = (field.getAnnotation(Param.class) != null)
+            ? field.getAnnotation(Param.class).value()
+            : field.getAnnotation(VmParam.class).value();
+
         for (String defaultAsString : defaultsAsStrings) {
           try {
             list.add(parser.parse(defaultAsString));

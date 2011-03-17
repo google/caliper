@@ -170,7 +170,7 @@ public class CopyArrayBenchmark extends SimpleBenchmark {
   long[] longArray;
   short[] shortArray;
 
-  @Override protected void setUp() {
+  @Override public void setUp() {
     objectArray = new Object[size];
     booleanArray = new boolean[size];
     byteArray = new byte[size];

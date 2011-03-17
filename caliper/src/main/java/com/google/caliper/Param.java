@@ -42,9 +42,9 @@ import java.lang.annotation.Target;
  *
  * <p>Caliper parameters are strings, but can be converted to and from other types. If the type of
  * the field this annotation is applied to is not {@link String}, then the type class must contain
- * a static {@code valueOf(String)} method that returns that type. This method must implement the
- * exact inverse operation to {@link Object#toString}, because Caliper may "round-trip" these
- * parameter values at any time.
+ * a static {@code fromString(String)} or {@code valueOf(String)} method that returns that type.
+ * This method must implement the exact inverse operation to {@link Object#toString}, because
+ * Caliper may "round-trip" these parameter values at any time.
  *
  * <p>Caliper will test every possible combination of parameter values for your benchmark. For
  * example, if you have two parameters, {@code -Dletter=a,b,c -Dnumber=1,2}, Caliper will construct

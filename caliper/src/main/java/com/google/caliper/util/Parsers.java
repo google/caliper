@@ -16,12 +16,15 @@
 
 package com.google.caliper.util;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.wrap;
 import static java.util.Arrays.asList;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -35,7 +38,11 @@ public class Parsers {
   };
 
   /**
-   * Parser that uses fromString/valueOf.
+   * Parser that tries, in this order:
+   * <ul>
+   * <li>static fromString(String)
+   * <li>static valueOf(String)
+   * <li>new ResultType(String)
    */
   public static <T> Parser<T> byConventionParser(Class<T> resultType) {
     if (resultType == String.class) {
@@ -52,42 +59,77 @@ public class Parsers {
       } catch (Exception e) {
         continue; // we don't care what went wrong, we just try again
       }
-      if (Modifier.isStatic(method.getModifiers())) {
-        return new MethodCallingParser<T>(resultType, method);
+      if (Util.isStatic(method)) {
+        return new MethodInvokingParser<T>(resultType, method);
       }
     }
+
+    try {
+      Constructor<T> constr = resultType.getDeclaredConstructor(String.class);
+      return new ConstructorInvokingParser<T>(resultType, constr);
+    } catch (NoSuchMethodException keepGoing) {
+    }
+
     throw new IllegalArgumentException(
         "No static valueOf(String) or fromString(String) method found in class: " + resultType);
   }
 
-  public static class MethodCallingParser<T> implements Parser<T> {
-    private final Class<T> resultType;
-    private final Method method;
+  abstract static class InvokingParser<T> implements Parser<T> {
+    @Override public T parse(CharSequence cs) throws ParseException {
+      String input = cs.toString();
+      T result;
+      try {
+        result = invoke(input);
+      } catch (InvocationTargetException e) {
+        Throwable cause = e.getCause();
+        String desc = firstNonNull(cause.getMessage(), cause.getClass().getSimpleName());
+        throw newParseException(desc, cause);
+      } catch (Exception e) {
+        throw newParseException("Unknown parsing problem", e);
+      }
 
-    public MethodCallingParser(Class<T> resultType, Method method) {
-      checkArgument(Modifier.isStatic(method.getModifiers()));
-      Preconditions.checkArgument(Util.extendsIgnoringWrapping(method.getReturnType(), resultType));
+      // Check round-trip -- things will be mighty confusing if we don't have this
+      // TODO(kevinb): we could try normalizing the strings one time using a single round-trip, which
+      // ought to mostly remove this failure mode
+      if (!result.toString().equals(input)) {
+        throw newParseException("blah"); // TODO(kevinb): fix (or nuke)
+      }
+      return result;
+    }
+
+    protected abstract T invoke(String input) throws Exception;
+  }
+
+  public static class MethodInvokingParser<T> extends InvokingParser<T> {
+    private final Method method;
+    private final Class<T> resultType;
+
+    public MethodInvokingParser(Class<T> resultType, Method method) {
+      checkArgument(Util.isStatic(method));
+      checkArgument(Util.extendsIgnoringWrapping(method.getReturnType(), resultType));
       this.resultType = resultType;
       this.method = method;
       method.setAccessible(true); // to permit inner enums, etc.
     }
 
-    @Override public T parse(CharSequence cs) throws ParseException {
-      String input = cs.toString();
-      Object result;
-      try {
-        result = method.invoke(null, input);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        throw newParseException("Wrong argument format: " + cs, e.getCause());
-      }
+    @Override
+    protected T invoke(String input) throws IllegalAccessException, InvocationTargetException {
+      return resultType.cast(method.invoke(null, input));
+    }
+  }
 
-      // Check round-trip
-      if (!result.toString().equals(input)) {
-        throw newParseException("blah"); // TODO
-      }
-      return resultType.cast(result);
+  public static class ConstructorInvokingParser<T> extends InvokingParser<T> {
+    private final Constructor<T> constr;
+
+    public ConstructorInvokingParser(Class<T> resultType, Constructor<T> constr) {
+      this.constr = constr;
+      constr.setAccessible(true);
+    }
+
+    @Override
+    protected T invoke(String input)
+        throws IllegalAccessException, InvocationTargetException, InstantiationException {
+      return constr.newInstance(input);
     }
   }
 

@@ -397,26 +397,22 @@ public final class ParsedOptions implements CaliperOptions {
     pw.println("                   file it is overwritten (default: ?TODO?)");
     pw.println(" -l, --logging     generate extremely detailed event logs (GC, compilation");
     pw.println("                   events, etc.) and include them in the output data file");
-    pw.println("                   (does not affect console display)");
     pw.println(" -v, --verbose     instead of normal console output, display a raw feed of");
     pw.println("                   very detailed information");
-    pw.println(" -s, --score       also calculate and display an aggregate score for this run;");
-    pw.println("                   higher is better; this score can be compared to other runs");
-    pw.println("                   with the exact same arguments but otherwise means nothing");
+    pw.println(" -s, --score       also calculate and display an aggregate score for this run");
+    pw.println("                   (higher is better; meaningless otherwise)");
     pw.println(" -d, --delimiter   separator character used to parse --vm, --benchmark, -D");
     pw.println("                   and -J options (default: ',')");
     pw.println();
     pw.println(" -Dparam=val1,val2,... ");
-    pw.println();
-    pw.println(" Specifies the values to inject into the 'param' field of the benchmark class;");
-    pw.println(" if multiple values or parameters are specified in this way, caliper will test");
-    pw.println(" all possible combinations.");
+    pw.println("    Specifies the values to inject into the 'param' field of the benchmark");
+    pw.println("    class; if multiple values or parameters are specified in this way, caliper");
+    pw.println("    will try all possible combinations.");
     pw.println();
     pw.println(" -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'");
-    pw.println();
-    pw.println(" Specifies alternate sets of VM arguments to pass. displayName is any name you");
-    pw.println(" would like this variable to appear as in reports. caliper will test all");
-    pw.println(" possible combinations. Example: '-Jmemory=-Xms32m -Xmx32m,-Xms512m -Xmx512m'");
+    pw.println("    Specifies alternate sets of VM arguments to pass. As with any variable,");
+    pw.println("    caliper will test all possible combinations. Example: ");
+    pw.println("    -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'");
     pw.println();
   }
 }

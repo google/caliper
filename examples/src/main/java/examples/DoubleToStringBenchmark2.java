@@ -40,7 +40,7 @@ public class DoubleToStringBenchmark2 extends SimpleBenchmark {
 
   Double wrapped;
 
-  @Override protected void setUp() {
+  @Override public void setUp() {
     if (useWrapper) {
       wrapped = value;
     }

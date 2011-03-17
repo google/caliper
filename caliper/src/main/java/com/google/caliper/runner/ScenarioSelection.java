@@ -27,4 +27,6 @@ public interface ScenarioSelection {
 
   // The important method
   ImmutableSet<Scenario> buildScenarios();
+
+  String selectionType();
 }

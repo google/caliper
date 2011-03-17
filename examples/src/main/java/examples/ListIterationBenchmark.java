@@ -33,7 +33,7 @@ public class ListIterationBenchmark extends SimpleBenchmark {
   private List<Object> list;
   private Object[] array;
 
-  @Override protected void setUp() {
+  @Override public void setUp() {
     array = new Object[length];
     for (int i = 0; i < length; i++) {
       array[i] = new Object();

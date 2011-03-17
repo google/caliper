@@ -38,7 +38,9 @@ import java.util.Set;
  * <h3>Parameters</h3>
  * See the {@link Param} documentation to learn about parameters.
  */
-public abstract class SimpleBenchmark implements Benchmark {
+public abstract class SimpleBenchmark
+    extends com.google.caliper.api.Benchmark // TEMPORARY for transition
+    implements Benchmark {
   private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 
   private final Map<String, Parameter<?>> parameters;
@@ -54,9 +56,9 @@ public abstract class SimpleBenchmark implements Benchmark {
     }
   }
 
-  protected void setUp() throws Exception {}
+  public void setUp() throws Exception {}
 
-  protected void tearDown() throws Exception {}
+  public void tearDown() throws Exception {}
 
   @Override public Set<String> parameterNames() {
     return ImmutableSet.<String>builder()

@@ -28,7 +28,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.Collection;
 import java.util.Iterator;
@@ -40,16 +39,16 @@ import java.util.Set;
 public final class CaliperRun {
   private final CaliperOptions options;
   private final CaliperRc caliperRc;
-  private final PrintWriter writer;
+  private final ConsoleWriter console;
   private final BenchmarkClass benchmarkClass;
   private final ImmutableSetMultimap<String, Object> userParameters;
   private final Collection<BenchmarkMethod> methods;
 
-  public CaliperRun(CaliperOptions options, CaliperRc caliperRc, PrintWriter writer)
+  public CaliperRun(CaliperOptions options, CaliperRc caliperRc, ConsoleWriter console)
       throws InvalidCommandException, InvalidBenchmarkException {
     this.options = options;
     this.caliperRc = caliperRc;
-    this.writer = writer;
+    this.console = console;
 
     Class<?> aClass = classForName(options.benchmarkClassName());
     this.benchmarkClass = new BenchmarkClass(aClass);
@@ -70,11 +69,25 @@ public final class CaliperRun {
     ScenarioSelection selection = new FullCartesianScenarioSelection(
         methods, vms, combinedParams, vmArguments);
 
+    console.describe(selection);
+
     Set<Scenario> mutableScenarios = Sets.newHashSet(selection.buildScenarios());
+
+    console.beforeDryRun(mutableScenarios.size());
+    console.flush();
 
     // always dry run first.
     dryRun(/*INOUT*/mutableScenarios);
-    displayEstimate(mutableScenarios.size());
+
+    int finalScenarioCount = mutableScenarios.size();
+    int estimate;
+    try {
+      estimate = options.instrument().estimateRuntimeSeconds(finalScenarioCount, options);
+    } catch (Exception e) {
+      estimate = 0;
+    }
+    console.beforeRun(options.trials(), finalScenarioCount, estimate);
+    console.flush();
 
     if (options.dryRun()) {
       return;
@@ -96,11 +109,12 @@ public final class CaliperRun {
         throw new InvalidCommandException("unrecognized parameter: " + paramName);
       }
 
-      for (String s : rawValues.get(paramName)) {
+      for (String valueAsString : rawValues.get(paramName)) {
         try {
-          builder.put(paramName, p.parser().parse(s));
+          builder.put(paramName, p.parser().parse(valueAsString));
         } catch (ParseException e) {
-          throw new InvalidCommandException("Wrong type for " + paramName); // TODO(kevinb): better
+          throw new InvalidCommandException("Couldn't parse value '%s' for parameter '%s': %s",
+              valueAsString, paramName, e.getMessage());
         }
       }
     }
@@ -134,16 +148,6 @@ public final class CaliperRun {
       } catch (SkipThisScenarioException innocuous) {
         it.remove();
       }
-    }
-  }
-
-  public void displayEstimate(int scenarioCount) {
-    writer.format("Measuring %s trials each of %s scenarios.", options.trials(), scenarioCount);
-    try {
-      int estimate = options.instrument().estimateRuntimeSeconds(scenarioCount, options);
-      writer.format(" Estimated runtime: %s minutes.%n", (estimate + 59) / 60);
-    } catch (UnsupportedOperationException e) {
-      writer.format(" (Cannot estimate runtime.)%n");
     }
   }
 

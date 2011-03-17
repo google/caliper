@@ -34,7 +34,7 @@ public class ArraySortBenchmark extends SimpleBenchmark {
   private int[] values;
   private int[] copy;
 
-  @Override protected void setUp() throws Exception {
+  @Override public void setUp() throws Exception {
     values = distribution.create(length);
     copy = new int[length];
   }

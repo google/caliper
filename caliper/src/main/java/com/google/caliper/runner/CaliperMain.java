@@ -32,30 +32,32 @@ public final class CaliperMain {
    */
   public static void main(String[] args) {
     PrintWriter writer = new PrintWriter(System.out);
+    int code = 0;
     try {
       exitlessMain(args);
-      System.exit(0);
 
     } catch (HelpRequestedException e) {
       ParsedOptions.printUsage(writer);
-      System.exit(0);
 
     } catch (InvalidCommandException e) {
       writer.println(e.getMessage());
       writer.println();
       ParsedOptions.printUsage(writer);
-      System.exit(1);
+      code = 1;
 
     } catch (UserCodeException e) {
       // This is the user's exception, not ours, so print a stack trace
       // TODO(kevinb): trim caliper frames
       e.printStackTrace(writer);
-      System.exit(1);
+      code = 1;
 
     } catch (InvalidBenchmarkException e) {
       writer.println(e.getMessage());
-      System.exit(1);
+      code = 1;
     }
+
+    writer.flush();
+    System.exit(code);
   }
 
   public static void exitlessMain(String[] args)
@@ -69,8 +71,9 @@ public final class CaliperMain {
     CaliperRc rc = CaliperRcManager.loadOrCreate(new File(rcFilename));
 
     CaliperOptions options = ParsedOptions.from(args, rc); // throws ICE
+    ConsoleWriter console = new DefaultConsoleWriter(writer);
 
-    CaliperRun run = new CaliperRun(options, rc, writer); // throws ICE, IBE
+    CaliperRun run = new CaliperRun(options, rc, console); // throws ICE, IBE
     run.run(); // throws UCE
   }
 }

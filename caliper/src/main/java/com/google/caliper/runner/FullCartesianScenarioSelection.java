@@ -76,7 +76,7 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
       for (VirtualMachine vm : vms) {
         for (List<Object> userParamsChoice : cartesian(userParameters)) {
           ImmutableMap<String, Object> theseUserParams =
-              zip(vmArguments.keySet(), userParamsChoice);
+              zip(userParameters.keySet(), userParamsChoice);
           for (List<String> vmArgsChoice : cartesian(vmArguments)) {
             ImmutableMap<String, String> theseVmArgs =
                 zip(vmArguments.keySet(), vmArgsChoice);
@@ -108,5 +108,9 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
       throw new AssertionError(); // I really screwed up, then.
     }
     return builder.build();
+  }
+
+  @Override public String selectionType() {
+    return "Full cartesian product";
   }
 }

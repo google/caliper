@@ -17,7 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.Param;
+import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmParam;
 import com.google.common.collect.ImmutableSortedMap;

@@ -16,8 +16,8 @@
 
 package com.google.caliper.functional;
 
+import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.Param;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.runner.CaliperOptions;
 import com.google.caliper.runner.CaliperRc;
@@ -64,8 +64,8 @@ public class InvalidBenchmarksTest extends TestCase {
       "Class '%s' uses reserved parameter name 'vm'";
   static final String NO_CONVERSION = "Type 'Object' of parameter field 'oops' "
       + "has no static 'fromString(String)' or 'valueOf(String)' method";
-  static final String CONVERT_FAILED =
-      "Cannot convert default value 'oops' to type 'Integer': Wrong argument format: oops";
+  static final String CONVERT_FAILED = // granted this one's a little weird (and brittle)
+      "Cannot convert default value 'oops' to type 'Integer': For input string: \"oops\"";
   static final String DEFAULTS_FIELD_NOT_STATIC =
       "Default-values field 'fooValues' is not static";
   static final String DEFAULTS_METHOD_NOT_STATIC =
@@ -254,7 +254,8 @@ public class InvalidBenchmarksTest extends TestCase {
     expectUserException(USER_EXCEPTION, DefaultsMethodThrowsBenchmark.class);
   }
   static class DefaultsMethodThrowsBenchmark extends Benchmark {
-    @Param Long foo;
+    @Param
+    Long foo;
 
     public static Iterable<Long> fooValues() {
       throw new SomeUserException();

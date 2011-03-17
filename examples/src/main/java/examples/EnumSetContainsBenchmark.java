@@ -75,7 +75,7 @@ public class EnumSetContainsBenchmark extends SimpleBenchmark {
   private Set<?> set;
   private Object[] testValues;
 
-  @Override protected void setUp() {
+  @Override public void setUp() {
     this.set = setMaker.newSet();
     this.testValues = setMaker.testValues();
   }

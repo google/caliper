@@ -26,6 +26,7 @@ import com.google.common.primitives.Primitives;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
@@ -88,6 +89,10 @@ public final class Util {
 
   public static boolean isPublic(Member member) {
     return Modifier.isPublic(member.getModifiers());
+  }
+
+  public static boolean isStatic(Member member) {
+    return Modifier.isStatic(member.getModifiers());
   }
 
   @SuppressWarnings("unchecked") // checked manually
