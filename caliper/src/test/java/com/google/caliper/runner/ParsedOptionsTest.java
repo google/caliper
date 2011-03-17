@@ -77,7 +77,7 @@ public class ParsedOptionsTest extends TestCase {
   public void testDefaults() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, caliperRc);
 
-    assertEquals(FakeBenchmark.class.getName(), options.benchmarkClassName());
+    assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertTrue(options.benchmarkMethodNames().isEmpty());
     assertFalse(options.calculateAggregateScore());
     assertFalse(options.detailedLogging());
@@ -111,7 +111,7 @@ public class ParsedOptionsTest extends TestCase {
     };
     CaliperOptions options = ParsedOptions.from(args, caliperRc);
 
-    assertEquals(FakeBenchmark.class.getName(), options.benchmarkClassName());
+    assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkMethodNames());
     assertTrue(options.calculateAggregateScore());
     assertTrue(options.detailedLogging());

@@ -19,6 +19,7 @@ package com.google.caliper.util;
 import static com.google.common.primitives.Primitives.wrap;
 
 import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
@@ -26,13 +27,15 @@ import com.google.common.io.InputSupplier;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Member;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
 
-/**
- * @author Kevin Bourrillion
- */
 public class Util {
+  private Util() {}
+
   // Users have no idea that nested classes are identified with '$', not '.', so if class lookup
   // fails try replacing the last . with $.
   public static Class<?> lenientClassForName(String className) throws ClassNotFoundException {
@@ -74,15 +77,6 @@ public class Util {
     return wrap(possibleSuper).isAssignableFrom(wrap(possibleSub));
   }
 
-  // wow, I finally found an actual use for this...
-  public static <T> Function<Object, T> castFunction(final Class<T> type) {
-    return new Function<Object, T>() {
-      @Override public T apply(Object input) {
-        return type.cast(input);
-      }
-    };
-  }
-
   public static ImmutableMap<String, String> getPrefixedSubmap(
       Map<String, String> props, String prefix) {
     ImmutableMap.Builder<String, String> vmAliasesBuilder = ImmutableMap.builder();
@@ -93,5 +87,17 @@ public class Util {
       }
     }
     return vmAliasesBuilder.build();
+  }
+
+  public static boolean isPublic(Member member) {
+    return Modifier.isPublic(member.getModifiers());
+  }
+
+  @SuppressWarnings("unchecked") // checked manually
+  public static <T> ImmutableList<T> checkedCast(ImmutableList<?> source, Class<T> toType) {
+    for (Object o : source) {
+      toType.cast(o);
+    }
+    return (ImmutableList<T>) source;
   }
 }

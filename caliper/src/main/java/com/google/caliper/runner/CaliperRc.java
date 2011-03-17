@@ -22,9 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.Map;
 
-/**
- * @author Kevin Bourrillion
- */
 public class CaliperRc {
   private final ImmutableMap<String, String> props;
   private final ImmutableMap<String, String> vmAliases;

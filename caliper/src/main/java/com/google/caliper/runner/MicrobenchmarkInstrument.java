@@ -17,9 +17,9 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.util.Util;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
 public final class MicrobenchmarkInstrument extends Instrument {
@@ -29,17 +29,15 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
-    return method.getName().startsWith("time");
+    // Just skip over private methods
+    return method.getName().startsWith("time") && Util.isPublic(method);
   }
 
   @Override public BenchmarkMethod createBenchmarkMethod(
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException {
-    int modifiers = method.getModifiers();
-    if (!Modifier.isPublic(modifiers)
-        || Modifier.isStatic(modifiers)
-        || !Arrays.equals(method.getParameterTypes(), new Class<?>[] {int.class})) {
-      throw new InvalidBenchmarkException("Timed methods must be public, "
-          + "non-static and take a single int parameter: " + method);
+    if (!Arrays.equals(method.getParameterTypes(), new Class<?>[] {int.class})) {
+      throw new InvalidBenchmarkException(
+          "Microbenchmark methods must accept a single int parameter: " + method);
     }
 
     String methodName = method.getName();

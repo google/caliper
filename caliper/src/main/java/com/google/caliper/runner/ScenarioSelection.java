@@ -19,9 +19,6 @@ package com.google.caliper.runner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 
-/**
- * @author Kevin Bourrillion
- */
 public interface ScenarioSelection {
   ImmutableSet<BenchmarkMethod> benchmarkMethods();
   ImmutableSet<VirtualMachine> vms();

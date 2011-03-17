@@ -19,7 +19,16 @@ package com.google.caliper.runner;
  */
 @SuppressWarnings("serial")
 public class InvalidBenchmarkException extends Exception {
-  InvalidBenchmarkException(String message, Object... args) {
-    super(String.format(message, args));
+  public InvalidBenchmarkException(String message, Object... args) {
+    super(String.format(message, fixArgs(args)));
+  }
+
+  private static Object[] fixArgs(Object[] args) {
+    for (int i = 0; i < args.length; i++) {
+      if (args[i] instanceof Class) {
+        args[i] = ((Class<?>) args[i]).getSimpleName();
+      }
+    }
+    return args;
   }
 }

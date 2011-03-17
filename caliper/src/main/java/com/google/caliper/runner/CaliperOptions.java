@@ -18,9 +18,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 
-/**
- * @author Kevin Bourrillion
- */
 public interface CaliperOptions {
   String benchmarkClassName();
   ImmutableSet<String> benchmarkMethodNames();

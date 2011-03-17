@@ -18,9 +18,7 @@ package com.google.caliper.util;
 
 import java.text.ParseException;
 
-/**
-* @author Kevin Bourrillion
-*/
+// TODO(kevinb): put in Guava?
 public interface Parser<T> {
   T parse(CharSequence text) throws ParseException;
 }

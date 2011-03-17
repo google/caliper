@@ -37,11 +37,11 @@ public class TypedField<C, F> {
 
   private TypedField(Field field, Class<C> containingType, Class<F> fieldType) {
     this.field = field;
-    this.fieldType = wrap(fieldType);
+    this.fieldType = fieldType;
     this.containingType = containingType;
 
     checkArgument(containingType == field.getDeclaringClass());
-    checkArgument(this.fieldType == wrap(field.getType()));
+    checkArgument(wrap(this.fieldType) == wrap(field.getType()));
     field.setAccessible(true);
   }
 

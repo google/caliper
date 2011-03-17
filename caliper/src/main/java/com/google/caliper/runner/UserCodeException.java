@@ -19,7 +19,12 @@ package com.google.caliper.runner;
  */
 @SuppressWarnings("serial")
 public class UserCodeException extends InvalidBenchmarkException {
+  public UserCodeException(String message, Throwable cause) {
+    super(message);
+    initCause(cause);
+  }
+
   public UserCodeException(Throwable cause) {
-    super("An exception was thrown from the benchmark code.", cause);
+    this("An exception was thrown from the benchmark code", cause);
   }
 }

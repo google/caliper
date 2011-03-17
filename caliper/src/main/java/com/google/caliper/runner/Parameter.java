@@ -26,10 +26,10 @@ import com.google.caliper.util.TypedField;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.ParseException;
@@ -55,21 +55,27 @@ public class Parameter<T> {
   private final ImmutableList<T> defaults;
 
   public Parameter(Field field, Class<T> type) throws InvalidBenchmarkException {
-    if (isReservedName(field.getName())) {
-      throw new InvalidBenchmarkException("Reserved parameter name: " + field.getName());
-    }
     this.typedField = createTypedField(field, type);
+
+    if (RESERVED_NAMES.contains(typedField.name())) {
+      throw new InvalidBenchmarkException("Class '%s' uses reserved parameter name '%s'",
+          typedField.containingType(), typedField.name());
+    }
 
     try {
       this.parser = Parsers.byConventionParser(type);
     } catch (IllegalArgumentException e) {
       throw new InvalidBenchmarkException(
-          "Type has no suitable fromString or valueOf method: " + typedField);
+          "Type '%s' of parameter field '%s' has no static 'fromString(String)' or " 
+              + "'valueOf(String)' method", typedField.fieldType(), typedField.name());
     }
 
     Iterable<T> iterable = DefaultsFinder.FIRST_SUCCESSFUL.findDefaults(typedField, parser);
     this.defaults = ImmutableList.copyOf(iterable);
   }
+
+  static final ImmutableSet<String> RESERVED_NAMES =
+      ImmutableSet.of("benchmark", "environment", "run", "trial", "vm");
 
   // Fake the first type parameter as "Benchmark" just so we don't have to double-parameterize
   // this class.
@@ -77,10 +83,6 @@ public class Parameter<T> {
   private TypedField<Benchmark, T> createTypedField(Field field, Class<T> type) {
     return (TypedField<Benchmark, T>) TypedField.from(field, field.getDeclaringClass(), type);
   }
-
-  // TODO: -J should check this...
-  static final ImmutableSet<String> RESERVED_NAMES =
-      ImmutableSet.of("environment", "run", "trial", "vm");
 
   Parser parser() {
     return parser;
@@ -98,15 +100,36 @@ public class Parameter<T> {
     typedField.setValueOn(benchmark, value);
   }
 
-  static boolean isReservedName(String name) {
-    return RESERVED_NAMES.contains(name);
+  private static Object invokeDefaultsMethod(Method defaultsMethod) throws UserCodeException {
+    defaultsMethod.setAccessible(true);
+    try {
+      return defaultsMethod.invoke(null);
+    } catch (IllegalAccessException e) {
+      throw new AssertionError(e);
+    } catch (InvocationTargetException e) {
+      throw new UserCodeException(e.getCause());
+    }
+  }
+
+  private static Object getDefaultsField(Field staticField) {
+    staticField.setAccessible(true);
+    try {
+      return staticField.get(null);
+    } catch (IllegalAccessException e) {
+      throw new AssertionError(e);
+    }
   }
 
   /** A strategy for choosing default values for parameters. */
   abstract static class DefaultsFinder {
+    // Return empty, not null, to say "I didn't find any"
     abstract <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
         throws InvalidBenchmarkException;
 
+    /*
+     * TODO(kevinb): except for the "AllPossible", we'd like *exactly* one to succeed, and would
+     * prefer to error out if multiple match, so there's no confusion over precedence.
+     */
     static final DefaultsFinder FIRST_SUCCESSFUL = new FirstSuccessful();
 
     static class FirstSuccessful extends DefaultsFinder {
@@ -137,7 +160,9 @@ public class Parameter<T> {
           try {
             list.add(parser.parse(defaultAsString));
           } catch (ParseException e) {
-            throw new InvalidBenchmarkException("blah", e); // TODO
+            throw new InvalidBenchmarkException(
+                "Cannot convert default value '%s' to type '%s': %s",
+                defaultAsString, field.fieldType(), e.getMessage());
           }
         }
         return list;
@@ -151,18 +176,26 @@ public class Parameter<T> {
         Class<?> benchmarkClass = field.containingType();
         Method valuesMethod;
         try {
-          valuesMethod = benchmarkClass.getDeclaredMethod(valuesMethodName, String.class);
+          valuesMethod = benchmarkClass.getDeclaredMethod(valuesMethodName);
         } catch (NoSuchMethodException e) {
           return ImmutableSet.of();
         }
 
         if (!Modifier.isStatic(valuesMethod.getModifiers())) {
-          throw new InvalidBenchmarkException("Method expected to be static " + valuesMethod);
+          throw new InvalidBenchmarkException(
+              "Default-values method '%s' is not static", valuesMethod.getName());
         }
-        Object result = ReflectionHelper.invokeStatic(valuesMethod);
-        return castToIterableOf(field.fieldType(), result);
+        Object result = invokeDefaultsMethod(valuesMethod);
+        ImmutableList<T> list = copyAndCheck(field.fieldType(), result);
+        if (list.isEmpty()) {
+          throw new InvalidBenchmarkException(
+              "Default-values method '%s' returned no values", valuesMethod.getName());
+        }
+        return list;
       }
     }
+
+    // TODO(kevinb): eliminate massive duplication between above and below
 
     static class FromValuesConstant extends DefaultsFinder {
       @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
@@ -177,10 +210,16 @@ public class Parameter<T> {
         }
 
         if (!Modifier.isStatic(valuesField.getModifiers())) {
-          throw new InvalidBenchmarkException("Field expected to be static " + valuesField);
+          throw new InvalidBenchmarkException(
+              "Default-values field '%s' is not static", valuesField.getName());
         }
-        Object result = ReflectionHelper.getStatic(valuesField);
-        return castToIterableOf(field.fieldType(), result);
+        Object result = getDefaultsField(valuesField);
+        ImmutableList<T> list = copyAndCheck(field.fieldType(), result);
+        if (list.isEmpty()) {
+          throw new InvalidBenchmarkException(
+              "Default-values field '%s' has no values", valuesField.getName());
+        }
+        return list;
       }
     }
 
@@ -200,15 +239,16 @@ public class Parameter<T> {
     }
   }
 
-  private static <T> Iterable<T> castToIterableOf(Class<T> fieldType, Object result)
+  private static <T> ImmutableList<T> copyAndCheck(Class<T> fieldType, Object result)
       throws InvalidBenchmarkException {
-    if (result instanceof Iterable) {
-      Iterable<?> iterable = (Iterable<?>) result;
+    try {
+      ImmutableList<Object> copy = ImmutableList.copyOf((Iterable<?>) result);
+      return Util.checkedCast(copy, fieldType);
 
-      // TODO: IBE > CCE
-      return Iterables.transform(iterable, Util.castFunction(fieldType));
-    } else {
-      throw new InvalidBenchmarkException("not an iterable"); // TODO
+    } catch (ClassCastException e) {
+      // TODO: better error...
+      throw new InvalidBenchmarkException(
+          "Default values must be of type Iterable<%s> (or any subtype)", fieldType);
     }
   }
 }

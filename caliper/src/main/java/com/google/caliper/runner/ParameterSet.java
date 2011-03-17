@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
+import com.google.common.primitives.Primitives;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -52,9 +53,11 @@ public class ParameterSet<B> {
       if (field.isAnnotationPresent(annotationClass)) {
         Class<? extends B> type;
         try {
-          type = field.getType().asSubclass(requiredBaseType);
+          type = Primitives.wrap(field.getType()).asSubclass(requiredBaseType);
         } catch (ClassCastException e) {
-          throw new InvalidBenchmarkException("Bad type: " + field); // TODO(kevinb): better
+          throw new InvalidBenchmarkException(
+              "Parameter field '%s' is marked with @%s but is not of type %s",
+              field.getName(), annotationClass, requiredBaseType);
         }
         Parameter<? extends B> parameter = Parameter.create(field, type);
         parametersBuilder.put(field.getName(), parameter);

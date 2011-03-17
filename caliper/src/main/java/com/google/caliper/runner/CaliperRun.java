@@ -28,7 +28,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.Collection;
@@ -39,54 +38,26 @@ import java.util.Set;
  * A single execution of the benchmark runner, for a particular set of options.
  */
 public final class CaliperRun {
-  private final CaliperRc caliperRc;
   private final CaliperOptions options;
+  private final CaliperRc caliperRc;
   private final PrintWriter writer;
   private final BenchmarkClass benchmarkClass;
   private final ImmutableSetMultimap<String, Object> userParameters;
+  private final Collection<BenchmarkMethod> methods;
 
-  /**
-   * Standard constructor.
-   */
-  public CaliperRun(PrintWriter writer, File rcFile, String[] args)
+  public CaliperRun(CaliperOptions options, CaliperRc caliperRc, PrintWriter writer)
       throws InvalidCommandException, InvalidBenchmarkException {
+    this.options = options;
+    this.caliperRc = caliperRc;
     this.writer = writer;
-    this.caliperRc = CaliperRcManager.loadOrCreate(rcFile);
-    this.options = ParsedOptions.from(args, caliperRc);
 
     Class<?> aClass = classForName(options.benchmarkClassName());
     this.benchmarkClass = new BenchmarkClass(aClass);
-    this.userParameters = convertUserParameters(options.userParameters());
+    this.userParameters = convertUserParameters(options.userParameters(), benchmarkClass);
+    this.methods = findBenchmarkMethods(benchmarkClass, options);
   }
 
-  // Simply converts all the strings to the right datatypes
-  private ImmutableSetMultimap<String, Object> convertUserParameters(
-      Multimap<String, String> rawValues) throws InvalidCommandException {
-    ImmutableSetMultimap.Builder<String, Object> builder = ImmutableSetMultimap.builder();
-    builder.orderKeysBy(Ordering.natural());
-
-    for (String paramName : rawValues.keySet()) {
-      Parameter p = benchmarkClass.userParameters().get(paramName);
-      if (p == null) {
-        throw new InvalidCommandException("unrecognized parameter: " + paramName);
-      }
-
-      for (String s : rawValues.get(paramName)) {
-        try {
-          builder.put(paramName, p.parser().parse(s));
-        } catch (ParseException e) {
-          throw new InvalidCommandException("Wrong type for " + paramName); // TODO(kevinb): better
-        }
-      }
-    }
-    return builder.build();
-  }
-
-  public void execute() throws InvalidBenchmarkException {
-    // Arbitrary division right now between what's done in constructor and what's done here.
-
-    Collection<BenchmarkMethod> methods = findBenchmarkMethods(benchmarkClass, options);
-
+  public void run() throws UserCodeException {
     ImmutableList<VirtualMachine> vms = options.vms();
 
     ImmutableSetMultimap<String, Object> combinedParams =
@@ -112,6 +83,30 @@ public final class CaliperRun {
     // TODO(kevinb): now the wet run!
   }
 
+  // Simply converts all the strings to the right datatypes
+  private static ImmutableSetMultimap<String, Object> convertUserParameters(
+      Multimap<String, String> rawValues, BenchmarkClass benchmarkClass
+  ) throws InvalidCommandException {
+    ImmutableSetMultimap.Builder<String, Object> builder = ImmutableSetMultimap.builder();
+    builder.orderKeysBy(Ordering.natural());
+
+    for (String paramName : rawValues.keySet()) {
+      Parameter p = benchmarkClass.userParameters().get(paramName);
+      if (p == null) {
+        throw new InvalidCommandException("unrecognized parameter: " + paramName);
+      }
+
+      for (String s : rawValues.get(paramName)) {
+        try {
+          builder.put(paramName, p.parser().parse(s));
+        } catch (ParseException e) {
+          throw new InvalidCommandException("Wrong type for " + paramName); // TODO(kevinb): better
+        }
+      }
+    }
+    return builder.build();
+  }
+
   public static Collection<BenchmarkMethod> findBenchmarkMethods(
       BenchmarkClass benchmarkClass, CaliperOptions options)
       throws InvalidBenchmarkException {
@@ -125,8 +120,7 @@ public final class CaliperRun {
         : Maps.filterKeys(methodMap, Predicates.in(names)).values(); // TODO
   }
 
-  public void dryRun(Set<Scenario> mutableScenarios)
-      throws InvalidBenchmarkException {
+  public void dryRun(Set<Scenario> mutableScenarios) throws UserCodeException {
     Instrument instrument = options.instrument();
 
     Iterator<Scenario> it = mutableScenarios.iterator();
@@ -158,7 +152,8 @@ public final class CaliperRun {
     } catch (ClassNotFoundException e) {
       throw new InvalidCommandException("Benchmark class not found: " + className);
     } catch (ExceptionInInitializerError e) {
-      throw new UserCodeException(e.getCause());
+      throw new UserCodeException(
+          "Exception thrown while initializing class '" + className + "'", e.getCause());
     }
   }
 }

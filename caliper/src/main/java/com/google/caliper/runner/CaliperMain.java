@@ -36,31 +36,41 @@ public final class CaliperMain {
       exitlessMain(args);
       System.exit(0);
 
+    } catch (HelpRequestedException e) {
+      ParsedOptions.printUsage(writer);
+      System.exit(0);
+
     } catch (InvalidCommandException e) {
       writer.println(e.getMessage());
       writer.println();
       ParsedOptions.printUsage(writer);
+      System.exit(1);
 
     } catch (UserCodeException e) {
+      // This is the user's exception, not ours, so print a stack trace
+      // TODO(kevinb): trim caliper frames
       e.printStackTrace(writer);
+      System.exit(1);
 
     } catch (InvalidBenchmarkException e) {
       writer.println(e.getMessage());
+      System.exit(1);
     }
-    System.exit(1);
   }
 
   public static void exitlessMain(String[] args)
       throws InvalidCommandException, InvalidBenchmarkException {
     PrintWriter writer = new PrintWriter(System.out);
 
-    File rcFile = new File(Objects.firstNonNull(
+    String rcFilename = Objects.firstNonNull(
           System.getenv("CALIPERRC"),
-          System.getProperty("user.home") + "/.caliperrc"));
-    try {
-      new CaliperRun(writer, rcFile, args).execute();
-    } catch (HelpRequestedException e) {
-      ParsedOptions.printUsage(writer);
-    }
+          System.getProperty("user.home") + "/.caliperrc");
+
+    CaliperRc rc = CaliperRcManager.loadOrCreate(new File(rcFilename));
+
+    CaliperOptions options = ParsedOptions.from(args, rc); // throws ICE
+
+    CaliperRun run = new CaliperRun(options, rc, writer); // throws ICE, IBE
+    run.run(); // throws UCE
   }
 }

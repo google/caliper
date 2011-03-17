@@ -23,9 +23,6 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 
-/**
-* @author Kevin Bourrillion
-*/
 public class VirtualMachine {
   public static VirtualMachine hostVm() {
     String home = System.getProperty("java.home");

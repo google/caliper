@@ -27,9 +27,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.text.ParseException;
 
-/**
- * @author Kevin Bourrillion
- */
 public class Parsers {
   public static final Parser<String> IDENTITY = new Parser<String>() {
   @Override public String parse(CharSequence in) {
@@ -75,20 +72,32 @@ public class Parsers {
       method.setAccessible(true); // to permit inner enums, etc.
     }
 
-    @Override public T parse(CharSequence input) throws ParseException {
+    @Override public T parse(CharSequence cs) throws ParseException {
+      String input = cs.toString();
+      Object result;
       try {
-        return resultType.cast(method.invoke(null, input.toString()));
+        result = method.invoke(null, input);
       } catch (IllegalAccessException impossible) {
         throw new AssertionError(impossible);
       } catch (InvocationTargetException e) {
-        throw newParseException("Wrong argument format: " + input, e.getCause());
+        throw newParseException("Wrong argument format: " + cs, e.getCause());
       }
+
+      // Check round-trip
+      if (!result.toString().equals(input)) {
+        throw newParseException("blah"); // TODO
+      }
+      return resultType.cast(result);
     }
   }
 
-  public static ParseException newParseException(String message, Throwable t) {
-    ParseException pe = new ParseException(message, 0);
-    pe.initCause(t);
+  public static ParseException newParseException(String message, Throwable cause) {
+    ParseException pe = newParseException(message);
+    pe.initCause(cause);
     return pe;
+  }
+
+  public static ParseException newParseException(String message) {
+    return new ParseException(message, 0);
   }
 }

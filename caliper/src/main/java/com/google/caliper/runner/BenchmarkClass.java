@@ -23,7 +23,10 @@ import com.google.caliper.api.VmParam;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Set;
 
 /**
@@ -32,16 +35,24 @@ import java.util.Set;
  */
 public final class BenchmarkClass {
   private final Class<? extends Benchmark> theClass;
+  private final Constructor<? extends Benchmark> constructor;
   private final ParameterSet<Object> userParameters;
   private final ParameterSet<String> injectableVmArguments;
 
-  public BenchmarkClass(Class<?> aClass)
-      throws InvalidBenchmarkException {
+  public BenchmarkClass(Class<?> aClass) throws InvalidBenchmarkException {
+    if (Modifier.isAbstract(aClass.getModifiers())) {
+      throw new InvalidBenchmarkException("Class '%s' is abstract", aClass);
+    }
+
     try {
       this.theClass = aClass.asSubclass(Benchmark.class);
     } catch (ClassCastException e) {
-      throw new InvalidBenchmarkException("Does not extend Benchmark: " + aClass.getName());
+      throw new InvalidBenchmarkException(
+          "Class '%s' does not extend %s", aClass, Benchmark.class.getName());
     }
+
+    this.constructor = findConstructor(theClass);
+
     this.userParameters = ParameterSet.create(theClass, Param.class);
     this.injectableVmArguments = ParameterSet.create(theClass, VmParam.class, String.class);
 
@@ -53,7 +64,7 @@ public final class BenchmarkClass {
         userParameters.names(),
         injectableVmArguments.names());
     if (!both.isEmpty()) {
-      throw new InvalidBenchmarkException("fields are both @Param and @VmParam: " + both);
+      throw new InvalidBenchmarkException("Some fields have both @Param and @VmParam: " + both);
     }
   }
 
@@ -67,18 +78,25 @@ public final class BenchmarkClass {
 
   public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
       Instrument instrument) throws InvalidBenchmarkException {
+    boolean gotOne = false;
     ImmutableSortedMap.Builder<String, BenchmarkMethod> result = ImmutableSortedMap.naturalOrder();
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
         BenchmarkMethod benchmarkMethod = instrument.createBenchmarkMethod(this, method);
         result.put(benchmarkMethod.name(), benchmarkMethod);
+        gotOne = true;
       }
+    }
+    if (!gotOne) {
+      throw new InvalidBenchmarkException(
+          "Class '%s' contains no benchmark methods for instrument '%s'", theClass, instrument);
     }
     return result.build();
   }
 
-  public Benchmark createAndStage(Scenario scenario) throws InvalidBenchmarkException {
-    Benchmark benchmark = createBenchmarkInstance(theClass);
+  public Benchmark createAndStage(Scenario scenario) throws UserCodeException {
+    Benchmark benchmark = createBenchmarkInstance(constructor);
+
     userParameters.injectAll(benchmark, scenario.userParameters());
     injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
@@ -87,26 +105,37 @@ public final class BenchmarkClass {
     } catch (SkipThisScenarioException e) {
       throw e;
     } catch (Exception e) {
-      throw new UserCodeException(e);
+      throw new UserCodeException("Exception thrown during setUp", e);
     }
     return benchmark;
   }
 
-  private static Benchmark createBenchmarkInstance(Class<? extends Benchmark> theClass)
-      throws InvalidBenchmarkException {
-    Benchmark benchmark;
+  private static Constructor<? extends Benchmark> findConstructor(
+      Class<? extends Benchmark> theClass) throws InvalidBenchmarkException {
     try {
-      benchmark = theClass.newInstance();
+      Constructor<? extends Benchmark> c = theClass.getDeclaredConstructor();
+      c.setAccessible(true);
+      c.newInstance(); // test it out
+      return c;
 
-    } catch (InstantiationException e) {
-      throw new InvalidBenchmarkException("Class is abstract: " + theClass.getName());
-    } catch (IllegalAccessException e) {
+    } catch (NoSuchMethodException e) {
       throw new InvalidBenchmarkException(
-          "Not public or lacks public constructor: " + theClass.getName());
-    } catch (Exception e) {
-      throw new UserCodeException(e);
+          "Class '%s' has no parameterless constructor", theClass);
+    } catch (InvocationTargetException e) {
+      throw new UserCodeException("Exception thrown from benchmark constructor", e.getCause());
+    } catch (IllegalAccessException impossible) {
+      throw new AssertionError(impossible);
+    } catch (InstantiationException impossible) {
+      throw new AssertionError(impossible);
     }
-    return benchmark;
+  }
+
+  private static Benchmark createBenchmarkInstance(Constructor<? extends Benchmark> c) {
+    try {
+      return c.newInstance();
+    } catch (Exception e) {
+      throw new AssertionError(e); // should have been caught earlier
+    }
   }
 
   @Override public boolean equals(Object object) {
