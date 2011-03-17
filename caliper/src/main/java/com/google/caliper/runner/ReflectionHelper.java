@@ -26,7 +26,7 @@ import java.lang.reflect.Method;
 public final class ReflectionHelper {
   private ReflectionHelper() {}
 
-  public static Object invokeStatic(Method staticMethod) {
+  public static Object invokeStatic(Method staticMethod) throws UserCodeException {
     staticMethod.setAccessible(true);
     try {
       return staticMethod.invoke(null);
