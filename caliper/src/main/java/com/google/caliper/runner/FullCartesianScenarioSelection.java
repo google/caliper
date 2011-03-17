@@ -34,7 +34,7 @@ import java.util.Set;
  * A set of {@link Scenario scenarios} constructed by taking all possible combinations of benchmark
  * methods, user parameters, VM specs and VM arguments.
  */
-public class FullCartesianScenarioSelection implements ScenarioSelection {
+public final class FullCartesianScenarioSelection implements ScenarioSelection {
   private final ImmutableSet<BenchmarkMethod> benchmarkMethods;
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, Object> userParameters;

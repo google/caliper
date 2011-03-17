@@ -22,7 +22,7 @@ import static com.google.common.primitives.Primitives.wrap;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 
-public class TypedField<C, F> {
+public final class TypedField<C, F> {
   public static TypedField<?, ?> from(Field field) {
     return from(field, field.getDeclaringClass(), field.getType());
   }

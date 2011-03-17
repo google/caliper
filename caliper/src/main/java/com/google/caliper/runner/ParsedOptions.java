@@ -258,7 +258,7 @@ public final class ParsedOptions implements CaliperOptions {
     String name = firstNonNull(rc.instrumentAliases().get(instrumentName), instrumentName);
     try {
       instrument = Util.lenientClassForName(name).asSubclass(Instrument.class).newInstance();
-    } catch (Exception e) { // TODO: sloppy, I know
+    } catch (Exception e) { // sloppy, I know
       throw new InvalidCommandException("Invalid instrument: " + instrumentName, e);
     }
   }

@@ -35,7 +35,7 @@ import java.util.Set;
  * benchmark class. Has nothing to do with particular choices of <i>values</i> for these parameters
  * (except that it knows how to find the <i>default</i> values).
  */
-public class ParameterSet<B> {
+public final class ParameterSet<B> {
   public static ParameterSet<Object> create(
       Class<? extends Benchmark> theClass, Class<? extends Annotation> annotationClass)
           throws InvalidBenchmarkException {

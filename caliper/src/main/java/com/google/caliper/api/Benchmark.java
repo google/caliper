@@ -34,7 +34,7 @@ public abstract class Benchmark {
    * Your benchmark classes can implement main() like this: <pre>   {@code
    *
    *   public static void main(String[] args) {
-   *     main(MyBenchmark.class, args);
+   *     Benchmark.main(MyBenchmark.class, args);
    *   }}</pre>
    *
    * Note that this method does invoke {@link System#exit} when it finishes. Consider {@link

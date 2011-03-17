@@ -23,7 +23,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 
-public class VirtualMachine {
+public final class VirtualMachine {
   public static VirtualMachine hostVm() {
     String home = System.getProperty("java.home");
     File executable = new File(home, "bin/java");

@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 // TODO(kevinb): move these methods to CaliperRc class?
-public class CaliperRcManager {
+public final class CaliperRcManager {
   public static CaliperRc loadOrCreate(File rcFile) {
     // TODO(kevinb): deal with migration issue from old-style .caliperrc
 

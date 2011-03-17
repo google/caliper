@@ -115,9 +115,11 @@ public final class CaliperRun {
         benchmarkClass.findAllBenchmarkMethods(instrument);
 
     ImmutableSet<String> names = options.benchmarkMethodNames();
+
+    // TODO(kevinb): this doesn't seem to prevent bogus names on cmd line yet
     return names.isEmpty()
         ? methodMap.values()
-        : Maps.filterKeys(methodMap, Predicates.in(names)).values(); // TODO
+        : Maps.filterKeys(methodMap, Predicates.in(names)).values();
   }
 
   public void dryRun(Set<Scenario> mutableScenarios) throws UserCodeException {

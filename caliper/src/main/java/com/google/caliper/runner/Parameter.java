@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @param <T> the injectable type of the parameter (always String if this is a VM parameter)
  */
-public class Parameter<T> {
+public final class Parameter<T> {
   public static <T> Parameter<T> create(Field field, Class<T> type)
       throws InvalidBenchmarkException {
     return new Parameter<T>(field, type);
@@ -246,7 +246,6 @@ public class Parameter<T> {
       return Util.checkedCast(copy, fieldType);
 
     } catch (ClassCastException e) {
-      // TODO: better error...
       throw new InvalidBenchmarkException(
           "Default values must be of type Iterable<%s> (or any subtype)", fieldType);
     }

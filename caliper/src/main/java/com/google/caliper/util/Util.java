@@ -16,24 +16,21 @@
 
 package com.google.caliper.util;
 
-import static com.google.common.primitives.Primitives.wrap;
-
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
+import com.google.common.primitives.Primitives;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
 
-public class Util {
+public final class Util {
   private Util() {}
 
   // Users have no idea that nested classes are identified with '$', not '.', so if class lookup
@@ -74,19 +71,19 @@ public class Util {
   // TODO: replace with common.text.Parser when in Guava
 
   public static boolean extendsIgnoringWrapping(Class<?> possibleSub, Class<?> possibleSuper) {
-    return wrap(possibleSuper).isAssignableFrom(wrap(possibleSub));
+    return Primitives.wrap(possibleSuper).isAssignableFrom(Primitives.wrap(possibleSub));
   }
 
   public static ImmutableMap<String, String> getPrefixedSubmap(
       Map<String, String> props, String prefix) {
-    ImmutableMap.Builder<String, String> vmAliasesBuilder = ImmutableMap.builder();
+    ImmutableMap.Builder<String, String> submapBuilder = ImmutableMap.builder();
     for (Map.Entry<String, String> entry : props.entrySet()) {
       String name = entry.getKey();
       if (name.startsWith(prefix)) {
-        vmAliasesBuilder.put(name.substring(prefix.length()), entry.getValue());
+        submapBuilder.put(name.substring(prefix.length()), entry.getValue());
       }
     }
-    return vmAliasesBuilder.build();
+    return submapBuilder.build();
   }
 
   public static boolean isPublic(Member member) {

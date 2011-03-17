@@ -23,4 +23,5 @@ package com.google.caliper.api;
  * comparator}, you might not want to test the specific combination of {@code size=100000000} and
  * {@code comparator=reallyExpensiveComparator}.
  */
-public class SkipThisScenarioException extends RuntimeException {}
+@SuppressWarnings("serial")
+public final class SkipThisScenarioException extends RuntimeException {}

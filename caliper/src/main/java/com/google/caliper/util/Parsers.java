@@ -29,10 +29,10 @@ import java.text.ParseException;
 
 public class Parsers {
   public static final Parser<String> IDENTITY = new Parser<String>() {
-  @Override public String parse(CharSequence in) {
-    return in.toString();
-  }
-};
+    @Override public String parse(CharSequence in) {
+      return in.toString();
+    }
+  };
 
   /**
    * Parser that uses fromString/valueOf.

@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.Map;
 
-public class CaliperRc {
+public final class CaliperRc {
   private final ImmutableMap<String, String> props;
   private final ImmutableMap<String, String> vmAliases;
   private final ImmutableMap<String, String> instrumentAliases;

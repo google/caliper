@@ -28,7 +28,7 @@ import java.util.Map;
  * all possible scenarios using {@link FullCartesianScenarioSelection}, and will run one or more
  * trials of each.
  */
-public class Scenario {
+public final class Scenario {
   private final BenchmarkMethod benchmarkMethod;
   private final VirtualMachine vm;
   private final ImmutableSortedMap<String, Object> userParameters;

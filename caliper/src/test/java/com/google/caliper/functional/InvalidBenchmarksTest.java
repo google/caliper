@@ -25,6 +25,7 @@ import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
 import com.google.caliper.runner.UserCodeException;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import junit.framework.AssertionFailedError;
@@ -61,8 +62,8 @@ public class InvalidBenchmarksTest extends TestCase {
       "Microbenchmark methods must accept a single int parameter: %s";
   static final String RESERVED_PARAM =
       "Class '%s' uses reserved parameter name 'vm'";
-  static final String NO_CONVERSION =
-      "Type 'Object' of parameter field 'oops' has no static 'fromString' or 'valueOf' method";
+  static final String NO_CONVERSION = "Type 'Object' of parameter field 'oops' "
+      + "has no static 'fromString(String)' or 'valueOf(String)' method";
   static final String CONVERT_FAILED =
       "Cannot convert default value 'oops' to type 'Integer': Wrong argument format: oops";
   static final String DEFAULTS_FIELD_NOT_STATIC =
@@ -235,7 +236,7 @@ public class InvalidBenchmarksTest extends TestCase {
   }
   static class DefaultsFieldIsEmptyBenchmark extends Benchmark {
     @Param Long foo;
-    public static List<Long> fooValues = Arrays.asList();
+    public static List<Long> fooValues = ImmutableList.of();
   }
 
   public void testDefaultsMethodIsEmpty() throws InvalidCommandException {
@@ -245,7 +246,7 @@ public class InvalidBenchmarksTest extends TestCase {
     @Param Long foo;
 
     public static List<Long> fooValues() {
-      return Arrays.asList();
+      return ImmutableList.of();
     }
   }
 

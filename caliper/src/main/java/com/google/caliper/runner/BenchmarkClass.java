@@ -51,6 +51,9 @@ public final class BenchmarkClass {
           "Class '%s' does not extend %s", aClass, Benchmark.class.getName());
     }
 
+    // TODO(kevinb): check that it's a *direct* subclass, because semantics of @Params and such
+    // are too much of a pain to specify otherwise.
+
     this.constructor = findConstructor(theClass);
 
     this.userParameters = ParameterSet.create(theClass, Param.class);
