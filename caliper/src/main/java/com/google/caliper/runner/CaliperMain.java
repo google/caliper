@@ -14,7 +14,9 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.util.HelpRequestedException;
+import static com.google.common.collect.ObjectArrays.concat;
+
+import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Objects;
 
@@ -27,43 +29,52 @@ import java.io.PrintWriter;
  */
 public final class CaliperMain {
   /**
-   * Primary entry point for the caliper benchmark runner application; run with {@code --help} for
-   * details. This method is not intended to be invoked programmatically.
+   * Your benchmark classes can implement main() like this: <pre>   {@code
+   *
+   *   public static void main(String[] args) {
+   *     CaliperMain.main(MyBenchmark.class, args);
+   *   }}</pre>
+   *
+   * Note that this method does invoke {@link System#exit} when it finishes. Consider {@link
+   * #exitlessMain} if you don't want that.
    */
-  public static void main(String[] args) {
-    PrintWriter writer = new PrintWriter(System.out);
-    int code = 0;
-    try {
-      exitlessMain(args);
+  public static void main(Class<? extends Benchmark> benchmarkClass, String... args) {
+    // Later we parse the string back into a class again; oh well, it's still cleaner this way
+    main(concat(args, benchmarkClass.getName()));
+  }
 
-    } catch (HelpRequestedException e) {
-      ParsedOptions.printUsage(writer);
+  /**
+   * Entry point for the caliper benchmark runner application; run with {@code --help} for details.
+   */
+  static void main(String[] args) {
+    PrintWriter writer = new PrintWriter(System.out);
+    int code = 1; // pessimism!
+
+    try {
+      exitlessMain(args, writer);
+      code = 0;
 
     } catch (InvalidCommandException e) {
-      writer.println(e.getMessage());
-      writer.println();
-      ParsedOptions.printUsage(writer);
-      code = 1;
-
-    } catch (UserCodeException e) {
-      // This is the user's exception, not ours, so print a stack trace
-      // TODO(kevinb): trim caliper frames
-      e.printStackTrace(writer);
-      code = 1;
+      e.display(writer);
+      code = e.exitCode();
 
     } catch (InvalidBenchmarkException e) {
-      writer.println(e.getMessage());
-      code = 1;
+      e.display(writer);
+
+    } catch (Throwable t) {
+      writer.println("An unexpected exception has been thrown by the caliper runner.");
+      writer.println("Please see https://sites.google.com/site/caliperusers/issues");
+      writer.println();
+      t.printStackTrace(writer);
+
     }
 
     writer.flush();
     System.exit(code);
   }
 
-  public static void exitlessMain(String[] args)
+  public static void exitlessMain(String[] args, PrintWriter writer)
       throws InvalidCommandException, InvalidBenchmarkException {
-    PrintWriter writer = new PrintWriter(System.out);
-
     String rcFilename = Objects.firstNonNull(
           System.getenv("CALIPERRC"),
           System.getProperty("user.home") + "/.caliperrc");
@@ -75,5 +86,8 @@ public final class CaliperMain {
 
     CaliperRun run = new CaliperRun(options, rc, console); // throws ICE, IBE
     run.run(); // throws UCE
+
+    // TODO(kevinb): when exactly do we need to do this?
+    writer.flush();
   }
 }

@@ -16,8 +16,10 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.api.Benchmark;
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
+
 import com.google.caliper.Param;
+import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmParam;
 import com.google.common.collect.ImmutableSortedMap;
@@ -103,14 +105,34 @@ public final class BenchmarkClass {
     userParameters.injectAll(benchmark, scenario.userParameters());
     injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
-    try {
-      benchmark.setUp();
-    } catch (SkipThisScenarioException e) {
-      throw e;
-    } catch (Exception e) {
-      throw new UserCodeException("Exception thrown during setUp", e);
-    }
+    callSetUp(benchmark);
     return benchmark;
+  }
+
+  // We have to do this reflectively because it'd be too much of a pain to make setUp public
+  private void callSetUp(Benchmark benchmark) throws UserCodeException {
+    try {
+      SETUP_METHOD.invoke(benchmark);
+
+    } catch (IllegalAccessException e) {
+      throw new AssertionError(e);
+
+    } catch (InvocationTargetException e) {
+      propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
+      throw new UserCodeException("Exception thrown during setUp", e.getCause());
+    }
+  }
+
+  private static final Method SETUP_METHOD = findSetUpMethod();
+
+  private static Method findSetUpMethod() {
+    try {
+      Method setUp = Benchmark.class.getDeclaredMethod("setUp");
+      setUp.setAccessible(true);
+      return setUp;
+    } catch (NoSuchMethodException e) {
+      throw new AssertionError(e);
+    }
   }
 
   private static Constructor<? extends Benchmark> findConstructor(

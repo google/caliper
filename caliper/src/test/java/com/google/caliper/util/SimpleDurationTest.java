@@ -16,9 +16,26 @@
 
 package com.google.caliper.util;
 
-import java.text.ParseException;
+import junit.framework.TestCase;
 
-// TODO(kevinb): release common.text.Parser in Guava then nuke this
-public interface Parser<T> {
-  T parse(CharSequence text) throws ParseException;
+/**
+ * @author Kevin Bourrillion
+ */
+public class SimpleDurationTest extends TestCase {
+  public void test() {
+    testIt(0, "0ns");
+    testIt(0, "0 ns");
+    testIt(0, "0nanos");
+    testIt(0, "0nanoseconds");
+    testIt(0, "0ms");
+    testIt(0, "0us");
+    testIt(1000, "1 \u03bcs");
+    testIt(500, "0.5us");
+    testIt(500, "0.499000000000000000000000000000001us");
+    testIt(60480000000000L, "0.7 days");
+  }
+
+  private void testIt(long i, String s) {
+    assertEquals(i, SimpleDuration.valueOf(s).toNanos());
+  }
 }

@@ -24,15 +24,11 @@ import com.google.caliper.api.VmParam;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.TypedField;
-import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -68,8 +64,9 @@ public final class Parameter<T> {
       this.parser = Parsers.byConventionParser(type);
     } catch (IllegalArgumentException e) {
       throw new InvalidBenchmarkException(
-          "Type '%s' of parameter field '%s' has no static 'fromString(String)' or "
-              + "'valueOf(String)' method", typedField.fieldType(), typedField.name());
+          "Type '%s' of parameter field '%s' has no recognized "
+              + "String-converting method; see <TODO> for details.",
+          typedField.fieldType(), typedField.name());
     }
 
     Iterable<T> iterable = DefaultsFinder.FIRST_SUCCESSFUL.findDefaults(typedField, parser);
@@ -102,24 +99,8 @@ public final class Parameter<T> {
     typedField.setValueOn(benchmark, value);
   }
 
-  private static Object invokeDefaultsMethod(Method defaultsMethod) throws UserCodeException {
-    defaultsMethod.setAccessible(true);
-    try {
-      return defaultsMethod.invoke(null);
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      throw new UserCodeException(e.getCause());
-    }
-  }
-
-  private static Object getDefaultsField(Field staticField) {
-    staticField.setAccessible(true);
-    try {
-      return staticField.get(null);
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    }
+  public Class<T> type() {
+    return typedField.fieldType();
   }
 
   /** A strategy for choosing default values for parameters. */
@@ -128,17 +109,12 @@ public final class Parameter<T> {
     abstract <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
         throws InvalidBenchmarkException;
 
-    /*
-     * TODO(kevinb): except for the "AllPossible", we'd like *exactly* one to succeed, and would
-     * prefer to error out if multiple match, so there's no confusion over precedence.
-     */
     static final DefaultsFinder FIRST_SUCCESSFUL = new FirstSuccessful();
 
     static class FirstSuccessful extends DefaultsFinder {
+      // TODO(kevinb): this now turns out to be overengineered since we lost fromMethod/Field
       static final ImmutableList<DefaultsFinder> ALL = ImmutableList.of(
           new FromAnnotation(),
-          new FromValuesMethod(),
-          new FromValuesConstant(),
           new AllPossible());
 
       @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
@@ -176,60 +152,6 @@ public final class Parameter<T> {
       }
     }
 
-    static class FromValuesMethod extends DefaultsFinder {
-      @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
-          throws InvalidBenchmarkException {
-        String valuesMethodName = field.name() + "Values";
-        Class<?> benchmarkClass = field.containingType();
-        Method valuesMethod;
-        try {
-          valuesMethod = benchmarkClass.getDeclaredMethod(valuesMethodName);
-        } catch (NoSuchMethodException e) {
-          return ImmutableSet.of();
-        }
-
-        if (!Modifier.isStatic(valuesMethod.getModifiers())) {
-          throw new InvalidBenchmarkException(
-              "Default-values method '%s' is not static", valuesMethod.getName());
-        }
-        Object result = invokeDefaultsMethod(valuesMethod);
-        ImmutableList<T> list = copyAndCheck(field.fieldType(), result);
-        if (list.isEmpty()) {
-          throw new InvalidBenchmarkException(
-              "Default-values method '%s' returned no values", valuesMethod.getName());
-        }
-        return list;
-      }
-    }
-
-    // TODO(kevinb): eliminate massive duplication between above and below
-
-    static class FromValuesConstant extends DefaultsFinder {
-      @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
-          throws InvalidBenchmarkException {
-        String valuesFieldName = field.name() + "Values";
-        Class<?> benchmarkClass = field.containingType();
-        Field valuesField;
-        try {
-          valuesField = benchmarkClass.getDeclaredField(valuesFieldName);
-        } catch (NoSuchFieldException e) {
-          return ImmutableSet.of();
-        }
-
-        if (!Modifier.isStatic(valuesField.getModifiers())) {
-          throw new InvalidBenchmarkException(
-              "Default-values field '%s' is not static", valuesField.getName());
-        }
-        Object result = getDefaultsField(valuesField);
-        ImmutableList<T> list = copyAndCheck(field.fieldType(), result);
-        if (list.isEmpty()) {
-          throw new InvalidBenchmarkException(
-              "Default-values field '%s' has no values", valuesField.getName());
-        }
-        return list;
-      }
-    }
-
     static class AllPossible extends DefaultsFinder {
       @SuppressWarnings("unchecked") // protected by 'type' checks
       @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser) {
@@ -243,18 +165,6 @@ public final class Parameter<T> {
         }
         return ImmutableSet.of();
       }
-    }
-  }
-
-  private static <T> ImmutableList<T> copyAndCheck(Class<T> fieldType, Object result)
-      throws InvalidBenchmarkException {
-    try {
-      ImmutableList<Object> copy = ImmutableList.copyOf((Iterable<?>) result);
-      return Util.checkedCast(copy, fieldType);
-
-    } catch (ClassCastException e) {
-      throw new InvalidBenchmarkException(
-          "Default values must be of type Iterable<%s> (or any subtype)", fieldType);
     }
   }
 }

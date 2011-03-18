@@ -18,33 +18,34 @@ package examples;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.Launcher;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmParam;
+import com.google.caliper.runner.CaliperMain;
+import com.google.caliper.util.SimpleDuration;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class DemoBenchmark extends Benchmark {
-  @Param({"foo", "bar", "qux"}) String string;
+  @Param({"abc", "def", "xyz"}) String string;
   @Param({"1", "2"}) int number;
-  @Param
-  TimeUnit timeUnit;
+  @Param Foo foo;
 
-  @Param BigDecimal money;
-  static List<BigDecimal> moneyValues() {
-    return Arrays.asList(new BigDecimal("123.45"), new BigDecimal("0.00"));
-  }
-
+  @Param({"0.00", "123.45"}) BigDecimal money;
+  @Param({"1ns", "2 minutes"}) SimpleDuration duration;
   @VmParam({"-Xmx32m", "-Xmx1g"}) String memoryMax;
 
+  enum Foo {
+    FOO, BAR, BAZ, QUX;
+
+//    @Override public String toString() {
+//      throw new UnsupportedOperationException("caliper should never be calling toString");
+//    }
+  }
   DemoBenchmark() {
 //    System.out.println("I should not do this.");
   }
 
-  @Override public void setUp() throws Exception {
+  @Override protected void setUp() throws Exception {
 //    System.out.println("Hey, I'm setting up.");
     if (string.equals("foo") && number == 1) {
       throw new SkipThisScenarioException();
@@ -67,11 +68,11 @@ public class DemoBenchmark extends Benchmark {
     return dummy;
   }
 
-  @Override public void tearDown() throws Exception {
+  @Override protected void tearDown() throws Exception {
 //    System.out.println("Hey, I'm tearing up the joint.");
   }
 
   public static void main(String[] args) {
-    Launcher.launch(DemoBenchmark.class, args);
+    CaliperMain.main(DemoBenchmark.class, args);
   }
 }

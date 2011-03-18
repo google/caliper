@@ -26,7 +26,6 @@ import com.google.common.primitives.Primitives;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
@@ -75,10 +74,10 @@ public final class Util {
     return Primitives.wrap(possibleSuper).isAssignableFrom(Primitives.wrap(possibleSub));
   }
 
-  public static ImmutableMap<String, String> getPrefixedSubmap(
-      Map<String, String> props, String prefix) {
-    ImmutableMap.Builder<String, String> submapBuilder = ImmutableMap.builder();
-    for (Map.Entry<String, String> entry : props.entrySet()) {
+  public static <T> ImmutableMap<String, T> prefixedSubmap(
+      Map<String, T> props, String prefix) {
+    ImmutableMap.Builder<String, T> submapBuilder = ImmutableMap.builder();
+    for (Map.Entry<String, T> entry : props.entrySet()) {
       String name = entry.getKey();
       if (name.startsWith(prefix)) {
         submapBuilder.put(name.substring(prefix.length()), entry.getValue());

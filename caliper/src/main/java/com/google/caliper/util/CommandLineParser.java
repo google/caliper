@@ -26,7 +26,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -125,34 +124,6 @@ public final class CommandLineParser<T> {
     return new CommandLineParser<T>(c);
   }
 
-  public static <T> T parse(String[] args, Class<T> optionsClass)
-      throws InvalidCommandException {
-    CommandLineParser<T> parser = forClass(optionsClass);
-    T options = null;
-
-    Constructor<T> constructor = null;
-    try {
-      constructor = optionsClass.getDeclaredConstructor();
-    } catch (NoSuchMethodException e) {
-      throw new IllegalArgumentException(
-          "Class has no parameterless constructor: " + optionsClass.getName(), e);
-    }
-
-    try {
-      constructor.setAccessible(true);
-      options = constructor.newInstance();
-    } catch (InvocationTargetException e) {
-      throw new IllegalArgumentException(e);
-    } catch (InstantiationException e) {
-      throw new IllegalArgumentException("Class is abstract: " + optionsClass.getName(), e);
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    }
-
-    parser.parseAndInject(args, options);
-    return options;
-  }
-
   private final InjectionMap injectionMap;
   private T injectee;
 
@@ -221,8 +192,8 @@ public final class CommandLineParser<T> {
         @Override boolean isBoolean() {
           return true;
         }
-        @Override void inject(String valueText, Object injectee) throws HelpRequestedException {
-          throw new HelpRequestedException();
+        @Override void inject(String valueText, Object injectee) throws DisplayUsageException {
+          throw new DisplayUsageException();
         }
       };
       builder.put("-h", helpOption);

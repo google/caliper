@@ -33,8 +33,8 @@ public final class CaliperRc {
   public CaliperRc(Map<String, String> props) {
     this.props = ImmutableMap.copyOf(props);
 
-    vmAliases = Util.getPrefixedSubmap(props, VM_ALIAS_PREFIX);
-    instrumentAliases = Util.getPrefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
+    vmAliases = Util.prefixedSubmap(props, VM_ALIAS_PREFIX);
+    instrumentAliases = Util.prefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
   }
 
   public File vmBaseDirectory() {

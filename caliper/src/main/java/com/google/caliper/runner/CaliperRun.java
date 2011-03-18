@@ -111,10 +111,11 @@ public final class CaliperRun {
 
       for (String valueAsString : rawValues.get(paramName)) {
         try {
-          builder.put(paramName, p.parser().parse(valueAsString));
+          Object value = p.parser().parse(valueAsString);
+          builder.put(paramName, value);
         } catch (ParseException e) {
-          throw new InvalidCommandException("Couldn't parse value '%s' for parameter '%s': %s",
-              valueAsString, paramName, e.getMessage());
+          throw new InvalidCommandException("Couldn't parse value '%s' for parameter '%s' of type '%s': %s",
+              valueAsString, paramName, p.type(), e.getMessage());
         }
       }
     }

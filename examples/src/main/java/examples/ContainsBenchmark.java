@@ -38,7 +38,7 @@ public class ContainsBenchmark extends SimpleBenchmark {
   /** twenty-five percent nulls */
   private final List<Object> queries = new ArrayList<Object>();
 
-  @Override public void setUp() {
+  @Override protected void setUp() {
     set.addAll(Arrays.asList("str1", "str2", "str3", "str4"));
     int nullThreshold = percentNulls * containsPerRep / 100;
     for (int i = 0; i < nullThreshold; i++) {

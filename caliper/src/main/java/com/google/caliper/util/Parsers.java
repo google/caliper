@@ -21,13 +21,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.wrap;
 import static java.util.Arrays.asList;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Preconditions;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.text.ParseException;
 
 public class Parsers {
@@ -70,8 +66,7 @@ public class Parsers {
     } catch (NoSuchMethodException keepGoing) {
     }
 
-    throw new IllegalArgumentException(
-        "No static valueOf(String) or fromString(String) method found in class: " + resultType);
+    throw new IllegalArgumentException();
   }
 
   abstract static class InvokingParser<T> implements Parser<T> {
@@ -86,13 +81,6 @@ public class Parsers {
         throw newParseException(desc, cause);
       } catch (Exception e) {
         throw newParseException("Unknown parsing problem", e);
-      }
-
-      // Check round-trip -- things will be mighty confusing if we don't have this
-      // TODO(kevinb): we could try normalizing the strings one time using a single round-trip, which
-      // ought to mostly remove this failure mode
-      if (!result.toString().equals(input)) {
-        throw newParseException("blah"); // TODO(kevinb): fix (or nuke)
       }
       return result;
     }

@@ -15,7 +15,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.util.HelpRequestedException;
+import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -70,7 +70,7 @@ public class ParsedOptionsTest extends TestCase {
     try {
       ParsedOptions.from(new String[] {"--help"}, caliperRc);
       fail();
-    } catch (HelpRequestedException expected) {
+    } catch (DisplayUsageException expected) {
     }
   }
   

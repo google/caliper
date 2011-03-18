@@ -14,6 +14,8 @@
 
 package com.google.caliper.runner;
 
+import java.io.PrintWriter;
+
 /**
  *
  */
@@ -30,5 +32,9 @@ public class InvalidBenchmarkException extends Exception {
       }
     }
     return args;
+  }
+
+  public void display(PrintWriter writer) {
+    writer.println(getMessage());
   }
 }

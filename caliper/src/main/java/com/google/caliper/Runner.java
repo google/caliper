@@ -18,7 +18,7 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
-import com.google.caliper.api.Launcher;
+import com.google.caliper.runner.CaliperMain;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
@@ -434,7 +434,7 @@ public final class Runner {
   public static void main(Class<? extends Benchmark> suite, String... args) {
     String env = System.getenv("USE_CANARY_CALIPER");
     if (env != null && !env.isEmpty()) {
-      Launcher.launch((Class) suite, args);
+      CaliperMain.main((Class) suite, args);
     } else {
       main(ObjectArrays.concat(args, suite.getName()));
     }

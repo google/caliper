@@ -20,41 +20,38 @@ import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Measures the various ways the JDK converts doubles to strings.
  */
 public class DoubleToStringBenchmark2 extends SimpleBenchmark {
   @Param boolean useWrapper;
 
-  @Param double value;
+  enum Value {
+    Pi(Math.PI),
+    NegativeZero(-0.0),
+    NegativeInfinity(Double.NEGATIVE_INFINITY),
+    NaN(Double.NaN);
 
-  public static final List<Double> valueValues = Arrays.asList(
-      Math.PI,
-      -0.0,
-      Double.NEGATIVE_INFINITY,
-      Double.NaN
-  );
+    final double d;
 
-  Double wrapped;
-
-  @Override public void setUp() {
-    if (useWrapper) {
-      wrapped = value;
+    Value(double d) {
+      this.d = d;
     }
   }
+
+  @Param Value value;
 
   public int timeToString(int reps) {
     int dummy = 0;
     if (useWrapper) {
+      Double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += wrapped.toString().length();
+        dummy += d.toString().length();
       }
     } else {
+      double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += ((Double) value).toString().length();
+        dummy += ((Double) d).toString().length();
       }
     }
     return dummy;
@@ -63,12 +60,14 @@ public class DoubleToStringBenchmark2 extends SimpleBenchmark {
   public int timeStringValueOf(int reps) {
     int dummy = 0;
     if (useWrapper) {
+      Double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += String.valueOf(wrapped).length();
+        dummy += String.valueOf(d).length();
       }
     } else {
+      double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += String.valueOf(value).length();
+        dummy += String.valueOf(d).length();
       }
     }
     return dummy;
@@ -77,12 +76,14 @@ public class DoubleToStringBenchmark2 extends SimpleBenchmark {
   public int timeStringFormat(int reps) {
     int dummy = 0;
     if (useWrapper) {
+      Double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += String.format("%f", wrapped).length();
+        dummy += String.format("%f", d).length();
       }
     } else {
+      double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += String.format("%f", value).length();
+        dummy += String.format("%f", d).length();
       }
     }
     return dummy;
@@ -91,12 +92,14 @@ public class DoubleToStringBenchmark2 extends SimpleBenchmark {
   public int timeQuoteTrick(int reps) {
     int dummy = 0;
     if (useWrapper) {
+      Double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += ("" + wrapped).length();
+        dummy += ("" + d).length();
       }
     } else {
+      double d = value.d;
       for (int i = 0; i < reps; i++) {
-        dummy += ("" + value).length();
+        dummy += ("" + d).length();
       }
     }
     return dummy;

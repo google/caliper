@@ -14,11 +14,23 @@
 
 package com.google.caliper.util;
 
+import java.io.PrintWriter;
+
 /**
  * Exception used to abort command-line processing because the user has asked for help (using either
  * --help or -h).
  */
 @SuppressWarnings("serial") // who would serialize a command-line parsing error?
-public final class HelpRequestedException extends InvalidCommandException {
-  public HelpRequestedException() {}
+public final class DisplayUsageException extends InvalidCommandException {
+  public DisplayUsageException() {
+    super("(User asked for --help. This message should not appear anywhere.)");
+  }
+
+  @Override public void display(PrintWriter writer) {
+    displayUsage(writer);
+  }
+
+  @Override public int exitCode() {
+    return 0;
+  }
 }

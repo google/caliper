@@ -32,15 +32,20 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 
 import java.io.File;
-import java.io.PrintWriter;
 import java.util.Iterator;
 
 public final class ParsedOptions implements CaliperOptions {
   public static ParsedOptions from(String[] args, CaliperRc rc)
       throws InvalidCommandException {
-    CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
     ParsedOptions options = new ParsedOptions(rc);
-    parser.parseAndInject(args, options);
+
+    CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
+    try {
+      parser.parseAndInject(args, options);
+    } catch (InvalidCommandException e) {
+      e.setUsage(USAGE);
+      throw e;
+    }
     return options;
   }
 
@@ -371,48 +376,45 @@ public final class ParsedOptions implements CaliperOptions {
   // --------------------------------------------------------------------------
 
   // TODO(kevinb): kinda nice if CommandLineParser could autogenerate most of this...
-  public static void printUsage(PrintWriter pw) {
-    pw.println("Usage:");
-    pw.println(" caliper [options...] <benchmark_class_name>");
-    pw.println(" java <benchmark_class_name> [options...]");
-    pw.println();
-    pw.println("Options:");
-    pw.println(" -h, --help        print this message");
-    pw.println(" -n, --dry-run     instead of measuring, execute a single 'rep' of each");
-    pw.println("                   benchmark scenario in-process (for debugging); only options");
-    pw.println("                   -b, -d and -D are available in this mode");
-    pw.println(" -b, --benchmark   comma-separated list of benchmark methods to run; 'foo' is");
-    pw.println("                   an alias for 'timeFoo' (default: all found in class)");
-    pw.println(" -m, --vm          comma-separated list of vms to test on; possible values are");
-    pw.println("                   configured in ~/.caliperrc (default: only the vm caliper");
-    pw.println("                   itself is running in)");
-    pw.println(" -i, --instrument  measuring instrument to use; possible values are configured");
-    pw.println("                   in ~/.caliperrc (default: 'microbench')");
-    pw.println(" -t, --trials      number of independent measurements to take per benchmark");
-    pw.println("                   scenario; a positive integer (default: 1)");
-    pw.println(" -w, --warmup      minimum time in seconds to warm up before each measurement;");
-    pw.println("                   a positive integer (default: 10, or as given in .caliperrc)");
-    pw.println(" -o, --output      name of file or directory in which to store the results");
-    pw.println("                   data file; if a directory a unique filename is chosen; if a");
-    pw.println("                   file it is overwritten (default: ?TODO?)");
-    pw.println(" -l, --logging     generate extremely detailed event logs (GC, compilation");
-    pw.println("                   events, etc.) and include them in the output data file");
-    pw.println(" -v, --verbose     instead of normal console output, display a raw feed of");
-    pw.println("                   very detailed information");
-    pw.println(" -s, --score       also calculate and display an aggregate score for this run");
-    pw.println("                   (higher is better; meaningless otherwise)");
-    pw.println(" -d, --delimiter   separator character used to parse --vm, --benchmark, -D");
-    pw.println("                   and -J options (default: ',')");
-    pw.println();
-    pw.println(" -Dparam=val1,val2,... ");
-    pw.println("    Specifies the values to inject into the 'param' field of the benchmark");
-    pw.println("    class; if multiple values or parameters are specified in this way, caliper");
-    pw.println("    will try all possible combinations.");
-    pw.println();
-    pw.println(" -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'");
-    pw.println("    Specifies alternate sets of VM arguments to pass. As with any variable,");
-    pw.println("    caliper will test all possible combinations. Example: ");
-    pw.println("    -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'");
-    pw.println();
-  }
+  // TODO(kevinb): a test could actually check that we don't exceed 79 columns.
+  private static final ImmutableList<String> USAGE = ImmutableList.of(
+      "Usage:",
+      " caliper [options...] <benchmark_class_name>",
+      " java <benchmark_class_name> [options...]",
+      "",
+      "Options:",
+      " -h, --help        print this message",
+      " -n, --dry-run     instead of measuring, execute a single rep for each",
+      "                   scenario in-process",
+      " -b, --benchmark   comma-separated list of benchmark methods to run; 'foo' is",
+      "                   an alias for 'timeFoo' (default: all found in class)",
+      " -m, --vm          comma-separated list of vms to test on; possible values are",
+      "                   configured in ~/.caliperrc (default: only the vm caliper",
+      "                   itself is running in)",
+      " -i, --instrument  measuring instrument to use; possible values are configured",
+      "                   in ~/.caliperrc (default: 'micro')",
+      " -t, --trials      number of independent measurements to take per benchmark",
+      "                   scenario; a positive integer (default: 1)",
+      " -o, --output      name of file or directory in which to store the results",
+      "                   data file; if a directory a unique filename is chosen; if a",
+      "                   file it is overwritten (default: ?TODO?)",
+      " -l, --logging     generate extremely detailed event logs (GC, compilation",
+      "                   events, etc.) and include them in the output data file",
+      " -v, --verbose     instead of normal console output, display a raw feed of",
+      "                   very detailed information",
+      " -s, --score       also calculate and display an aggregate score for this run",
+      "                   (higher is better; meaningless otherwise)",
+      " -d, --delimiter   separator used in -m, -b, -D and -J options (default: ',')",
+      "",
+      " -Dparam=val1,val2,... ",
+      "     Specifies the values to inject into the 'param' field of the benchmark",
+      "     class; if multiple values or parameters are specified in this way,",
+      "     caliper will try all possible combinations.",
+      " -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'",
+      "     Specifies alternate sets of VM arguments to pass. As with any variable,",
+      "     caliper will test all possible combinations. Example: ",
+      "     -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'",
+      "",
+      "See http://sites.google.com/site/caliperusers/command-line for more details.",
+      "");
 }

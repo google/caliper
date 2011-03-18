@@ -68,17 +68,23 @@ public class DoubleToStringBenchmark extends SimpleBenchmark {
     abstract String convert(Double d);
   }
 
-  @Param double value;
+  enum Value {
+    Pi(Math.PI),
+    NegativeZero(-0.0),
+    NegativeInfinity(Double.NEGATIVE_INFINITY),
+    NaN(Double.NaN);
 
-  public static final List<Double> valueValues = Arrays.asList(
-      Math.PI,
-      -0.0,
-      Double.NEGATIVE_INFINITY,
-      Double.NaN
-  );
+    final double value;
+
+    Value(double value) {
+      this.value = value;
+    }
+  }
+
+  @Param Value value;
 
   public int timePrimitive(int reps) {
-    double d = value;
+    double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += method.convert(d).length();
@@ -87,7 +93,7 @@ public class DoubleToStringBenchmark extends SimpleBenchmark {
   }
 
   public int timeWrapper(int reps) {
-    Double d = value;
+    Double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += method.convert(d).length();

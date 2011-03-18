@@ -14,14 +14,41 @@
 
 package com.google.caliper.util;
 
+import com.google.common.collect.ImmutableList;
+
+import java.io.PrintWriter;
+import java.util.List;
+
 /**
  * Exception that signifies that the <i>user</i> has given an invalid argument string.
  */
 @SuppressWarnings("serial") // who would serialize a command-line parsing error?
 public class InvalidCommandException extends Exception {
-  InvalidCommandException() {}
+  private ImmutableList<String> usage;
 
   public InvalidCommandException(String message, Object... args) {
     super(String.format(message, args));
+  }
+
+  public void setUsage(List<String> usage) {
+    this.usage = ImmutableList.copyOf(usage);
+  }
+
+  public void display(PrintWriter writer) {
+    writer.println(getMessage());
+    if (usage != null) {
+      writer.println();
+      displayUsage(writer);
+    }
+  }
+
+  protected final void displayUsage(PrintWriter writer) {
+    for (String line : usage) {
+      writer.println(line);
+    }
+  }
+
+  public int exitCode() {
+    return 1;
   }
 }

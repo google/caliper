@@ -23,7 +23,7 @@ package com.google.caliper.api;
 public abstract class Benchmark {
   protected Benchmark() {}
 
-  public void setUp() throws Exception {}
+  protected void setUp() throws Exception {}
 
-  public void tearDown() throws Exception {}
+  protected void tearDown() throws Exception {}
 }
