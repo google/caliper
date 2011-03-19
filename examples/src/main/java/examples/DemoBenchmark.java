@@ -36,11 +36,8 @@ public class DemoBenchmark extends Benchmark {
 
   enum Foo {
     FOO, BAR, BAZ, QUX;
-
-//    @Override public String toString() {
-//      throw new UnsupportedOperationException("caliper should never be calling toString");
-//    }
   }
+
   DemoBenchmark() {
 //    System.out.println("I should not do this.");
   }

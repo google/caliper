@@ -42,66 +42,6 @@ public class ParameterTest extends TestCase {
     checkParameterValues(A.class, "value1", "value2");
   }
 
-  public static class B extends SimpleBenchmark {
-    @Param String param;
-    public static final Iterable<String> paramValues = Arrays.asList("value1", "value2");
-  }
-
-  public void testFromIterable() throws Exception {
-    checkParameterValues(B.class, "value1", "value2");
-  }
-
-  public static class C extends SimpleBenchmark {
-    @Param({"value1", "value2"}) String param;
-    public static final Collection<String> paramValues = Arrays.asList("nuh", "uh");
-  }
-
-  public void testAnnotationPrecedence() throws Exception {
-    checkParameterValues(C.class, "value1", "value2");
-  }
-
-  public static class D extends SimpleBenchmark {
-    @Param String param;
-    public static final LinkedHashSet<String> paramValues =
-        Sets.newLinkedHashSet(Arrays.asList("value1", "value2"));
-  }
-
-  public void testSpecificIterableType() throws Exception {
-    checkParameterValues(D.class, "value1", "value2");
-  }
-
-  public static class E extends SimpleBenchmark {
-    @Param String param;
-    private static List<String> paramValues = Arrays.asList("value1", "value2");
-  }
-
-  public void testValuesFieldNotPublicOrFinal() throws Exception {
-    checkParameterValues(E.class, "value1", "value2");
-  }
-
-  public static class F extends SimpleBenchmark {
-    @Param String param;
-    public final List<String> paramValues = Arrays.asList("value1", "value2");
-  }
-
-  public void testValuesFieldNotStatic() throws Exception {
-    try {
-      Parameter.forClass(F.class);
-      fail();
-    } catch (ConfigurationException expected) {
-    }
-  }
-
-  public static class G extends SimpleBenchmark {
-    @Param String param;
-    public static final Iterable paramValues =
-        Arrays.asList("value1", "value2");
-  }
-
-  public void testRawIterableType() throws Exception {
-    checkParameterValues(G.class, "value1", "value2");
-  }
-
   public enum Foo { VALUE1, VALUE2 }
 
   public static class H extends SimpleBenchmark {

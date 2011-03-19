@@ -21,6 +21,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.primitives.Primitives.wrap;
 import static java.util.Arrays.asList;
 
+import com.google.common.primitives.Primitives;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,45 +38,47 @@ public class Parsers {
   /**
    * Parser that tries, in this order:
    * <ul>
-   * <li>static fromString(String)
-   * <li>static valueOf(String)
+   * <li>ResultType.fromString(String)
+   * <li>ResultType.valueOf(String)
    * <li>new ResultType(String)
    */
-  public static <T> Parser<T> byConventionParser(Class<T> resultType) {
+  public static <T> Parser<T> byConventionParser(final Class<T> resultType)
+      throws NoSuchMethodException {
     if (resultType == String.class) {
       @SuppressWarnings("unchecked") // T == String
       Parser<T> identity = (Parser<T>) IDENTITY;
       return identity;
     }
 
-    resultType = wrap(resultType);
     for (String methodName : asList("fromString", "valueOf")) {
-      Method method;
       try {
-        method = resultType.getDeclaredMethod(methodName, String.class);
-      } catch (Exception e) {
-        continue; // we don't care what went wrong, we just try again
-      }
-      if (Util.isStatic(method)) {
-        return new MethodInvokingParser<T>(resultType, method);
+        final Method method = resultType.getDeclaredMethod(methodName, String.class);
+
+        if (Util.isStatic(method) && resultType.isAssignableFrom(method.getReturnType())) {
+          method.setAccessible(true); // to permit inner enums, etc.
+          return new InvokingParser<T>() {
+            @Override protected T invoke(String input) throws Exception {
+              return resultType.cast(method.invoke(null, input));
+            }
+          };
+        }
+      } catch (Exception tryAgain) {
       }
     }
 
-    try {
-      Constructor<T> constr = resultType.getDeclaredConstructor(String.class);
-      return new ConstructorInvokingParser<T>(resultType, constr);
-    } catch (NoSuchMethodException keepGoing) {
-    }
-
-    throw new IllegalArgumentException();
+    final Constructor<T> constr = resultType.getDeclaredConstructor(String.class);
+    constr.setAccessible(true);
+    return new InvokingParser<T>() {
+      @Override protected T invoke(String input) throws Exception {
+        return resultType.cast(constr.newInstance(input));
+      }
+    };
   }
 
   abstract static class InvokingParser<T> implements Parser<T> {
-    @Override public T parse(CharSequence cs) throws ParseException {
-      String input = cs.toString();
-      T result;
+    @Override public T parse(CharSequence input) throws ParseException {
       try {
-        result = invoke(input);
+        return invoke(input.toString());
       } catch (InvocationTargetException e) {
         Throwable cause = e.getCause();
         String desc = firstNonNull(cause.getMessage(), cause.getClass().getSimpleName());
@@ -82,43 +86,9 @@ public class Parsers {
       } catch (Exception e) {
         throw newParseException("Unknown parsing problem", e);
       }
-      return result;
     }
 
     protected abstract T invoke(String input) throws Exception;
-  }
-
-  public static class MethodInvokingParser<T> extends InvokingParser<T> {
-    private final Method method;
-    private final Class<T> resultType;
-
-    public MethodInvokingParser(Class<T> resultType, Method method) {
-      checkArgument(Util.isStatic(method));
-      checkArgument(Util.extendsIgnoringWrapping(method.getReturnType(), resultType));
-      this.resultType = resultType;
-      this.method = method;
-      method.setAccessible(true); // to permit inner enums, etc.
-    }
-
-    @Override
-    protected T invoke(String input) throws IllegalAccessException, InvocationTargetException {
-      return resultType.cast(method.invoke(null, input));
-    }
-  }
-
-  public static class ConstructorInvokingParser<T> extends InvokingParser<T> {
-    private final Constructor<T> constr;
-
-    public ConstructorInvokingParser(Class<T> resultType, Constructor<T> constr) {
-      this.constr = constr;
-      constr.setAccessible(true);
-    }
-
-    @Override
-    protected T invoke(String input)
-        throws IllegalAccessException, InvocationTargetException, InstantiationException {
-      return constr.newInstance(input);
-    }
   }
 
   public static ParseException newParseException(String message, Throwable cause) {

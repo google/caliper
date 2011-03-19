@@ -20,27 +20,19 @@ import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.CaliperRc;
 import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
-import com.google.caliper.runner.UserCodeException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * Unit test covering common user mistakes in benchmark classes.
  */
 public class InvalidBenchmarksTest extends TestCase {
-  private final CaliperRc caliperRc = new CaliperRc(ImmutableMap.<String, String>of());
-
   // Put the expected messages together here, which may promote some kind of
   // consistency in their wording. :)
 
@@ -63,24 +55,9 @@ public class InvalidBenchmarksTest extends TestCase {
   static final String RESERVED_PARAM =
       "Class '%s' uses reserved parameter name 'vm'";
   static final String NO_CONVERSION = "Type 'Object' of parameter field 'oops' "
-      + "has no static 'fromString(String)' or 'valueOf(String)' method";
+      + "has no recognized String-converting method; see <TODO> for details";
   static final String CONVERT_FAILED = // granted this one's a little weird (and brittle)
-      "Cannot convert default value 'oops' to type 'Integer': For input string: \"oops\"";
-  static final String DEFAULTS_FIELD_NOT_STATIC =
-      "Default-values field 'fooValues' is not static";
-  static final String DEFAULTS_METHOD_NOT_STATIC =
-      "Default-values method 'fooValues' is not static";
-  static final String DEFAULTS_WRONG_TYPE =
-      "Default values must be of type Iterable<Long> (or any subtype)";
-  static final String DEFAULTS_FIELD_EMPTY =
-      "Default-values field 'fooValues' has no values";
-  static final String DEFAULTS_METHOD_EMPTY =
-      "Default-values method 'fooValues' returned no values";
-  static final String USER_EXCEPTION =
-      "An exception was thrown from the benchmark code";
-  static final String VMPARAM_NOT_STRING =
-      "Parameter field 'uhoh' is marked with @VmParam but is not of type String";
-
+      "Cannot convert value 'oops' to type 'int': For input string: \"oops\"";
 
   public void testDoesntExtendBenchmark() throws InvalidCommandException {
     String expected = String.format(DOESNT_EXTEND, Benchmark.class.getName());
@@ -98,25 +75,6 @@ public class InvalidBenchmarksTest extends TestCase {
   }
   static class BadConstructorBenchmark extends Benchmark {
     BadConstructorBenchmark(String damnParam) {}
-  }
-
-  public void testExceptionInInit() throws InvalidCommandException {
-    String message = String.format(EXCEPTION_IN_INIT, ExceptionInInitBenchmark.class.getName());
-    expectUserException(message, ExceptionInInitBenchmark.class);
-  }
-  static class ExceptionInInitBenchmark extends Benchmark {
-    static {
-      throwSomeUserException();
-    }
-  }
-
-  public void testExceptionInConstructor() throws InvalidCommandException {
-    expectUserException(EXCEPTION_IN_CONSTR, ExceptionInConstructorBenchmark.class);
-  }
-  static class ExceptionInConstructorBenchmark extends Benchmark {
-    private ExceptionInConstructorBenchmark() {
-      throwSomeUserException();
-    }
   }
 
   public void testFieldIsBothParamAndVmParam() throws InvalidCommandException {
@@ -174,131 +132,18 @@ public class InvalidBenchmarksTest extends TestCase {
     @Param({"1", "2", "oops"}) int number;
   }
 
-  public void testDefaultsFieldNotStatic() throws InvalidCommandException {
-    expectException(DEFAULTS_FIELD_NOT_STATIC, DefaultsFieldNotStaticBenchmark.class);
-  }
-  static class DefaultsFieldNotStaticBenchmark extends Benchmark {
-    @Param String foo;
-    public List<String> fooValues;
-  }
-
-  public void testDefaultsMethodNotStatic() throws InvalidCommandException {
-    expectException(DEFAULTS_METHOD_NOT_STATIC, DefaultsMethodNotStaticBenchmark.class);
-  }
-  static class DefaultsMethodNotStaticBenchmark extends Benchmark {
-    @Param String foo;
-
-    public List<String> fooValues() {
-      return null;
-    }
-  }
-
-  public void testDefaultsFieldIsntIterable() throws InvalidCommandException {
-    expectException(DEFAULTS_WRONG_TYPE, DefaultsFieldIsntIterableBenchmark.class);
-  }
-  static class DefaultsFieldIsntIterableBenchmark extends Benchmark {
-    @Param Long foo;
-    public static String fooValues = "oops";
-  }
-
-  public void testDefaultsMethodIsntIterable() throws InvalidCommandException {
-    expectException(DEFAULTS_WRONG_TYPE, DefaultsMethodIsntIterableBenchmark.class);
-  }
-  static class DefaultsMethodIsntIterableBenchmark extends Benchmark {
-    @Param Long foo;
-
-    public static String fooValues() {
-      return "oops";
-    }
-  }
-
-  public void testDefaultsFieldContainsAWrongType() throws InvalidCommandException {
-    expectException(DEFAULTS_WRONG_TYPE, DefaultsFieldContainsAWrongTypeBenchmark.class);
-  }
-  static class DefaultsFieldContainsAWrongTypeBenchmark extends Benchmark {
-    @Param Long foo;
-    public static Iterable<Object> fooValues = Arrays.<Object>asList(1L, 2L, "oops");
-  }
-
-  public void testDefaultsMethodContainsAWrongType() throws InvalidCommandException {
-    expectException(DEFAULTS_WRONG_TYPE, DefaultsMethodContainsAWrongTypeBenchmark.class);
-  }
-  static class DefaultsMethodContainsAWrongTypeBenchmark extends Benchmark {
-    @Param Long foo;
-
-    public static Iterable<Object> fooValues() {
-      return Arrays.<Object>asList(1L, 2L, "oops");
-    }
-  }
-
-  public void testDefaultsFieldIsEmpty() throws InvalidCommandException {
-    expectException(DEFAULTS_FIELD_EMPTY, DefaultsFieldIsEmptyBenchmark.class);
-  }
-  static class DefaultsFieldIsEmptyBenchmark extends Benchmark {
-    @Param Long foo;
-    public static List<Long> fooValues = ImmutableList.of();
-  }
-
-  public void testDefaultsMethodIsEmpty() throws InvalidCommandException {
-    expectException(DEFAULTS_METHOD_EMPTY, DefaultsMethodIsEmptyBenchmark.class);
-  }
-  static class DefaultsMethodIsEmptyBenchmark extends Benchmark {
-    @Param Long foo;
-
-    public static List<Long> fooValues() {
-      return ImmutableList.of();
-    }
-  }
-
-  public void testDefaultsMethodThrows() throws InvalidCommandException {
-    expectUserException(USER_EXCEPTION, DefaultsMethodThrowsBenchmark.class);
-  }
-  static class DefaultsMethodThrowsBenchmark extends Benchmark {
-    @Param
-    Long foo;
-
-    public static Iterable<Long> fooValues() {
-      throw new SomeUserException();
-    }
-  }
-
-  public void testVmParamIsNotString() throws InvalidCommandException {
-    expectException(VMPARAM_NOT_STRING, VmParamIsNotStringBenchmark.class);
-  }
-  static class VmParamIsNotStringBenchmark extends Benchmark {
-    @VmParam int uhoh;
-  }
-
   // end of tests
 
   private void expectException(String expectedMessageFmt, Class<?> benchmarkClass)
       throws InvalidCommandException {
-    expectException(expectedMessageFmt, benchmarkClass, InvalidBenchmarkException.class);
-  }
-
-  private void expectUserException(String expectedMessageFmt, Class<?> benchmarkClass)
-      throws InvalidCommandException {
-    expectException(expectedMessageFmt, benchmarkClass, UserCodeException.class);
-    // TODO(kevinb): ideally we would check that the user's exception was chained...
-  }
-
-  private void expectException(
-      String expectedMessageFmt,
-      Class<?> benchmarkClass,
-      Class<? extends InvalidBenchmarkException> expectedType)
-      throws InvalidCommandException {
     CaliperOptions options = new DefaultCaliperOptions(benchmarkClass.getName());
     try {
-      new CaliperRun(options, caliperRc, null);
-      fail("no exception thrown");
-
       // Note that all the failures checked by this test are caught before even calling run()
+      new CaliperRun(options, null, null);
+      fail("no exception thrown");
 
     } catch (InvalidBenchmarkException e) {
       try {
-        Class<?> actualType = e.getClass();
-        assertTrue("wrong exception type: " + actualType,
-            expectedType.isAssignableFrom(actualType));
         String expectedMessageText =
             String.format(expectedMessageFmt, benchmarkClass.getSimpleName());
         assertEquals(expectedMessageText, e.getMessage());
@@ -309,12 +154,5 @@ public class InvalidBenchmarksTest extends TestCase {
         throw afe;
       }
     }
-  }
-
-  @SuppressWarnings("serial")
-  static class SomeUserException extends RuntimeException {}
-
-  private static void throwSomeUserException() {
-    throw new SomeUserException();
   }
 }

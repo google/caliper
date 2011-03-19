@@ -16,155 +16,122 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.collect.Iterables.isEmpty;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
-import com.google.caliper.util.TypedField;
+import com.google.common.base.Functions;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
+import com.google.common.collect.Iterables;
+import com.google.common.primitives.Primitives;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Arrays;
 import java.util.EnumSet;
-import java.util.List;
+import java.util.Set;
 
 /**
  * Represents an injectable parameter, marked with one of @Param, @VmParam. Has nothing to do with
  * particular choices of <i>values</i> for this parameter (except that it knows how to find the
  * <i>default</i> values).
- *
- * @param <T> the injectable type of the parameter (always String if this is a VM parameter)
  */
-public final class Parameter<T> {
-  public static <T> Parameter<T> create(Field field, Class<T> type)
-      throws InvalidBenchmarkException {
-    return new Parameter<T>(field, type);
+public final class Parameter {
+  public static Parameter create(Field field) throws InvalidBenchmarkException {
+    return new Parameter(field);
   }
 
-  private final TypedField<Benchmark, T> typedField;
-  private final Parser<T> parser;
-  private final ImmutableList<T> defaults;
+  private final Field field;
+  private final Parser<?> parser;
+  private final ImmutableList<String> defaults;
 
-  public Parameter(Field field, Class<T> type) throws InvalidBenchmarkException {
-    this.typedField = createTypedField(field, type);
-
-    if (RESERVED_NAMES.contains(typedField.name())) {
+  public Parameter(Field field) throws InvalidBenchmarkException {
+    if (RESERVED_NAMES.contains(field.getName())) {
       throw new InvalidBenchmarkException("Class '%s' uses reserved parameter name '%s'",
-          typedField.containingType(), typedField.name());
+          field.getDeclaringClass(), field.getName());
     }
 
+    this.field = field;
+    field.setAccessible(true);
+
+    Class<?> type = Primitives.wrap(field.getType());
     try {
-      // TODO(kevinb): perhaps have custom converters listed in .caliperrc or something.
       this.parser = Parsers.byConventionParser(type);
-    } catch (IllegalArgumentException e) {
-      throw new InvalidBenchmarkException(
-          "Type '%s' of parameter field '%s' has no recognized "
-              + "String-converting method; see <TODO> for details.",
-          typedField.fieldType(), typedField.name());
+    } catch (NoSuchMethodException e) {
+      throw new InvalidBenchmarkException("Type '%s' of parameter field '%s' has no recognized "
+          + "String-converting method; see <TODO> for details", type, field.getName());
     }
 
-    Iterable<T> iterable = DefaultsFinder.FIRST_SUCCESSFUL.findDefaults(typedField, parser);
-    this.defaults = ImmutableList.copyOf(iterable);
+    this.defaults = findDefaults(field);
+    validate(defaults);
+  }
+
+  void validate(ImmutableCollection<String> values) throws InvalidBenchmarkException {
+    for (String valueAsString : values) {
+      try {
+        parser.parse(valueAsString);
+      } catch (ParseException e) {
+        throw new InvalidBenchmarkException(
+            "Cannot convert value '%s' to type '%s': %s",
+            valueAsString, field.getType(), e.getMessage());
+      }
+    }
   }
 
   static final ImmutableSet<String> RESERVED_NAMES =
-      ImmutableSet.of("benchmark", "environment", "run", "trial", "vm");
-
-  // Fake the first type parameter as "Benchmark" just so we don't have to double-parameterize
-  // this class.
-  @SuppressWarnings("unchecked")
-  private TypedField<Benchmark, T> createTypedField(Field field, Class<T> type) {
-    return (TypedField<Benchmark, T>) TypedField.from(field, field.getDeclaringClass(), type);
-  }
-
-  Parser parser() {
-    return parser;
-  }
+      ImmutableSet.of("benchmark", "environment", "instrument", "name", "run", "trial", "vm");
 
   String name() {
-    return typedField.name();
+    return field.getName();
   }
 
-  ImmutableList<T> defaults() {
+  ImmutableList<String> defaults() {
     return defaults;
   }
   
-  void inject(Benchmark benchmark, T value) {
-    typedField.setValueOn(benchmark, value);
+  void inject(Benchmark benchmark, String value) {
+    try {
+      Object o = parser.parse(value);
+      field.set(benchmark, o);
+    } catch (ParseException impossible) {
+      // already validated both defaults and command-line
+      throw new AssertionError(impossible);
+    } catch (IllegalAccessException impossible) {
+      throw new AssertionError(impossible);
+    }
   }
 
-  public Class<T> type() {
-    return typedField.fieldType();
+  private static ImmutableList<String> findDefaults(Field field) {
+    String[] defaultsAsStrings = getValuesFromParamAnnotation(field);
+    if (defaultsAsStrings.length > 0) {
+      return ImmutableList.copyOf(defaultsAsStrings);
+    }
+
+    Class<?> type = field.getType();
+    if (type == boolean.class) {
+      return ALL_BOOLEANS;
+    }
+
+    if (type.isEnum()) {
+      ImmutableList.Builder<String> builder = ImmutableList.builder();
+      for (Object enumConstant : type.getEnumConstants()) {
+        builder.add(enumConstant.toString());
+      }
+      return builder.build();
+    }
+    return ImmutableList.of();
   }
 
-  /** A strategy for choosing default values for parameters. */
-  abstract static class DefaultsFinder {
-    // Return empty, not null, to say "I didn't find any"
-    abstract <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
-        throws InvalidBenchmarkException;
+  private static final ImmutableList<String> ALL_BOOLEANS = ImmutableList.of("true", "false");
 
-    static final DefaultsFinder FIRST_SUCCESSFUL = new FirstSuccessful();
-
-    static class FirstSuccessful extends DefaultsFinder {
-      // TODO(kevinb): this now turns out to be overengineered since we lost fromMethod/Field
-      static final ImmutableList<DefaultsFinder> ALL = ImmutableList.of(
-          new FromAnnotation(),
-          new AllPossible());
-
-      @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
-          throws InvalidBenchmarkException {
-        for (DefaultsFinder defaultsFinder : ALL) {
-          Iterable<T> defaults = defaultsFinder.findDefaults(field, parser);
-          if (!isEmpty(defaults)) {
-            return ImmutableList.copyOf(defaults);
-          }
-        }
-        return ImmutableList.of(); // failure
-      }
-    }
-
-    static class FromAnnotation extends DefaultsFinder {
-      @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser)
-          throws InvalidBenchmarkException {
-        List<T> list = Lists.newArrayList();
-
-        Param annotation = field.getAnnotation(Param.class);
-        String[] defaultsAsStrings = (field.getAnnotation(Param.class) != null)
-            ? field.getAnnotation(Param.class).value()
-            : field.getAnnotation(VmParam.class).value();
-
-        for (String defaultAsString : defaultsAsStrings) {
-          try {
-            list.add(parser.parse(defaultAsString));
-          } catch (ParseException e) {
-            throw new InvalidBenchmarkException(
-                "Cannot convert default value '%s' to type '%s': %s",
-                defaultAsString, field.fieldType(), e.getMessage());
-          }
-        }
-        return list;
-      }
-    }
-
-    static class AllPossible extends DefaultsFinder {
-      @SuppressWarnings("unchecked") // protected by 'type' checks
-      @Override <T> Iterable<T> findDefaults(TypedField<?, T> field, Parser<T> parser) {
-        Class<T> type = field.fieldType();
-        if (type == boolean.class || type == Boolean.class) {
-          // T == boolean
-          return (Iterable<T>) Arrays.asList(true, false);
-        }
-        if (type.isEnum()) {
-          return (Iterable<T>) EnumSet.allOf(type.asSubclass(Enum.class));
-        }
-        return ImmutableSet.of();
-      }
-    }
+  private static String[] getValuesFromParamAnnotation(Field field) {
+    return field.isAnnotationPresent(Param.class)
+        ? field.getAnnotation(Param.class).value()
+        : field.getAnnotation(VmParam.class).value();
   }
 }

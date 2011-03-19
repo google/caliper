@@ -22,6 +22,8 @@ import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmParam;
+import com.google.caliper.util.InvalidCommandException;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Sets;
 
@@ -38,8 +40,8 @@ import java.util.Set;
 public final class BenchmarkClass {
   private final Class<? extends Benchmark> theClass;
   private final Constructor<? extends Benchmark> constructor;
-  private final ParameterSet<Object> userParameters;
-  private final ParameterSet<String> injectableVmArguments;
+  private final ParameterSet userParameters;
+  private final ParameterSet injectableVmArguments;
 
   public BenchmarkClass(Class<?> aClass) throws InvalidBenchmarkException {
     if (Modifier.isAbstract(aClass.getModifiers())) {
@@ -59,25 +61,23 @@ public final class BenchmarkClass {
     this.constructor = findConstructor(theClass);
 
     this.userParameters = ParameterSet.create(theClass, Param.class);
-    this.injectableVmArguments = ParameterSet.create(theClass, VmParam.class, String.class);
+    this.injectableVmArguments = ParameterSet.create(theClass, VmParam.class);
 
     validate();
   }
 
   private void validate() throws InvalidBenchmarkException {
-    Set<String> both = Sets.intersection(
-        userParameters.names(),
-        injectableVmArguments.names());
+    Set<String> both = Sets.intersection(userParameters.names(), injectableVmArguments.names());
     if (!both.isEmpty()) {
       throw new InvalidBenchmarkException("Some fields have both @Param and @VmParam: " + both);
     }
   }
 
-  public ParameterSet<Object> userParameters() {
+  public ParameterSet userParameters() {
     return userParameters;
   }
 
-  public ParameterSet<String> injectableVmArguments() {
+  public ParameterSet injectableVmArguments() {
     return injectableVmArguments;
   }
 
@@ -101,7 +101,6 @@ public final class BenchmarkClass {
 
   public Benchmark createAndStage(Scenario scenario) throws UserCodeException {
     Benchmark benchmark = createBenchmarkInstance(constructor);
-
     userParameters.injectAll(benchmark, scenario.userParameters());
     injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
@@ -137,45 +136,47 @@ public final class BenchmarkClass {
 
   private static Constructor<? extends Benchmark> findConstructor(
       Class<? extends Benchmark> theClass) throws InvalidBenchmarkException {
+    Constructor<? extends Benchmark> constructor;
     try {
-      Constructor<? extends Benchmark> c = theClass.getDeclaredConstructor();
-      c.setAccessible(true);
-      c.newInstance(); // test it out
-      return c;
-
+      constructor = theClass.getDeclaredConstructor();
     } catch (NoSuchMethodException e) {
       throw new InvalidBenchmarkException(
           "Class '%s' has no parameterless constructor", theClass);
-    } catch (InvocationTargetException e) {
-      throw new UserCodeException("Exception thrown from benchmark constructor", e.getCause());
+    }
+    constructor.setAccessible(true);
+    return constructor;
+  }
+
+  private static Benchmark createBenchmarkInstance(Constructor<? extends Benchmark> c)
+      throws UserCodeException {
+    try {
+      return c.newInstance();
     } catch (IllegalAccessException impossible) {
       throw new AssertionError(impossible);
     } catch (InstantiationException impossible) {
       throw new AssertionError(impossible);
+    } catch (InvocationTargetException e) {
+      throw new UserCodeException("Exception thrown from benchmark constructor", e.getCause());
     }
-  }
-
-  private static Benchmark createBenchmarkInstance(Constructor<? extends Benchmark> c) {
-    try {
-      return c.newInstance();
-    } catch (Exception e) {
-      throw new AssertionError(e); // should have been caught earlier
-    }
-  }
-
-  @Override public boolean equals(Object object) {
-    if (object instanceof BenchmarkClass) {
-      BenchmarkClass that = (BenchmarkClass) object;
-      return this.theClass.equals(that.theClass);
-    }
-    return false;
-  }
-
-  @Override public int hashCode() {
-    return theClass.hashCode();
   }
 
   @Override public String toString() {
     return theClass.getName();
+  }
+
+  void validateParameters(ImmutableSetMultimap<String, String> parameters)
+      throws InvalidCommandException {
+    for (String paramName : parameters.keySet()) {
+      Parameter parameter = userParameters.get(paramName);
+      if (parameter == null) {
+        throw new InvalidCommandException("unrecognized parameter: " + paramName);
+      }
+      try {
+        parameter.validate(parameters.get(paramName));
+      } catch (InvalidBenchmarkException e) {
+        // TODO(kevinb): this is weird.
+        throw new InvalidCommandException(e.getMessage());
+      }
+    }
   }
 }

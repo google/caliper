@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
+import com.google.common.primitives.Primitives;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -273,7 +274,11 @@ public final class CommandLineParser<T> {
     private FieldOption(Field field, Class<?> c) {
       this.field = field;
       this.isBoolean = c == boolean.class || c == Boolean.class;
-      this.parser = Parsers.byConventionParser(c);
+      try {
+        this.parser = Parsers.byConventionParser(Primitives.wrap(c));
+      } catch (NoSuchMethodException e) {
+        throw new IllegalArgumentException("No suitable String-conversion method");
+      }
     }
 
     @Override boolean isBoolean() {
@@ -281,12 +286,9 @@ public final class CommandLineParser<T> {
     }
 
     @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
+      Object value = convert(parser, valueText);
       try {
-        Object value = convert(parser, valueText);
         field.set(injectee, value);
-      } catch (IllegalArgumentException e) {
-        // from the converter
-        throw new InvalidCommandException("Value is wrong type");
       } catch (IllegalAccessException impossible) {
         throw new AssertionError(impossible);
       }
@@ -304,12 +306,16 @@ public final class CommandLineParser<T> {
 
     private Method method;
     private boolean isBoolean;
-    private Parser<?> converter;
+    private Parser<?> parser;
 
     private MethodOption(Method method, Class<?> c) {
       this.method = method;
       this.isBoolean = c == boolean.class || c == Boolean.class;
-      this.converter = Parsers.byConventionParser(c);
+      try {
+        this.parser = Parsers.byConventionParser(Primitives.wrap(c));
+      } catch (NoSuchMethodException e) {
+        throw new IllegalArgumentException("No suitable String-conversion method");
+      }
 
       method.setAccessible(true);
     }
@@ -323,7 +329,7 @@ public final class CommandLineParser<T> {
     }
 
     @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
-      invokeMethod(injectee, method, convert(converter, valueText));
+      invokeMethod(injectee, method, convert(parser, valueText));
     }
   }
 

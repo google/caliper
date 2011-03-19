@@ -37,13 +37,13 @@ import java.util.Set;
 public final class FullCartesianScenarioSelection implements ScenarioSelection {
   private final ImmutableSet<BenchmarkMethod> benchmarkMethods;
   private final ImmutableSet<VirtualMachine> vms;
-  private final ImmutableSetMultimap<String, Object> userParameters;
+  private final ImmutableSetMultimap<String, String> userParameters;
   private final ImmutableSetMultimap<String, String> vmArguments;
 
   public FullCartesianScenarioSelection(
       Collection<BenchmarkMethod> benchmarkMethods,
       Collection<VirtualMachine> vms,
-      SetMultimap<String, Object> userParameters,
+      SetMultimap<String, String> userParameters,
       SetMultimap<String, String> vmArguments) {
     this.benchmarkMethods = ImmutableSet.copyOf(benchmarkMethods);
     this.vms = ImmutableSet.copyOf(vms);
@@ -62,7 +62,7 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
     return vms;
   }
 
-  @Override public ImmutableSetMultimap<String, Object> userParameters() {
+  @Override public ImmutableSetMultimap<String, String> userParameters() {
     return userParameters;
   }
 
@@ -74,8 +74,8 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
     List<Scenario> tmp = Lists.newArrayList();
     for (BenchmarkMethod benchmarkMethod : benchmarkMethods) {
       for (VirtualMachine vm : vms) {
-        for (List<Object> userParamsChoice : cartesian(userParameters)) {
-          ImmutableMap<String, Object> theseUserParams =
+        for (List<String> userParamsChoice : cartesian(userParameters)) {
+          ImmutableMap<String, String> theseUserParams =
               zip(userParameters.keySet(), userParamsChoice);
           for (List<String> vmArgsChoice : cartesian(vmArguments)) {
             ImmutableMap<String, String> theseVmArgs =

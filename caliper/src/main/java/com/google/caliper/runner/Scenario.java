@@ -31,12 +31,12 @@ import java.util.Map;
 public final class Scenario {
   private final BenchmarkMethod benchmarkMethod;
   private final VirtualMachine vm;
-  private final ImmutableSortedMap<String, Object> userParameters;
+  private final ImmutableSortedMap<String, String> userParameters;
   private final ImmutableSortedMap<String, String> vmArguments;
 
   public Scenario(
       BenchmarkMethod benchmarkMethod,
-      Map<String, Object> userParameters,
+      Map<String, String> userParameters,
       Map<String, String> vmArguments,
       VirtualMachine vm) {
     this.benchmarkMethod = benchmarkMethod;
@@ -49,7 +49,7 @@ public final class Scenario {
     return benchmarkMethod;
   }
 
-  public ImmutableSortedMap<String, Object> userParameters() {
+  public ImmutableSortedMap<String, String> userParameters() {
     return userParameters;
   }
 
