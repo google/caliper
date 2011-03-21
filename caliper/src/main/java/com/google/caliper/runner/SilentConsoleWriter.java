@@ -16,10 +16,12 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.util.SimpleDuration;
+
 // This might actually be easier as a proxy so we don't have to keep updating it.
 public class SilentConsoleWriter implements ConsoleWriter {
   @Override public void flush() {}
   @Override public void describe(ScenarioSelection selection) {}
   @Override public void beforeDryRun(int count) {}
-  @Override public void beforeRun(int trials, int scenarioCount, int estimatedSeconds) { }
+  @Override public void beforeRun(int trials, int scenarioCount, SimpleDuration estimate) { }
 }

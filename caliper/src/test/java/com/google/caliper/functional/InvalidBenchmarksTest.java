@@ -42,10 +42,6 @@ public class InvalidBenchmarksTest extends TestCase {
       "Class '%s' is abstract";
   static final String NO_CONSTRUCTOR =
       "Class '%s' has no parameterless constructor";
-  static final String EXCEPTION_IN_INIT =
-      "Exception thrown while initializing class '%s'";
-  static final String EXCEPTION_IN_CONSTR =
-      "Exception thrown from benchmark constructor";
   static final String PARAM_AND_VMPARAM =
       "Some fields have both @Param and @VmParam: [oops]";
   static final String NO_METHODS =

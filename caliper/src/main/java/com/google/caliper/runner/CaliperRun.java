@@ -17,6 +17,7 @@ package com.google.caliper.runner;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.SimpleDuration;
 import com.google.caliper.util.Util;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -39,6 +40,7 @@ public final class CaliperRun {
   private final ConsoleWriter console;
   private final BenchmarkClass benchmarkClass;
   private final Collection<BenchmarkMethod> methods;
+  private final Instrument instrument;
 
   public CaliperRun(CaliperOptions options, CaliperRc caliperRc, ConsoleWriter console)
       throws InvalidCommandException, InvalidBenchmarkException {
@@ -46,9 +48,11 @@ public final class CaliperRun {
     this.caliperRc = caliperRc;
     this.console = console;
 
+    instrument = options.instrument();
+
     Class<?> aClass = classForName(options.benchmarkClassName());
     this.benchmarkClass = new BenchmarkClass(aClass);
-    this.methods = findBenchmarkMethods(benchmarkClass, options);
+    this.methods = chooseBenchmarkMethods();
 
     benchmarkClass.validateParameters(options.userParameters());
   }
@@ -77,12 +81,16 @@ public final class CaliperRun {
     dryRun(/*INOUT*/mutableScenarios);
 
     int finalScenarioCount = mutableScenarios.size();
-    int estimate;
+
+    SimpleDuration estimate;
     try {
-      estimate = options.instrument().estimateRuntimeSeconds(finalScenarioCount, options);
+      SimpleDuration perTrial = instrument.estimateRuntimePerTrial();
+      estimate = perTrial.times(finalScenarioCount * options.trials());
+
     } catch (Exception e) {
-      estimate = 0;
+      estimate = SimpleDuration.ofNanos(0);
     }
+
     console.beforeRun(options.trials(), finalScenarioCount, estimate);
     console.flush();
 
@@ -93,10 +101,7 @@ public final class CaliperRun {
     // TODO(kevinb): now the wet run!
   }
 
-  public static Collection<BenchmarkMethod> findBenchmarkMethods(
-      BenchmarkClass benchmarkClass, CaliperOptions options)
-      throws InvalidBenchmarkException {
-    Instrument instrument = options.instrument();
+  private Collection<BenchmarkMethod> chooseBenchmarkMethods() throws InvalidBenchmarkException {
     ImmutableMap<String, BenchmarkMethod> methodMap =
         benchmarkClass.findAllBenchmarkMethods(instrument);
 
@@ -109,8 +114,6 @@ public final class CaliperRun {
   }
 
   void dryRun(Set<Scenario> mutableScenarios) throws UserCodeException {
-    Instrument instrument = options.instrument();
-
     Iterator<Scenario> it = mutableScenarios.iterator();
     while (it.hasNext()) {
       Scenario scenario = it.next();

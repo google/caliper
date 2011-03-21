@@ -1,0 +1,52 @@
+# Caliper options file
+
+######################
+# VM CONFIGURATION
+######################
+
+# This directory can be automatically prepended to non-absolute VM paths
+vms.baseDirectory=
+
+# Disable concurrent garbage collection and compilation
+vms.commonArguments=-XX:+UseSerialGC -Xbatch
+
+# When running with detailed logging, print GC and compilation events
+vms.detailArguments=-verbose:gc -XX:+PrintCompilation
+
+# Common configurations
+vm.config.jdk-32-client.home=jdk-32
+vm.config.jdk-32-client.exec=bin/java
+vm.config.jdk-32-client.args=-client
+
+vm.config.jdk-32-server.home=jdk-32
+vm.config.jdk-32-server.args=-server
+
+vm.config.jdk-64-compressed.home=jdk-64
+vm.config.jdk-64-compressed.args=-server -XX:+UseCompressedOops
+
+vm.config.jdk-64-uncompressed.home=jdk-64
+vm.config.jdk-64-uncompressed.args=-server -XX:-UseCompressedOops
+
+
+######################
+# INSTRUMENT CONFIG
+######################
+
+instrument.micro.class=com.google.caliper.runner.MicrobenchmarkInstrument
+instrument.micro.minWarmup=10s
+instrument.micro.timingInterval=500ms
+instrument.micro.reportedIntervals=7
+instrument.micro.maxRuntime=10s
+instrument.micro.shortCircuitTolerance=0.002
+
+
+######################
+# RESULTS UPLOAD
+######################
+
+results.dir=/tmp/caliper-results
+results.deleteAfterUpload=true
+
+results.upload.url=
+results.upload.key=
+

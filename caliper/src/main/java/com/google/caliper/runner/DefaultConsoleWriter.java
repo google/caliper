@@ -16,6 +16,8 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.util.SimpleDuration;
+
 import java.io.PrintWriter;
 
 public class DefaultConsoleWriter implements ConsoleWriter {
@@ -43,10 +45,10 @@ public class DefaultConsoleWriter implements ConsoleWriter {
     writer.format("This selection yields %s scenarios.%n", scenarioCount);
   }
 
-  @Override public void beforeRun(int trials, int scenarioCount, int estimatedSeconds) {
+  @Override public void beforeRun(int trials, int scenarioCount, SimpleDuration estimate) {
     writer.format("Measuring %s trials each of %s scenarios. ", trials, scenarioCount);
-    if (estimatedSeconds > 0) {
-      writer.format("Estimated runtime: %s minutes.%n", (estimatedSeconds + 59) / 60);
+    if (estimate.toNanos() > 0) {
+      writer.format("Estimated runtime: %s.%n", estimate);
     } else {
       writer.println("(Cannot estimate runtime.)");
     }

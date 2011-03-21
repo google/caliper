@@ -16,16 +16,29 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
+
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.util.SimpleDuration;
 import com.google.caliper.util.Util;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Map;
 
 public final class MicrobenchmarkInstrument extends Instrument {
 
-  @Override public int estimateRuntimeSeconds(int scenarioCount, CaliperOptions options) {
-    return scenarioCount * options.trials() * options.warmupSeconds() * 2; // rough
+  @Override protected void setOptions(Map<String, String> options) {
+    super.setOptions(options);
+  }
+
+  @Override public SimpleDuration estimateRuntimePerTrial() {
+    SimpleDuration minWarmup = SimpleDuration.valueOf(options.get("minWarmup"));
+    SimpleDuration maxRuntime = SimpleDuration.valueOf(options.get("maxRuntime"));
+
+    return minWarmup.plus(maxRuntime);
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -45,8 +58,23 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return new BenchmarkMethod(benchmarkClass, method, shortName);
   }
 
-  @Override public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod) {
-    // wow, this is a _really_ dry run...
+  @Override public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
+      throws UserCodeException {
+    Method m = benchmarkMethod.method();
+    try {
+      m.invoke(benchmark, 1);
+    } catch (IllegalAccessException impossible) {
+      throw new AssertionError(impossible);
+    } catch (InvocationTargetException e) {
+      Throwable userException = e.getCause();
+      propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+      throw new UserCodeException(userException);
+    }
+  }
+
+  public void measure(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
+      throws UserCodeException {
+    
   }
 
   @Override public boolean equals(Object object) {

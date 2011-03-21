@@ -59,10 +59,6 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return 1;
   }
 
-  @Override public int warmupSeconds() {
-    return 10;
-  }
-
   @Override public String outputFileOrDir() {
     return null;
   }

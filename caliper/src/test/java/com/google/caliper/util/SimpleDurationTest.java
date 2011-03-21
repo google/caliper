@@ -23,19 +23,21 @@ import junit.framework.TestCase;
  */
 public class SimpleDurationTest extends TestCase {
   public void test() {
-    testIt(0, "0ns");
-    testIt(0, "0 ns");
-    testIt(0, "0nanos");
-    testIt(0, "0nanoseconds");
-    testIt(0, "0ms");
-    testIt(0, "0us");
-    testIt(1000, "1 \u03bcs");
-    testIt(500, "0.5us");
-    testIt(500, "0.499000000000000000000000000000001us");
-    testIt(60480000000000L, "0.7 days");
+    testIt(0, "0ns", "0.00 ns");
+    testIt(0, "0 ns", "0.00 ns");
+    testIt(0, "0nanos", "0.00 ns");
+    testIt(0, "0nanoseconds", "0.00 ns");
+    testIt(0, "0ms", "0.00 ns");
+    testIt(0, "0us", "0.00 ns");
+    testIt(1000, "1 \u03bcs", "1.00 \u03bcs");
+    testIt(500, "0.5us", "500.00 ns");
+    testIt(500, "0.499000000000000000000000000000001us", "500.00 ns");
+    testIt(60480000000000L, "0.7 days", "16.80 h");
   }
 
-  private void testIt(long i, String s) {
-    assertEquals(i, SimpleDuration.valueOf(s).toNanos());
+  private void testIt(long i, String s, String p) {
+    SimpleDuration d = SimpleDuration.valueOf(s);
+    assertEquals(i, d.toNanos());
+    assertEquals(p, d.toString());
   }
 }

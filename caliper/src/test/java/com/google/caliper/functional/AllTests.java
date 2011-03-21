@@ -23,6 +23,8 @@ public class AllTests {
   public static Test suite() {
     TestSuite suite = new TestSuite();
     suite.addTestSuite(ErrorsInUserCodeTest.class);
+    suite.addTestSuite(ExceptionsFromUserCodeTest.class);
+    suite.addTestSuite(InvalidBenchmarksTest.class);
     return suite;
   }
 }

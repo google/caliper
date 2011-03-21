@@ -26,7 +26,6 @@ public interface CaliperOptions {
   ImmutableSetMultimap<String, String> vmArguments();
   Instrument instrument();
   int trials();
-  int warmupSeconds();
   String outputFileOrDir();
   boolean detailedLogging();
   boolean verbose();

@@ -17,11 +17,20 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.util.SimpleDuration;
+import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 public abstract class Instrument {
-  public int estimateRuntimeSeconds(int scenarioCount, CaliperOptions options) {
+  protected ImmutableMap<String, String> options;
+
+  protected void setOptions(Map<String, String> options) {
+    this.options = ImmutableMap.copyOf(options);
+  }
+
+  public SimpleDuration estimateRuntimePerTrial() {
     throw new UnsupportedOperationException();
   }
 
@@ -30,5 +39,5 @@ public abstract class Instrument {
   public abstract BenchmarkMethod createBenchmarkMethod(
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method);
+  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method) throws UserCodeException;
 }

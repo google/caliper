@@ -40,6 +40,10 @@ public final class BenchmarkMethod {
     return shortName;
   }
 
+  public Method method() {
+    return method;
+  }
+
   @Override public boolean equals(Object object) {
     if (object instanceof BenchmarkMethod) {
       BenchmarkMethod that = (BenchmarkMethod) object;

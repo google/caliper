@@ -16,6 +16,8 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.util.SimpleDuration;
+
 /**
  * @author Kevin Bourrillion
  */
@@ -23,5 +25,5 @@ public interface ConsoleWriter {
   void flush();
   void describe(ScenarioSelection selection);
   void beforeDryRun(int count);
-  void beforeRun(int trials, int scenarioCount, int estimatedSeconds);
+  void beforeRun(int trials, int scenarioCount, SimpleDuration estimate);
 }

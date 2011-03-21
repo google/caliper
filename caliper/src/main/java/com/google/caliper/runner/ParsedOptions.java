@@ -14,7 +14,6 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.util.CommandLineParser;
@@ -26,13 +25,11 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
-
-import java.io.File;
-import java.util.Iterator;
 
 public final class ParsedOptions implements CaliperOptions {
   public static ParsedOptions from(String[] args, CaliperRc rc)
@@ -150,63 +147,36 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
-  // Warmup -- technically instrument-specific
-  // --------------------------------------------------------------------------
-
-  private int warmupSeconds = -1;
-
-  @Option({"-w", "--warmup"})
-  private void setWarmupSeconds(int seconds) throws InvalidCommandException {
-    dryRunIncompatible("warmup");
-    if (seconds < 0 || seconds > 999) {
-      throw new InvalidCommandException("warmup must be between 0 and 999 seconds: " + seconds);
-    }
-    this.warmupSeconds = seconds;
-  }
-
-  @Override public int warmupSeconds() {
-    return (warmupSeconds >= 0) ? warmupSeconds : rc.defaultWarmupSeconds();
-  }
-
-  // --------------------------------------------------------------------------
   // VM specifications
   // --------------------------------------------------------------------------
 
   private ImmutableList<VirtualMachine> vms = ImmutableList.of(VirtualMachine.hostVm());
 
-  private VirtualMachine findVm(String vmChoice) throws InvalidCommandException {
-    String vmSpecFromRc = rc.vmAliases().get(vmChoice);
+  private VirtualMachine findVm(String vmName) throws InvalidCommandException {
+    ImmutableMap<String,String> map = rc.vmConfig(vmName);
+    if (!map.isEmpty()) {
+      // This name was found in .caliperrc; we get everything we need from there
+      return VirtualMachine.from(vmName, rc.vmBaseDirectory(), map);
 
-    // TODO(kevinb): move summa this into the Vm class itself?
-    File vmExecutable;
-    ImmutableList<String> args = ImmutableList.of();
-
-    if (vmSpecFromRc != null) {
-      Iterator<String> parts = WHITESPACE_SPLITTER.split(vmSpecFromRc).iterator();
-      vmExecutable = new File(rc.vmBaseDirectory(), parts.next());
-      args = ImmutableList.copyOf(parts);
-
-    } else {
-      vmExecutable = new File(rc.vmBaseDirectory(), vmChoice);
-      if (vmExecutable.isDirectory()) {
-        vmExecutable = new File(vmExecutable, "bin/java");
-      }
     }
-    if (!vmExecutable.exists()) {
-      throw new InvalidCommandException("vm does not exist: " + vmExecutable);
-    }
-    return new VirtualMachine(vmChoice, vmExecutable, args);
+
+    // This name is a directory relative to the vmBaseDirectory.
+    // You can't control the exec path and you can't have args.
+    String home = rc.vmBaseDirectory() + "/" + vmName;
+    String exec = home + "/bin/java";
+    return new VirtualMachine(vmName, home, exec, ImmutableList.<String>of());
   }
 
   @Option({"-m", "--vm"})
   private void setVms(String vmsString) throws InvalidCommandException {
     dryRunIncompatible("vm");
 
+    // TODO(kevinb): review all set/list
     ImmutableSet<String> vmChoices = split(vmsString);
+
     ImmutableList.Builder<VirtualMachine> vmsBuilder = ImmutableList.builder();
     for (String vmChoice : vmChoices) {
-      VirtualMachine vm = findVm(vmChoice);
-      vmsBuilder.add(vm);
+      vmsBuilder.add(findVm(vmChoice));
     }
     this.vms = vmsBuilder.build();
   }
@@ -256,19 +226,31 @@ public final class ParsedOptions implements CaliperOptions {
   // Measuring instruments to use
   // --------------------------------------------------------------------------
 
-  private Instrument instrument = new MicrobenchmarkInstrument();
+  private Instrument instrument;
 
   @Option({"-i", "--instrument"})
   private void setInstrument(String instrumentName) throws InvalidCommandException {
-    String name = firstNonNull(rc.instrumentAliases().get(instrumentName), instrumentName);
-    try {
-      instrument = Util.lenientClassForName(name).asSubclass(Instrument.class).newInstance();
-    } catch (Exception e) { // sloppy, I know
-      throw new InvalidCommandException("Invalid instrument: " + instrumentName, e);
+    ImmutableMap<String, String> map = rc.instrumentConfig(instrumentName);
+    if (map.isEmpty()) {
+      throw new InvalidCommandException("Invalid instrument: " + instrumentName);
     }
+
+    // TODO(kevinb): less sloppy
+    try {
+      instrument = Util.lenientClassForName(map.get("class")).asSubclass(Instrument.class).newInstance();
+    } catch (Exception e) {
+    }
+    instrument.setOptions(map);
   }
 
   @Override public Instrument instrument() {
+    if (instrument == null) {
+      try {
+        setInstrument("micro");
+      } catch (InvalidCommandException e) {
+        throw new AssertionError();
+      }
+    }
     return instrument;
   }
 
@@ -276,18 +258,18 @@ public final class ParsedOptions implements CaliperOptions {
   // Benchmark parameters
   // --------------------------------------------------------------------------
 
-  private Multimap<String, String> parameterValues = ArrayListMultimap.create();
+  private Multimap<String, String> mutableUserParameters = ArrayListMultimap.create();
 
   @Option("-D")
   private void addParameterSpec(String nameAndValues) throws InvalidCommandException {
-    addToMultimap(nameAndValues, parameterValues);
+    addToMultimap(nameAndValues, mutableUserParameters);
   }
 
   @Override public ImmutableSetMultimap<String, String> userParameters() {
     // de-dup values, but keep in order
     return new ImmutableSetMultimap.Builder<String, String>()
         .orderKeysBy(Ordering.natural())
-        .putAll(parameterValues)
+        .putAll(mutableUserParameters)
         .build();
   }
 
@@ -295,19 +277,19 @@ public final class ParsedOptions implements CaliperOptions {
   // VM arguments
   // --------------------------------------------------------------------------
 
-  private Multimap<String, String> vmArguments = ArrayListMultimap.create();
+  private Multimap<String, String> mutableVmArguments = ArrayListMultimap.create();
 
   @Option("-J")
   private void addVmArgumentsSpec(String nameAndValues) throws InvalidCommandException {
     dryRunIncompatible("-J");
-    addToMultimap(nameAndValues, vmArguments);
+    addToMultimap(nameAndValues, mutableVmArguments);
   }
 
   @Override public ImmutableSetMultimap<String, String> vmArguments() {
     // de-dup values, but keep in order
     return new ImmutableSetMultimap.Builder<String, String>()
         .orderKeysBy(Ordering.natural())
-        .putAll(vmArguments)
+        .putAll(mutableVmArguments)
         .build();
   }
 
@@ -358,18 +340,16 @@ public final class ParsedOptions implements CaliperOptions {
         .add("benchmarkParameters", this.userParameters())
         .add("calculateAggregateScore", this.calculateAggregateScore())
         .add("dryRun", this.dryRun())
-        .add("instrumentNames", this.instrument())
+        .add("instrument", this.instrument())
         .add("vms", this.vms())
         .add("vmArguments", this.vmArguments())
         .add("outputFileOrDir", this.outputFileOrDir())
         .add("trials", this.trials())
+        .add("detailedLogging", this.detailedLogging())
         .add("verbose", this.verbose())
-        .add("warmupSeconds", this.warmupSeconds())
         .add("delimiter", this.delimiter)
         .toString();
   }
-
-  private static final Splitter WHITESPACE_SPLITTER = Splitter.onPattern("\\s+");
 
   // --------------------------------------------------------------------------
   // Usage

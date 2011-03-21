@@ -17,6 +17,7 @@ package com.google.caliper.runner;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.SimpleDuration;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -38,9 +39,9 @@ public class ParsedOptionsTest extends TestCase {
     makeTestVmTree(tempDir);
 
     ImmutableMap<String, String> map = ImmutableMap.of(
-        "instrument.microbenchmark.defaultWarmupSeconds", "15",
-        "vm.baseDirectory", tempDir.toString(),
-        "instrument.alias.testInstrument", FakeInstrument.class.getName());
+        "vms.baseDirectory", tempDir.toString(),
+        "instrument.micro.class", MicrobenchmarkInstrument.class.getName(),
+        "instrument.testInstrument.class", FakeInstrument.class.getName());
     caliperRc = new CaliperRc(map);
   }
 
@@ -89,7 +90,6 @@ public class ParsedOptionsTest extends TestCase {
     assertFalse(options.verbose());
     assertTrue(options.vmArguments().isEmpty());
     assertEquals(1, options.vms().size());
-    assertEquals(15, options.warmupSeconds());
   }
 
   public void testKitchenSink() throws InvalidCommandException {
@@ -105,7 +105,6 @@ public class ParsedOptionsTest extends TestCase {
         "--verbose",
         "-JmemoryMax=-Xmx32m;-Xmx64m",
         "--vm=testVm",
-        "--warmup=20",
         "--delimiter=;",
         CLASS_NAME,
     };
@@ -128,8 +127,6 @@ public class ParsedOptionsTest extends TestCase {
     VirtualMachine vm = Iterables.getOnlyElement(options.vms());
     assertEquals("testVm", vm.name);
     assertEquals(new File(tempDir, "testVm/bin/java"), vm.execPath);
-
-    assertEquals(20, options.warmupSeconds());
   }
 
   public static class FakeBenchmark extends Benchmark {}

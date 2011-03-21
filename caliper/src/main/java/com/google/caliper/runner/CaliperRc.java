@@ -19,46 +19,36 @@ package com.google.caliper.runner;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
 
-import java.io.File;
 import java.util.Map;
 
 public final class CaliperRc {
   private final ImmutableMap<String, String> props;
-  private final ImmutableMap<String, String> vmAliases;
-  private final ImmutableMap<String, String> instrumentAliases;
-
-  private static final String VM_ALIAS_PREFIX = "vm.alias.";
-  private static final String INSTRUMENT_ALIAS_PREFIX = "instrument.alias.";
 
   public CaliperRc(Map<String, String> props) {
     this.props = ImmutableMap.copyOf(props);
-
-    vmAliases = Util.prefixedSubmap(props, VM_ALIAS_PREFIX);
-    instrumentAliases = Util.prefixedSubmap(props, INSTRUMENT_ALIAS_PREFIX);
   }
 
-  public File vmBaseDirectory() {
-    String str = props.get("vm.baseDirectory");
-    return (str != null) ? new File(str) : null;
+  public String vmBaseDirectory() {
+    return props.get("vms.baseDirectory");
   }
 
   public String vmCommonArguments() {
-    return props.get("vm.commonArguments");
+    return props.get("vms.commonArguments");
   }
 
   /**
    * Returns additional VM arguments to be used only in -l mode (detailed logging).
    */
   public String vmDetailArguments() {
-    return props.get("vm.detailArguments");
+    return props.get("vms.detailArguments");
   }
 
-  public ImmutableMap<String, String> vmAliases() {
-    return vmAliases;
+  public ImmutableMap<String, String> vmConfig(String name) {
+    return Util.prefixedSubmap(props, "vm.config." + name + ".");
   }
 
-  public ImmutableMap<String, String> instrumentAliases() {
-    return instrumentAliases;
+  public ImmutableMap<String, String> instrumentConfig(String name) {
+    return Util.prefixedSubmap(props, "instrument." + name + ".");
   }
 
   public int defaultWarmupSeconds() {
