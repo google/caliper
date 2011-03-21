@@ -2,8 +2,8 @@
 <module type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
-    <content url="file://$MODULE_DIR$/../../examples">
-      <sourceFolder url="file://$MODULE_DIR$/../../examples/src/main/java" isTestSource="false" />
+    <content url="file://$USER_HOME$/dev/caliper/examples">
+      <sourceFolder url="file://$USER_HOME$/dev/caliper/examples/src/main/java" isTestSource="false" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
