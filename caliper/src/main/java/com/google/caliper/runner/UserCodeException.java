@@ -14,6 +14,8 @@
 
 package com.google.caliper.runner;
 
+import java.io.PrintWriter;
+
 /**
  * Signifies that the user's benchmark code threw an exception.
  */
@@ -26,5 +28,9 @@ public class UserCodeException extends InvalidBenchmarkException {
 
   public UserCodeException(Throwable cause) {
     this("An exception was thrown from the benchmark code", cause);
+  }
+
+  @Override public void display(PrintWriter writer) {
+    printStackTrace(writer);
   }
 }

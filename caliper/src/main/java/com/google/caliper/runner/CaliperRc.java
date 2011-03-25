@@ -17,11 +17,21 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.util.Util;
+import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 
 import java.util.Map;
 
 public final class CaliperRc {
+  static CaliperRc create(Map<String, String> overrides, Map<String, String> defaults) {
+    Map<String, String> map = Maps.newHashMap(defaults);
+    map.putAll(overrides); // overwrite and augment
+    Iterables.removeIf(map.values(), Predicates.equalTo(""));
+    return new CaliperRc(map);
+  }
+
   private final ImmutableMap<String, String> props;
 
   public CaliperRc(Map<String, String> props) {
@@ -29,30 +39,35 @@ public final class CaliperRc {
   }
 
   public String vmBaseDirectory() {
-    return props.get("vms.baseDirectory");
+    return props.get("vm.baseDirectory");
   }
 
-  public String vmCommonArguments() {
-    return props.get("vms.commonArguments");
+  public ImmutableMap<String, String> globalDefaultVmArgs() {
+    return submap("vm.args.jdk"); // TODO: android etc.
   }
 
-  /**
-   * Returns additional VM arguments to be used only in -l mode (detailed logging).
-   */
-  public String vmDetailArguments() {
-    return props.get("vms.detailArguments");
+  public String homeDirForVm(String name) {
+    return props.get("vm." + name + ".home");
   }
 
-  public ImmutableMap<String, String> vmConfig(String name) {
-    return Util.prefixedSubmap(props, "vm.config." + name + ".");
+  public ImmutableMap<String, String> vmArgsForVm(String vmName) {
+    return submap("vm." + vmName + ".args");
   }
 
-  public ImmutableMap<String, String> instrumentConfig(String name) {
-    return Util.prefixedSubmap(props, "instrument." + name + ".");
+  public String instrumentClassName(String instrumentName) {
+    return props.get("instrument." + instrumentName + ".class");
   }
 
-  public int defaultWarmupSeconds() {
-    String str = props.get("instrument.microbenchmark.defaultWarmupSeconds");
-    return (str == null) ? 10 : Integer.parseInt(str);
+  public ImmutableMap<String, String> instrumentOptions(String instrumentName) {
+    return submap("instrument." + instrumentName + ".options");
   }
+
+  public ImmutableMap<String, String> vmArgsForInstrument(String instrumentName) {
+    return submap("instrument." + instrumentName + ".vmArgs.jdk"); // TODO: android etc.
+  }
+
+  private ImmutableMap<String, String> submap(String name) {
+    return Util.prefixedSubmap(props, name + ".");
+  }
+
 }

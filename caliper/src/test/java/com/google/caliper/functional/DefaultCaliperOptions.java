@@ -51,8 +51,8 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return ImmutableSetMultimap.of();
   }
 
-  @Override public Instrument instrument() {
-    return new MicrobenchmarkInstrument();
+  @Override public String instrumentName() {
+    return "micro";
   }
 
   @Override public int trials() {

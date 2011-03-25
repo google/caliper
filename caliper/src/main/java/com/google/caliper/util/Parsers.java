@@ -17,11 +17,7 @@
 package com.google.caliper.util;
 
 import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.primitives.Primitives.wrap;
 import static java.util.Arrays.asList;
-
-import com.google.common.primitives.Primitives;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;

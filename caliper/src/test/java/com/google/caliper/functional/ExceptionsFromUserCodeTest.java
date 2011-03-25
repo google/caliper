@@ -18,12 +18,15 @@ package com.google.caliper.functional;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.runner.CaliperOptions;
+import com.google.caliper.runner.CaliperRc;
 import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.ConsoleWriter;
 import com.google.caliper.runner.InvalidBenchmarkException;
+import com.google.caliper.runner.MicrobenchmarkInstrument;
 import com.google.caliper.runner.SilentConsoleWriter;
 import com.google.caliper.runner.UserCodeException;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.collect.ImmutableMap;
 
 import junit.framework.TestCase;
 
@@ -76,7 +79,9 @@ public class ExceptionsFromUserCodeTest extends TestCase {
     CaliperOptions options = new DefaultCaliperOptions(benchmarkClass.getName());
     try {
       // It's undefined whether these exceptions happen during the constructor or run()
-      new CaliperRun(options, null, SHH).run();
+      ImmutableMap<String, String> map = ImmutableMap.of(
+          "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
+      new CaliperRun(options, new CaliperRc(map), SHH).run();
       fail("no exception thrown");
     } catch (UserCodeException e) {
       if (!(e.getCause() instanceof SomeUserException)) {

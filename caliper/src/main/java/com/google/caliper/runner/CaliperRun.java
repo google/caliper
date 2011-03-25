@@ -14,11 +14,16 @@
 
 package com.google.caliper.runner;
 
+import static java.util.Collections.addAll;
+
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.worker.WorkerInstructions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.SimpleDuration;
 import com.google.caliper.util.Util;
+import com.google.caliper.worker.WorkerMain;
+import com.google.caliper.worker.MicrobenchmarkWorker;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -26,9 +31,11 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -48,11 +55,10 @@ public final class CaliperRun {
     this.caliperRc = caliperRc;
     this.console = console;
 
-    instrument = options.instrument();
-
     Class<?> aClass = classForName(options.benchmarkClassName());
     this.benchmarkClass = new BenchmarkClass(aClass);
-    this.methods = chooseBenchmarkMethods();
+    this.instrument = Instrument.createInstrument(options.instrumentName(), caliperRc);
+    this.methods = chooseBenchmarkMethods(benchmarkClass, instrument, options);
 
     benchmarkClass.validateParameters(options.userParameters());
   }
@@ -98,10 +104,36 @@ public final class CaliperRun {
       return;
     }
 
-    // TODO(kevinb): now the wet run!
+    for (Scenario scenario : mutableScenarios) {
+      measure(scenario);
+    }
   }
 
-  private Collection<BenchmarkMethod> chooseBenchmarkMethods() throws InvalidBenchmarkException {
+  private void measure(Scenario scenario) throws UserCodeException {
+    WorkerInstructions instructions = new WorkerInstructions(
+        instrument.options,
+        MicrobenchmarkWorker.class.getName(),
+        benchmarkClass.name(),
+        scenario.benchmarkMethod().name(),
+        scenario.userParameters());
+
+    ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(true);
+    List<String> args = processBuilder.command();
+
+    // args.addAll(vmArgs); // TODO!
+
+    addAll(args, "-cp", System.getProperty("java.class.path"));
+    args.add(WorkerMain.class.getName());
+
+    args.add(new Gson().toJson(instructions));
+
+    // TODO...
+  }
+
+
+  private static Collection<BenchmarkMethod> chooseBenchmarkMethods(
+      BenchmarkClass benchmarkClass, Instrument instrument, CaliperOptions options)
+          throws InvalidBenchmarkException {
     ImmutableMap<String, BenchmarkMethod> methodMap =
         benchmarkClass.findAllBenchmarkMethods(instrument);
 
@@ -120,6 +152,7 @@ public final class CaliperRun {
       try {
         Benchmark benchmark = benchmarkClass.createAndStage(scenario);
         instrument.dryRun(benchmark, scenario.benchmarkMethod());
+        // discard 'benchmark' now; the worker will have to instantiate its own anyway
       } catch (SkipThisScenarioException innocuous) {
         it.remove();
       }

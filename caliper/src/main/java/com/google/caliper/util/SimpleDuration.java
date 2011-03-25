@@ -22,8 +22,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import com.google.common.base.Ascii;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ListMultimap;
-import com.google.common.collect.Multimap;
 
 import java.math.BigDecimal;
 import java.math.MathContext;
@@ -34,9 +32,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * @author Kevin Bourrillion
- */
 public final class SimpleDuration {
   // fortunately no abbreviation starts with 'e', so this should work
   private static final Pattern PATTERN = Pattern.compile("^([0-9.eE+-]+) ?(\\S+)$");
@@ -106,7 +101,7 @@ public final class SimpleDuration {
     BigDecimal divisor = UNIT_TO_NANOS.get(bestUnit);
 
     BigDecimal d = new BigDecimal(nanos).divide(divisor, 2, RoundingMode.HALF_EVEN);
-    return d + " " + ABBREVIATIONS.get(bestUnit).get(0);
+    return d + ABBREVIATIONS.get(bestUnit).get(0);
   }
 
   private static final ImmutableListMultimap<TimeUnit, String> ABBREVIATIONS = createAbbreviations();
@@ -118,10 +113,13 @@ public final class SimpleDuration {
     builder.putAll(TimeUnit.MILLISECONDS, "ms", "millis");
     builder.putAll(TimeUnit.SECONDS, "s", "sec");
 
-    // Uh oh, not JDK5-compatible...
-    builder.putAll(TimeUnit.MINUTES, "m", "min");
-    builder.putAll(TimeUnit.HOURS, "h", "hr");
-    builder.putAll(TimeUnit.DAYS, "d");
+    // Do the rest in a JDK5-safe way
+    TimeUnit[] allUnits = TimeUnit.values();
+    if (allUnits.length >= 7) {
+      builder.putAll(allUnits[4], "m", "min");
+      builder.putAll(allUnits[5], "h", "hr");
+      builder.putAll(allUnits[6], "d");
+    }
 
     for (TimeUnit unit : TimeUnit.values()) {
       builder.put(unit, Ascii.toLowerCase(unit.name()));

@@ -20,14 +20,15 @@ import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.runner.CaliperOptions;
+import com.google.caliper.runner.CaliperRc;
 import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
+import com.google.caliper.runner.MicrobenchmarkInstrument;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.collect.ImmutableMap;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.TestCase;
-
-import java.lang.reflect.Method;
 
 /**
  * Unit test covering common user mistakes in benchmark classes.
@@ -42,12 +43,16 @@ public class InvalidBenchmarksTest extends TestCase {
       "Class '%s' is abstract";
   static final String NO_CONSTRUCTOR =
       "Class '%s' has no parameterless constructor";
+  static final String NO_METHODS =
+      "Class '%s' contains no benchmark methods for instrument 'micro'";
+  static final String STATIC_BENCHMARK =
+      "Microbenchmark methods must not be static: timeIt";
+  static final String WRONG_ARGUMENTS =
+      "Microbenchmark methods must accept a single int parameter: timeIt";
+  static final String STATIC_PARAM =
+      "Parameter field 'oops' must not be static";
   static final String PARAM_AND_VMPARAM =
       "Some fields have both @Param and @VmParam: [oops]";
-  static final String NO_METHODS =
-      "Class '%s' contains no benchmark methods for instrument 'microbenchmark'";
-  static final String WRONG_ARGUMENTS =
-      "Microbenchmark methods must accept a single int parameter: %s";
   static final String RESERVED_PARAM =
       "Class '%s' uses reserved parameter name 'vm'";
   static final String NO_CONVERSION = "Type 'Object' of parameter field 'oops' "
@@ -73,13 +78,6 @@ public class InvalidBenchmarksTest extends TestCase {
     BadConstructorBenchmark(String damnParam) {}
   }
 
-  public void testFieldIsBothParamAndVmParam() throws InvalidCommandException {
-    expectException(PARAM_AND_VMPARAM, ParamAndVmParamBenchmark.class);
-  }
-  static class ParamAndVmParamBenchmark extends Benchmark {
-    @Param @VmParam String oops;
-  }
-
   public void testNoBenchmarkMethods() throws InvalidCommandException {
     expectException(NO_METHODS, NoMethodsBenchmark.class);
   }
@@ -88,14 +86,17 @@ public class InvalidBenchmarksTest extends TestCase {
     public void timIt(int reps) {} // wrong name
   }
 
-  public void testWrongSignature() throws Exception {
-    testWrongSignature(WrongSignatureBenchmark1.class);
-    testWrongSignature(WrongSignatureBenchmark2.class, Integer.class);
-    testWrongSignature(WrongSignatureBenchmark3.class, int.class, int.class);
+  public void testStaticBenchmarkMethod() throws InvalidCommandException {
+    expectException(STATIC_BENCHMARK, StaticBenchmarkMethodBenchmark.class);
   }
-  private void testWrongSignature(Class<?> c, Class<?>... args) throws Exception {
-    Method method = c.getDeclaredMethod("timeIt", args);
-    expectException(String.format(WRONG_ARGUMENTS, method), c);
+  static class StaticBenchmarkMethodBenchmark extends Benchmark {
+    public static void timeIt(int reps) {}
+  }
+
+  public void testWrongSignature() throws Exception {
+    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark1.class);
+    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark2.class);
+    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark3.class);
   }
   static class WrongSignatureBenchmark1 extends Benchmark {
     public void timeIt() {}
@@ -105,6 +106,20 @@ public class InvalidBenchmarksTest extends TestCase {
   }
   static class WrongSignatureBenchmark3 extends Benchmark {
     public void timeIt(int reps, int what) {}
+  }
+
+  public void testStaticParam() throws InvalidCommandException {
+    expectException(STATIC_PARAM, StaticParamBenchmark.class);
+  }
+  static class StaticParamBenchmark extends Benchmark {
+    @Param static String oops;
+  }
+
+  public void testFieldIsBothParamAndVmParam() throws InvalidCommandException {
+    expectException(PARAM_AND_VMPARAM, ParamAndVmParamBenchmark.class);
+  }
+  static class ParamAndVmParamBenchmark extends Benchmark {
+    @Param @VmParam String oops;
   }
 
   public void testReservedParameterName() throws InvalidCommandException {
@@ -135,7 +150,9 @@ public class InvalidBenchmarksTest extends TestCase {
     CaliperOptions options = new DefaultCaliperOptions(benchmarkClass.getName());
     try {
       // Note that all the failures checked by this test are caught before even calling run()
-      new CaliperRun(options, null, null);
+      ImmutableMap<String, String> map = ImmutableMap.of(
+          "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
+      new CaliperRun(options, new CaliperRc(map), null);
       fail("no exception thrown");
 
     } catch (InvalidBenchmarkException e) {

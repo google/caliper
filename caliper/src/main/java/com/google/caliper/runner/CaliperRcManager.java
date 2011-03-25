@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.util.Util;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Files;
 import com.google.common.io.InputSupplier;
 
@@ -27,11 +28,20 @@ import java.io.InputStream;
 // TODO(kevinb): move these methods to CaliperRc class?
 public final class CaliperRcManager {
   public static CaliperRc loadOrCreate(File rcFile) {
+    ImmutableMap<String, String> defaults;
+    try {
+      defaults = Util.loadProperties(Util.resourceSupplier(CaliperRc.class, "global.caliperrc"));
+    } catch (IOException impossible) {
+      throw new AssertionError(impossible);
+    }
+
     // TODO(kevinb): deal with migration issue from old-style .caliperrc
 
     if (rcFile.exists()) {
       try {
-        return loadFrom(Files.newInputStreamSupplier(rcFile));
+        ImmutableMap<String, String> overrides =
+            Util.loadProperties(Files.newInputStreamSupplier(rcFile));
+        return CaliperRc.create(overrides, defaults);
       } catch (IOException keepGoing) {
       }
     }
@@ -40,16 +50,13 @@ public final class CaliperRcManager {
         Util.resourceSupplier(CaliperRc.class, "default.caliperrc");
     tryCopyIfNeeded(supplier, rcFile);
 
+    ImmutableMap<String, String> overrides;
     try {
-      return loadFrom(supplier);
+      overrides = Util.loadProperties(supplier);
     } catch (IOException e) {
       throw new AssertionError(e); // class path must be messed up
     }
-  }
-
-  private static CaliperRc loadFrom(InputSupplier<? extends InputStream> supplier)
-      throws IOException {
-    return new CaliperRc(Util.loadProperties(supplier));
+    return CaliperRc.create(overrides, defaults);
   }
 
   private static void tryCopyIfNeeded(InputSupplier<? extends InputStream> supplier, File rcFile) {

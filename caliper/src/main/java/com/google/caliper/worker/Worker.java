@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.Benchmark;
 
-public interface ConsoleWriter {
-  void flush();
-  void describe(ScenarioSelection selection);
-  void beforeDryRun(int count);
-  void beforeRun(int trials, int scenarioCount, SimpleDuration estimate);
+import java.util.Map;
+
+public interface Worker {
+  void runTrial(Benchmark benchmark, String methodName, Map<String, String> options)
+      throws Exception;
 }

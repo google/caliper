@@ -26,8 +26,6 @@ import junit.framework.TestCase;
 
 /**
  * Unit test covering common user mistakes.
- *
- * @author Kevin Bourrillion
  */
 public class ErrorsInUserCodeTest extends TestCase {
   private Runner runner;

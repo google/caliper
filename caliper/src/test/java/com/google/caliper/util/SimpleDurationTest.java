@@ -23,16 +23,26 @@ import junit.framework.TestCase;
  */
 public class SimpleDurationTest extends TestCase {
   public void test() {
-    testIt(0, "0ns", "0.00 ns");
-    testIt(0, "0 ns", "0.00 ns");
-    testIt(0, "0nanos", "0.00 ns");
-    testIt(0, "0nanoseconds", "0.00 ns");
-    testIt(0, "0ms", "0.00 ns");
-    testIt(0, "0us", "0.00 ns");
-    testIt(1000, "1 \u03bcs", "1.00 \u03bcs");
-    testIt(500, "0.5us", "500.00 ns");
-    testIt(500, "0.499000000000000000000000000000001us", "500.00 ns");
-    testIt(60480000000000L, "0.7 days", "16.80 h");
+    testIt(0, "0ns", "0.00ns");
+    testIt(0, "0 ns", "0.00ns");
+    testIt(0, "0nanos", "0.00ns");
+    testIt(0, "0nanoseconds", "0.00ns");
+    testIt(0, "0 ms", "0.00ns");
+    testIt(0, "0us", "0.00ns");
+    testIt(1, "1e-12 ms", "1.00ns"); // rounds up
+    testIt(1000, "1 \u03bcs", "1.00\u03bcs");
+    testIt(500, "0.5us", "500.00ns");
+    testIt(500, "0.499000000000000000000000000000001us", "500.00ns");
+    testIt(60480000000000L, "0.7 days", "16.80h");
+    testIt(Long.MAX_VALUE, "106751.99116730064591 days", "106751.99d");
+  }
+
+  public void tooLongForALong() {
+    try {
+      SimpleDuration.valueOf("106751.99116730064592 days");
+      fail();
+    } catch (ArithmeticException expected) {
+    }
   }
 
   private void testIt(long i, String s, String p) {

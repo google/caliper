@@ -23,6 +23,7 @@ import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
 import java.util.Map;
@@ -32,35 +33,26 @@ public final class VirtualMachine {
     String home = System.getProperty("java.home");
     String executable = home + "/bin/java";
     String baseName = home.replaceFirst("/jre$", "").replaceFirst(".*/", "");
-    return new VirtualMachine(baseName, home, executable, ImmutableList.<String>of());
+    return new VirtualMachine(baseName, home, executable, ImmutableMap.<String, String>of());
   }
 
   // TODO(kevinb): all this stuff's a mess
 
-  public static VirtualMachine from(String name, String base, Map<String, String> kvps) {
-    String home = kvps.get("home");
-    checkArgument(home != null);
-    home = base + "/" + home;
-    String relExec = Objects.firstNonNull(kvps.get("exec"), "bin/java"); // TODO: dalvik
-    String args = kvps.get("args");
-    ImmutableList<String> argList = Strings.isNullOrEmpty(args)
-        ? ImmutableList.<String>of()
-        : ImmutableList.copyOf(Splitter.onPattern("\\s+").split(args));
-
-    return new VirtualMachine(name, home, home + "/" + relExec, argList);
+  public static VirtualMachine from(String name, String home, Map<String, String> argMap) {
+    return new VirtualMachine(name, home, home + "/bin/java", argMap);
   }
 
   final String name;
   final File home;
   final File execPath;
-  final ImmutableList<String> arguments;
+  final ImmutableMap<String, String> arguments;
 
   public VirtualMachine(
-      String name, String home, String execPath, ImmutableList<String> arguments) {
+      String name, String home, String execPath, Map<String, String> arguments) {
     this.name = checkNotNull(name);
     this.home = new File(checkNotNull(home));
     this.execPath = new File(checkNotNull(execPath));
-    this.arguments = checkNotNull(arguments);
+    this.arguments = ImmutableMap.copyOf(arguments);
 
     // TODO: IAE?
     checkArgument(this.home.isDirectory());

@@ -35,10 +35,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   @Override public SimpleDuration estimateRuntimePerTrial() {
-    SimpleDuration minWarmup = SimpleDuration.valueOf(options.get("minWarmup"));
-    SimpleDuration maxRuntime = SimpleDuration.valueOf(options.get("maxRuntime"));
-
-    return minWarmup.plus(maxRuntime);
+    return SimpleDuration.valueOf(options.get("maxTotalRuntime"));
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -50,7 +47,13 @@ public final class MicrobenchmarkInstrument extends Instrument {
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException {
     if (!Arrays.equals(method.getParameterTypes(), new Class<?>[] {int.class})) {
       throw new InvalidBenchmarkException(
-          "Microbenchmark methods must accept a single int parameter: " + method);
+          "Microbenchmark methods must accept a single int parameter: " + method.getName());
+    }
+
+    // Static technically doesn't hurt anything, but it's just the completely wrong idea
+    if (Util.isStatic(method)) {
+      throw new InvalidBenchmarkException(
+          "Microbenchmark methods must not be static: " + method.getName());
     }
 
     String methodName = method.getName();
@@ -72,11 +75,6 @@ public final class MicrobenchmarkInstrument extends Instrument {
     }
   }
 
-  public void measure(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
-      throws UserCodeException {
-    
-  }
-
   @Override public boolean equals(Object object) {
     return object instanceof MicrobenchmarkInstrument; // currently this class is stateless.
   }
@@ -86,6 +84,6 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   @Override public String toString() {
-    return "microbenchmark";
+    return "micro";
   }
 }

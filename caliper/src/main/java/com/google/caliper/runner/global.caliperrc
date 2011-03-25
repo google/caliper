@@ -1,0 +1,86 @@
+# Caliper global options file
+# Users' ~/.caliperrc settings may override these
+
+######################
+# VM CONFIGURATION
+######################
+
+# This directory can be automatically prepended to non-absolute VM paths
+vm.baseDirectory=/usr/local/buildtools/java
+
+# Standard vm parameter options.
+vm.args.jdk.vmName=-server
+
+# options only used in --verbose/--logging modes
+vm.args.jdk.verboseMode=-verbose:gc -XX:+PrintCompilation
+
+# Common configurations
+
+vm.jdk-32-client.home=jdk-32
+vm.jdk-32-client.args.vmName=-client
+
+vm.jdk-32-server.home=jdk-32
+vm.jdk-32-server.args.vmName=-server
+
+vm.jdk-64-compressed.home=jdk-64
+vm.jdk-64-compressed.args.compressedOops=-XX:+UseCompressedOops
+
+vm.jdk-64-uncompressed.home=jdk-64
+vm.jdk-64-uncompressed.args.compressedOops=-XX:-UseCompressedOops
+
+
+######################
+# INSTRUMENT CONFIG
+######################
+
+# To define new instrument configurations, provide an "instrument.<name>.class" property
+# pointing to a concrete class that extends com.google.caliper.runner.Instrument, and add
+# whichever other options it supports using "instrument.<name>.<optionName>=<value>".
+
+# Instrument "micro"
+
+# You probably don't want to change this
+instrument.micro.class=com.google.caliper.runner.MicrobenchmarkInstrument
+
+# Do not report any measurements from before this minimum time has elapsed
+instrument.micro.options.minWarmup=10s
+
+# Caliper choose rep counts such that the total timing interval comes out near this value.
+# Higher values take longer, but are more precise (less vulnerable to fixed costs)
+instrument.micro.options.timingInterval=500ms
+
+# Caliper ultimately records only the final N measurements, where N is this value.
+instrument.micro.options.reportedIntervals=7
+
+# End the test once the normalized standard deviation of the last N measurements is under
+# this value
+instrument.micro.options.shortCircuitTolerance=0.01
+
+# ... but just give up once we've been at it this long (including warmup); report last N
+# measurements anyway
+instrument.micro.options.maxTotalRuntime=20s
+
+# Run GC before every measurement?
+instrument.micro.options.gcBeforeEach=yes
+
+# VM argument overrides
+
+instrument.micro.vmArgs.jdk.gcConcurrency=-XX:+UseSerialGC
+instrument.micro.vmArgs.jdk.compileConcurrency=-Xbatch
+instrument.micro.vmArgs.jdk.maxHeap=-Xmx2g
+instrument.micro.vmArgs.jdk.stackSize=-Xss1m
+
+#instrument.micro.vmArgs.dalvik.foo=bar
+
+
+######################
+# RESULTS STORAGE
+######################
+
+results.dir=
+
+results.upload.url=http://microbenchmarks.appspot.com:80/run/
+results.upload.proxy=
+
+results.upload.deleteAfterUpload=false
+results.upload.browserAfterUpload=true

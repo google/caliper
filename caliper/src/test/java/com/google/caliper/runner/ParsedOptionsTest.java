@@ -39,9 +39,8 @@ public class ParsedOptionsTest extends TestCase {
     makeTestVmTree(tempDir);
 
     ImmutableMap<String, String> map = ImmutableMap.of(
-        "vms.baseDirectory", tempDir.toString(),
-        "instrument.micro.class", MicrobenchmarkInstrument.class.getName(),
-        "instrument.testInstrument.class", FakeInstrument.class.getName());
+        "vm.baseDirectory", tempDir.toString(),
+        "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
     caliperRc = new CaliperRc(map);
   }
 
@@ -83,7 +82,7 @@ public class ParsedOptionsTest extends TestCase {
     assertFalse(options.calculateAggregateScore());
     assertFalse(options.detailedLogging());
     assertFalse(options.dryRun());
-    assertEquals(new MicrobenchmarkInstrument(), options.instrument());
+    assertEquals("micro", options.instrumentName());
     assertNull(options.outputFileOrDir());
     assertEquals(1, options.trials());
     assertTrue(options.userParameters().isEmpty());
@@ -115,7 +114,7 @@ public class ParsedOptionsTest extends TestCase {
     assertTrue(options.calculateAggregateScore());
     assertTrue(options.detailedLogging());
     assertFalse(options.dryRun());
-    assertEquals(FakeInstrument.class, options.instrument().getClass());
+    assertEquals("testInstrument", options.instrumentName());
     assertEquals("outputdir", options.outputFileOrDir());
     assertEquals(2, options.trials());
     assertEquals(ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
@@ -132,16 +131,4 @@ public class ParsedOptionsTest extends TestCase {
   public static class FakeBenchmark extends Benchmark {}
 
   private static final String CLASS_NAME = FakeBenchmark.class.getName();
-
-  public static class FakeInstrument extends Instrument {
-    @Override public boolean isBenchmarkMethod(Method m) {
-      return false;
-    }
-
-    @Override public BenchmarkMethod createBenchmarkMethod(BenchmarkClass c, Method m) {
-      return null;
-    }
-
-    @Override public void dryRun(Benchmark b, BenchmarkMethod m) {}
-  }
 }

@@ -16,25 +16,19 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
-import com.google.common.base.Functions;
+import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.primitives.Primitives;
 
 import java.lang.reflect.Field;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.EnumSet;
-import java.util.Set;
 
 /**
  * Represents an injectable parameter, marked with one of @Param, @VmParam. Has nothing to do with
@@ -51,6 +45,10 @@ public final class Parameter {
   private final ImmutableList<String> defaults;
 
   public Parameter(Field field) throws InvalidBenchmarkException {
+    if (Util.isStatic(field)) {
+      throw new InvalidBenchmarkException("Parameter field '%s' must not be static",
+          field.getName());
+    }
     if (RESERVED_NAMES.contains(field.getName())) {
       throw new InvalidBenchmarkException("Class '%s' uses reserved parameter name '%s'",
           field.getDeclaringClass(), field.getName());

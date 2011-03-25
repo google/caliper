@@ -14,6 +14,7 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Objects.firstNonNull;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.util.CommandLineParser;
@@ -31,6 +32,9 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 public final class ParsedOptions implements CaliperOptions {
   public static ParsedOptions from(String[] args, CaliperRc rc)
       throws InvalidCommandException {
@@ -46,6 +50,7 @@ public final class ParsedOptions implements CaliperOptions {
     return options;
   }
 
+  // TODO(kevinb): consider leaving this out of it; look up VMs and Instruments in the next step
   private final CaliperRc rc;
 
   private ParsedOptions(CaliperRc rc) {
@@ -152,19 +157,10 @@ public final class ParsedOptions implements CaliperOptions {
 
   private ImmutableList<VirtualMachine> vms = ImmutableList.of(VirtualMachine.hostVm());
 
-  private VirtualMachine findVm(String vmName) throws InvalidCommandException {
-    ImmutableMap<String,String> map = rc.vmConfig(vmName);
-    if (!map.isEmpty()) {
-      // This name was found in .caliperrc; we get everything we need from there
-      return VirtualMachine.from(vmName, rc.vmBaseDirectory(), map);
-
-    }
-
-    // This name is a directory relative to the vmBaseDirectory.
-    // You can't control the exec path and you can't have args.
-    String home = rc.vmBaseDirectory() + "/" + vmName;
-    String exec = home + "/bin/java";
-    return new VirtualMachine(vmName, home, exec, ImmutableList.<String>of());
+  private VirtualMachine findVm(String vmName) {
+    String home = firstNonNull(rc.homeDirForVm(vmName), vmName);
+    String absoluteHome = home.startsWith("/") ? home : rc.vmBaseDirectory() + "/" + home;
+    return VirtualMachine.from(vmName, absoluteHome, rc.vmArgsForVm(vmName));
   }
 
   @Option({"-m", "--vm"})
@@ -226,35 +222,14 @@ public final class ParsedOptions implements CaliperOptions {
   // Measuring instruments to use
   // --------------------------------------------------------------------------
 
-  private Instrument instrument;
-
   @Option({"-i", "--instrument"})
-  private void setInstrument(String instrumentName) throws InvalidCommandException {
-    ImmutableMap<String, String> map = rc.instrumentConfig(instrumentName);
-    if (map.isEmpty()) {
-      throw new InvalidCommandException("Invalid instrument: " + instrumentName);
-    }
+  private String instrumentName = "micro";
 
-    // TODO(kevinb): less sloppy
-    try {
-      instrument = Util.lenientClassForName(map.get("class")).asSubclass(Instrument.class).newInstance();
-    } catch (Exception e) {
-    }
-    instrument.setOptions(map);
+  @Override public String instrumentName() {
+    return instrumentName;
   }
 
-  @Override public Instrument instrument() {
-    if (instrument == null) {
-      try {
-        setInstrument("micro");
-      } catch (InvalidCommandException e) {
-        throw new AssertionError();
-      }
-    }
-    return instrument;
-  }
-
-  // --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
   // Benchmark parameters
   // --------------------------------------------------------------------------
 
@@ -340,7 +315,7 @@ public final class ParsedOptions implements CaliperOptions {
         .add("benchmarkParameters", this.userParameters())
         .add("calculateAggregateScore", this.calculateAggregateScore())
         .add("dryRun", this.dryRun())
-        .add("instrument", this.instrument())
+        .add("instrumentName", this.instrumentName())
         .add("vms", this.vms())
         .add("vmArguments", this.vmArguments())
         .add("outputFileOrDir", this.outputFileOrDir())

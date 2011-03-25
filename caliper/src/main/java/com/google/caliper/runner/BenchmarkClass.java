@@ -108,6 +108,14 @@ public final class BenchmarkClass {
     return benchmark;
   }
 
+  public String name() {
+    return theClass.getName();
+  }
+
+  @Override public String toString() {
+    return name();
+  }
+
   // We have to do this reflectively because it'd be too much of a pain to make setUp public
   private void callSetUp(Benchmark benchmark) throws UserCodeException {
     try {
@@ -158,10 +166,6 @@ public final class BenchmarkClass {
     } catch (InvocationTargetException e) {
       throw new UserCodeException("Exception thrown from benchmark constructor", e.getCause());
     }
-  }
-
-  @Override public String toString() {
-    return theClass.getName();
   }
 
   void validateParameters(ImmutableSetMultimap<String, String> parameters)

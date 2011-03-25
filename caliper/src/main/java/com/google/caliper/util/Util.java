@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
-import com.google.common.primitives.Primitives;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -66,12 +65,6 @@ public final class Util {
         return c.getResourceAsStream(name);
       }
     };
-  }
-
-  // TODO: replace with common.text.Parser when in Guava
-
-  public static boolean extendsIgnoringWrapping(Class<?> possibleSub, Class<?> possibleSuper) {
-    return Primitives.wrap(possibleSuper).isAssignableFrom(Primitives.wrap(possibleSub));
   }
 
   public static <T> ImmutableMap<String, T> prefixedSubmap(

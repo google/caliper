@@ -14,21 +14,18 @@
 
 package com.google.caliper.runner;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
+import java.io.PrintWriter;
 
-public interface CaliperOptions {
-  String benchmarkClassName();
-  ImmutableSet<String> benchmarkMethodNames();
-  ImmutableList<VirtualMachine> vms();
-  ImmutableSetMultimap<String, String> userParameters();
-  ImmutableSetMultimap<String, String> vmArguments();
-  String instrumentName();
-  int trials();
-  String outputFileOrDir();
-  boolean detailedLogging();
-  boolean verbose();
-  boolean calculateAggregateScore();
-  boolean dryRun();
+/**
+ *
+ */
+@SuppressWarnings("serial")
+public class InvalidInstrumentException extends RuntimeException {
+  public InvalidInstrumentException(String message, Object... args) {
+    super(String.format(message, args));
+  }
+
+  public void display(PrintWriter writer) {
+    printStackTrace(writer);
+  }
 }
