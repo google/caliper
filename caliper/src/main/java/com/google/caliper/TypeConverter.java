@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.Map;

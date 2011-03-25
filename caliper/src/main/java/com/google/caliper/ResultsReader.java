@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.gson.JsonParseException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;

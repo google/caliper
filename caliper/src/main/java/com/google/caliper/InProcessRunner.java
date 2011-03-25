@@ -18,6 +18,7 @@ package com.google.caliper;
 
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.common.base.Supplier;
+
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.util.List;

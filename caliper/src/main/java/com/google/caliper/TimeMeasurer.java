@@ -16,9 +16,10 @@
 
 package com.google.caliper;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.caliper.UserException.RuntimeOutOfRangeException;
-import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.base.Supplier;
 
 /**

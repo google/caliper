@@ -19,6 +19,7 @@ package com.google.caliper;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multimap;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;

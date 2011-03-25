@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
+
 import java.io.PrintStream;
 
 abstract class Measurer {
