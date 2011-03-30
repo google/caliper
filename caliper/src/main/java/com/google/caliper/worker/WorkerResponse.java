@@ -16,29 +16,32 @@
 
 package com.google.caliper.worker;
 
+import com.google.gson.Gson;
+
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 /**
  * This object is sent from the parent process to the child to tell it what to do. If the child
  * does not do it, it will not get its allowance this week.
  */
-public class WorkerInstructions {
-  public final Map<String, String> instrumentOptions;
-  public final String workerClassName;
-  public final String benchmarkClassName;
-  public final String benchmarkMethodName;
-  public final Map<String, String> injectedParameters;
+public class WorkerResponse {
+  public static WorkerResponse fromString(String json) {
+    return new Gson().fromJson(json, WorkerResponse.class);
+  }
 
-  public WorkerInstructions(
-      Map<String, String> instrumentOptions,
-      String workerClassName,
-      String benchmarkClassName,
-      String benchmarkMethodName,
-      Map<String, String> injectedParameters) {
-    this.instrumentOptions = instrumentOptions;
-    this.workerClassName = workerClassName;
-    this.benchmarkClassName = benchmarkClassName;
-    this.benchmarkMethodName = benchmarkMethodName;
-    this.injectedParameters = injectedParameters;
+  public final Collection<Measurement> measurements;
+
+  public WorkerResponse(Collection<Measurement> measurements) {
+    this.measurements = measurements;
+  }
+
+  private WorkerResponse() {
+    measurements = null;
+  }
+
+  @Override public String toString() {
+    return new Gson().toJson(this);
   }
 }

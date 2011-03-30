@@ -33,6 +33,55 @@
     <output url="file://$PROJECT_DIR$/out" />
   </component>
   <component name="SvnBranchConfigurationManager">
+    <option name="myConfigurationMap">
+      <map>
+        <entry key="$PROJECT_DIR$">
+          <value>
+            <SvnBranchConfiguration>
+              <option name="branchMap">
+                <map>
+                  <entry key="https://caliper.googlecode.com/svn/branches">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://caliper.googlecode.com/svn/cloud">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://caliper.googlecode.com/svn/static">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://caliper.googlecode.com/svn/tags">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                  <entry key="https://caliper.googlecode.com/svn/wiki">
+                    <value>
+                      <list />
+                    </value>
+                  </entry>
+                </map>
+              </option>
+              <option name="branchUrls">
+                <list>
+                  <option value="https://caliper.googlecode.com/svn/branches" />
+                  <option value="https://caliper.googlecode.com/svn/cloud" />
+                  <option value="https://caliper.googlecode.com/svn/static" />
+                  <option value="https://caliper.googlecode.com/svn/tags" />
+                  <option value="https://caliper.googlecode.com/svn/wiki" />
+                </list>
+              </option>
+              <option name="trunkUrl" value="https://caliper.googlecode.com/svn/trunk" />
+            </SvnBranchConfiguration>
+          </value>
+        </entry>
+      </map>
+    </option>
     <option name="mySupportsUserInfoFilter" value="true" />
   </component>
 </project>

@@ -81,4 +81,8 @@ public abstract class Instrument {
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 
   public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method) throws UserCodeException;
+
+  public Map<String, String> workerOptions() {
+    return options;
+  }
 }

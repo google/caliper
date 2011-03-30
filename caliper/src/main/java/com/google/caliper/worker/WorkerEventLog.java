@@ -16,12 +16,27 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.api.Benchmark;
+/**
+ * @author Kevin Bourrillion
+ */
+public class WorkerEventLog {
 
-import java.util.Collection;
-import java.util.Map;
+  // temporary dumb messages.
 
-public interface Worker {
-  Collection<Measurement> measure(Benchmark benchmark, String methodName, Map<String, String> options, WorkerEventLog log)
-      throws Exception;
+  public void notifyWarmupPhaseStarting() {
+    System.out.println("Warmup starting.");
+  }
+
+  public void notifyMeasurementPhaseStarting() {
+    System.out.println("Warmup over.");
+  }
+
+  public void notifyMeasurementStarting() {
+    System.out.println("About to measure.");
+  }
+
+  public void notifyMeasurementEnding(double value) {
+    System.out.println("I got a result: " + value);
+  }
+
 }

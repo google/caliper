@@ -16,12 +16,22 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.api.Benchmark;
+import java.util.Arrays;
+import java.util.List;
 
-import java.util.Collection;
-import java.util.Map;
+/**
+ * @author Kevin Bourrillion
+ */
+public class DetectVmProperties {
+  private static final List<String> PROPERTY_NAMES = Arrays.asList(
+      "java.runtime.version",
+      "java.version",
+      "java.vm.name",
+      "java.vm.version");
 
-public interface Worker {
-  Collection<Measurement> measure(Benchmark benchmark, String methodName, Map<String, String> options, WorkerEventLog log)
-      throws Exception;
+  public static void main(String[] args) {
+    for (String propName : PROPERTY_NAMES) {
+      System.out.format("%s=%s%n", propName, System.getProperty(propName));
+    }
+  }
 }

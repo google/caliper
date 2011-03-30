@@ -43,25 +43,25 @@ vm.jdk-64-uncompressed.args.compressedOops=-XX:-UseCompressedOops
 instrument.micro.class=com.google.caliper.runner.MicrobenchmarkInstrument
 
 # Do not report any measurements from before this minimum time has elapsed
-instrument.micro.options.minWarmup=10s
+instrument.micro.options.warmup=10s
 
 # Caliper choose rep counts such that the total timing interval comes out near this value.
 # Higher values take longer, but are more precise (less vulnerable to fixed costs)
 instrument.micro.options.timingInterval=500ms
 
 # Caliper ultimately records only the final N measurements, where N is this value.
-instrument.micro.options.reportedIntervals=7
+instrument.micro.options.reportedIntervals=9
 
 # End the test once the normalized standard deviation of the last N measurements is under
 # this value
 instrument.micro.options.shortCircuitTolerance=0.01
 
 # ... but just give up once we've been at it this long (including warmup); report last N
-# measurements anyway
-instrument.micro.options.maxTotalRuntime=20s
+# measurements anyway (with a warning?)
+instrument.micro.options.maxTotalRuntime=15s
 
 # Run GC before every measurement?
-instrument.micro.options.gcBeforeEach=yes
+instrument.micro.options.gcBeforeEach=true
 
 # VM argument overrides
 

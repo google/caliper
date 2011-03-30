@@ -16,8 +16,9 @@
 
 package com.google.caliper.util;
 
-import static com.google.common.base.Objects.firstNonNull;
 import static java.util.Arrays.asList;
+
+import com.google.common.primitives.Primitives;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -38,7 +39,7 @@ public class Parsers {
    * <li>ResultType.valueOf(String)
    * <li>new ResultType(String)
    */
-  public static <T> Parser<T> byConventionParser(final Class<T> resultType)
+  public static <T> Parser<T> byConventionParser(Class<T> resultType)
       throws NoSuchMethodException {
     if (resultType == String.class) {
       @SuppressWarnings("unchecked") // T == String
@@ -46,15 +47,17 @@ public class Parsers {
       return identity;
     }
 
+    final Class<T> wrappedResultType = Primitives.wrap(resultType);
+
     for (String methodName : asList("fromString", "valueOf")) {
       try {
-        final Method method = resultType.getDeclaredMethod(methodName, String.class);
+        final Method method = wrappedResultType.getDeclaredMethod(methodName, String.class);
 
-        if (Util.isStatic(method) && resultType.isAssignableFrom(method.getReturnType())) {
+        if (Util.isStatic(method) && wrappedResultType.isAssignableFrom(method.getReturnType())) {
           method.setAccessible(true); // to permit inner enums, etc.
           return new InvokingParser<T>() {
             @Override protected T invoke(String input) throws Exception {
-              return resultType.cast(method.invoke(null, input));
+              return wrappedResultType.cast(method.invoke(null, input));
             }
           };
         }
@@ -62,11 +65,11 @@ public class Parsers {
       }
     }
 
-    final Constructor<T> constr = resultType.getDeclaredConstructor(String.class);
+    final Constructor<T> constr = wrappedResultType.getDeclaredConstructor(String.class);
     constr.setAccessible(true);
     return new InvokingParser<T>() {
       @Override protected T invoke(String input) throws Exception {
-        return resultType.cast(constr.newInstance(input));
+        return wrappedResultType.cast(constr.newInstance(input));
       }
     };
   }
@@ -95,5 +98,9 @@ public class Parsers {
 
   public static ParseException newParseException(String message) {
     return new ParseException(message, 0);
+  }
+
+  private static <T> T firstNonNull(T first, T second) {
+    return (first != null) ? first : second;
   }
 }

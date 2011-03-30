@@ -16,23 +16,34 @@ package com.google.caliper.runner;
 
 import static java.util.Collections.addAll;
 
+import com.google.caliper.InterleavedReader;
+import com.google.caliper.Json;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.worker.WorkerInstructions;
+import com.google.caliper.worker.WorkerRequest;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.SimpleDuration;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.WorkerMain;
 import com.google.caliper.worker.MicrobenchmarkWorker;
+import com.google.caliper.worker.WorkerResponse;
+import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+import com.google.common.io.Closeables;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -110,24 +121,68 @@ public final class CaliperRun {
   }
 
   private void measure(Scenario scenario) throws UserCodeException {
-    WorkerInstructions instructions = new WorkerInstructions(
-        instrument.options,
+    WorkerRequest request = new WorkerRequest(
+        instrument.workerOptions(),
         MicrobenchmarkWorker.class.getName(),
         benchmarkClass.name(),
         scenario.benchmarkMethod().name(),
         scenario.userParameters());
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(true);
+
     List<String> args = processBuilder.command();
+
+    args.add(scenario.vm().execPath.getAbsolutePath());
 
     // args.addAll(vmArgs); // TODO!
 
     addAll(args, "-cp", System.getProperty("java.class.path"));
     args.add(WorkerMain.class.getName());
 
-    args.add(new Gson().toJson(instructions));
+    args.add(request.toString());
 
-    // TODO...
+    Process process = null;
+
+    System.out.println("Command: " + Joiner.on(' ').join(args));
+
+    try {
+      process = processBuilder.start();
+    } catch (IOException e) {
+      throw new AssertionError(e); // ???
+    }
+
+    StringBuilder eventLog = new StringBuilder(1000);
+    Reader in = null;
+    WorkerResponse response = null;
+
+    try {
+      in = new InputStreamReader(process.getInputStream(), Charsets.UTF_8);
+      InterleavedReader reader = new InterleavedReader(in);
+      Object o;
+      while ((o = reader.read()) != null) {
+        if (o instanceof String) {
+          eventLog.append(o);
+        } else {
+          JsonObject jsonObject = (JsonObject) o;
+          response = new Gson().fromJson(jsonObject, WorkerResponse.class);
+        }
+      }
+    } catch (IOException e) {
+      throw new AssertionError(e); // possible?
+
+    } finally {
+      Closeables.closeQuietly(in);
+      process.destroy();
+    }
+
+    if (response == null) {
+      throw new RuntimeException("Got no response!"); // TODO: ?
+    }
+
+    System.out.println("I got this: " + response.toString());
+    System.out.println();
+
+    System.out.println("Full event log: \n\n" + eventLog);
   }
 
 

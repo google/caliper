@@ -22,6 +22,7 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.util.SimpleDuration;
 import com.google.caliper.util.Util;
+import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -73,6 +74,21 @@ public final class MicrobenchmarkInstrument extends Instrument {
       propagateIfInstanceOf(userException, SkipThisScenarioException.class);
       throw new UserCodeException(userException);
     }
+  }
+
+  @Override public Map<String, String> workerOptions() {
+    return new ImmutableMap.Builder<String, String>()
+        .put("warmupNanos", toNanosString("warmup"))
+        .put("timingIntervalNanos", toNanosString("timingInterval"))
+        .put("reportedIntervals", options.get("reportedIntervals"))
+        .put("shortCircuitTolerance", options.get("shortCircuitTolerance"))
+        .put("maxTotalRuntimeNanos", toNanosString("maxTotalRuntime"))
+        .put("gcBeforeEach", options.get("gcBeforeEach"))
+        .build();
+  }
+
+  private String toNanosString(String optionName) {
+    return String.valueOf(SimpleDuration.valueOf(options.get(optionName)).toNanos());
   }
 
   @Override public boolean equals(Object object) {

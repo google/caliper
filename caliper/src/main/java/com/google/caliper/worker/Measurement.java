@@ -16,12 +16,33 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.api.Benchmark;
+import com.google.gson.Gson;
 
-import java.util.Collection;
-import java.util.Map;
+/**
+* @author Kevin Bourrillion
+*/
+public class Measurement {
+  public static Measurement fromString(String json) {
+    return new Gson().fromJson(json, Measurement.class);
+  }
 
-public interface Worker {
-  Collection<Measurement> measure(Benchmark benchmark, String methodName, Map<String, String> options, WorkerEventLog log)
-      throws Exception;
+  public final long nanos;
+  public final int reps;
+  public final double nanosPerRep;
+
+  public Measurement(long nanos, int reps) {
+    this.nanos = nanos;
+    this.reps = reps;
+    this.nanosPerRep = ((double) nanos) / reps;
+  }
+
+  private Measurement() {
+    nanos = 0;
+    reps = 0;
+    nanosPerRep = 0;
+  }
+
+  @Override public String toString() {
+    return new Gson().toJson(this);
+  }
 }

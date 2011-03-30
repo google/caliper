@@ -50,7 +50,7 @@ public class DemoBenchmark extends Benchmark {
   }
 
   public int timeSomething(int reps) {
-    System.out.println("OOO I ran.");
+    System.out.println("OOO I ran; reps=" + reps);
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += i;

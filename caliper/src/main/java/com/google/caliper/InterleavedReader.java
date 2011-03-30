@@ -39,6 +39,12 @@ public final class InterleavedReader implements Closeable {
   private final BufferedReader reader;
   private final JsonParser jsonParser = new JsonParser();
 
+  public static final String DEFAULT_MARKER = "//ZxJ/";
+
+  public InterleavedReader(Reader reader) {
+    this(DEFAULT_MARKER, reader);
+  }
+
   public InterleavedReader(String marker, Reader reader) {
     if (marker.length() > BUFFER_LENGTH) {
       throw new IllegalArgumentException("marker.length() > BUFFER_LENGTH");

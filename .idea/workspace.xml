@@ -1,37 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java" line="114" mnemonic="0" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" readonly="true" id="8b8edbbd-5cf6-44d2-b023-7a016cee4a5a" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/VirtualMachine.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/VirtualMachine.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerInstructions.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerRequest.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/LastNValues.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/libraries/guava.xml" afterPath="$PROJECT_DIR$/.idea/libraries/guava.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules/caliper.iml" afterPath="$PROJECT_DIR$/.idea/modules/caliper.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/runner/ParsedOptionsTest.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/runner/ParsedOptionsTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/SimpleDuration.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/SimpleDuration.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/modules/examples.iml" afterPath="$PROJECT_DIR$/.idea/modules/examples.iml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/compiler.xml" afterPath="$PROJECT_DIR$/.idea/compiler.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/global.caliperrc" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/global.caliperrc" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerResponse.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/DetectVmProperties.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/Project_Default.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java" afterPath="$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/SimpleDurationTest.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/SimpleDurationTest.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParsedOptions.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParsedOptions.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperOptions.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperOptions.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/AllTests.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/AllTests.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Worker.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Worker.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InterleavedReader.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InterleavedReader.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerEventLog.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Util.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Util.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Measurement.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/SilentConsoleWriter.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/SilentConsoleWriter.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/projectCodeStyle.xml" afterPath="$PROJECT_DIR$/.idea/projectCodeStyle.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/AllTests.java" afterPath="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/AllTests.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkMethod.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkMethod.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Parsers.java" afterPath="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Parsers.java" />
     </list>
     <list id="4da90d5b-1bc4-49d9-91d0-7d0fb6f63a6e" name="idea" comment="" />
     <ignored path="caliper.iws" />
@@ -44,9 +39,13 @@
   </component>
   <component name="ChangesViewManager" flattened_view="false" show_ignored="false" />
   <component name="CoverageDataManager">
-    <SUITE FILE_PATH="coverage/caliper$InvalidBenchmarksTest.ic" NAME="InvalidBenchmarksTest Coverage Results" MODIFIED="1300495847341" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="true">
+    <SUITE FILE_PATH="coverage/caliper$InvalidBenchmarksTest.ic" NAME="InvalidBenchmarksTest Coverage Results" MODIFIED="1301092062466" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="true">
       <FILTER>com.google.caliper.functional.*</FILTER>
       <FILTER>com.google.caliper.runner.*</FILTER>
+    </SUITE>
+    <SUITE FILE_PATH="coverage/caliper$HsPerfMonitorTest.ic" NAME="HsPerfMonitorTest Coverage Results" MODIFIED="1301095609822" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false">
+      <FILTER>com.google.caliper.util.*</FILTER>
+      <FILTER>com.google.caliper.jdk.*</FILTER>
     </SUITE>
   </component>
   <component name="CreatePatchCommitExecutor">
@@ -97,85 +96,13 @@
   </component>
   <component name="FileColors" enabled="true" enabledForTabs="true" />
   <component name="FileEditorManager">
-    <splitter split-orientation="horizontal" split-proportion="0.52554744">
+    <splitter split-orientation="horizontal" split-proportion="0.5370247">
       <split-first>
         <leaf>
-          <file leaf-file-name="Instrument.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="32" column="24" selection-start="1047" selection-end="1047" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="MicrobenchmarkInstrument.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="76" column="4" selection-start="2810" selection-end="2810" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="SimpleDuration.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/SimpleDuration.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="107" column="58" selection-start="3314" selection-end="3314" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="DemoBenchmark.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="35" column="0" selection-start="1210" selection-end="1210" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="DefaultCaliperOptions.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="61" column="2" selection-start="1893" selection-end="1893" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="ParsedOptionsTest.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/runner/ParsedOptionsTest.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="42" column="29" selection-start="1533" selection-end="1533" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="CaliperRc.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="31" column="10" selection-start="968" selection-end="968" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="VirtualMachine.java" pinned="false" current="true" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/VirtualMachine.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="56" column="0" selection-start="2033" selection-end="2033" vertical-scroll-proportion="0.4411277">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="CaliperRun.java" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="116" column="20" selection-start="4077" selection-end="4077" vertical-scroll-proportion="0.0">
+                <state line="184" column="15" selection-start="6088" selection-end="6088" vertical-scroll-proportion="0.0">
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -183,64 +110,171 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ConsoleWriter.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="23" column="0" selection-start="717" selection-end="717" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="DefaultConsoleWriter.java" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="47" column="76" selection-start="1655" selection-end="1655" vertical-scroll-proportion="0.0">
+                <state line="52" column="13" selection-start="1878" selection-end="1878" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="SilentConsoleWriter.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/SilentConsoleWriter.java">
+          <file leaf-file-name="InvalidBenchmarkException.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/InvalidBenchmarkException.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="25" column="81" selection-start="1054" selection-end="1054" vertical-scroll-proportion="0.0">
+                <state line="37" column="11" selection-start="1157" selection-end="1157" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="BenchmarkMethod.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkMethod.java">
+          <file leaf-file-name="InvalidCommandException.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/InvalidCommandException.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="36" column="0" selection-start="1304" selection-end="1304" vertical-scroll-proportion="0.0">
+                <state line="46" column="13" selection-start="1476" selection-end="1476" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ParsedOptions.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParsedOptions.java">
+          <file leaf-file-name="InterleavedReader.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InterleavedReader.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="250" column="0" selection-start="8513" selection-end="8513" vertical-scroll-proportion="0.0">
+                <state line="44" column="0" selection-start="1426" selection-end="1426" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ImmutableList.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="jar://$USER_HOME$/guavarchive/guava-r08/guava-src-r08.zip!/com/google/common/collect/ImmutableList.java">
+          <file leaf-file-name="WorkerMain.java" pinned="false" current="true" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="67" column="0" selection-start="2569" selection-end="2569" vertical-scroll-proportion="0.0">
+                <state line="52" column="0" selection-start="1917" selection-end="1917" vertical-scroll-proportion="0.4431818">
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Parsers.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Parsers.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="30" column="27" selection-start="1050" selection-end="1050" vertical-scroll-proportion="0.0">
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="DemoBenchmark.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="52" column="48" selection-start="1621" selection-end="1621" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="CaliperOptions.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperOptions.java">
+          <file leaf-file-name="WorkerRequest.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerRequest.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="28" column="0" selection-start="1082" selection-end="1082" vertical-scroll-proportion="0.0">
+                <state line="52" column="9" selection-start="1770" selection-end="1770" vertical-scroll-proportion="0.0">
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="WorkerResponse.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerResponse.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="42" column="0" selection-start="1272" selection-end="1272" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="MicrobenchmarkWorker.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="104" column="0" selection-start="3553" selection-end="3553" vertical-scroll-proportion="0.0">
+                  <folding>
+                    <element signature="imports" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Resources.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="jar://$PROJECT_DIR$/lib/guava-src-r08.zip!/com/google/common/io/Resources.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="148" column="20" selection-start="4934" selection-end="4934" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="CaliperMain.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperMain.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="66" column="13" selection-start="2288" selection-end="2288" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Measurement.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Measurement.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="43" column="0" selection-start="1152" selection-end="1152" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="LastNValues.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/LastNValues.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="63" column="16" selection-start="1587" selection-end="1587" vertical-scroll-proportion="-26.125">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Benchmark.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/api/Benchmark.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="22" column="23" selection-start="731" selection-end="731" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="BenchmarkClass.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkClass.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="21" column="30" selection-start="767" selection-end="767" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Benchmark.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Benchmark.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="24" column="17" selection-start="771" selection-end="771" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="WorkerEventLog.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerEventLog.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="38" column="15" selection-start="1081" selection-end="1081" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
@@ -250,28 +284,10 @@
       </split-first>
       <split-second>
         <leaf>
-          <file leaf-file-name="InvalidBenchmarksTest.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java">
+          <file leaf-file-name="Runner.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Runner.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="38" column="14" selection-start="1330" selection-end="1330" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="AllTests.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/AllTests.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="21" column="16" selection-start="716" selection-end="716" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="AllTests.java" pinned="false" current="false" current-in-tab="true">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/AllTests.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="24" column="16" selection-start="809" selection-end="809" vertical-scroll-proportion="0.21909232">
+                <state line="360" column="19" selection-start="13021" selection-end="13021" vertical-scroll-proportion="0.0">
                   <folding>
                     <element signature="imports" expanded="true" />
                   </folding>
@@ -279,47 +295,85 @@
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="WarmupOverflowTest.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/WarmupOverflowTest.java">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="33" column="13" selection-start="1282" selection-end="1282" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
-          <file leaf-file-name="default.caliperrc" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc">
-              <provider selected="true" editor-type-id="text-editor">
-                <state line="14" column="0" selection-start="409" selection-end="409" vertical-scroll-proportion="0.0">
-                  <folding />
-                </state>
-              </provider>
-            </entry>
-          </file>
           <file leaf-file-name="SimpleDurationTest.java" pinned="false" current="false" current-in-tab="false">
             <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/SimpleDurationTest.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="23" column="22" selection-start="723" selection-end="723" vertical-scroll-proportion="0.0">
+                <state line="21" column="17" selection-start="685" selection-end="685" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ExceptionsFromUserCodeTest.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ExceptionsFromUserCodeTest.java">
+          <file leaf-file-name="ConsoleWriter.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="50" column="3" selection-start="1761" selection-end="1761" vertical-scroll-proportion="0.0">
+                <state line="21" column="0" selection-start="713" selection-end="713" vertical-scroll-proportion="0.0">
                   <folding />
                 </state>
               </provider>
             </entry>
           </file>
-          <file leaf-file-name="ErrorsInUserCodeTest.java" pinned="false" current="false" current-in-tab="false">
-            <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ErrorsInUserCodeTest.java">
+          <file leaf-file-name="global.caliperrc" pinned="false" current="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/global.caliperrc">
               <provider selected="true" editor-type-id="text-editor">
-                <state line="31" column="13" selection-start="1136" selection-end="1136" vertical-scroll-proportion="0.0">
+                <state line="49" column="41" selection-start="1592" selection-end="1592" vertical-scroll-proportion="0.23586208">
                   <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="InProcessRunner.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InProcessRunner.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="48" column="14" selection-start="1742" selection-end="1742" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="MeasurementSet.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/MeasurementSet.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="33" column="31" selection-start="1023" selection-end="1023" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Measurement.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Measurement.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="79" column="3" selection-start="2436" selection-end="2436" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Measurer.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Measurer.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="33" column="33" selection-start="945" selection-end="945" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="TimeMeasurer.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/TimeMeasurer.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="93" column="25" selection-start="3058" selection-end="3058" vertical-scroll-proportion="0.0">
+                  <folding />
+                </state>
+              </provider>
+            </entry>
+          </file>
+          <file leaf-file-name="Vm.java" pinned="false" current="false" current-in-tab="false">
+            <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Vm.java">
+              <provider selected="true" editor-type-id="text-editor">
+                <state line="34" column="32" selection-start="1074" selection-end="1074" vertical-scroll-proportion="0.0">
+                  <folding>
+                    <marker date="1301087836000" expanded="false" signature="632:717" placeholder="..." />
+                  </folding>
                 </state>
               </provider>
             </entry>
@@ -340,37 +394,37 @@
   <component name="IdeDocumentHistory">
     <option name="changedFiles">
       <list>
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/UserExceptionsTest.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ExceptionsFromUserCodeTest.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/model/InstrumentOptions.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Instruction.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/model/Scenario.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerFailureException.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/SimplifiedBenchmarkClass.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/model/InstrumentConfig.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Worker.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkMethod.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperOptions.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/SilentConsoleWriter.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java" />
-        <option value="$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParsedOptions.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/SimpleDuration.java" />
         <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/runner/ParsedOptionsTest.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/SimpleDurationTest.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/AllTests.java" />
-        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/AllTests.java" />
-        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java" />
+        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java" />
         <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/VirtualMachine.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java" />
+        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java" />
+        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ExceptionsFromUserCodeTest.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/jdk/Proc.java" />
+        <option value="$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/HsPerfMonitorTest.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/jdk/HsPerfMonitor.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Json.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Util.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerInstructions.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/DetectVmProperties.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/EvictingFifoQueue.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/EvictingFifoQueue.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/LastN.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Worker.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Parsers.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InterleavedReader.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerResponse.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerRequest.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Measurement.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/global.caliperrc" />
+        <option value="$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerEventLog.java" />
+        <option value="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java" />
       </list>
     </option>
   </component>
@@ -432,7 +486,7 @@
       <sortByType />
     </navigator>
     <panes>
-      <pane id="PackagesPane" />
+      <pane id="Scope" />
       <pane id="Favorites" />
       <pane id="ProjectPane">
         <subPane>
@@ -702,6 +756,36 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
+              <option name="myItemId" value="worker" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="caliper" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="caliper" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="src" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="main" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="java" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="caliper" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
               <option name="myItemId" value="util" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
@@ -768,7 +852,7 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="Scope" />
+      <pane id="PackagesPane" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -799,7 +883,7 @@
     <property name="GoToClass.includeLibraries" value="false" />
     <property name="options.splitter.details.proportions" value="0.2" />
     <property name="GoToFile.includeJavaFiles" value="false" />
-    <property name="options.lastSelected" value="preferences.keymap" />
+    <property name="options.lastSelected" value="project.propCompiler" />
     <property name="FileHistory.org.jetbrains.idea.svn.history.SvnHistoryProvider_treeOrder3" value="3" />
     <property name="FileHistory.org.jetbrains.idea.svn.history.SvnHistoryProvider_treeOrder4" value="4" />
     <property name="FileHistory.org.jetbrains.idea.svn.history.SvnHistoryProvider_treeOrder1" value="1" />
@@ -813,29 +897,30 @@
   <component name="RecentsManager">
     <key name="CopyClassDialog.RECENTS_KEY">
       <recent name="com.google.caliper.worker" />
-      <recent name="com.google.caliper.functional" />
       <recent name="com.google.caliper.runner" />
+      <recent name="com.google.caliper.functional" />
       <recent name="com.google.caliper.api" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner" />
       <recent name="$PROJECT_DIR$/examples/src/main/java/newexamples" />
     </key>
     <key name="ExtractSuperBase.RECENT_KEYS">
       <recent name="com.google.caliper.runner" />
     </key>
-    <key name="IntroduceConstantDialog.RECENTS_KEY">
-      <recent name="com.google.caliper.runner.Parameter" />
-      <recent name="com.google.caliper.util.SimpleDuration" />
-      <recent name="com.google.caliper.functional.InvalidBenchmarksTest" />
-      <recent name="com.google.caliper.runner.InjectableParameter" />
-      <recent name="com.google.caliper.util.Util" />
-    </key>
     <key name="MoveMembersDialog.RECENTS_KEY">
+      <recent name="com.google.caliper.util.Util" />
+      <recent name="com.google.caliper.jdk.HsPerfMonitor" />
+      <recent name="com.google.caliper.runner.CaliperRc" />
       <recent name="com.google.caliper.runner.CaliperMain" />
       <recent name="com.google.caliper.api.Launcher" />
-      <recent name="com.google.caliper.util.Util" />
+    </key>
+    <key name="IntroduceConstantDialog.RECENTS_KEY">
+      <recent name="com.google.caliper.InterleavedReader" />
+      <recent name="com.google.caliper.worker.DetectVmProperties" />
+      <recent name="com.google.caliper.worker.MicrobenchmarkWorker" />
       <recent name="com.google.caliper.runner.Parameter" />
-      <recent name="com.google.caliper.util.Parsers" />
+      <recent name="com.google.caliper.util.SimpleDuration" />
     </key>
     <key name="CreateClassDialog.RecentsKey">
       <recent name="com.google.caliper.worker" />
@@ -843,94 +928,14 @@
       <recent name="com.google.caliper.api" />
     </key>
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
+      <recent name="com.google.caliper.util" />
+      <recent name="com.google.caliper.worker" />
       <recent name="examples" />
       <recent name="com.google.caliper" />
       <recent name="com.google.caliper.runner" />
-      <recent name="com.google.caliper.spi" />
     </key>
   </component>
-  <component name="RunManager" selected="JUnit.AllTests">
-    <configuration default="false" name="AllTests" type="JUnit" factoryName="JUnit" temporary="true">
-      <extension name="coverage" enabled="false" merge="false">
-        <pattern>
-          <option name="PATTERN" value="com.google.caliper.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <module name="caliper" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="com.google.caliper" />
-      <option name="MAIN_CLASS_NAME" value="com.google.caliper.AllTests" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="ParsedOptionsTest" type="JUnit" factoryName="JUnit" temporary="true">
-      <extension name="coverage" enabled="false" merge="false">
-        <pattern>
-          <option name="PATTERN" value="com.google.caliper.runner.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <module name="caliper" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="com.google.caliper.runner" />
-      <option name="MAIN_CLASS_NAME" value="com.google.caliper.runner.ParsedOptionsTest" />
-      <option name="METHOD_NAME" />
-      <option name="TEST_OBJECT" value="class" />
-      <option name="VM_PARAMETERS" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
-    <configuration default="false" name="SimpleDurationTest.test" type="JUnit" factoryName="JUnit" temporary="true">
-      <extension name="coverage" enabled="false" merge="false">
-        <pattern>
-          <option name="PATTERN" value="com.google.caliper.util.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <module name="caliper" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <option name="PACKAGE_NAME" value="com.google.caliper.util" />
-      <option name="MAIN_CLASS_NAME" value="com.google.caliper.util.SimpleDurationTest" />
-      <option name="METHOD_NAME" value="test" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="VM_PARAMETERS" />
-      <option name="PARAMETERS" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="ENV_VARIABLES" />
-      <option name="PASS_PARENT_ENVS" value="true" />
-      <option name="TEST_SEARCH_SCOPE">
-        <value defaultName="moduleWithDependencies" />
-      </option>
-      <envs />
-      <RunnerSettings RunnerId="Run" />
-      <ConfigurationWrapper RunnerId="Run" />
-      <method />
-    </configuration>
+  <component name="RunManager" selected="JUnit.HsPerfMonitorTest">
     <configuration default="false" name="ExceptionsFromUserCodeTest" type="JUnit" factoryName="JUnit" temporary="true">
       <extension name="coverage" enabled="false" merge="false">
         <pattern>
@@ -970,6 +975,55 @@
       <option name="ALTERNATIVE_JRE_PATH" />
       <option name="PACKAGE_NAME" value="com.google.caliper.util" />
       <option name="MAIN_CLASS_NAME" value="com.google.caliper.util.SimpleDurationTest" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
+    <configuration default="false" name="All in caliper" type="JUnit" factoryName="JUnit" temporary="true">
+      <extension name="coverage" enabled="false" merge="false" />
+      <module name="caliper" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="METHOD_NAME" />
+      <option name="TEST_OBJECT" value="package" />
+      <option name="VM_PARAMETERS" />
+      <option name="PARAMETERS" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
+    <configuration default="false" name="ErrorsInUserCodeTest" type="JUnit" factoryName="JUnit" temporary="true">
+      <extension name="coverage" enabled="false" merge="false">
+        <pattern>
+          <option name="PATTERN" value="com.google.caliper.functional.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <module name="caliper" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
+      <option name="PACKAGE_NAME" value="com.google.caliper.functional" />
+      <option name="MAIN_CLASS_NAME" value="com.google.caliper.functional.ErrorsInUserCodeTest" />
       <option name="METHOD_NAME" />
       <option name="TEST_OBJECT" value="class" />
       <option name="VM_PARAMETERS" />
@@ -1125,14 +1179,45 @@
       <ConfigurationWrapper RunnerId="Run" />
       <method />
     </configuration>
+    <configuration default="false" name="HsPerfMonitorTest" type="JUnit" factoryName="JUnit">
+      <extension name="coverage" enabled="true" merge="false" sample_coverage="true" runner="idea">
+        <pattern>
+          <option name="PATTERN" value="com.google.caliper.util.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+        <pattern>
+          <option name="PATTERN" value="com.google.caliper.jdk.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <module name="caliper" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" value="" />
+      <option name="PACKAGE_NAME" value="com.google.caliper.util" />
+      <option name="MAIN_CLASS_NAME" value="com.google.caliper.util.HsPerfMonitorTest" />
+      <option name="METHOD_NAME" value="" />
+      <option name="TEST_OBJECT" value="class" />
+      <option name="VM_PARAMETERS" value="-Xmx666m" />
+      <option name="PARAMETERS" value="" />
+      <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
+      <option name="ENV_VARIABLES" />
+      <option name="PASS_PARENT_ENVS" value="true" />
+      <option name="TEST_SEARCH_SCOPE">
+        <value defaultName="moduleWithDependencies" />
+      </option>
+      <envs />
+      <RunnerSettings RunnerId="Run" />
+      <ConfigurationWrapper RunnerId="Run" />
+      <method />
+    </configuration>
     <list size="7">
       <item index="0" class="java.lang.String" itemvalue="Application.DemoBenchmark" />
-      <item index="1" class="java.lang.String" itemvalue="JUnit.InvalidBenchmarksTest" />
-      <item index="2" class="java.lang.String" itemvalue="JUnit.AllTests" />
-      <item index="3" class="java.lang.String" itemvalue="JUnit.ParsedOptionsTest" />
-      <item index="4" class="java.lang.String" itemvalue="JUnit.SimpleDurationTest.test" />
-      <item index="5" class="java.lang.String" itemvalue="JUnit.ExceptionsFromUserCodeTest" />
-      <item index="6" class="java.lang.String" itemvalue="JUnit.SimpleDurationTest" />
+      <item index="1" class="java.lang.String" itemvalue="JUnit.ExceptionsFromUserCodeTest" />
+      <item index="2" class="java.lang.String" itemvalue="JUnit.SimpleDurationTest" />
+      <item index="3" class="java.lang.String" itemvalue="JUnit.InvalidBenchmarksTest" />
+      <item index="4" class="java.lang.String" itemvalue="JUnit.All in caliper" />
+      <item index="5" class="java.lang.String" itemvalue="JUnit.ErrorsInUserCodeTest" />
+      <item index="6" class="java.lang.String" itemvalue="JUnit.HsPerfMonitorTest" />
     </list>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
       <Host>localhost</Host>
@@ -1195,24 +1280,24 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="0" width="1920" height="1152" extended-state="0" />
+    <frame x="0" y="24" width="1920" height="1152" extended-state="0" />
     <editor active="true" />
     <layout>
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32879376" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.32782102" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Blaze build" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32782102" sideWeight="0.5" order="12" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
-      <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19123931" sideWeight="0.66536963" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22957198" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.39980546" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29182878" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32976654" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32879376" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="true" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.19551282" sideWeight="0.76361865" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Dependency Viewer" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.29182878" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.33754864" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Web" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="EJB" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
@@ -1257,203 +1342,225 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParameterSet.java">
+    <entry file="jar://$PROJECT_DIR$/lib/guava-src-r08.zip!/com/google/common/primitives/Ints.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="37" column="29" selection-start="1417" selection-end="1417" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar:///usr/local/buildtools/java/jdk/src.zip!/java/lang/Class.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="1613" column="18" selection-start="68767" selection-end="68767" vertical-scroll-proportion="0.0" />
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/TimeMeasurer.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="112" column="4" selection-start="3921" selection-end="3921" vertical-scroll-proportion="0.0">
+        <state line="76" column="0" selection-start="2327" selection-end="2489" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkClass.java">
+    <entry file="jar://$PROJECT_DIR$/lib/guava-src-r08.zip!/com/google/common/collect/Iterators.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="44" column="0" selection-start="1675" selection-end="1675" vertical-scroll-proportion="0.0">
+        <state line="419" column="14" selection-start="13593" selection-end="13593" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/Instrument.java">
+    <entry file="jar:///usr/local/buildtools/java/jdk/src.zip!/java/util/concurrent/ArrayBlockingQueue.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="32" column="24" selection-start="1047" selection-end="1047" vertical-scroll-proportion="0.0">
+        <state line="74" column="13" selection-start="3268" selection-end="3268" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$PROJECT_DIR$/lib/guava-src-r08.zip!/com/google/common/base/Objects.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="162" column="0" selection-start="5113" selection-end="5250" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/SimpleDuration.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="107" column="58" selection-start="3314" selection-end="3314" vertical-scroll-proportion="0.0">
+        <state line="34" column="19" selection-start="1155" selection-end="1155" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///usr/local/buildtools/java/jdk/src.zip!/java/util/LinkedList.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="273" column="13" selection-start="8815" selection-end="8815" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Json.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="94" column="31" selection-start="3625" selection-end="3625" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar:///usr/local/buildtools/java/jdk/src.zip!/java/lang/Object.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="234" column="18" selection-start="11308" selection-end="11308" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Worker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="18" column="32" selection-start="664" selection-end="664" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/api/Benchmark.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="22" column="23" selection-start="731" selection-end="731" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkClass.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="21" column="30" selection-start="767" selection-end="767" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/Benchmark.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="24" column="17" selection-start="771" selection-end="771" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/Parsers.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="30" column="27" selection-start="1050" selection-end="1050" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InterleavedReader.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="44" column="0" selection-start="1426" selection-end="1426" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/InProcessRunner.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="48" column="14" selection-start="1742" selection-end="1742" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerResponse.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="42" column="0" selection-start="1272" selection-end="1272" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerRequest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="52" column="9" selection-start="1770" selection-end="1770" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/Measurement.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="43" column="0" selection-start="1152" selection-end="1152" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/global.caliperrc">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="49" column="41" selection-start="1592" selection-end="1592" vertical-scroll-proportion="0.23586208">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/examples/src/main/java/examples/DemoBenchmark.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="35" column="0" selection-start="1210" selection-end="1210" vertical-scroll-proportion="0.0">
+        <state line="52" column="48" selection-start="1621" selection-end="1621" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/DefaultCaliperOptions.java">
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/LastNValues.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="61" column="2" selection-start="1893" selection-end="1893" vertical-scroll-proportion="0.0">
+        <state line="63" column="16" selection-start="1587" selection-end="1587" vertical-scroll-proportion="-26.125">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRc.java">
+    <entry file="jar://$PROJECT_DIR$/lib/guava-src-r08.zip!/com/google/common/io/Resources.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="31" column="10" selection-start="968" selection-end="968" vertical-scroll-proportion="0.0">
+        <state line="148" column="20" selection-start="4934" selection-end="4934" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ConsoleWriter.java">
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperMain.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="0" selection-start="717" selection-end="717" vertical-scroll-proportion="0.0">
+        <state line="66" column="13" selection-start="2288" selection-end="2288" vertical-scroll-proportion="0.0">
           <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="76" selection-start="1655" selection-end="1655" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/SilentConsoleWriter.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="81" selection-start="1054" selection-end="1054" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/BenchmarkMethod.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="36" column="0" selection-start="1304" selection-end="1304" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/ParsedOptions.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="250" column="0" selection-start="8513" selection-end="8513" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$USER_HOME$/guavarchive/guava-r08/guava-src-r08.zip!/com/google/common/collect/ImmutableList.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="67" column="0" selection-start="2569" selection-end="2569" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperOptions.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="28" column="0" selection-start="1082" selection-end="1082" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/default.caliperrc">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="0" selection-start="409" selection-end="409" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/util/SimpleDurationTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="22" selection-start="723" selection-end="723" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ErrorsInUserCodeTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="31" column="13" selection-start="1136" selection-end="1136" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/ExceptionsFromUserCodeTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="50" column="3" selection-start="1761" selection-end="1761" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/InvalidBenchmarksTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="38" column="14" selection-start="1330" selection-end="1330" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/functional/AllTests.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="16" selection-start="716" selection-end="716" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/WarmupOverflowTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="33" column="13" selection-start="1282" selection-end="1282" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/runner/ParsedOptionsTest.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="42" column="29" selection-start="1533" selection-end="1533" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/MicrobenchmarkInstrument.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="76" column="4" selection-start="2810" selection-end="2810" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/test/java/com/google/caliper/AllTests.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="24" column="16" selection-start="809" selection-end="809" vertical-scroll-proportion="0.21909232">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/CaliperRun.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="116" column="20" selection-start="4077" selection-end="4077" vertical-scroll-proportion="0.0">
+        <state line="184" column="15" selection-start="6088" selection-end="6088" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/VirtualMachine.java">
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/DefaultConsoleWriter.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="56" column="0" selection-start="2033" selection-end="2033" vertical-scroll-proportion="0.4411277">
+        <state line="52" column="13" selection-start="1878" selection-end="1878" vertical-scroll-proportion="0.0">
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/runner/InvalidBenchmarkException.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="37" column="11" selection-start="1157" selection-end="1157" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/util/InvalidCommandException.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="46" column="13" selection-start="1476" selection-end="1476" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/MicrobenchmarkWorker.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="104" column="0" selection-start="3553" selection-end="3553" vertical-scroll-proportion="0.0">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerEventLog.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="38" column="15" selection-start="1081" selection-end="1081" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/caliper/src/main/java/com/google/caliper/worker/WorkerMain.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="52" column="0" selection-start="1917" selection-end="1917" vertical-scroll-proportion="0.4431818">
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>

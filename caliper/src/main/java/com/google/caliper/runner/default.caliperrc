@@ -4,7 +4,7 @@
 
 # INSTRUMENT CONFIG
 
-instrument.micro.minWarmup=10s
+instrument.micro.warmup=10s
 instrument.micro.timingInterval=500ms
 instrument.micro.reportedIntervals=7
 instrument.micro.maxRuntime=10s

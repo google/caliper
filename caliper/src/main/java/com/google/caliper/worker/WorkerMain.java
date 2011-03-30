@@ -16,7 +16,8 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.InterleavedReader;
+import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.gson.Gson;
@@ -24,27 +25,34 @@ import com.google.gson.Gson;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Collection;
 
 public class WorkerMain {
   private WorkerMain() {}
 
   public static void main(String[] args) throws Exception {
     Gson gson = new Gson();
-    WorkerInstructions instructions = gson.fromJson(args[0], WorkerInstructions.class);
+    WorkerRequest request = gson.fromJson(args[0], WorkerRequest.class);
 
-    Class<?> benchmarkClass = Class.forName(instructions.benchmarkClassName);
+    Class<?> benchmarkClass = Class.forName(request.benchmarkClassName);
     Benchmark benchmark = (Benchmark) construct(benchmarkClass);
 
-    for (String fieldName : instructions.injectedParameters.keySet()) {
+    for (String fieldName : request.injectedParameters.keySet()) {
       Field field = benchmarkClass.getDeclaredField(fieldName);
+      field.setAccessible(true);
       Parser<?> parser = Parsers.byConventionParser(field.getType());
-      field.set(benchmark, parser.parse(instructions.injectedParameters.get(fieldName)));
+      field.set(benchmark, parser.parse(request.injectedParameters.get(fieldName)));
     }
-    Worker worker = (Worker) construct(instructions.workerClassName);
+    Worker worker = (Worker) construct(request.workerClassName);
+    WorkerEventLog log = new WorkerEventLog();
 
-    invoke(benchmark, "setUp");
+    runSetUp(benchmark);
 
-    worker.runTrial(benchmark, instructions.benchmarkMethodName, instructions.instrumentOptions);
+    Collection<Measurement> measurements =
+        worker.measure(benchmark, request.benchmarkMethodName, request.instrumentOptions, log);
+
+    System.out.println(InterleavedReader.DEFAULT_MARKER + new WorkerResponse(measurements));
+    System.out.flush(); // ?
   }
 
   private static Object construct(String className) throws Exception {
@@ -57,10 +65,10 @@ public class WorkerMain {
     return constructor.newInstance();
   }
 
-  private static void invoke(Object object, String methodName) throws Exception {
-    Method method = object.getClass().getMethod(methodName);
+  private static void runSetUp(Benchmark benchmark) throws Exception {
+    // benchmark.setUp() -- but oops, it's 'protected'
+    Method method = Benchmark.class.getDeclaredMethod("setUp");
     method.setAccessible(true);
-    method.invoke(object);
+    method.invoke(benchmark);
   }
-
 }

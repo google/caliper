@@ -26,6 +26,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.math.BigDecimal;
+import java.math.MathContext;
 import java.util.Map;
 import java.util.Properties;
 
@@ -85,13 +87,5 @@ public final class Util {
 
   public static boolean isStatic(Member member) {
     return Modifier.isStatic(member.getModifiers());
-  }
-
-  @SuppressWarnings("unchecked") // checked manually
-  public static <T> ImmutableList<T> checkedCast(ImmutableList<?> source, Class<T> toType) {
-    for (Object o : source) {
-      toType.cast(o);
-    }
-    return (ImmutableList<T>) source;
   }
 }
