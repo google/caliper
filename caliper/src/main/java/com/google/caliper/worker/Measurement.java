@@ -18,10 +18,7 @@ package com.google.caliper.worker;
 
 import com.google.gson.Gson;
 
-/**
-* @author Kevin Bourrillion
-*/
-public class Measurement {
+public final class Measurement {
   public static Measurement fromString(String json) {
     return new Gson().fromJson(json, Measurement.class);
   }

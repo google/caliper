@@ -16,10 +16,7 @@
 
 package com.google.caliper.worker;
 
-/**
- * @author Kevin Bourrillion
- */
-public class WorkerEventLog {
+public final class WorkerEventLog {
 
   // temporary dumb messages.
 

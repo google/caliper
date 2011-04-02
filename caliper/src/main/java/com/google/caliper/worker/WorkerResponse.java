@@ -26,7 +26,7 @@ import java.util.Map;
  * This object is sent from the parent process to the child to tell it what to do. If the child
  * does not do it, it will not get its allowance this week.
  */
-public class WorkerResponse {
+public final class WorkerResponse {
   public static WorkerResponse fromString(String json) {
     return new Gson().fromJson(json, WorkerResponse.class);
   }
@@ -37,6 +37,7 @@ public class WorkerResponse {
     this.measurements = measurements;
   }
 
+  // TODO: remove this after GSON update
   private WorkerResponse() {
     measurements = null;
   }

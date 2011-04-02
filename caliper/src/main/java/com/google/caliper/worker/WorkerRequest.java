@@ -24,7 +24,7 @@ import java.util.Map;
  * This object is sent from the parent process to the child to tell it what to do. If the child
  * does not do it, it will not get its allowance this week.
  */
-public class WorkerRequest {
+public final class WorkerRequest {
   public static WorkerRequest fromString(String json) {
     return new Gson().fromJson(json, WorkerRequest.class);
   }
@@ -50,6 +50,7 @@ public class WorkerRequest {
     this.injectedParameters = injectedParameters;
   }
 
+  // TODO: remove this after GSON update
   private WorkerRequest() {
     instrumentOptions = null;
     workerClassName = null;

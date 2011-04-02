@@ -38,11 +38,9 @@ public class LastNValues {
   }
 
   private double replace(int i, double d) {
-    try {
-      return lastN[i];
-    } finally {
-      lastN[i] = d;
-    }
+    double tmp = lastN[i];
+    lastN[i] = d;
+    return tmp;
   }
 
   public boolean isFull() {

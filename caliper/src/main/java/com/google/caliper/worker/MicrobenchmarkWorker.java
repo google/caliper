@@ -32,6 +32,11 @@ public class MicrobenchmarkWorker implements Worker {
     Trial trial = new Trial(benchmark, methodName, options, log);
 
     int targetReps = trial.warmUp();
+
+    // TODO: make the minimum configurable, default to maybe 1000?
+    if (targetReps < 100) {
+      throw new Exception("Too few reps"); // TODO: better exception
+    }
     return trial.run(targetReps);
   }
 

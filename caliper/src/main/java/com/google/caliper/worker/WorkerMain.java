@@ -27,7 +27,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
-public class WorkerMain {
+public final class WorkerMain {
   private WorkerMain() {}
 
   public static void main(String[] args) throws Exception {
