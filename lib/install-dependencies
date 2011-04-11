@@ -1,1 +1,0 @@
-mvn install:install-file -DgroupId=com.google.code.java-allocation-instrumenter -DartifactId=java-allocation-instrumenter -Dversion=2.0 -Dfile=allocation.jar -Dpackaging=jar -DgeneratePom=true

@@ -1,10 +1,8 @@
 To build this project with Maven:
-1. Run lib/install-dependencies
-This installs allocation.jar into your local maven repository
 
-2. cd caliper
+1. cd caliper
 mvn eclipse:configure-workspace eclipse:eclipse install
 
-3. To build examples
+2. To build examples
 cd examples
 mvn eclipse:configure-workspace eclipse:eclipse install
