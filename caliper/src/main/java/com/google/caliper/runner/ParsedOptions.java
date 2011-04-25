@@ -21,19 +21,14 @@ import com.google.caliper.util.CommandLineParser;
 import com.google.caliper.util.CommandLineParser.Leftovers;
 import com.google.caliper.util.CommandLineParser.Option;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.Util;
 import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
-
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 
 public final class ParsedOptions implements CaliperOptions {
   public static ParsedOptions from(String[] args, CaliperRc rc)

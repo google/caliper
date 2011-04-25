@@ -77,6 +77,10 @@ public abstract class Instrument {
 
   public abstract boolean isBenchmarkMethod(Method method);
 
+  // TODO: make BenchmarkMethod more abstract, not necessarily tied persistently to a Method (even
+  // though the presence of a particular method is what probably triggers its recognition/creation
+  // in the first place?), and give it an invoke() method.
+
   public abstract BenchmarkMethod createBenchmarkMethod(
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 

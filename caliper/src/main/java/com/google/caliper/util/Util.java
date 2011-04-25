@@ -16,7 +16,6 @@
 
 package com.google.caliper.util;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
@@ -26,8 +25,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
-import java.math.BigDecimal;
-import java.math.MathContext;
 import java.util.Map;
 import java.util.Properties;
 
@@ -38,6 +35,8 @@ public final class Util {
   // fails try replacing the last . with $.
   public static Class<?> lenientClassForName(String className) throws ClassNotFoundException {
     try {
+      // TODO: consider whether any control over class loader is really needed here
+      // (forName(className, true, Thread.currentThread().getContextClassLoader())?)
       return Class.forName(className);
     } catch (ClassNotFoundException ignored) {
       // try replacing the last dot with a $, in case that helps

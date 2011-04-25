@@ -37,9 +37,12 @@ public final class CaliperMain {
    *
    * Note that this method does invoke {@link System#exit} when it finishes. Consider {@link
    * #exitlessMain} if you don't want that.
+   *
+   * <p>Measurement is handled in a subprocess, so it will not use {@code benchmarkClass} itself;
+   * the class is provided here only as a shortcut for specifying the full class <i>name</i>. The
+   * class that gets loaded later could be completely different.
    */
   public static void main(Class<? extends Benchmark> benchmarkClass, String... args) {
-    // Later we parse the string back into a class again; oh well, it's still cleaner this way
     main(concat(args, benchmarkClass.getName()));
   }
 
@@ -62,11 +65,10 @@ public final class CaliperMain {
       e.display(writer);
 
     } catch (Throwable t) {
+      t.printStackTrace(writer);
+      writer.println();
       writer.println("An unexpected exception has been thrown by the caliper runner.");
       writer.println("Please see https://sites.google.com/site/caliperusers/issues");
-      writer.println();
-      t.printStackTrace(writer);
-
     }
 
     writer.flush();

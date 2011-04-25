@@ -146,6 +146,8 @@ public class MicrobenchmarkWorker implements Worker {
       this.reportedIntervals = Integer.parseInt(optionMap.get("reportedIntervals"));
       this.shortCircuitTolerance = Double.parseDouble(optionMap.get("shortCircuitTolerance"));
       this.maxTotalRuntimeNanos = Long.parseLong(optionMap.get("maxTotalRuntimeNanos"));
+
+      // TODO: implement this
       this.gcBeforeEach = Boolean.parseBoolean(optionMap.get("gcBeforeEach"));
 
       if (warmupNanos + reportedIntervals * timingIntervalNanos > maxTotalRuntimeNanos) {

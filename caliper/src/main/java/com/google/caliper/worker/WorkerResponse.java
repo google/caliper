@@ -19,8 +19,6 @@ package com.google.caliper.worker;
 import com.google.gson.Gson;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * This object is sent from the parent process to the child to tell it what to do. If the child

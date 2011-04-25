@@ -47,6 +47,10 @@ public final class BenchmarkClass {
     if (Modifier.isAbstract(aClass.getModifiers())) {
       throw new InvalidBenchmarkException("Class '%s' is abstract", aClass);
     }
+    
+    // TODO: check for nested, non-static classes (non-abstract, but no constructor?)
+    // this will fail later anyway (no way to declare parameterless nested constr., but
+    // maybe signal this better?
 
     try {
       this.theClass = aClass.asSubclass(Benchmark.class);
@@ -80,6 +84,8 @@ public final class BenchmarkClass {
   public ParameterSet injectableVmArguments() {
     return injectableVmArguments;
   }
+
+  // TODO: perhaps move this to Instrument and let instruments override it?
 
   public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
       Instrument instrument) throws InvalidBenchmarkException {
