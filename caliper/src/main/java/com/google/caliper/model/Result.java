@@ -14,25 +14,30 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.model;
 
 import com.google.caliper.util.Util;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.SortedMap;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * A set of measurements, optionally including arbitrary report text, that were taken by a
+ * particular instrument for a particular scenario.
  */
-public final class WorkerResponse {
-  public static WorkerResponse fromString(String json) {
-    return Util.GSON.fromJson(json, WorkerResponse.class);
-  }
+public class Result {
+  public String localName;
 
-  public final Collection<Measurement> measurements;
+  public String scenarioLocalName;
+  public String instrumentLocalName;
 
-  public WorkerResponse(Collection<Measurement> measurements) {
-    this.measurements = measurements;
+  public List<String> vmCommandLine;
+
+  public List<Measurement> measurements;
+  public String reportInfo;
+
+  public static Result fromString(String json) {
+    return Util.GSON.fromJson(json, Result.class);
   }
 
   @Override public String toString() {

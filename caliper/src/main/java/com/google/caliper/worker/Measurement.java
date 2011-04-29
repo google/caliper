@@ -16,11 +16,12 @@
 
 package com.google.caliper.worker;
 
-import com.google.gson.Gson;
+import com.google.caliper.util.Util;
 
+// TODO: scrap this and use the model class directly from the start?
 public final class Measurement {
   public static Measurement fromString(String json) {
-    return new Gson().fromJson(json, Measurement.class);
+    return Util.GSON.fromJson(json, Measurement.class);
   }
 
   public final long nanos;
@@ -40,6 +41,6 @@ public final class Measurement {
   }
 
   @Override public String toString() {
-    return new Gson().toJson(this);
+    return Util.GSON.toJson(this);
   }
 }

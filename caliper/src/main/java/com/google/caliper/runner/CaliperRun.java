@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 
 import java.io.IOException;
@@ -71,6 +70,8 @@ public final class CaliperRun {
 
     benchmarkClass.validateParameters(options.userParameters());
   }
+
+  // TODO: this class does too much stuff. find some things to factor out of it.
 
   public void run() throws UserCodeException {
     ImmutableList<VirtualMachine> vms = options.vms();
@@ -113,12 +114,14 @@ public final class CaliperRun {
       return;
     }
 
+    ResultDataWriter results = new ResultDataWriter();
+
     for (Scenario scenario : mutableScenarios) {
       measure(scenario);
     }
   }
 
-  private void measure(Scenario scenario) throws UserCodeException {
+  private void measure(Scenario scenario) {
     WorkerRequest request = new WorkerRequest(
         instrument.workerOptions(),
         MicrobenchmarkWorker.class.getName(),
@@ -162,7 +165,7 @@ public final class CaliperRun {
           eventLog.append(o);
         } else {
           JsonObject jsonObject = (JsonObject) o;
-          response = new Gson().fromJson(jsonObject, WorkerResponse.class);
+          response = Util.GSON.fromJson(jsonObject, WorkerResponse.class);
         }
       }
     } catch (IOException e) {

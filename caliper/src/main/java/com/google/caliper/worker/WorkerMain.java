@@ -20,19 +20,22 @@ import com.google.caliper.InterleavedReader;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
-import com.google.gson.Gson;
+import com.google.caliper.util.Util;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
+/**
+ * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
+ * the benchmark and hands it off to the instrument's worker.
+ */
 public final class WorkerMain {
   private WorkerMain() {}
 
   public static void main(String[] args) throws Exception {
-    Gson gson = new Gson();
-    WorkerRequest request = gson.fromJson(args[0], WorkerRequest.class);
+    WorkerRequest request = Util.GSON.fromJson(args[0], WorkerRequest.class);
 
     Class<?> benchmarkClass = Class.forName(request.benchmarkClassName);
     Benchmark benchmark = (Benchmark) construct(benchmarkClass);
@@ -40,7 +43,7 @@ public final class WorkerMain {
     for (String fieldName : request.injectedParameters.keySet()) {
       Field field = benchmarkClass.getDeclaredField(fieldName);
       field.setAccessible(true);
-      Parser<?> parser = Parsers.byConventionParser(field.getType());
+      Parser<?> parser = Parsers.conventionalParser(field.getType());
       field.set(benchmark, parser.parse(request.injectedParameters.get(fieldName)));
     }
     Worker worker = (Worker) construct(request.workerClassName);

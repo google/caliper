@@ -19,11 +19,9 @@ package com.google.caliper.worker;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * @author Kevin Bourrillion
- */
 public class DetectVmProperties {
   private static final List<String> PROPERTY_NAMES = Arrays.asList(
+      "java.home",
       "java.runtime.version",
       "java.version",
       "java.vm.name",

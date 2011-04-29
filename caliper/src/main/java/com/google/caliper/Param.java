@@ -42,8 +42,8 @@ import java.lang.annotation.Target;
  *
  * <p>Caliper parameters are always strings, but can be converted to other types at the point of
  * injection. If the type of the field this annotation is applied to is not {@link String}, then the
- * type class must contain a static {@code fromString(String)} or {@code valueOf(String)} method
- * that returns that type, or a constructor accepting only a {@code String}.
+ * type class must contain a static {@code fromString(String)}, {@code decode(String)} or {@code
+ * valueOf(String)} method that returns that type, or a constructor accepting only a {@code String}.
  *
  * <p>Caliper will test every possible combination of parameter values for your benchmark. For
  * example, if you have two parameters, {@code -Dletter=a,b,c -Dnumber=1,2}, Caliper will construct

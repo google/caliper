@@ -25,7 +25,9 @@ import java.io.PrintWriter;
 
 /**
  * Primary entry point for the caliper benchmark runner application; run with {@code --help} for
- * details.
+ * details. This class's only purpose is to take care of anything that's specific to command-line
+ * invocation and then hand off to {@code CaliperRun}. That is, a hypothetical GUI benchmark runner
+ * might still use {@code CaliperRun} but would skip using this class.
  */
 public final class CaliperMain {
   /**
@@ -42,7 +44,7 @@ public final class CaliperMain {
    * the class is provided here only as a shortcut for specifying the full class <i>name</i>. The
    * class that gets loaded later could be completely different.
    */
-  public static void main(Class<? extends Benchmark> benchmarkClass, String... args) {
+  public static void main(Class<? extends Benchmark> benchmarkClass, String[] args) {
     main(concat(args, benchmarkClass.getName()));
   }
 
@@ -77,6 +79,9 @@ public final class CaliperMain {
 
   public static void exitlessMain(String[] args, PrintWriter writer)
       throws InvalidCommandException, InvalidBenchmarkException {
+
+    // TODO: stop the argument-parsing code from depending on CaliperRc. Then, specify the caliperrc
+    // with a command-line flag instead of environment variable.
     String rcFilename = Objects.firstNonNull(
           System.getenv("CALIPERRC"),
           System.getProperty("user.home") + "/.caliperrc");

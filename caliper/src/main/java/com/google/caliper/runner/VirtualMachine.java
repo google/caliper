@@ -56,7 +56,9 @@ public final class VirtualMachine {
     checkArgument(this.execPath.isFile());
   }
 
-  // TODO(kevinb): ImmutableMap<String, String> detectProperties() {}
+  ImmutableMap<String, String> detectProperties() {
+    return ImmutableMap.of(); // TODO
+  }
 
   @Override public boolean equals(Object object) {
     if (object instanceof VirtualMachine) {

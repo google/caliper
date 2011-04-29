@@ -14,25 +14,31 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.model;
 
 import com.google.caliper.util.Util;
 
-import java.util.Collection;
+import java.util.TreeMap;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * A specific combination of benchmark variables (including environment, VM, class name,
+ * method name, user parameters and VM arguments).
  */
-public final class WorkerResponse {
-  public static WorkerResponse fromString(String json) {
-    return Util.GSON.fromJson(json, WorkerResponse.class);
-  }
+public class Scenario {
+  public String localName;
 
-  public final Collection<Measurement> measurements;
+  public String environmentLocalName;
+  public String vmLocalName;
 
-  public WorkerResponse(Collection<Measurement> measurements) {
-    this.measurements = measurements;
+  public String benchmarkClassName;
+  public String benchmarkMethodName;
+
+  // concrete types == gson happy
+  public TreeMap<String, String> userParameters;
+  public TreeMap<String, String> vmArguments;
+
+  public static Scenario fromString(String json) {
+    return Util.GSON.fromJson(json, Scenario.class);
   }
 
   @Override public String toString() {

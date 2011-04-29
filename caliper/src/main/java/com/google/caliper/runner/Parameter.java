@@ -59,7 +59,7 @@ public final class Parameter {
 
     Class<?> type = Primitives.wrap(field.getType());
     try {
-      this.parser = Parsers.byConventionParser(type);
+      this.parser = Parsers.conventionalParser(type);
     } catch (NoSuchMethodException e) {
       throw new InvalidBenchmarkException("Type '%s' of parameter field '%s' has no recognized "
           + "String-converting method; see <TODO> for details", type, field.getName());

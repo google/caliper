@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.model;
 
 import com.google.caliper.util.Util;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.SortedMap;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * Represents a single invocation of the caliper runner.
  */
-public final class WorkerResponse {
-  public static WorkerResponse fromString(String json) {
-    return Util.GSON.fromJson(json, WorkerResponse.class);
-  }
+public class Run {
+  public String localName;
+  public String environmentLocalName;
+  public List<String> caliperArguments;
+  // scenario selection? version? checksum of code?
 
-  public final Collection<Measurement> measurements;
-
-  public WorkerResponse(Collection<Measurement> measurements) {
-    this.measurements = measurements;
+  public static Run fromString(String json) {
+    return Util.GSON.fromJson(json, Run.class);
   }
 
   @Override public String toString() {

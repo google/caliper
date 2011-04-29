@@ -16,14 +16,14 @@
 
 package com.google.caliper.util;
 
-import static java.util.Arrays.asList;
-
+import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Primitives;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
+import java.util.List;
 
 public class Parsers {
   public static final Parser<String> IDENTITY = new Parser<String>() {
@@ -32,14 +32,19 @@ public class Parsers {
     }
   };
 
+  private static final List<String> CONVERSION_METHOD_NAMES =
+      ImmutableList.of("fromString", "decode", "valueOf");
+
   /**
    * Parser that tries, in this order:
    * <ul>
    * <li>ResultType.fromString(String)
+   * <li>ResultType.decode(String)
    * <li>ResultType.valueOf(String)
    * <li>new ResultType(String)
+   * </ul>
    */
-  public static <T> Parser<T> byConventionParser(Class<T> resultType)
+  public static <T> Parser<T> conventionalParser(Class<T> resultType)
       throws NoSuchMethodException {
     if (resultType == String.class) {
       @SuppressWarnings("unchecked") // T == String
@@ -49,7 +54,7 @@ public class Parsers {
 
     final Class<T> wrappedResultType = Primitives.wrap(resultType);
 
-    for (String methodName : asList("fromString", "valueOf")) {
+    for (String methodName : CONVERSION_METHOD_NAMES) {
       try {
         final Method method = wrappedResultType.getDeclaredMethod(methodName, String.class);
 

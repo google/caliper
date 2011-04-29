@@ -14,25 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.model;
 
 import com.google.caliper.util.Util;
 
-import java.util.Collection;
+import java.util.List;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * A single numeric datum reported by an instrument for a particular scenario.
  */
-public final class WorkerResponse {
-  public static WorkerResponse fromString(String json) {
-    return Util.GSON.fromJson(json, WorkerResponse.class);
-  }
+public class Measurement {
+  // For example, if 42 reps completed in 999000000 ns, then these values might be
+  // (999000000.0, 42, "ns", "runtime")
+  public double value;
+  public double weight;
+  public String unit;
+  public String description;
 
-  public final Collection<Measurement> measurements;
-
-  public WorkerResponse(Collection<Measurement> measurements) {
-    this.measurements = measurements;
+  public static Measurement fromString(String json) {
+    return Util.GSON.fromJson(json, Measurement.class);
   }
 
   @Override public String toString() {

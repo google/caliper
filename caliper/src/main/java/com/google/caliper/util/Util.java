@@ -20,6 +20,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,6 +31,9 @@ import java.util.Map;
 import java.util.Properties;
 
 public final class Util {
+
+  public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+
   private Util() {}
 
   // Users have no idea that nested classes are identified with '$', not '.', so if class lookup

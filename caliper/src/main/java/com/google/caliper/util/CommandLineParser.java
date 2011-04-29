@@ -275,7 +275,7 @@ public final class CommandLineParser<T> {
       this.field = field;
       this.isBoolean = c == boolean.class || c == Boolean.class;
       try {
-        this.parser = Parsers.byConventionParser(Primitives.wrap(c));
+        this.parser = Parsers.conventionalParser(Primitives.wrap(c));
       } catch (NoSuchMethodException e) {
         throw new IllegalArgumentException("No suitable String-conversion method");
       }
@@ -312,7 +312,7 @@ public final class CommandLineParser<T> {
       this.method = method;
       this.isBoolean = c == boolean.class || c == Boolean.class;
       try {
-        this.parser = Parsers.byConventionParser(Primitives.wrap(c));
+        this.parser = Parsers.conventionalParser(Primitives.wrap(c));
       } catch (NoSuchMethodException e) {
         throw new IllegalArgumentException("No suitable String-conversion method");
       }

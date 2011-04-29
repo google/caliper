@@ -16,7 +16,7 @@
 
 package com.google.caliper.worker;
 
-import com.google.gson.Gson;
+import com.google.caliper.util.Util;
 
 import java.util.Map;
 
@@ -26,7 +26,7 @@ import java.util.Map;
  */
 public final class WorkerRequest {
   public static WorkerRequest fromString(String json) {
-    return new Gson().fromJson(json, WorkerRequest.class);
+    return Util.GSON.fromJson(json, WorkerRequest.class);
   }
 
   public final Map<String, String> instrumentOptions;
@@ -50,16 +50,7 @@ public final class WorkerRequest {
     this.injectedParameters = injectedParameters;
   }
 
-  // TODO: remove this after GSON update
-  private WorkerRequest() {
-    instrumentOptions = null;
-    workerClassName = null;
-    benchmarkClassName = null;
-    benchmarkMethodName = null;
-    injectedParameters = null;
-  }
-
   @Override public String toString() {
-    return new Gson().toJson(this);
+    return Util.GSON.toJson(this);
   }
 }
