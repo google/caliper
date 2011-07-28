@@ -25,7 +25,7 @@ public final class WorkerEventLog {
   }
 
   public void notifyMeasurementPhaseStarting() {
-    System.out.println("Warmup over.");
+    System.out.println("Measurement phase starting.");
   }
 
   public void notifyMeasurementStarting() {

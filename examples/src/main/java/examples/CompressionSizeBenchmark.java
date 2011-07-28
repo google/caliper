@@ -16,9 +16,11 @@
 
 package examples;
 
-import com.google.caliper.LinearTranslation;
 import com.google.caliper.Param;
-import com.google.caliper.SimpleBenchmark;
+import com.google.caliper.api.Benchmark;
+import com.google.caliper.model.ArbitraryMeasurement;
+import com.google.caliper.runner.CaliperMain;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
@@ -26,10 +28,9 @@ import java.util.Map;
 import java.util.zip.Deflater;
 
 /**
- * This is a hack, but shows a neat trick that can be done by overriding the nanosToUnits method.
- * Benchmarks compression ratios instead of times.
+ * Example "arbitrary measurement" benchmark.
  */
-public class CompressionSizeBenchmark extends SimpleBenchmark {
+public class CompressionSizeBenchmark extends Benchmark {
 
   @Param({
       "this string will compress badly",
@@ -49,17 +50,12 @@ public class CompressionSizeBenchmark extends SimpleBenchmark {
       compressionLevelMap.put("huffmanOnly", Deflater.HUFFMAN_ONLY);
   }
 
-  public void timeCompressionSize(int reps) {
+  @ArbitraryMeasurement(units = ":1", description = "ratio of uncompressed to compressed")
+  public double compressionSize() {
     byte[] initialBytes = toCompress.getBytes();
     byte[] finalBytes = compress(initialBytes);
     compressionRatio = (double) initialBytes.length / (double) finalBytes.length;
-
-    // simulate actually doing runs to make caliper happy
-    LinearTranslation translation = new LinearTranslation(0, 0, 1000000, 1000);
-    try {
-      Thread.sleep((long) translation.translate(reps));
-    } catch (InterruptedException e) {
-    }
+    return compressionRatio;
   }
 
   private byte[] compress(byte[] bytes) {
@@ -80,13 +76,7 @@ public class CompressionSizeBenchmark extends SimpleBenchmark {
     return bos.toByteArray();
   }
 
-  @Override public Map<String, Integer> getTimeUnitNames() {
-    Map<String, Integer> unitNames = new HashMap<String, Integer>();
-    unitNames.put(" compression ratio (higher is better)", 1);
-    return unitNames;
-  }
-
-  @Override public double nanosToUnits(double nanos) {
-    return compressionRatio;
+  public static void main(String[] args) {
+    CaliperMain.main(CompressionSizeBenchmark.class, args);
   }
 }

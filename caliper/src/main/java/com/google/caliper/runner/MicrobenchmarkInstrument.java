@@ -34,10 +34,6 @@ import java.util.concurrent.TimeUnit;
 
 public final class MicrobenchmarkInstrument extends Instrument {
 
-  @Override protected void setOptions(Map<String, String> options) {
-    super.setOptions(options);
-  }
-
   @Override public ShortDuration estimateRuntimePerTrial() {
     return ShortDuration.valueOf(options.get("maxTotalRuntime"));
   }

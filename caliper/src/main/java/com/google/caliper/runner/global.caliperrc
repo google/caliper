@@ -73,6 +73,12 @@ instrument.micro.vmArgs.jdk.stackSize=-Xss1m
 #instrument.micro.vmArgs.dalvik.foo=bar
 
 
+# Instrument "arbitrary"
+instrument.arbitrary.class=com.google.caliper.runner.ArbitraryMeasurementInstrument
+
+# Run GC before every measurement?
+instrument.arbitrary.options.gcBeforeEach=false
+
 ######################
 # RESULTS STORAGE
 ######################

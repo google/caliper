@@ -22,8 +22,8 @@ import com.google.caliper.util.Util;
 import java.util.Collection;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * This is the "answer" analog to {@link WorkerRequest}. It contains each of the {@link Measurement}
+ * objects created by the worker.
  */
 public final class WorkerResponse {
   public static WorkerResponse fromString(String json) {
