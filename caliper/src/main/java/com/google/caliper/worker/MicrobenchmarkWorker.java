@@ -18,6 +18,7 @@ package com.google.caliper.worker;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.LastNValues;
+import com.google.caliper.util.Util;
 
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -95,6 +96,10 @@ public class MicrobenchmarkWorker implements Worker {
       while (System.nanoTime() < timeToStop) {
         int reps = repCounts[i++ % repCounts.length];
 
+        if (options.gcBeforeEach) {
+          Util.forceGc();
+        }
+
         log.notifyMeasurementStarting();
         long nanos = invokeTimeMethod(reps);
 
@@ -146,8 +151,6 @@ public class MicrobenchmarkWorker implements Worker {
       this.reportedIntervals = Integer.parseInt(optionMap.get("reportedIntervals"));
       this.shortCircuitTolerance = Double.parseDouble(optionMap.get("shortCircuitTolerance"));
       this.maxTotalRuntimeNanos = Long.parseLong(optionMap.get("maxTotalRuntimeNanos"));
-
-      // TODO: implement this
       this.gcBeforeEach = Boolean.parseBoolean(optionMap.get("gcBeforeEach"));
 
       if (warmupNanos + reportedIntervals * timingIntervalNanos > maxTotalRuntimeNanos) {

@@ -29,6 +29,8 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public final class Util {
 
@@ -91,5 +93,25 @@ public final class Util {
 
   public static boolean isStatic(Member member) {
     return Modifier.isStatic(member.getModifiers());
+  }
+
+  private static final long FORCE_GC_TIMEOUT_SECS = 2;
+
+  public static void forceGc() {
+    System.gc();
+    System.runFinalization();
+    final CountDownLatch latch = new CountDownLatch(1);
+    new Object() {
+      protected void finalize() {
+        latch.countDown();
+      }
+    };
+    System.gc();
+    System.runFinalization();
+    try {
+      latch.await(FORCE_GC_TIMEOUT_SECS, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+    }
   }
 }
