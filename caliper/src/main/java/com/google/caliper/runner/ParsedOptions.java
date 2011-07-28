@@ -14,9 +14,6 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Objects.firstNonNull;
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.caliper.util.CommandLineParser;
 import com.google.caliper.util.CommandLineParser.Leftovers;
 import com.google.caliper.util.CommandLineParser.Option;
@@ -31,9 +28,8 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 
 public final class ParsedOptions implements CaliperOptions {
-  public static ParsedOptions from(String[] args, CaliperRc rc)
-      throws InvalidCommandException {
-    ParsedOptions options = new ParsedOptions(rc);
+  public static ParsedOptions from(String[] args) throws InvalidCommandException {
+    ParsedOptions options = new ParsedOptions();
 
     CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
     try {
@@ -45,11 +41,7 @@ public final class ParsedOptions implements CaliperOptions {
     return options;
   }
 
-  // TODO(kevinb): consider leaving this out of it; look up VMs and Instruments in the next step
-  private final CaliperRc rc;
-
-  private ParsedOptions(CaliperRc rc) {
-    this.rc = checkNotNull(rc);
+  private ParsedOptions() {
   }
 
   // --------------------------------------------------------------------------
@@ -150,30 +142,17 @@ public final class ParsedOptions implements CaliperOptions {
   // VM specifications
   // --------------------------------------------------------------------------
 
-  private ImmutableList<VirtualMachine> vms = ImmutableList.of(VirtualMachine.hostVm());
-
-  private VirtualMachine findVm(String vmName) {
-    String home = firstNonNull(rc.homeDirForVm(vmName), vmName);
-    String absoluteHome = home.startsWith("/") ? home : rc.vmBaseDirectory() + "/" + home;
-    return VirtualMachine.from(vmName, absoluteHome, rc.vmArgsForVm(vmName));
-  }
+  // TODO(kevinb): review all set/list
+  private ImmutableSet<String> vmNames = ImmutableSet.of();
 
   @Option({"-m", "--vm"})
   private void setVms(String vmsString) throws InvalidCommandException {
     dryRunIncompatible("vm");
-
-    // TODO(kevinb): review all set/list
-    ImmutableSet<String> vmChoices = split(vmsString);
-
-    ImmutableList.Builder<VirtualMachine> vmsBuilder = ImmutableList.builder();
-    for (String vmChoice : vmChoices) {
-      vmsBuilder.add(findVm(vmChoice));
-    }
-    this.vms = vmsBuilder.build();
+    vmNames = split(vmsString);
   }
 
-  @Override public ImmutableList<VirtualMachine> vms() {
-    return vms;
+  @Override public ImmutableSet<String> vmNames() {
+    return vmNames;
   }
 
   // --------------------------------------------------------------------------
@@ -264,6 +243,21 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // Location of .caliperrc
+  // --------------------------------------------------------------------------
+
+  private String caliperRcFilename = System.getProperty("user.home") + "/.caliperrc";
+
+  @Option({"-c", "--config"})
+  private void setCaliperRcFilename(String filename) {
+    caliperRcFilename = filename;
+  }
+
+  @Override public String caliperRcFilename() {
+    return caliperRcFilename;
+  }
+
+  // --------------------------------------------------------------------------
   // Leftover - benchmark class name
   // --------------------------------------------------------------------------
 
@@ -311,13 +305,14 @@ public final class ParsedOptions implements CaliperOptions {
         .add("calculateAggregateScore", this.calculateAggregateScore())
         .add("dryRun", this.dryRun())
         .add("instrumentName", this.instrumentName())
-        .add("vms", this.vms())
+        .add("vms", this.vmNames())
         .add("vmArguments", this.vmArguments())
         .add("outputFileOrDir", this.outputFileOrDir())
         .add("trials", this.trials())
         .add("detailedLogging", this.detailedLogging())
         .add("verbose", this.verbose())
         .add("delimiter", this.delimiter)
+        .add("caliperRcFilename", this.caliperRcFilename)
         .toString();
   }
 
@@ -339,10 +334,10 @@ public final class ParsedOptions implements CaliperOptions {
       " -b, --benchmark   comma-separated list of benchmark methods to run; 'foo' is",
       "                   an alias for 'timeFoo' (default: all found in class)",
       " -m, --vm          comma-separated list of vms to test on; possible values are",
-      "                   configured in ~/.caliperrc (default: only the vm caliper",
-      "                   itself is running in)",
+      "                   configured in Caliper's configuration file (default: only",
+      "                   the vm caliper itself is running in)",
       " -i, --instrument  measuring instrument to use; possible values are configured",
-      "                   in ~/.caliperrc (default: 'micro')",
+      "                   in Caliper's configuration file (default: 'micro')",
       " -t, --trials      number of independent measurements to take per benchmark",
       "                   scenario; a positive integer (default: 1)",
       " -o, --output      name of file or directory in which to store the results",
@@ -355,6 +350,8 @@ public final class ParsedOptions implements CaliperOptions {
       " -s, --score       also calculate and display an aggregate score for this run",
       "                   (higher is better; meaningless otherwise)",
       " -d, --delimiter   separator used in -m, -b, -D and -J options (default: ',')",
+      " -c, --config      location of Caliper's configuration file",
+      "                   (default: ~/.caliperrc)",
       "",
       " -Dparam=val1,val2,... ",
       "     Specifies the values to inject into the 'param' field of the benchmark",
@@ -365,6 +362,7 @@ public final class ParsedOptions implements CaliperOptions {
       "     caliper will test all possible combinations. Example: ",
       "     -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'",
       "",
+      // TODO(kevinb): change this link
       "See http://sites.google.com/site/caliperusers/command-line for more details.",
       "");
 }

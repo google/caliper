@@ -27,6 +27,7 @@ import com.google.caliper.worker.WorkerRequest;
 import com.google.caliper.worker.WorkerResponse;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -73,7 +74,7 @@ public final class CaliperRun {
   // TODO: this class does too much stuff. find some things to factor out of it.
 
   public void run() throws UserCodeException {
-    ImmutableList<VirtualMachine> vms = options.vms();
+    ImmutableList<VirtualMachine> vms = createVms(options.vmNames());
 
     ImmutableSetMultimap<String, String> combinedParams =
         benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
@@ -118,6 +119,24 @@ public final class CaliperRun {
     for (Scenario scenario : mutableScenarios) {
       measure(scenario);
     }
+  }
+
+  private ImmutableList<VirtualMachine> createVms(Set<String> vmNames) {
+    ImmutableList.Builder<VirtualMachine> builder = ImmutableList.builder();
+    if (vmNames.isEmpty()) {
+      builder.add(VirtualMachine.hostVm());
+    } else {
+      for (String vmName : vmNames) {
+        builder.add(findVm(vmName));
+      }
+    }
+    return builder.build();
+  }
+
+  private VirtualMachine findVm(String vmName) {
+    String home = Objects.firstNonNull(caliperRc.homeDirForVm(vmName), vmName);
+    String absoluteHome = home.startsWith("/") ? home : caliperRc.vmBaseDirectory() + "/" + home;
+    return VirtualMachine.from(vmName, absoluteHome, caliperRc.vmArgsForVm(vmName));
   }
 
   private void measure(Scenario scenario) {

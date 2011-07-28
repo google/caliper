@@ -17,10 +17,6 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.Instrument;
-import com.google.caliper.runner.MicrobenchmarkInstrument;
-import com.google.caliper.runner.VirtualMachine;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 
@@ -39,8 +35,8 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return ImmutableSet.of();
   }
 
-  @Override public ImmutableList<VirtualMachine> vms() {
-    return ImmutableList.of(VirtualMachine.hostVm());
+  @Override public ImmutableSet<String> vmNames() {
+    return ImmutableSet.of();
   }
 
   @Override public ImmutableSetMultimap<String, String> userParameters() {
@@ -77,5 +73,9 @@ public class DefaultCaliperOptions implements CaliperOptions {
 
   @Override public boolean dryRun() {
     return false;
+  }
+
+  @Override public String caliperRcFilename() {
+    throw new UnsupportedOperationException();
   }
 }

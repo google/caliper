@@ -17,7 +17,6 @@ package com.google.caliper.runner;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
@@ -27,20 +26,13 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 
 public class ParsedOptionsTest extends TestCase {
-  private CaliperRc caliperRc;
   private File tempDir;
 
   @Override protected void setUp() throws IOException {
     tempDir = Files.createTempDir();
     makeTestVmTree(tempDir);
-
-    ImmutableMap<String, String> map = ImmutableMap.of(
-        "vm.baseDirectory", tempDir.toString(),
-        "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
-    caliperRc = new CaliperRc(map);
   }
 
   @Override protected void tearDown() throws IOException {
@@ -58,7 +50,7 @@ public class ParsedOptionsTest extends TestCase {
 
   public void testNoOptions() throws InvalidCommandException {
     try {
-      ParsedOptions.from(new String[] {}, caliperRc);
+      ParsedOptions.from(new String[] {});
       fail();
     } catch (InvalidCommandException expected) {
       assertEquals("No benchmark class specified", expected.getMessage());
@@ -67,14 +59,14 @@ public class ParsedOptionsTest extends TestCase {
 
   public void testHelp() throws InvalidCommandException {
     try {
-      ParsedOptions.from(new String[] {"--help"}, caliperRc);
+      ParsedOptions.from(new String[] {"--help"});
       fail();
     } catch (DisplayUsageException expected) {
     }
   }
   
   public void testDefaults() throws InvalidCommandException {
-    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, caliperRc);
+    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME});
 
     assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertTrue(options.benchmarkMethodNames().isEmpty());
@@ -87,7 +79,7 @@ public class ParsedOptionsTest extends TestCase {
     assertTrue(options.userParameters().isEmpty());
     assertFalse(options.verbose());
     assertTrue(options.vmArguments().isEmpty());
-    assertEquals(1, options.vms().size());
+    assertEquals(0, options.vmNames().size());
   }
 
   public void testKitchenSink() throws InvalidCommandException {
@@ -106,7 +98,7 @@ public class ParsedOptionsTest extends TestCase {
         "--delimiter=;",
         CLASS_NAME,
     };
-    CaliperOptions options = ParsedOptions.from(args, caliperRc);
+    CaliperOptions options = ParsedOptions.from(args);
 
     assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkMethodNames());
@@ -122,9 +114,8 @@ public class ParsedOptionsTest extends TestCase {
     assertEquals(ImmutableSetMultimap.of("memoryMax", "-Xmx32m", "memoryMax", "-Xmx64m"),
         options.vmArguments());
 
-    VirtualMachine vm = Iterables.getOnlyElement(options.vms());
-    assertEquals("testVm", vm.name);
-    assertEquals(new File(tempDir, "testVm/bin/java"), vm.execPath);
+    String vmName = Iterables.getOnlyElement(options.vmNames());
+    assertEquals("testVm", vmName);
   }
 
   public static class FakeBenchmark extends Benchmark {}

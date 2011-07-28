@@ -14,14 +14,13 @@
 
 package com.google.caliper.runner;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 
 public interface CaliperOptions {
   String benchmarkClassName();
   ImmutableSet<String> benchmarkMethodNames();
-  ImmutableList<VirtualMachine> vms();
+  ImmutableSet<String> vmNames();
   ImmutableSetMultimap<String, String> userParameters();
   ImmutableSetMultimap<String, String> vmArguments();
   String instrumentName();
@@ -31,4 +30,5 @@ public interface CaliperOptions {
   boolean verbose();
   boolean calculateAggregateScore();
   boolean dryRun();
+  String caliperRcFilename();
 }

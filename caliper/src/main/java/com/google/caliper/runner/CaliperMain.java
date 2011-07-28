@@ -18,7 +18,6 @@ import static com.google.common.collect.ObjectArrays.concat;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.common.base.Objects;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -80,15 +79,9 @@ public final class CaliperMain {
   public static void exitlessMain(String[] args, PrintWriter writer)
       throws InvalidCommandException, InvalidBenchmarkException {
 
-    // TODO: stop the argument-parsing code from depending on CaliperRc. Then, specify the caliperrc
-    // with a command-line flag instead of environment variable.
-    String rcFilename = Objects.firstNonNull(
-          System.getenv("CALIPERRC"),
-          System.getProperty("user.home") + "/.caliperrc");
+    CaliperOptions options = ParsedOptions.from(args); // throws ICE
+    CaliperRc rc = CaliperRcManager.loadOrCreate(new File(options.caliperRcFilename()));
 
-    CaliperRc rc = CaliperRcManager.loadOrCreate(new File(rcFilename));
-
-    CaliperOptions options = ParsedOptions.from(args, rc); // throws ICE
     ConsoleWriter console = new DefaultConsoleWriter(writer);
 
     CaliperRun run = new CaliperRun(options, rc, console); // throws ICE, IBE
