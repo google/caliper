@@ -34,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 public final class Util {
 
-  public static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+  public static final Gson GSON = new GsonBuilder().create();
 
   private Util() {}
 
