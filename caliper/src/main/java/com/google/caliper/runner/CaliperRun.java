@@ -22,7 +22,6 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
-import com.google.caliper.worker.MicrobenchmarkWorker;
 import com.google.caliper.worker.WorkerMain;
 import com.google.caliper.worker.WorkerRequest;
 import com.google.caliper.worker.WorkerResponse;
@@ -124,7 +123,7 @@ public final class CaliperRun {
   private void measure(Scenario scenario) {
     WorkerRequest request = new WorkerRequest(
         instrument.workerOptions(),
-        MicrobenchmarkWorker.class.getName(),
+        instrument.workerClass().getName(),
         benchmarkClass.name(),
         scenario.benchmarkMethod().name(),
         scenario.userParameters());

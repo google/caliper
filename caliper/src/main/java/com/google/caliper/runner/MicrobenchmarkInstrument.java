@@ -22,13 +22,15 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
+import com.google.caliper.worker.MicrobenchmarkWorker;
+import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public final class MicrobenchmarkInstrument extends Instrument {
 
@@ -86,6 +88,10 @@ public final class MicrobenchmarkInstrument extends Instrument {
         .put("maxTotalRuntimeNanos", toNanosString("maxTotalRuntime"))
         .put("gcBeforeEach", options.get("gcBeforeEach"))
         .build();
+  }
+
+  @Override public Class<? extends Worker> workerClass() {
+    return MicrobenchmarkWorker.class;
   }
 
   private String toNanosString(String optionName) {

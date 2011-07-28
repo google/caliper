@@ -20,6 +20,7 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
+import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.Constructor;
@@ -89,4 +90,6 @@ public abstract class Instrument {
   public Map<String, String> workerOptions() {
     return options;
   }
+
+  public abstract Class<? extends Worker> workerClass();
 }
