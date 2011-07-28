@@ -20,7 +20,7 @@ import com.google.caliper.InterleavedReader;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.MicrobenchmarkWorker;
 import com.google.caliper.worker.WorkerMain;
@@ -98,13 +98,13 @@ public final class CaliperRun {
 
     int finalScenarioCount = mutableScenarios.size();
 
-    SimpleDuration estimate;
+    ShortDuration estimate;
     try {
-      SimpleDuration perTrial = instrument.estimateRuntimePerTrial();
+      ShortDuration perTrial = instrument.estimateRuntimePerTrial();
       estimate = perTrial.times(finalScenarioCount * options.trials());
 
     } catch (Exception e) {
-      estimate = SimpleDuration.ofNanos(0);
+      estimate = ShortDuration.zero();
     }
 
     console.beforeRun(options.trials(), finalScenarioCount, estimate);

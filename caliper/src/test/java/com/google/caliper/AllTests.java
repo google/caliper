@@ -17,7 +17,7 @@
 package com.google.caliper;
 
 import com.google.caliper.runner.ParsedOptionsTest;
-import com.google.caliper.util.SimpleDurationTest;
+import com.google.caliper.util.ShortDurationTest;
 
 import junit.framework.Test;
 import junit.framework.TestSuite;
@@ -36,7 +36,7 @@ public class AllTests {
     // suite.addTestSuite(WarmupOverflowTest.class);
 
     suite.addTestSuite(ParsedOptionsTest.class);
-    suite.addTestSuite(SimpleDurationTest.class);
+    suite.addTestSuite(ShortDurationTest.class);
     return suite;
   }
 }

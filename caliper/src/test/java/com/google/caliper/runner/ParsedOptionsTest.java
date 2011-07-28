@@ -17,7 +17,6 @@ package com.google.caliper.runner;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.SimpleDuration;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;

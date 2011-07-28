@@ -16,11 +16,11 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.util.ShortDuration;
 
 public interface ConsoleWriter {
   void flush();
   void describe(ScenarioSelection selection);
   void beforeDryRun(int count);
-  void beforeRun(int trials, int scenarioCount, SimpleDuration estimate);
+  void beforeRun(int trials, int scenarioCount, ShortDuration estimate);
 }

@@ -20,12 +20,13 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.concurrent.TimeUnit;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -35,8 +36,8 @@ public final class MicrobenchmarkInstrument extends Instrument {
     super.setOptions(options);
   }
 
-  @Override public SimpleDuration estimateRuntimePerTrial() {
-    return SimpleDuration.valueOf(options.get("maxTotalRuntime"));
+  @Override public ShortDuration estimateRuntimePerTrial() {
+    return ShortDuration.valueOf(options.get("maxTotalRuntime"));
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -88,7 +89,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
   }
 
   private String toNanosString(String optionName) {
-    return String.valueOf(SimpleDuration.valueOf(options.get(optionName)).toNanos());
+    return String.valueOf(ShortDuration.valueOf(options.get(optionName)).to(TimeUnit.NANOSECONDS));
   }
 
   @Override public boolean equals(Object object) {

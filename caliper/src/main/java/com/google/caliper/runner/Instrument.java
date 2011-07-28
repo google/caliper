@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
 
@@ -71,7 +71,7 @@ public abstract class Instrument {
     this.options = ImmutableMap.copyOf(options);
   }
 
-  public SimpleDuration estimateRuntimePerTrial() {
+  public ShortDuration estimateRuntimePerTrial() {
     throw new UnsupportedOperationException();
   }
 

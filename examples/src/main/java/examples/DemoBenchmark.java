@@ -21,7 +21,7 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmParam;
 import com.google.caliper.runner.CaliperMain;
-import com.google.caliper.util.SimpleDuration;
+import com.google.caliper.util.ShortDuration;
 
 import java.math.BigDecimal;
 
@@ -31,7 +31,7 @@ public class DemoBenchmark extends Benchmark {
   @Param Foo foo;
 
   @Param({"0.00", "123.45"}) BigDecimal money;
-  @Param({"1ns", "2 minutes"}) SimpleDuration duration;
+  @Param({"1ns", "2 minutes"}) ShortDuration duration;
   @VmParam({"-Xmx32m", "-Xmx1g"}) String memoryMax;
 
   enum Foo {
