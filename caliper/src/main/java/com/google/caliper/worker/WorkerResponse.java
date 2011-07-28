@@ -16,6 +16,7 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Util;
 
 import java.util.Collection;

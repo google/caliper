@@ -17,14 +17,18 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.model.Measurement;
 import com.google.caliper.util.LastNValues;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 
 import java.lang.reflect.Method;
+import java.math.RoundingMode;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.TimeUnit;
 
 public class MicrobenchmarkWorker implements Worker {
   @Override public Collection<Measurement> measure(Benchmark benchmark, String methodName,
@@ -102,15 +106,23 @@ public class MicrobenchmarkWorker implements Worker {
 
         log.notifyMeasurementStarting();
         long nanos = invokeTimeMethod(reps);
+        ShortDuration duration = ShortDuration.of(nanos, TimeUnit.NANOSECONDS);
+        ShortDuration durationPerRep = duration.dividedBy(reps, RoundingMode.HALF_EVEN);
 
-        Measurement m = new Measurement(nanos, reps);
-        log.notifyMeasurementEnding(m.nanosPerRep);
+        Measurement m = new Measurement();
+        m.value = nanos;
+        m.weight = reps;
+        m.unit = "Nanos per rep";
+        m.description = String.format("%d reps completed in %s: %s per rep",
+            reps, duration, durationPerRep);
+        double nanosPerRep = m.value / m.weight;
+        log.notifyMeasurementEnding(nanosPerRep);
 
         measurements.add(m);
         if (measurements.size() > options.reportedIntervals) {
           measurements.remove();
         }
-        recentValues.add(m.nanosPerRep);
+        recentValues.add(nanosPerRep);
 
         if (shouldShortCircuit(recentValues)) {
           break;

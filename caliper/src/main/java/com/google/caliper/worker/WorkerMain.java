@@ -18,6 +18,7 @@ package com.google.caliper.worker;
 
 import com.google.caliper.InterleavedReader;
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;

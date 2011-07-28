@@ -17,11 +17,12 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.model.Measurement;
 
 import java.util.Collection;
 import java.util.Map;
 
 public interface Worker {
-  Collection<Measurement> measure(Benchmark benchmark, String methodName, Map<String, String> options, WorkerEventLog log)
-      throws Exception;
+  Collection<Measurement> measure(Benchmark benchmark, String methodName,
+      Map<String, String> options, WorkerEventLog log) throws Exception;
 }
