@@ -10,13 +10,15 @@
     <property name="installroot" value="build/caliper-${version}"/>
     <property name="javadocroot" value="${installroot}/docs/api"/>
     <property name="allocation" value="lib/allocation.jar"/>
-    <property name="guava" value="lib/guava-r08.jar"/>
+    <property name="jsr305" value="lib/jsr305.jar"/>
+    <property name="guava" value="lib/guava-r09.jar"/>
     <property name="gson" value="lib/gson.jar"/>
 
     <path id="dependencies">
         <pathelement location="${allocation}"/>
         <pathelement location="${guava}"/>
         <pathelement location="${gson}"/>
+        <pathelement location="${jsr305}"/>
     </path>
 
     <path id="testdependencies">
