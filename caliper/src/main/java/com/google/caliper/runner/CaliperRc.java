@@ -18,10 +18,13 @@ package com.google.caliper.runner;
 
 import com.google.caliper.util.Util;
 import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 
+import java.util.List;
 import java.util.Map;
 
 public final class CaliperRc {
@@ -52,6 +55,15 @@ public final class CaliperRc {
 
   public ImmutableMap<String, String> vmArgsForVm(String vmName) {
     return submap("vm." + vmName + ".args");
+  }
+
+  public List<String> verboseArgsForVm(String vmName) {
+    String verboseArgs = props.get("vm." + vmName + ".verboseMode");
+    if (verboseArgs == null) {
+      return ImmutableList.of();
+    } else {
+      return ImmutableList.copyOf(Splitter.on(' ').split(verboseArgs));
+    }
   }
 
   public String instrumentClassName(String instrumentName) {

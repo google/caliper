@@ -26,6 +26,7 @@ import java.util.SortedMap;
  */
 public class VM {
   public String localName;
+  public String vmName;
 
   public Map<String, String> vmArguments;
   public Map<String, String> detectedProperties;

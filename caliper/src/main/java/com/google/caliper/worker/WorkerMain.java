@@ -22,6 +22,7 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;
+import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -41,11 +42,15 @@ public final class WorkerMain {
     Class<?> benchmarkClass = Class.forName(request.benchmarkClassName);
     Benchmark benchmark = (Benchmark) construct(benchmarkClass);
 
-    for (String fieldName : request.injectedParameters.keySet()) {
+    ImmutableMap<String, String> parameters = ImmutableMap.<String, String>builder()
+        .putAll(request.injectedParameters)
+        .putAll(request.vmArguments)
+        .build();
+    for (String fieldName : parameters.keySet()) {
       Field field = benchmarkClass.getDeclaredField(fieldName);
       field.setAccessible(true);
       Parser<?> parser = Parsers.conventionalParser(field.getType());
-      field.set(benchmark, parser.parse(request.injectedParameters.get(fieldName)));
+      field.set(benchmark, parser.parse(parameters.get(fieldName)));
     }
     Worker worker = (Worker) construct(request.workerClassName);
     WorkerEventLog log = new WorkerEventLog();

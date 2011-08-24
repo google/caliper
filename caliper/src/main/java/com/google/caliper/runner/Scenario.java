@@ -62,7 +62,15 @@ public final class Scenario {
   }
 
   public ImmutableMap<String, String> asFlattenedMap() {
-    throw new UnsupportedOperationException("TODO");
+    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
+    // We know these don't collide, because "benchmark" and "vm" are reserved words, so
+    // Parameter.validate() catches them, and because BenchmarkClass.validate() verifies that
+    // there's no overlap between userParameters and vmArguments.
+    builder.putAll(userParameters)
+        .putAll(vmArguments)
+        .put("benchmark", benchmarkMethod.name())
+        .put("vm", vm.name);
+    return builder.build();
   }
 
   @Override public boolean equals(Object object) {

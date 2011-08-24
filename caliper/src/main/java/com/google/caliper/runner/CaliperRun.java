@@ -15,10 +15,12 @@
 package com.google.caliper.runner;
 
 import static java.util.Collections.addAll;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.caliper.InterleavedReader;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.model.CaliperData;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
@@ -26,23 +28,23 @@ import com.google.caliper.worker.WorkerMain;
 import com.google.caliper.worker.WorkerRequest;
 import com.google.caliper.worker.WorkerResponse;
 import com.google.common.base.Charsets;
-import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.Closeables;
 import com.google.gson.JsonObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +58,7 @@ public final class CaliperRun {
   private final BenchmarkClass benchmarkClass;
   private final Collection<BenchmarkMethod> methods;
   private final Instrument instrument;
+  private final List<ResultProcessor> resultProcessors;
 
   public CaliperRun(CaliperOptions options, CaliperRc caliperRc, ConsoleWriter console)
       throws InvalidCommandException, InvalidBenchmarkException {
@@ -67,6 +70,7 @@ public final class CaliperRun {
     this.benchmarkClass = new BenchmarkClass(aClass);
     this.instrument = Instrument.createInstrument(options.instrumentName(), caliperRc);
     this.methods = chooseBenchmarkMethods(benchmarkClass, instrument, options);
+    this.resultProcessors = createResultProcessors();
 
     benchmarkClass.validateParameters(options.userParameters());
   }
@@ -88,26 +92,27 @@ public final class CaliperRun {
 
     console.describe(selection);
 
-    Set<Scenario> mutableScenarios = Sets.newHashSet(selection.buildScenarios());
+    ImmutableSet<Scenario> allScenarios = selection.buildScenarios();
 
-    console.beforeDryRun(mutableScenarios.size());
+    console.beforeDryRun(allScenarios.size());
     console.flush();
 
     // always dry run first.
-    dryRun(/*INOUT*/mutableScenarios);
-
-    int finalScenarioCount = mutableScenarios.size();
+    ImmutableSet<Scenario> scenariosToRun = dryRun(allScenarios);
+    if (scenariosToRun.size() != allScenarios.size()) {
+      console.skippedScenarios(allScenarios.size() - scenariosToRun.size());
+    }
 
     ShortDuration estimate;
     try {
       ShortDuration perTrial = instrument.estimateRuntimePerTrial();
-      estimate = perTrial.times(finalScenarioCount * options.trials());
+      estimate = perTrial.times(scenariosToRun.size() * options.trials());
 
     } catch (Exception e) {
       estimate = ShortDuration.zero();
     }
 
-    console.beforeRun(options.trials(), finalScenarioCount, estimate);
+    console.beforeRun(options.trials(), scenariosToRun.size(), estimate);
     console.flush();
 
     if (options.dryRun()) {
@@ -115,9 +120,20 @@ public final class CaliperRun {
     }
 
     ResultDataWriter results = new ResultDataWriter();
+    results.writeInstrument(instrument);
+    results.writeEnvironment(new EnvironmentGetter().getEnvironmentSnapshot());
 
-    for (Scenario scenario : mutableScenarios) {
-      measure(scenario);
+    Stopwatch stopwatch = new Stopwatch().start();
+    for (Scenario scenario : scenariosToRun) {
+      TrialResult trialResult = measure(scenario);
+      results.writeTrialResult(trialResult);
+    }
+    // TODO(kevinb): just use stopwatch.elapsed() after that's in Guava
+    console.afterRun(ShortDuration.of(stopwatch.elapsedMillis(), MILLISECONDS));
+
+    CaliperData caliperData = results.getData();
+    for (ResultProcessor resultProcessor : resultProcessors) {
+      resultProcessor.handleResults(caliperData);
     }
   }
 
@@ -135,42 +151,45 @@ public final class CaliperRun {
 
   private VirtualMachine findVm(String vmName) {
     String home = Objects.firstNonNull(caliperRc.homeDirForVm(vmName), vmName);
-    String absoluteHome = home.startsWith("/") ? home : caliperRc.vmBaseDirectory() + "/" + home;
-    return VirtualMachine.from(vmName, absoluteHome, caliperRc.vmArgsForVm(vmName));
+    String absoluteHome =
+        new File(home).isAbsolute() ? home : caliperRc.vmBaseDirectory() + "/" + home;
+    List<String> verboseModeArgs = caliperRc.verboseArgsForVm(vmName);
+    return VirtualMachine.from(
+        vmName, absoluteHome, caliperRc.vmArgsForVm(vmName), verboseModeArgs);
   }
 
-  private void measure(Scenario scenario) {
+  private TrialResult measure(Scenario scenario) {
     WorkerRequest request = new WorkerRequest(
         instrument.workerOptions(),
         instrument.workerClass().getName(),
         benchmarkClass.name(),
         scenario.benchmarkMethod().name(),
-        scenario.userParameters());
+        scenario.userParameters(),
+        scenario.vmArguments());
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(true);
 
     List<String> args = processBuilder.command();
 
     args.add(scenario.vm().execPath.getAbsolutePath());
-
-    // args.addAll(vmArgs); // TODO!
+    args.addAll(scenario.vmArguments().values());
 
     addAll(args, "-cp", System.getProperty("java.class.path"));
-    args.add(WorkerMain.class.getName());
+    if (options.detailedLogging()) {
+      args.addAll(scenario.vm().verboseModeArgs);
+    }
 
+    args.add(WorkerMain.class.getName());
     args.add(request.toString());
 
     Process process = null;
-
-    System.out.println("Command: " + Joiner.on(' ').join(args));
-
     try {
       process = processBuilder.start();
     } catch (IOException e) {
       throw new AssertionError(e); // ???
     }
 
-    StringBuilder eventLog = new StringBuilder(1000);
+    List<String> eventLog = Lists.newArrayList();
     Reader in = null;
     WorkerResponse response = null;
 
@@ -180,7 +199,9 @@ public final class CaliperRun {
       Object o;
       while ((o = reader.read()) != null) {
         if (o instanceof String) {
-          eventLog.append(o);
+          // TODO(schmoe): transform some of these messages, possibly with some configurability.
+          // (especially for GC and JIT-compilation messages; also add timestamps)
+          eventLog.add((String) o);
         } else {
           JsonObject jsonObject = (JsonObject) o;
           response = Util.GSON.fromJson(jsonObject, WorkerResponse.class);
@@ -195,13 +216,13 @@ public final class CaliperRun {
     }
 
     if (response == null) {
-      throw new RuntimeException("Got no response!"); // TODO: ?
+      // TODO(schmoe): This happens if the benchmark throws an exception. We should either make
+      // this exception include the data sent to eventLog, or else make the calling code dump the
+      // eventLog's contents on exception.
+      throw new RuntimeException("Got no response!");
     }
 
-    System.out.println("I got this: " + response.toString());
-    System.out.println();
-
-    System.out.println("Full event log: \n\n" + eventLog);
+    return new TrialResult(scenario, response.measurements, eventLog, args);
   }
 
 
@@ -219,18 +240,30 @@ public final class CaliperRun {
         : Maps.filterKeys(methodMap, Predicates.in(names)).values();
   }
 
-  void dryRun(Set<Scenario> mutableScenarios) throws UserCodeException {
-    Iterator<Scenario> it = mutableScenarios.iterator();
-    while (it.hasNext()) {
-      Scenario scenario = it.next();
+  private List<ResultProcessor> createResultProcessors() {
+    // TODO(schmoe): add custom ResultProcessors via .caliperrc
+    ImmutableList.Builder<ResultProcessor> builder = ImmutableList.builder();
+    builder.add(new ConsoleResultProcessor(options.calculateAggregateScore()));
+    builder.add(new OutputFileDumper(options.outputFileOrDir(), benchmarkClass.name()));
+    return builder.build();
+  }
+
+  /**
+   * Attempts to run each given scenario once, in the current VM. Returns a set of all of the
+   * scenarios that didn't throw a {@link SkipThisScenarioException}.
+   */
+  ImmutableSet<Scenario> dryRun(Set<Scenario> scenarios) throws UserCodeException {
+    ImmutableSet.Builder<Scenario> builder = ImmutableSet.builder();
+    for (Scenario scenario : scenarios) {
       try {
         Benchmark benchmark = benchmarkClass.createAndStage(scenario);
         instrument.dryRun(benchmark, scenario.benchmarkMethod());
+        builder.add(scenario);
         // discard 'benchmark' now; the worker will have to instantiate its own anyway
       } catch (SkipThisScenarioException innocuous) {
-        it.remove();
       }
     }
+    return builder.build();
   }
 
   private static Class<?> classForName(String className)

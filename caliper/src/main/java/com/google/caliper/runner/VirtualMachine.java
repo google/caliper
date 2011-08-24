@@ -20,9 +20,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 public final class VirtualMachine {
@@ -30,26 +32,32 @@ public final class VirtualMachine {
     String home = System.getProperty("java.home");
     String executable = home + "/bin/java";
     String baseName = home.replaceFirst("/jre$", "").replaceFirst(".*/", "");
-    return new VirtualMachine(baseName, home, executable, ImmutableMap.<String, String>of());
+    return new VirtualMachine(baseName, home, executable, ImmutableMap.<String, String>of(),
+        ImmutableList.<String>of());
   }
 
   // TODO(kevinb): all this stuff's a mess
 
-  public static VirtualMachine from(String name, String home, Map<String, String> argMap) {
-    return new VirtualMachine(name, home, home + "/bin/java", argMap);
+  public static VirtualMachine from(
+      String name, String home, Map<String, String> argMap, List<String> verboseModeArgs) {
+
+    return new VirtualMachine(name, home, home + "/bin/java", argMap, verboseModeArgs);
   }
 
   final String name;
   final File home;
   final File execPath;
   final ImmutableMap<String, String> arguments;
+  final ImmutableList<String> verboseModeArgs;
 
-  public VirtualMachine(
-      String name, String home, String execPath, Map<String, String> arguments) {
+  public VirtualMachine(String name, String home, String execPath, Map<String, String> arguments,
+      List<String> verboseModeArgs) {
+
     this.name = checkNotNull(name);
     this.home = new File(checkNotNull(home));
     this.execPath = new File(checkNotNull(execPath));
     this.arguments = ImmutableMap.copyOf(arguments);
+    this.verboseModeArgs = ImmutableList.copyOf(verboseModeArgs);
 
     // TODO: IAE?
     checkArgument(this.home.isDirectory());

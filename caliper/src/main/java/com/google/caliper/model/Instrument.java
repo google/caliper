@@ -28,6 +28,7 @@ import java.util.SortedMap;
  */
 public class Instrument {
   public String localName;
+  public String className;
 
   public SortedMap<String, String> properties;
 

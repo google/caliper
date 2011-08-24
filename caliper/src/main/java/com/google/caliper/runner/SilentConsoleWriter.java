@@ -24,4 +24,6 @@ public class SilentConsoleWriter implements ConsoleWriter {
   @Override public void describe(ScenarioSelection selection) {}
   @Override public void beforeDryRun(int count) {}
   @Override public void beforeRun(int trials, int scenarioCount, ShortDuration estimate) { }
+  @Override public void afterRun(ShortDuration elapsed) { }
+  @Override public void skippedScenarios(int nSkipped) { }
 }

@@ -29,7 +29,6 @@ import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.Collections;
-import java.util.EnumSet;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
@@ -238,8 +237,8 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
     }
 
     @Override public ShortDuration dividedBy(BigDecimal divisor, RoundingMode roundingMode) {
-      BigDecimal product = BigDecimal.valueOf(picos).divide(divisor);
-      return ofPicos(toLong(product, roundingMode));
+      BigDecimal product = BigDecimal.valueOf(picos).divide(divisor, roundingMode);
+      return ofPicos(product.longValueExact());
     }
 
     @Override public int compareTo(ShortDuration that) {

@@ -53,4 +53,12 @@ public class DefaultConsoleWriter implements ConsoleWriter {
       writer.format("Estimated runtime: %s.%n", estimate);
     }
   }
+
+  @Override public void afterRun(ShortDuration elapsed) {
+    writer.format("Execution complete: %s.%n", elapsed);
+  }
+
+  @Override public void skippedScenarios(int nSkipped) {
+    writer.format("%d scenarios were skipped.%n", nSkipped);
+  }
 }

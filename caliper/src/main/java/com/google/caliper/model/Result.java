@@ -34,6 +34,7 @@ public class Result {
   public List<String> vmCommandLine;
 
   public List<Measurement> measurements;
+  public List<String> messages;
   public String reportInfo;
 
   public static Result fromString(String json) {

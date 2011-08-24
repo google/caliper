@@ -43,14 +43,12 @@ public class DemoBenchmark extends Benchmark {
   }
 
   @Override protected void setUp() throws Exception {
-    System.out.println("Hey, I'm setting up.");
     if (string.equals("abc") && number == 1) {
       throw new SkipThisScenarioException();
     }
   }
 
   public int timeSomething(int reps) {
-    System.out.println("OOO I ran; reps=" + reps);
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += i;

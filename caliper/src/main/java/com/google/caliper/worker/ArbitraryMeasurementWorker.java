@@ -19,10 +19,17 @@ import java.util.Map;
  * @author schmoe@google.com (mike nonemacher)
  */
 public final class ArbitraryMeasurementWorker implements Worker {
+  // TODO(schmoe): replace this with Ticker.systemTicker() in guava r10
+  private static final Ticker defaultTicker = new Ticker() {
+    public long read() {
+      return System.nanoTime();
+    }
+  };
+
   private final Ticker ticker;
 
   public ArbitraryMeasurementWorker() {
-    this(Ticker.systemTicker());
+    this(defaultTicker);
   }
 
   public ArbitraryMeasurementWorker(Ticker ticker) {

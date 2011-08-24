@@ -23,4 +23,6 @@ public interface ConsoleWriter {
   void describe(ScenarioSelection selection);
   void beforeDryRun(int count);
   void beforeRun(int trials, int scenarioCount, ShortDuration estimate);
+  void afterRun(ShortDuration elapsed);
+  void skippedScenarios(int nSkipped);
 }
