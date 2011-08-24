@@ -30,7 +30,6 @@ import com.google.caliper.worker.WorkerResponse;
 import com.google.common.base.Charsets;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
-import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -123,13 +122,14 @@ public final class CaliperRun {
     results.writeInstrument(instrument);
     results.writeEnvironment(new EnvironmentGetter().getEnvironmentSnapshot());
 
-    Stopwatch stopwatch = new Stopwatch().start();
+    // TODO: use Stopwatch after Guava r10
+    long start = System.currentTimeMillis();
     for (Scenario scenario : scenariosToRun) {
       TrialResult trialResult = measure(scenario);
       results.writeTrialResult(trialResult);
     }
-    // TODO(kevinb): just use stopwatch.elapsed() after that's in Guava
-    console.afterRun(ShortDuration.of(stopwatch.elapsedMillis(), MILLISECONDS));
+    long elapsed = System.currentTimeMillis() - start;
+    console.afterRun(ShortDuration.of(elapsed, MILLISECONDS));
 
     CaliperData caliperData = results.getData();
     for (ResultProcessor resultProcessor : resultProcessors) {
