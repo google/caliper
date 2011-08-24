@@ -418,7 +418,7 @@ public final class Runner {
         timeMeasurementSet.getMeasurements().size(), memoryMeasurements);
   }
 
-  public static void main(String... args) {
+  public static void main(String[] args) {
     try {
       new Runner().run(args);
       System.exit(0); // user code may have leave non-daemon threads behind!
@@ -432,7 +432,7 @@ public final class Runner {
   }
 
   @SuppressWarnings("unchecked") // temporary fakery
-  public static void main(Class<? extends Benchmark> suite, String... args) {
+  public static void main(Class<? extends Benchmark> suite, String[] args) {
     String env = System.getenv("USE_CANARY_CALIPER");
     if (env != null && !env.isEmpty()) {
       CaliperMain.main((Class) suite, args);

@@ -88,6 +88,6 @@ public class TracingBenchmark implements Benchmark {
   }
 
   public static void main(String[] args) {
-    Runner.main(TracingBenchmark.class);
+    Runner.main(TracingBenchmark.class, args);
   }
 }
