@@ -21,15 +21,15 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
+import com.google.common.io.Files;
 
-import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -94,37 +94,29 @@ final class EnvironmentGetter {
         : ImmutableMultiset.copyOf(strings).toString();
   }
 
+  /**
+   * Returns the key/value pairs from the specified properties-file like file.
+   * Unlike standard Java properties files, {@code reader} is allowed to list
+   * the same property multiple times. Comments etc. are unsupported.
+   *
+   * <p>If there's any problem reading the file's contents, we'll return an
+   * empty Multimap.
+   */
   private static Multimap<String, String> propertiesFromLinuxFile(String file) {
     try {
-      // TODO(schmoe): are there environments where this will work, but Files.newReader(file) won't?
-      Process process = Runtime.getRuntime().exec(new String[]{"/bin/cat", file});
-      return propertiesFileToMultimap(
-          new InputStreamReader(process.getInputStream(), Charset.defaultCharset()));
+      List<String> lines = Files.readLines(new File(file), Charset.defaultCharset());
+      ImmutableMultimap.Builder<String, String> result = ImmutableMultimap.builder();
+      for (String line : lines) {
+        // TODO(schmoe): replace with Splitter (in Guava release 10)
+        String[] parts = line.split("\\s*\\:\\s*", 2);
+        if (parts.length == 2) {
+          result.put(parts[0], parts[1]);
+        }
+      }
+      return result.build();
     } catch (IOException e) {
+      // If there's any problem reading the file, just return an empty multimap.
       return ImmutableMultimap.of();
     }
-  }
-
-  /**
-   * Returns the key/value pairs from the specified properties-file like
-   * reader. Unlike standard Java properties files, {@code reader} is allowed
-   * to list the same property multiple times. Comments etc. are unsupported.
-   */
-  private static Multimap<String, String> propertiesFileToMultimap(Reader reader)
-      throws IOException {
-    ImmutableMultimap.Builder<String, String> result = ImmutableMultimap.builder();
-    BufferedReader in = new BufferedReader(reader);
-
-    String line;
-    while((line = in.readLine()) != null) {
-      // TODO(schmoe): replace with Splitter (in Guava release 10)
-      String[] parts = line.split("\\s*\\:\\s*", 2);
-      if (parts.length == 2) {
-        result.put(parts[0], parts[1]);
-      }
-    }
-    in.close();
-
-    return result.build();
   }
 }
