@@ -78,6 +78,10 @@ public final class CaliperRc {
     return submap("instrument." + instrumentName + ".vmArgs.jdk"); // TODO: android etc.
   }
 
+  public String getProperty(String propertyName) {
+    return props.get(propertyName);
+  }
+
   private ImmutableMap<String, String> submap(String name) {
     return Util.prefixedSubmap(props, name + ".");
   }
