@@ -110,8 +110,23 @@ public final class BenchmarkClass {
     userParameters.injectAll(benchmark, scenario.userParameters());
     injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
-    callSetUp(benchmark);
+    boolean setupSuccess = false;
+    try {
+      callSetUp(benchmark);
+      setupSuccess = true;
+    } finally {
+      // If setUp fails, we should call tearDown. If this method throws an exception, we
+      // need to call tearDown from here, because no one else has the reference to the
+      // Benchmark.
+      if (!setupSuccess) {
+        callTearDown(benchmark);
+      }
+    }
     return benchmark;
+  }
+
+  public void cleanup(Benchmark benchmark) throws UserCodeException {
+    callTearDown(benchmark);
   }
 
   public String name() {
@@ -122,27 +137,37 @@ public final class BenchmarkClass {
     return name();
   }
 
+  private static final Method SETUP_METHOD = findBenchmarkMethod("setUp");
+
+  private static final Method TEARDOWN_METHOD = findBenchmarkMethod("tearDown");
+
   // We have to do this reflectively because it'd be too much of a pain to make setUp public
   private void callSetUp(Benchmark benchmark) throws UserCodeException {
     try {
       SETUP_METHOD.invoke(benchmark);
-
     } catch (IllegalAccessException e) {
       throw new AssertionError(e);
-
     } catch (InvocationTargetException e) {
       propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
       throw new UserCodeException("Exception thrown during setUp", e.getCause());
     }
   }
 
-  private static final Method SETUP_METHOD = findSetUpMethod();
-
-  private static Method findSetUpMethod() {
+  private void callTearDown(Benchmark benchmark) throws UserCodeException {
     try {
-      Method setUp = Benchmark.class.getDeclaredMethod("setUp");
-      setUp.setAccessible(true);
-      return setUp;
+      TEARDOWN_METHOD.invoke(benchmark);
+    } catch (IllegalAccessException e) {
+      throw new AssertionError(e);
+    } catch (InvocationTargetException e) {
+      throw new UserCodeException("Exception thrown during tearDown", e.getCause());
+    }
+  }
+
+  private static Method findBenchmarkMethod(String methodName) {
+    try {
+      Method method = Benchmark.class.getDeclaredMethod(methodName);
+      method.setAccessible(true);
+      return method;
     } catch (NoSuchMethodException e) {
       throw new AssertionError(e);
     }

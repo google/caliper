@@ -55,13 +55,17 @@ public final class WorkerMain {
     Worker worker = (Worker) construct(request.workerClassName);
     WorkerEventLog log = new WorkerEventLog();
 
-    runSetUp(benchmark);
+    try {
+      runSetUp(benchmark);
 
-    Collection<Measurement> measurements =
-        worker.measure(benchmark, request.benchmarkMethodName, request.instrumentOptions, log);
+      Collection<Measurement> measurements =
+          worker.measure(benchmark, request.benchmarkMethodName, request.instrumentOptions, log);
 
-    System.out.println(InterleavedReader.DEFAULT_MARKER + new WorkerResponse(measurements));
-    System.out.flush(); // ?
+      System.out.println(InterleavedReader.DEFAULT_MARKER + new WorkerResponse(measurements));
+      System.out.flush(); // ?
+    } finally {
+      runTearDown(benchmark);
+    }
   }
 
   private static Object construct(String className) throws Exception {
@@ -75,8 +79,16 @@ public final class WorkerMain {
   }
 
   private static void runSetUp(Benchmark benchmark) throws Exception {
-    // benchmark.setUp() -- but oops, it's 'protected'
-    Method method = Benchmark.class.getDeclaredMethod("setUp");
+    runBenchmarkMethod(benchmark, "setUp");
+  }
+
+  private static void runTearDown(Benchmark benchmark) throws Exception {
+    runBenchmarkMethod(benchmark, "tearDown");
+  }
+
+  private static void runBenchmarkMethod(Benchmark benchmark, String methodName) throws Exception {
+    // benchmark.setUp() or .tearDown() -- but they're protected
+    Method method = Benchmark.class.getDeclaredMethod(methodName);
     method.setAccessible(true);
     method.invoke(benchmark);
   }

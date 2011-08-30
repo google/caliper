@@ -258,9 +258,13 @@ public final class CaliperRun {
     for (Scenario scenario : scenarios) {
       try {
         Benchmark benchmark = benchmarkClass.createAndStage(scenario);
-        instrument.dryRun(benchmark, scenario.benchmarkMethod());
-        builder.add(scenario);
-        // discard 'benchmark' now; the worker will have to instantiate its own anyway
+        try {
+          instrument.dryRun(benchmark, scenario.benchmarkMethod());
+          builder.add(scenario);
+        } finally {
+          // discard 'benchmark' now; the worker will have to instantiate its own anyway
+          benchmarkClass.cleanup(benchmark);
+        }
       } catch (SkipThisScenarioException innocuous) {
       }
     }
