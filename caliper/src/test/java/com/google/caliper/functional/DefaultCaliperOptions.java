@@ -78,4 +78,5 @@ public class DefaultCaliperOptions implements CaliperOptions {
   @Override public String caliperRcFilename() {
     throw new UnsupportedOperationException();
   }
+
 }
