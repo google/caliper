@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.caliper.util.LinearTranslation;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

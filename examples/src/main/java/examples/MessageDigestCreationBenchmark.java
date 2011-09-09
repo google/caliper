@@ -25,7 +25,6 @@ import java.security.MessageDigest;
 /**
  * Times creating new MessageDigest instances.
  *
- * @author Kevin Bourrillion
  */
 public class MessageDigestCreationBenchmark extends SimpleBenchmark {
   // By default, just the "interesting ones". Also consider Adler32 and CRC32,

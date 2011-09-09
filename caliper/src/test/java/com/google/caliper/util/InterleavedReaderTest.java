@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.util;
 
-import com.google.caliper.InterleavedReader;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+
+import junit.framework.TestCase;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import junit.framework.TestCase;
 
 public final class InterleavedReaderTest extends TestCase {
 

@@ -16,10 +16,6 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
-import java.util.List;
-
 /**
  * A single numeric datum reported by an instrument for a particular scenario.
  */
@@ -32,10 +28,10 @@ public class Measurement {
   public String description;
 
   public static Measurement fromString(String json) {
-    return Util.GSON.fromJson(json, Measurement.class);
+    return ModelJson.fromJson(json, Measurement.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

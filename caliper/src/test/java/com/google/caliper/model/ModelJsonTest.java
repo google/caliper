@@ -16,15 +16,12 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import junit.framework.TestCase;
 
 import java.util.Arrays;
 import java.util.TreeMap;
 
 /**
- * @author Kevin Bourrillion
  */
 public class ModelJsonTest extends TestCase {
 
@@ -38,16 +35,17 @@ public class ModelJsonTest extends TestCase {
     scenario.benchmarkMethodName = "bar";
     scenario.userParameters = new TreeMap<String, String>();
     scenario.vmArguments = new TreeMap<String, String>();
-    
+
     CaliperData result = new CaliperData();
     result.scenarios = Arrays.asList(scenario);
 
-    String json = Util.GSON.toJson(result, CaliperData.class);
-    System.out.println(json);
+    String json = ModelJson.toJson(result);
+    // System.out.println(json);
 
-    CaliperData result1 = Util.GSON.fromJson(json, CaliperData.class);
-    System.out.println(result1.scenarios);
+    CaliperData result1 = ModelJson.fromJson(json, CaliperData.class);
+    // System.out.println(result1.scenarios);
 
+    // WTF does this test do?
 
   }
 

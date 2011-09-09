@@ -16,8 +16,6 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.SortedMap;
 
 /**
@@ -30,10 +28,10 @@ public class Environment {
   public SortedMap<String, String> properties;
 
   public static Environment fromString(String json) {
-    return Util.GSON.fromJson(json, Environment.class);
+    return ModelJson.fromJson(json, Environment.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

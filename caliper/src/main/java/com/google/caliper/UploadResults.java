@@ -21,7 +21,6 @@ import java.io.File;
 /**
  * Usage: UploadResults <file_or_dir>
  *
- * @author Kevin Bourrillion
  */
 public class UploadResults {
   public static void main(String[] args) {

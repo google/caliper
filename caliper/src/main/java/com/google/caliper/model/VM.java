@@ -16,10 +16,7 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.Map;
-import java.util.SortedMap;
 
 /**
  * A virtual machine configuration.
@@ -32,10 +29,10 @@ public class VM {
   public Map<String, String> detectedProperties;
 
   public static VM fromString(String json) {
-    return Util.GSON.fromJson(json, VM.class);
+    return ModelJson.fromJson(json, VM.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

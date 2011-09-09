@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.util;
 
 import junit.framework.TestCase;
 

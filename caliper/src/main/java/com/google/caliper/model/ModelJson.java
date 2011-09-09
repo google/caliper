@@ -14,16 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.model;
 
-import com.google.caliper.util.ShortDuration;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 
-// This might actually be easier as a proxy so we don't have to keep updating it.
-public class SilentConsoleWriter implements ConsoleWriter {
-  @Override public void flush() {}
-  @Override public void describe(ScenarioSelection selection) {}
-  @Override public void beforeDryRun(int count) {}
-  @Override public void beforeRun(int trials, int scenarioCount, ShortDuration estimate) { }
-  @Override public void afterRun(ShortDuration elapsed) { }
-  @Override public void skippedScenarios(int nSkipped) { }
+class ModelJson {
+  // TODO(kevinb): options?
+  private static final Gson GSON = new GsonBuilder().create();
+
+  static <T> T fromJson(String json, Class<T> type) {
+    return GSON.fromJson(json, type);
+  }
+
+  static String toJson(Object obj) {
+    return GSON.toJson(obj);
+  }
+
+  static String toJson(JsonElement element) {
+    return GSON.toJson(element);
+  }
 }

@@ -17,7 +17,6 @@
 package examples;
 
 import com.google.caliper.SimpleBenchmark;
-import com.google.caliper.model.AllocationMeasurement;
 import com.google.caliper.runner.CaliperMain;
 
 import java.text.DecimalFormatSymbols;
@@ -30,14 +29,12 @@ import java.util.Locale;
  */
 @SuppressWarnings({"ResultOfObjectAllocationIgnored"}) // TODO: should fix!
 public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
-  @AllocationMeasurement
   public void timeNewDecimalFormatSymbols(int reps) {
     for (int i = 0; i < reps; ++i) {
       new DecimalFormatSymbols(Locale.US);
     }
   }
 
-  @AllocationMeasurement
   public void timeClonedDecimalFormatSymbols(int reps) {
     DecimalFormatSymbols dfs = new DecimalFormatSymbols(Locale.US);
     for (int i = 0; i < reps; ++i) {
@@ -45,14 +42,12 @@ public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
     }
   }
 
-  @AllocationMeasurement
   public void timeNewNumberFormat(int reps) {
     for (int i = 0; i < reps; ++i) {
       NumberFormat.getInstance(Locale.US);
     }
   }
 
-  @AllocationMeasurement
   public void timeClonedNumberFormat(int reps) {
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
     for (int i = 0; i < reps; ++i) {
@@ -60,14 +55,12 @@ public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
     }
   }
 
-  @AllocationMeasurement
   public void timeNewSimpleDateFormat(int reps) {
     for (int i = 0; i < reps; ++i) {
       new SimpleDateFormat();
     }
   }
 
-  @AllocationMeasurement
   public void timeClonedSimpleDateFormat(int reps) {
     SimpleDateFormat sdf = new SimpleDateFormat();
     for (int i = 0; i < reps; ++i) {

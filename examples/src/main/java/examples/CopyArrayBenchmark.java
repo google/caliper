@@ -34,7 +34,6 @@ import java.util.Random;
  *     memory (boolean arrays count as byte arrays!).
  * </ul>
  *
- * @author Kevin Bourrillion
  */
 public class CopyArrayBenchmark extends SimpleBenchmark {
   public enum Strategy {

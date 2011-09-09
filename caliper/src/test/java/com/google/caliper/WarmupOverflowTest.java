@@ -29,7 +29,6 @@ import junit.framework.TestCase;
  * Integer.MAX_VALUE reps (either because the benchmark code is optimized away or because the
  * warmupMillis are long enough compared to the benchmark execution time).
  *
- * @author cgdecker@gmail.com (Colin Decker)
  */
 public class WarmupOverflowTest extends TestCase {
   private TimeLimiter timeLimiter;

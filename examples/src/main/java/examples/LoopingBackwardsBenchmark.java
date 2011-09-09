@@ -23,7 +23,6 @@ import com.google.caliper.SimpleBenchmark;
 /**
  * Testing the old canard that looping backwards is faster.
  *
- * @author Kevin Bourrillion
  */
 public class LoopingBackwardsBenchmark extends SimpleBenchmark {
   @Param({"2", "20", "2000", "20000000"}) int max;

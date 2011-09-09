@@ -16,8 +16,6 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.SortedMap;
 
 /**
@@ -33,10 +31,10 @@ public class Instrument {
   public SortedMap<String, String> properties;
 
   public static Instrument fromString(String json) {
-    return Util.GSON.fromJson(json, Instrument.class);
+    return ModelJson.fromJson(json, Instrument.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

@@ -23,7 +23,6 @@ import com.google.caliper.SimpleBenchmark;
  * Caliper tutorial. To run the example benchmarks in this file:
  * {@code CLASSPATH=... [caliper_home]/caliper tutorial.Tutorial.Benchmark1}
  *
- * @author Kevin Bourrillion
  */
 public class Tutorial {
 

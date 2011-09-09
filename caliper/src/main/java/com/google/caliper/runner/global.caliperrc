@@ -81,11 +81,11 @@ instrument.arbitrary.options.gcBeforeEach=false
 
 # Instrument "allocationCount"
 instrument.allocationCount.class=com.google.caliper.runner.AllocationCountInstrument
-instrument.allocationCount.allocationAgentJar=
+instrument.allocationCount.options.allocationAgentJar=lib/allocation.jar
 
 # Instrument "allocationSize"
 instrument.allocationSize.class=com.google.caliper.runner.AllocationSizeInstrument
-instrument.allocationSize.allocationAgentJar=
+instrument.allocationSize.options.allocationAgentJar=lib/allocation.jar
 
 ######################
 # RESULTS STORAGE

@@ -16,10 +16,7 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.List;
-import java.util.SortedMap;
 
 /**
  * A set of measurements, optionally including arbitrary report text, that were taken by a
@@ -35,13 +32,12 @@ public class Result {
 
   public List<Measurement> measurements;
   public List<String> messages;
-  public String reportInfo;
 
   public static Result fromString(String json) {
-    return Util.GSON.fromJson(json, Result.class);
+    return ModelJson.fromJson(json, Result.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

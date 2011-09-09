@@ -19,6 +19,7 @@ package com.google.caliper;
 import com.google.caliper.UserException.DisplayUsageException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.caliper.runner.CaliperMain;
+import com.google.caliper.util.InterleavedReader;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;

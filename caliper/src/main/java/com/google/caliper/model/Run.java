@@ -16,26 +16,22 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.List;
-import java.util.Map;
-import java.util.SortedMap;
 
 /**
  * Represents a single invocation of the caliper runner.
  */
 public class Run {
   public String localName;
-  public String environmentLocalName;
-  public List<String> caliperArguments;
+  public String environmentLocalName; // TODO(kevinb): unused?
+  public List<String> caliperArguments; // TODO(kevinb): unused?
   // scenario selection? version? checksum of code?
 
   public static Run fromString(String json) {
-    return Util.GSON.fromJson(json, Run.class);
+    return ModelJson.fromJson(json, Run.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }

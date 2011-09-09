@@ -16,8 +16,7 @@
 
 package com.google.caliper.model;
 
-import com.google.common.collect.Lists;
-
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -25,10 +24,10 @@ import java.util.List;
  * to be a little more robust in the future.
  */
 public class CaliperData {
-  public List<Environment> environments = Lists.newArrayList();
-  public List<VM> vms = Lists.newArrayList();
-  public List<Run> runs = Lists.newArrayList();
-  public List<Instrument> instruments = Lists.newArrayList();
-  public List<Scenario> scenarios = Lists.newArrayList();
-  public List<Result> results = Lists.newArrayList();
+  public List<Environment> environments = new ArrayList<Environment>();
+  public List<VM> vms = new ArrayList<VM>();
+  public List<Run> runs = new ArrayList<Run>();
+  public List<Instrument> instruments = new ArrayList<Instrument>();
+  public List<Scenario> scenarios = new ArrayList<Scenario>();
+  public List<Result> results = new ArrayList<Result>();
 }

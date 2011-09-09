@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.util;
 
 public class LinearTranslation {
   //  y = mx + b

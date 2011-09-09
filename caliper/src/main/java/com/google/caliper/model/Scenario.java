@@ -16,8 +16,6 @@
 
 package com.google.caliper.model;
 
-import com.google.caliper.util.Util;
-
 import java.util.TreeMap;
 
 /**
@@ -38,10 +36,10 @@ public class Scenario {
   public TreeMap<String, String> vmArguments;
 
   public static Scenario fromString(String json) {
-    return Util.GSON.fromJson(json, Scenario.class);
+    return ModelJson.fromJson(json, Scenario.class);
   }
 
   @Override public String toString() {
-    return Util.GSON.toJson(this);
+    return ModelJson.toJson(this);
   }
 }
