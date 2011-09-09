@@ -16,11 +16,15 @@
 
 package com.google.caliper.util;
 
+import com.google.common.annotations.GwtCompatible;
+
+@GwtCompatible
 public class LinearTranslation {
   //  y = mx + b
   private final double m;
   private final double b;
 
+  // TODO(kevinb): why so high? why even check this at all?
   private static final double EQUALITY_TOLERANCE = 1.0E-6;
 
   /**
