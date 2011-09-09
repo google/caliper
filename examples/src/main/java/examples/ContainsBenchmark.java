@@ -17,6 +17,7 @@
 package examples;
 
 import com.google.caliper.Param;
+import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,4 +72,7 @@ public class ContainsBenchmark extends SimpleBenchmark {
     }
   }
 
+  public static void main(String[] args) {
+    Runner.main(ContainsBenchmark.class, args);
+  }
 }
