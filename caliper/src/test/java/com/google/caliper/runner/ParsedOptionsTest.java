@@ -75,7 +75,7 @@ public class ParsedOptionsTest extends TestCase {
     assertFalse(options.dryRun());
     assertEquals("micro", options.instrumentName());
     assertNull(options.outputFileOrDir());
-    assertEquals(1, options.trials());
+    assertEquals(1, options.trialsPerScenario());
     assertTrue(options.userParameters().isEmpty());
     assertFalse(options.verbose());
     assertTrue(options.vmArguments().isEmpty());
@@ -107,7 +107,7 @@ public class ParsedOptionsTest extends TestCase {
     assertFalse(options.dryRun());
     assertEquals("testInstrument", options.instrumentName());
     assertEquals("outputdir", options.outputFileOrDir());
-    assertEquals(2, options.trials());
+    assertEquals(2, options.trialsPerScenario());
     assertEquals(ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
         options.userParameters());
     assertTrue(options.verbose());

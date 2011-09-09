@@ -51,7 +51,7 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return "micro";
   }
 
-  @Override public int trials() {
+  @Override public int trialsPerScenario() {
     return 1;
   }
 
