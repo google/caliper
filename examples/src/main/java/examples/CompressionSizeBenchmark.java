@@ -18,6 +18,7 @@ package examples;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.model.AllocationMeasurement;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.runner.CaliperMain;
 
@@ -48,6 +49,15 @@ public class CompressionSizeBenchmark extends Benchmark {
       compressionLevelMap.put("bestSpeed", Deflater.BEST_SPEED);
       compressionLevelMap.put("noCompression", Deflater.NO_COMPRESSION);
       compressionLevelMap.put("huffmanOnly", Deflater.HUFFMAN_ONLY);
+  }
+
+  @AllocationMeasurement
+  public long doSimpleCompression(int reps) {
+    long dummy = 0;
+    for (int i = 0; i < reps; i++) {
+      dummy += compress(toCompress.getBytes()).length;
+    }
+    return dummy;
   }
 
   @ArbitraryMeasurement(units = ":1", description = "ratio of uncompressed to compressed")

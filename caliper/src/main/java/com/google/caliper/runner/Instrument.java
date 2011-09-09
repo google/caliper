@@ -21,6 +21,7 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.Worker;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 import java.lang.reflect.Constructor;
@@ -92,4 +93,12 @@ public abstract class Instrument {
   }
 
   public abstract Class<? extends Worker> workerClass();
+
+  /**
+   * Returns some arguments that should be added to the command line when invoking
+   * this instrument's worker.
+   */
+  Iterable<String> getExtraCommandLineArgs() {
+    return ImmutableList.of();
+  }
 }

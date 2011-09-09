@@ -79,6 +79,14 @@ instrument.arbitrary.class=com.google.caliper.runner.ArbitraryMeasurementInstrum
 # Run GC before every measurement?
 instrument.arbitrary.options.gcBeforeEach=false
 
+# Instrument "allocationCount"
+instrument.allocationCount.class=com.google.caliper.runner.AllocationCountInstrument
+instrument.allocationCount.allocationAgentJar=
+
+# Instrument "allocationSize"
+instrument.allocationSize.class=com.google.caliper.runner.AllocationSizeInstrument
+instrument.allocationSize.allocationAgentJar=
+
 ######################
 # RESULTS STORAGE
 ######################

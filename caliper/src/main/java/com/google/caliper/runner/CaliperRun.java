@@ -34,6 +34,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
@@ -178,6 +179,7 @@ public final class CaliperRun {
     if (options.detailedLogging()) {
       args.addAll(scenario.vm().verboseModeArgs);
     }
+    Iterables.addAll(args, instrument.getExtraCommandLineArgs());
 
     args.add(WorkerMain.class.getName());
     args.add(request.toString());
