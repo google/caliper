@@ -16,6 +16,8 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.GwtCompatible;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +30,7 @@ import java.util.Map;
  * A collection of measurements of the same scenario.
  */
 @SuppressWarnings("serial")
+@GwtCompatible
 public final class MeasurementSet
     implements Serializable /* for GWT Serialization */ {
 

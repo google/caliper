@@ -21,8 +21,6 @@ import junit.framework.TestCase;
 import java.util.Arrays;
 import java.util.TreeMap;
 
-/**
- */
 public class ModelJsonTest extends TestCase {
 
   public void test() {
@@ -35,7 +33,7 @@ public class ModelJsonTest extends TestCase {
     scenario.benchmarkMethodName = "bar";
     scenario.userParameters = new TreeMap<String, String>();
     scenario.vmArguments = new TreeMap<String, String>();
-
+    
     CaliperData result = new CaliperData();
     result.scenarios = Arrays.asList(scenario);
 

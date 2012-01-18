@@ -66,7 +66,7 @@ public final class ParameterSet {
   }
 
   public ImmutableSetMultimap<String, String> fillInDefaultsFor(
-      ImmutableSetMultimap<String, String> explicitValues) {
+      ImmutableSetMultimap<String, String> explicitValues) throws InvalidBenchmarkException {
     ImmutableSetMultimap.Builder<String, String> combined = ImmutableSetMultimap.builder();
 
     // For user parameters, this'll actually be the same as fromClass.keySet(), since any extras
@@ -77,7 +77,10 @@ public final class ParameterSet {
           ? explicitValues.get(name)
           : parameter.defaults();
 
-      combined.putAll(name, values); // TODO(kevinb): what if defaults empty? problem?
+      combined.putAll(name, values);
+      if (values.isEmpty()) {
+        throw new InvalidBenchmarkException("ERROR: No default value provided for " + name);
+      }
     }
     return combined.orderKeysBy(Ordering.natural()).build();
   }

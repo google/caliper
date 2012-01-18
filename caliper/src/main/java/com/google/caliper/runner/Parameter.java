@@ -81,8 +81,14 @@ public final class Parameter {
     }
   }
 
-  static final ImmutableSet<String> RESERVED_NAMES =
-      ImmutableSet.of("benchmark", "environment", "instrument", "name", "run", "trial", "vm");
+  static final ImmutableSet<String> RESERVED_NAMES = ImmutableSet.of(
+      "benchmark",
+      "environment",
+      "instrument",
+      "measurement", // e.g. runtime, allocation, etc.
+      "run",
+      "trial", // currently unused, but we might need it
+      "vm");
 
   String name() {
     return field.getName();

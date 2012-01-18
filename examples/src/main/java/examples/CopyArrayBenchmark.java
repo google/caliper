@@ -24,16 +24,25 @@ import java.util.Arrays;
 import java.util.Random;
 
 /**
- * Tests each of the three (non-manual) ways to copy an array, for all nine array types.
+ * Tests each of four ways to copy an array, for all nine array types.
  *
- * <p>For a recent (2010) build of OpenJDK on linux, this benchmark confirms these facts:
+ * <p>Once upon a time, {@code clone} was much slower than the other array copy techniques, but
+ * that was fixed in Sun bug:
+ *
+ * <a href="http://bugs.sun.com/view_bug.do?bug_id=6428387">
+ * array clone() much slower than Arrays.copyOf</a>
+ *
+ * at which time all copy methods were equally efficient.
+ *
+ * <p>Recent (2011) measurements with OpenJDK 7 on Linux are less clear.  Results suggests that:
  *
  * <ul>
- * <li>The three methods of copying have indistinguishable performance for all nine types.
+ * <li>The different methods of copying have indistinguishable performance with hotspot server for
+ *     all nine types, except that the naive LOOP is slower.
+ *     With the "client" compiler, LOOP beats CLONE, which is the slowest.
  * <li>As array sizes get large, the runtime is indeed proportional to the size of the array in
  *     memory (boolean arrays count as byte arrays!).
  * </ul>
- *
  */
 public class CopyArrayBenchmark extends SimpleBenchmark {
   public enum Strategy {
@@ -139,6 +148,80 @@ public class CopyArrayBenchmark extends SimpleBenchmark {
       @Override short[] copy(short[] array) {
         short[] copy = new short[array.length];
         System.arraycopy(array, 0, copy, 0, array.length);
+        return copy;
+      }
+    },
+    LOOP {
+      @Override Object[] copy(Object[] array) {
+        int len = array.length;
+        Object[] copy = new Object[len];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override boolean[] copy(boolean[] array) {
+        int len = array.length;
+        boolean[] copy = new boolean[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override byte[] copy(byte[] array) {
+        int len = array.length;
+        byte[] copy = new byte[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override char[] copy(char[] array) {
+        int len = array.length;
+        char[] copy = new char[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override double[] copy(double[] array) {
+        int len = array.length;
+        double[] copy = new double[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override float[] copy(float[] array) {
+        int len = array.length;
+        float[] copy = new float[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override int[] copy(int[] array) {
+        int len = array.length;
+        int[] copy = new int[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override long[] copy(long[] array) {
+        int len = array.length;
+        long[] copy = new long[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
+        return copy;
+      }
+      @Override short[] copy(short[] array) {
+        int len = array.length;
+        short[] copy = new short[array.length];
+        for (int i = 0; i < len; i++) {
+          copy[i] = array[i];
+        }
         return copy;
       }
     },

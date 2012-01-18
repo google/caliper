@@ -37,7 +37,7 @@ public class ParsedOptionsTest extends TestCase {
 
   @Override protected void tearDown() throws IOException {
     if (tempDir != null) {
-      Files.deleteRecursively(tempDir);
+      Runtime.getRuntime().exec(new String[] {"rm", "-rf", tempDir.getCanonicalPath()});
     }
   }
 

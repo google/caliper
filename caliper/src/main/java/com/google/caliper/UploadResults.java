@@ -20,7 +20,6 @@ import java.io.File;
 
 /**
  * Usage: UploadResults <file_or_dir>
- *
  */
 public class UploadResults {
   public static void main(String[] args) {

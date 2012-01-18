@@ -10,8 +10,6 @@ import java.lang.annotation.Target;
 /**
  * Annotation that identifies a given method as an "arbitrary measurement" method. The method should
  * take no parameters and return a double, which is the measured value.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

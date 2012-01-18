@@ -18,8 +18,6 @@ import java.lang.reflect.Method;
  * benchmark method and reports some statistic. The benchmark method must accept a
  * single int argument 'reps', which is the number of times to execute the guts of
  * the benchmark method, and it must be public and non-static.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 abstract class AllocationInstrument extends Instrument {
   @Override public boolean isBenchmarkMethod(Method method) {

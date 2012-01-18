@@ -59,9 +59,9 @@ public final class VirtualMachine {
     this.arguments = ImmutableMap.copyOf(arguments);
     this.verboseModeArgs = ImmutableList.copyOf(verboseModeArgs);
 
-    // TODO: IAE?
-    checkArgument(this.home.isDirectory());
-    checkArgument(this.execPath.isFile());
+    // TODO(kevinb): should we check these eagerly? If so must account for --jdk-root
+    // checkArgument(this.home.isDirectory());
+    // checkArgument(this.execPath.isFile());
   }
 
   ImmutableMap<String, String> detectProperties() {

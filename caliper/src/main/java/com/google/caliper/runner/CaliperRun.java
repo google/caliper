@@ -77,7 +77,7 @@ public final class CaliperRun {
 
   // TODO: this class does too much stuff. find some things to factor out of it.
 
-  public void run() throws UserCodeException {
+  public void run() throws InvalidBenchmarkException {
     ImmutableList<VirtualMachine> vms = createVms(options.vmNames());
 
     ImmutableSetMultimap<String, String> combinedParams =

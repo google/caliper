@@ -10,8 +10,6 @@ import java.util.List;
 
 /**
  * A simple data object that packages a {@link Scenario} with the output of a single trial.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 class TrialResult {
   private final Scenario scenario;

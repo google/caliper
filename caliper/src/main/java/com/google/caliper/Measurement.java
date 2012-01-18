@@ -16,6 +16,8 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.GwtCompatible;
+
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -25,6 +27,7 @@ import java.util.Map;
  * Represents a measurement of a single run of a benchmark.
  */
 @SuppressWarnings("serial")
+@GwtCompatible
 public final class Measurement
   implements Serializable /* for GWT */ {
 

@@ -19,8 +19,6 @@ import java.util.Map;
  * the benchmark method a few times, with varying numbers of reps, and computes the number of
  * object allocations and the total size of those allocations. It delegates to its subclasses to
  * create the {@link Measurement} based on these observations.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 abstract class AllocationWorker implements Worker {
   private int allocationCount;

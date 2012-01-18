@@ -24,8 +24,6 @@ import javax.annotation.Nullable;
 /**
  * {@link ResultProcessor} implementation that uploads the JSON-serialized results to the Caliper
  * webapp.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 final class WebappUploader implements ResultProcessor {
   @Nullable private final String postUrl;

@@ -19,8 +19,6 @@ import java.util.Map;
 /**
  * Instrument for taking an arbitrary measurement. When using this instrument, the benchmark code
  * itself returns the value. See {@link ArbitraryMeasurement}.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 public final class ArbitraryMeasurementInstrument extends Instrument {
   @Override public boolean isBenchmarkMethod(Method method) {

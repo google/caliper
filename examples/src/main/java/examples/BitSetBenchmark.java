@@ -82,7 +82,6 @@ import java.util.Random;
  *
  * <p><b>2:</b>Overly simplistic benchmarks can give a very false impression of
  * performance.
- *
  */
 public class BitSetBenchmark extends SimpleBenchmark {
   private BitSet bitSet;

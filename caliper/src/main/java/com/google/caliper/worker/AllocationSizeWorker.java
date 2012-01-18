@@ -7,8 +7,6 @@ import com.google.caliper.model.Measurement;
 /**
  * {@link AllocationWorker} subclass that builds its {@link Measurement} based on the
  * total number of bytes of allocations observed.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 public class AllocationSizeWorker extends AllocationWorker {
   @Override Measurement extractMeasurement(AllocationStats stats, int reps) {

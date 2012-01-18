@@ -16,6 +16,8 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.GwtCompatible;
+
 import java.io.Serializable;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -31,6 +33,7 @@ import java.util.Set;
  * <p>Gwt-safe.
  */
 @SuppressWarnings("serial")
+@GwtCompatible
 public final class Scenario
     implements Serializable /* for GWT */  {
 

@@ -16,6 +16,8 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.GwtCompatible;
+
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -30,6 +32,7 @@ import java.util.Map;
  * <p>Gwt-safe
  */
 @SuppressWarnings("serial")
+@GwtCompatible
 public final class Environment
     implements Serializable /* for GWT Serialization */ {
   private /*final*/ Map<String, String> propertyMap;

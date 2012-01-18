@@ -3,6 +3,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.model.CaliperData;
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -23,8 +24,6 @@ import java.util.TimeZone;
  * the file will be overwritten; if it exists and is a directory, the output will be dumped to a
  * file in that directory called {@code [benchmark classname].[timestamp].json}; otherwise, we'll
  * create a file with the given name and dump the output to that file.
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 final class OutputFileDumper implements ResultProcessor {
   private String outputFileOrDir;
@@ -38,9 +37,9 @@ final class OutputFileDumper implements ResultProcessor {
   @Override public void handleResults(CaliperData results) {
     try {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
-      Files.write(gson.toJson(results), getOutputFile(), Charset.defaultCharset());
+      Files.write(gson.toJson(results), getOutputFile(), Charsets.UTF_8);
     } catch (IOException ioe) {
-      // TODO(schmoe): what should we do here?
+      System.err.println("ERROR: Unable to write json output: " + ioe.getMessage());
     }
   }
 

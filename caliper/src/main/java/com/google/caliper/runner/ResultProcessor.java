@@ -6,8 +6,6 @@ import com.google.caliper.model.CaliperData;
 
 /**
  * Interface for objects that process a set of results once it is complete. Generally, the results 
- *
- * @author schmoe@google.com (mike nonemacher)
  */
 public interface ResultProcessor {
   void handleResults(CaliperData results);

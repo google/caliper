@@ -16,6 +16,9 @@
 
 package com.google.caliper;
 
+import com.google.common.annotations.GwtCompatible;
+
+@GwtCompatible
 public enum MeasurementType {
   TIME, INSTANCE, MEMORY, DEBUG
 }
