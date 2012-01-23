@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.CaliperData;
+import com.google.caliper.model.Run;
 import com.google.caliper.model.Environment;
 import com.google.caliper.model.Result;
 import com.google.caliper.model.VM;
@@ -30,8 +30,8 @@ import com.google.common.collect.Maps;
 import java.util.TreeMap;
 
 /**
- * Utility class to create and populate a {@link CaliperData}. Instances of this class are not
- * threadsafe.
+ * Utility class to create and populate a {@link com.google.caliper.model.Run}. Instances of this
+ * class are not threadsafe.
  */
 public final class ResultDataWriter {
   // TODO(schmoe): currently, ResultDataWriter can only write data with a single instrument and a
@@ -39,24 +39,24 @@ public final class ResultDataWriter {
   private static final String ENVIRONMENT_LOCAL_NAME = "A";
   private static final String INSTRUMENT_LOCAL_NAME = "A";
 
-  private CaliperData data = new CaliperData();
+  private Run run = new Run();
   private final BiMap<VirtualMachine, String> virtualMachineLocalNames = HashBiMap.create();
   private final BiMap<Scenario, String> scenarioLocalNames = HashBiMap.create();
 
   /**
    * Return the {@code CaliperData} that was populated by the write* methods.
    */
-  public CaliperData getData() {
-    CaliperData oldData = data;
+  public Run getRun() {
+    Run oldRun = run;
     // I don't want accidental future calls to affect the already-returned CaliperData, but this
     // doesn't really need to be usable after this call either. This is just lazy - for now, this
     // is easier.
-    // TODO(schmoe): Determine whether a ResultDataWriter should be usable after calling getData(),
-    // and document it or make all of the write* methods throw if getData() has already been called.
-    data = new CaliperData();
+    // TODO(schmoe): Determine whether a ResultDataWriter should be usable after calling getRun(),
+    // and document it or make all of the write* methods throw if getRun() has already been called.
+    run = new Run();
     virtualMachineLocalNames.clear();
     scenarioLocalNames.clear();
-    return oldData;
+    return oldRun;
   }
 
   /**
@@ -64,11 +64,11 @@ public final class ResultDataWriter {
    * environment's localName if it's set; otherwise, it assigns a meaningless localName to the copy.
    */
   public String writeEnvironment(Environment env) {
-    Preconditions.checkState(data.environments.isEmpty());
+    Preconditions.checkState(run.environments.isEmpty());
     Environment copy = new Environment();
     copy.properties = Maps.newTreeMap(env.properties);
     copy.localName = Objects.firstNonNull(env.localName, "A");
-    data.environments.add(copy);
+    run.environments.add(copy);
     return copy.localName;
   }
 
@@ -82,18 +82,18 @@ public final class ResultDataWriter {
     vm.localName = virtualMachine.name;
     vm.vmName = virtualMachine.name;
     vm.detectedProperties = virtualMachine.detectProperties();
-    data.vms.add(vm);
+    run.vms.add(vm);
     virtualMachineLocalNames.put(virtualMachine, vm.localName);
     return vm.localName;
   }
 
   public String writeInstrument(Instrument instrument) {
-    Preconditions.checkState(data.instruments.isEmpty());
+    Preconditions.checkState(run.instruments.isEmpty());
     com.google.caliper.model.Instrument modelInstrument = new com.google.caliper.model.Instrument();
     modelInstrument.localName = INSTRUMENT_LOCAL_NAME;
     modelInstrument.className = instrument.getClass().getName();
     modelInstrument.properties = new TreeMap<String, String>(instrument.options);
-    data.instruments.add(modelInstrument);
+    run.instruments.add(modelInstrument);
     return INSTRUMENT_LOCAL_NAME;
   }
 
@@ -110,7 +110,7 @@ public final class ResultDataWriter {
       return localName;
     }
 
-    localName = generateUniqueName(data.scenarios.size());
+    localName = generateUniqueName(run.scenarios.size());
     com.google.caliper.model.Scenario modelScenario = new com.google.caliper.model.Scenario();
     modelScenario.localName = localName;
     modelScenario.benchmarkMethodName = scenario.benchmarkMethod().name();
@@ -119,21 +119,21 @@ public final class ResultDataWriter {
     modelScenario.vmArguments = new TreeMap<String, String>(scenario.vmArguments());
     modelScenario.environmentLocalName = ENVIRONMENT_LOCAL_NAME;
     modelScenario.userParameters = new TreeMap<String, String>(scenario.userParameters());
-    data.scenarios.add(modelScenario);
+    run.scenarios.add(modelScenario);
     scenarioLocalNames.put(scenario, localName);
     return localName;
   }
 
   private void writeResult(String scenarioLocalName, TrialResult trialResult) {
     Result result = new Result();
-    result.localName = generateUniqueName(data.results.size());
+    result.localName = generateUniqueName(run.results.size());
     result.scenarioLocalName = scenarioLocalName;
     result.instrumentLocalName = INSTRUMENT_LOCAL_NAME;
     result.measurements = ImmutableList.copyOf(trialResult.getMeasurements());
     result.messages = ImmutableList.copyOf(trialResult.getMessages());
     result.vmCommandLine = trialResult.getVmCommandLine();
 //    result.reportInfo = ...
-    data.results.add(result);
+    run.results.add(result);
   }
 
   private String generateUniqueName(int index) {

@@ -4,12 +4,10 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.caliper.model.CaliperData;
+import com.google.caliper.model.Run;
 import com.google.caliper.util.Util;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,7 +62,7 @@ final class WebappUploader implements ResultProcessor {
     return proxy;
   }
 
-  @Override public void handleResults(CaliperData results) {
+  @Override public void handleResults(Run results) {
     if ((postUrl == null) || CharMatcher.WHITESPACE.matchesAllOf(postUrl)
         || (apiKey == null) || CharMatcher.WHITESPACE.matchesAllOf(apiKey)) {
       System.out.println(

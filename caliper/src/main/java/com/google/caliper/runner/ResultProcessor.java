@@ -2,11 +2,11 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.CaliperData;
+import com.google.caliper.model.Run;
 
 /**
  * Interface for objects that process a set of results once it is complete. Generally, the results 
  */
 public interface ResultProcessor {
-  void handleResults(CaliperData results);
+  void handleResults(Run results);
 }

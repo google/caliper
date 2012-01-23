@@ -16,16 +16,21 @@
 
 package com.google.caliper.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a single invocation of the caliper runner.
+ * Note: classes in this package are deliberately quick-and-dirty and minimal, and may be upgraded
+ * to be a little more robust in the future.
  */
 public class Run {
-  public String localName;
-  public String environmentLocalName; // TODO(kevinb): unused?
-  public List<String> caliperArguments; // TODO(kevinb): unused?
-  // scenario selection? version? checksum of code?
+  public String label;
+  public long timestamp;
+  public List<Environment> environments = new ArrayList<Environment>();
+  public List<VM> vms = new ArrayList<VM>();
+  public List<Instrument> instruments = new ArrayList<Instrument>();
+  public List<Scenario> scenarios = new ArrayList<Scenario>();
+  public List<Result> results = new ArrayList<Result>();
 
   public static Run fromString(String json) {
     return ModelJson.fromJson(json, Run.class);

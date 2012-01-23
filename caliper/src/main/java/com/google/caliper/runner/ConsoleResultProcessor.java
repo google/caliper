@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.CaliperData;
+import com.google.caliper.model.Run;
 import com.google.caliper.model.Instrument;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Result;
@@ -76,7 +76,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
   // least non-overlapping-use, which is only sorta necessary. Seems like handleResults should
   // create a one-per-call state object containing these fields and pass that around instead of
   // having these as member vars.
-  private CaliperData data;
+  private Run run;
   // (scenario.localName, axisName) -> value
   private Table<String, String, String> scenarioLocalVars;
   private Map<String, ProcessedResult> processedResults;
@@ -90,11 +90,11 @@ final class ConsoleResultProcessor implements ResultProcessor {
     this.printScore = printScore;
   }
 
-  @Override public void handleResults(CaliperData data) {
-    this.data = data;
-    Map<String, VM> vms = Maps.uniqueIndex(data.vms, VM_LOCAL_NAME_FUNCTION);
+  @Override public void handleResults(Run run) {
+    this.run = run;
+    Map<String, VM> vms = Maps.uniqueIndex(run.vms, VM_LOCAL_NAME_FUNCTION);
     this.scenarioLocalVars = HashBasedTable.create();
-    for (Scenario scenario : data.scenarios) {
+    for (Scenario scenario : run.scenarios) {
       String localName = scenario.localName;
       scenarioLocalVars.put(localName, "benchmark", scenario.benchmarkMethodName);
       scenarioLocalVars.put(localName, "vm", vms.get(scenario.vmLocalName).vmName);
@@ -106,7 +106,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
       }
     }
 
-    for (Instrument instrument : data.instruments) {
+    for (Instrument instrument : run.instruments) {
       displayResults(instrument);
     }
   }
@@ -115,7 +115,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     System.out.printf("Results for %s:%n", instrument.className);
 
     processedResults = Maps.newHashMap();
-    for (Result result : data.results) {
+    for (Result result : run.results) {
       if (instrument.localName.equals(result.instrumentLocalName)) {
         ProcessedResult existingResult = processedResults.get(result.scenarioLocalName);
         if (existingResult == null) {
@@ -135,7 +135,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     }
 
     Multimap<String, String> scenarioVars = HashMultimap.create();
-    for (Scenario scenario : data.scenarios) {
+    for (Scenario scenario : run.scenarios) {
       // only include scenarios with data for this instrument
       if (processedResults.keySet().contains(scenario.localName)) {
         for (Entry<String, String> entry : scenarioLocalVars.row(scenario.localName).entrySet()) {

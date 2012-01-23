@@ -34,13 +34,13 @@ public class ModelJsonTest extends TestCase {
     scenario.userParameters = new TreeMap<String, String>();
     scenario.vmArguments = new TreeMap<String, String>();
     
-    CaliperData result = new CaliperData();
+    Run result = new Run();
     result.scenarios = Arrays.asList(scenario);
 
     String json = ModelJson.toJson(result);
     // System.out.println(json);
 
-    CaliperData result1 = ModelJson.fromJson(json, CaliperData.class);
+    Run result1 = ModelJson.fromJson(json, Run.class);
     // System.out.println(result1.scenarios);
 
     // WTF does this test do?

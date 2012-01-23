@@ -2,8 +2,8 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.CaliperData;
 import com.google.common.base.Charsets;
+import com.google.caliper.model.Run;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -17,9 +17,9 @@ import java.util.Locale;
 import java.util.TimeZone;
 
 /**
- * {@link ResultProcessor} that dumps the given {@link CaliperData} to a file in JSON format.
- * The output file may be specified via {@link CaliperOptions#outputFileOrDir}. If this is
- * unspecified, the output will be dumped to a file called
+ * {@link ResultProcessor} that dumps the given {@link com.google.caliper.model.Run} to a file in
+ * JSON format. The output file may be specified via {@link CaliperOptions#outputFileOrDir}. If this
+ * is unspecified, the output will be dumped to a file called
  * {@code ./caliper-results/[benchmark classname].[timestamp].json}; if it exists and is a file,
  * the file will be overwritten; if it exists and is a directory, the output will be dumped to a
  * file in that directory called {@code [benchmark classname].[timestamp].json}; otherwise, we'll
@@ -34,7 +34,7 @@ final class OutputFileDumper implements ResultProcessor {
     this.benchmarkName = benchmarkName;
   }
 
-  @Override public void handleResults(CaliperData results) {
+  @Override public void handleResults(Run results) {
     try {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       Files.write(gson.toJson(results), getOutputFile(), Charsets.UTF_8);

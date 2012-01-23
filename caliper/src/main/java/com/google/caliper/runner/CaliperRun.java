@@ -19,7 +19,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.model.CaliperData;
+import com.google.caliper.model.Run;
 import com.google.caliper.util.InterleavedReader;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
@@ -141,9 +141,9 @@ public final class CaliperRun {
     long elapsed = System.currentTimeMillis() - start;
     console.afterRun(ShortDuration.of(elapsed, MILLISECONDS));
 
-    CaliperData caliperData = results.getData();
+    Run run = results.getRun();
     for (ResultProcessor resultProcessor : resultProcessors) {
-      resultProcessor.handleResults(caliperData);
+      resultProcessor.handleResults(run);
     }
   }
 
