@@ -4,13 +4,13 @@
   <groupId>com.google.code.caliper</groupId>
   <artifactId>caliper</artifactId>
   <packaging>jar</packaging>
-  <version>1.0-SNAPSHOT</version>
+  <version>0.5</version>
   <inceptionYear>2009</inceptionYear>
   <name>caliper</name>
   <parent>
     <groupId>org.sonatype.oss</groupId>
     <artifactId>oss-parent</artifactId>
-    <version>5</version>
+    <version>7</version>
   </parent>
   <url>http://code.google.com/p/caliper/</url>
   <description>Caliper: Microbenchmarking Framework for Java</description>
@@ -25,9 +25,9 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://caliper.googlecode.com/svn/trunk/caliper</connection>
-    <developerConnection>scm:svn:https://caliper.googlecode.com/svn/trunk/caliper</developerConnection>
-    <url>http://caliper.codegoogle.com/svn/trunk/caliper</url>
+    <connection>scm:git:http://code.google.com/p/caliper/</connection>
+    <developerConnection>scm:git:http://code.google.com/p/caliper/</developerConnection>
+    <url>http://code.google.com/p/caliper/source/browse</url>
   </scm>
   <issueManagement>
     <system>Google Code Issue Tracking</system>
