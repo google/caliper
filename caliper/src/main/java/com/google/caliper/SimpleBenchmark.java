@@ -40,7 +40,6 @@ import java.util.Set;
  * See the {@link Param} documentation to learn about parameters.
  */
 public abstract class SimpleBenchmark
-    extends com.google.caliper.api.Benchmark // TEMPORARY for transition
     implements Benchmark {
   private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 

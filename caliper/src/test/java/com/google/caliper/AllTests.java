@@ -16,12 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.caliper.model.ModelJsonTest;
-import com.google.caliper.runner.ParsedOptionsTest;
-import com.google.caliper.util.InterleavedReaderTest;
-import com.google.caliper.util.LinearTranslationTest;
-import com.google.caliper.util.ShortDurationTest;
-
 import junit.framework.Test;
 import junit.framework.TestSuite;
 
@@ -32,16 +26,7 @@ public class AllTests {
     suite.addTestSuite(JsonTest.class);
     suite.addTestSuite(MeasurementSetTest.class);
     suite.addTestSuite(ParameterTest.class);
-
-    // too slow...
-    // suite.addTestSuite(WarmupOverflowTest.class);
-
-    suite.addTestSuite(InterleavedReaderTest.class);
-    suite.addTestSuite(LinearTranslationTest.class);
-    suite.addTestSuite(ParsedOptionsTest.class);
-    suite.addTestSuite(ShortDurationTest.class);
-
-    suite.addTestSuite(ModelJsonTest.class);
+    suite.addTestSuite(WarmupOverflowTest.class);
 
     return suite;
   }
