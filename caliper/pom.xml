@@ -4,7 +4,7 @@
   <groupId>com.google.code.caliper</groupId>
   <artifactId>caliper</artifactId>
   <packaging>jar</packaging>
-  <version>0.5</version>
+  <version>1.0-SNAPSHOT</version>
   <inceptionYear>2009</inceptionYear>
   <name>caliper</name>
   <parent>
@@ -114,7 +114,6 @@
         <version>2.1</version>
         <configuration>
           <arguments>-DenableCiProfile=true</arguments>
-          <tagBase>https://caliper.googlecode.com/svn/tags/</tagBase>
         </configuration>
       </plugin>
       <plugin>

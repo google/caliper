@@ -22,8 +22,8 @@
     </license>
   </licenses>
   <scm>
-    <connection>scm:svn:http://caliper.googlecode.com/svn/trunk/examples</connection>
-    <developerConnection>scm:svn:https://caliper.googlecode.com/svn/trunk/examples</developerConnection>
+    <connection>scm:git:http://code.google.com/p/caliper/examples</connection>
+    <developerConnection>scm:git:git:http://code.google.com/p/caliper/examples</developerConnection>
     <url>http://caliper.codegoogle.com/svn/trunk/examples</url>
   </scm>
   <issueManagement>
@@ -75,7 +75,6 @@
         <version>2.1</version>
         <configuration>
           <arguments>-DenableCiProfile=true</arguments>
-          <tagBase>https://caliper.googlecode.com/svn/tags/</tagBase>
         </configuration>
       </plugin>
     </plugins>
