@@ -88,34 +88,6 @@
           <workspace>../eclipse-ws/</workspace>
         </configuration>
       </plugin>
-      <!-- plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy-allocation-jar</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>install-file</goal>
-            </goals>
-            <configuration>
-              <file>${basedir}/../lib/allocation.jar</file>
-              <groupId>com.google.code.java-allocation-instrumenter</groupId>
-              <artifactId>java-allocation-instrumenter</artifactId>
-              <version>2.0</version>
-              <packaging>jar</packaging>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin-->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>2.1</version>
-        <configuration>
-          <arguments>-DenableCiProfile=true</arguments>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-source-plugin</artifactId>
@@ -123,6 +95,7 @@
         <executions>
           <execution>
             <id>attach-sources</id>
+            <phase>verify</phase>
             <goals>
               <goal>jar</goal>
             </goals>
@@ -136,6 +109,7 @@
         <executions>
           <execution>
             <id>attach-javadocs</id>
+            <phase>verify</phase>
             <goals>
               <goal>jar</goal>
             </goals>
