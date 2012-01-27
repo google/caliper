@@ -29,13 +29,13 @@ import com.google.caliper.util.LinearTranslation;
 import com.google.common.base.Function;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
@@ -141,7 +141,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
       maxOfMedians = Math.max(maxOfMedians, result.median);
     }
 
-    Multimap<AxisName, AxisValue> axisValues = HashMultimap.create();
+    Multimap<AxisName, AxisValue> axisValues = LinkedHashMultimap.create();
     for (Scenario scenario : run.scenarios) {
       ScenarioName scenarioName = new ScenarioName(scenario.localName);
       // only include scenarios with data for this instrument
@@ -233,6 +233,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     }
 
     int index(ScenarioName scenarioLocalName) {
+      // assumes that there are no duplicate values
       return values.indexOf(get(scenarioLocalName));
     }
 
@@ -241,7 +242,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     }
 
     boolean isSingleton() {
-      return values.size() == 1;
+      return numberOfValues() == 1;
     }
   }
 
@@ -261,8 +262,8 @@ final class ConsoleResultProcessor implements ResultProcessor {
   private class ByAxisOrdering extends Ordering<ScenarioName> {
     public int compare(ScenarioName scenarioALocalName, ScenarioName scenarioBLocalName) {
       for (Axis axis : sortedAxes) {
-        int aValue = axis.values.indexOf(axis.get(scenarioALocalName));
-        int bValue = axis.values.indexOf(axis.get(scenarioBLocalName));
+        int aValue = axis.index(scenarioALocalName);
+        int bValue = axis.index(scenarioBLocalName);
         int diff = aValue - bValue;
         if (diff != 0) {
           return diff;
