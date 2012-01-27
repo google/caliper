@@ -16,15 +16,17 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.Run;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.caliper.model.Instrument;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Result;
+import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.VM;
 import com.google.caliper.util.LinearTranslation;
 import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
@@ -78,10 +80,10 @@ final class ConsoleResultProcessor implements ResultProcessor {
   // having these as member vars.
   private Run run;
   // (scenario.localName, axisName) -> value
-  private Table<String, String, String> scenarioLocalVars;
-  private Map<String, ProcessedResult> processedResults;
+  private Table<ScenarioName, AxisName, AxisValue> scenarioLocalVars;
+  private Map<ScenarioName, ProcessedResult> processedResults;
   private List<Axis> sortedAxes;
-  private ImmutableSortedSet<String> sortedScenarioNames;
+  private ImmutableSortedSet<ScenarioName> sortedScenarioNames;
 
   private double minValue;
   private double maxValue;
@@ -95,14 +97,18 @@ final class ConsoleResultProcessor implements ResultProcessor {
     Map<String, VM> vms = Maps.uniqueIndex(run.vms, VM_LOCAL_NAME_FUNCTION);
     this.scenarioLocalVars = HashBasedTable.create();
     for (Scenario scenario : run.scenarios) {
-      String localName = scenario.localName;
-      scenarioLocalVars.put(localName, "benchmark", scenario.benchmarkMethodName);
-      scenarioLocalVars.put(localName, "vm", vms.get(scenario.vmLocalName).vmName);
+      ScenarioName scenarioName = new ScenarioName(scenario.localName);
+      scenarioLocalVars.put(
+          scenarioName, new AxisName("benchmark"), new AxisValue(scenario.benchmarkMethodName));
+      scenarioLocalVars.put(
+          scenarioName, new AxisName("vm"), new AxisValue(vms.get(scenario.vmLocalName).vmName));
       for (Entry<String, String> entry : scenario.userParameters.entrySet()) {
-        scenarioLocalVars.put(localName, entry.getKey(), entry.getValue());
+        scenarioLocalVars.put(
+            scenarioName, new AxisName(entry.getKey()), new AxisValue(entry.getValue()));
       }
       for (Entry<String, String> entry : scenario.vmArguments.entrySet()) {
-        scenarioLocalVars.put(localName, entry.getKey(), entry.getValue());
+        scenarioLocalVars.put(
+            scenarioName, new AxisName(entry.getKey()), new AxisValue(entry.getValue()));
       }
     }
 
@@ -116,12 +122,13 @@ final class ConsoleResultProcessor implements ResultProcessor {
 
     processedResults = Maps.newHashMap();
     for (Result result : run.results) {
+      ScenarioName scenarioLocalName = new ScenarioName(result.scenarioLocalName);
       if (instrument.localName.equals(result.instrumentLocalName)) {
-        ProcessedResult existingResult = processedResults.get(result.scenarioLocalName);
+        ProcessedResult existingResult = processedResults.get(scenarioLocalName);
         if (existingResult == null) {
-          processedResults.put(result.scenarioLocalName, new ProcessedResult(result));
+          processedResults.put(scenarioLocalName, new ProcessedResult(result));
         } else {
-          processedResults.put(result.scenarioLocalName, combineResults(existingResult, result));
+          processedResults.put(scenarioLocalName, combineResults(existingResult, result));
         }
       }
     }
@@ -134,18 +141,19 @@ final class ConsoleResultProcessor implements ResultProcessor {
       maxOfMedians = Math.max(maxOfMedians, result.median);
     }
 
-    Multimap<String, String> scenarioVars = HashMultimap.create();
+    Multimap<AxisName, AxisValue> axisValues = HashMultimap.create();
     for (Scenario scenario : run.scenarios) {
+      ScenarioName scenarioName = new ScenarioName(scenario.localName);
       // only include scenarios with data for this instrument
-      if (processedResults.keySet().contains(scenario.localName)) {
-        for (Entry<String, String> entry : scenarioLocalVars.row(scenario.localName).entrySet()) {
-          scenarioVars.put(entry.getKey(), entry.getValue());
+      if (processedResults.keySet().contains(scenarioName)) {
+        for (Entry<AxisName, AxisValue> entry : scenarioLocalVars.row(scenarioName).entrySet()) {
+          axisValues.put(entry.getKey(), entry.getValue());
         }
       }
     }
 
     List<Axis> axes = Lists.newArrayList();
-    for (Entry<String, Collection<String>> entry : scenarioVars.asMap().entrySet()) {
+    for (Entry<AxisName, Collection<AxisValue>> entry : axisValues.asMap().entrySet()) {
       Axis axis = new Axis(entry.getKey(), entry.getValue());
       axes.add(axis);
     }
@@ -166,8 +174,8 @@ final class ConsoleResultProcessor implements ResultProcessor {
     for (Axis axis : axes) {
       int numValues = axis.numberOfValues();
       double[] sumForValue = new double[numValues];
-      for (Entry<String, ProcessedResult> entry : processedResults.entrySet()) {
-        String scenarioLocalName = entry.getKey();
+      for (Entry<ScenarioName, ProcessedResult> entry : processedResults.entrySet()) {
+        ScenarioName scenarioLocalName = entry.getKey();
         ProcessedResult result = entry.getValue();
         sumForValue[axis.index(scenarioLocalName)] += result.median;
       }
@@ -190,8 +198,8 @@ final class ConsoleResultProcessor implements ResultProcessor {
   }
 
   private ProcessedResult combineResults(ProcessedResult r1, Result r2) {
-    Preconditions.checkArgument(r1.modelResult.instrumentLocalName.equals(r2.instrumentLocalName));
-    Preconditions.checkArgument(r1.modelResult.scenarioLocalName.equals(r2.scenarioLocalName));
+    checkArgument(r1.modelResult.instrumentLocalName.equals(r2.instrumentLocalName));
+    checkArgument(r1.modelResult.scenarioLocalName.equals(r2.scenarioLocalName));
     r2.measurements = ImmutableList.<Measurement>builder()
         .addAll(r1.modelResult.measurements)
         .addAll(r2.measurements)
@@ -203,28 +211,28 @@ final class ConsoleResultProcessor implements ResultProcessor {
    * A scenario variable and the set of values to which it has been assigned.
    */
   private class Axis {
-    final String name;
-    final ImmutableList<String> values;
+    final AxisName name;
+    final ImmutableList<AxisValue> values;
     final int maxLength;
     double variance;
 
-    Axis(String name, Collection<String> values) {
+    Axis(AxisName name, Collection<AxisValue> values) {
       this.name = name;
       this.values = ImmutableList.copyOf(values);
-      Preconditions.checkArgument(!this.values.isEmpty());
+      checkArgument(!this.values.isEmpty());
 
-      int maxLen = name.length();
-      for (String value : values) {
-        maxLen = Math.max(maxLen, value.length());
+      int maxLen = name.toString().length();
+      for (AxisValue value : values) {
+        maxLen = Math.max(maxLen, value.toString().length());
       }
       this.maxLength = Math.min(maxLen, maxParamWidth);
     }
 
-    String get(String scenarioLocalName) {
+    AxisValue get(ScenarioName scenarioLocalName) {
       return scenarioLocalVars.get(scenarioLocalName, name);
     }
 
-    int index(String scenarioLocalName) {
+    int index(ScenarioName scenarioLocalName) {
       return values.indexOf(get(scenarioLocalName));
     }
 
@@ -250,8 +258,8 @@ final class ConsoleResultProcessor implements ResultProcessor {
   /**
    * Orders scenarios by the axes.
    */
-  private class ByAxisOrdering extends Ordering<String> {
-    public int compare(String scenarioALocalName, String scenarioBLocalName) {
+  private class ByAxisOrdering extends Ordering<ScenarioName> {
+    public int compare(ScenarioName scenarioALocalName, ScenarioName scenarioBLocalName) {
       for (Axis axis : sortedAxes) {
         int aValue = axis.values.indexOf(axis.get(scenarioALocalName));
         int bValue = axis.values.indexOf(axis.get(scenarioBLocalName));
@@ -307,12 +315,12 @@ final class ConsoleResultProcessor implements ResultProcessor {
     double sumOfLogs = 0.0;
 
     String measurementPattern = "%" + measurementLength + ".3f";
-    for (String scenarioLocalName : sortedScenarioNames) {
+    for (ScenarioName scenarioLocalName : sortedScenarioNames) {
       ProcessedResult result = processedResults.get(scenarioLocalName);
       for (Axis axis : sortedAxes) {
         if (!axis.isSingleton()) {
           System.out.printf("%" + axis.maxLength + "s ",
-              truncate(axis.get(scenarioLocalName), axis.maxLength));
+              truncate(axis.get(scenarioLocalName).toString(), axis.maxLength));
         }
       }
       sumOfLogs += Math.log(result.median);
@@ -387,7 +395,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     }
   }
 
-  
+
   private static class ProcessedResult {
     private final Result modelResult;
     private final double[] values;
@@ -442,10 +450,85 @@ final class ConsoleResultProcessor implements ResultProcessor {
     }
   }
 
+  // TODO(fry): eventually migrate to a Java data model b/5895975
+
+  private static class ScenarioName {
+    private final String name;
+
+    public ScenarioName(String name) {
+      this.name = checkNotNull(name);
+    }
+
+    @Override public String toString() {
+      return name;
+    }
+
+    @Override public int hashCode() {
+      return name.hashCode();
+    }
+
+    @Override public boolean equals(Object other) {
+      if (other instanceof ScenarioName) {
+        ScenarioName that = (ScenarioName) other;
+        return this.name.equals(that.name);
+      }
+      return false;
+    }
+  }
+
+  private static class AxisName {
+    private final String name;
+
+    public AxisName(String name) {
+      this.name = checkNotNull(name);
+    }
+
+    @Override public String toString() {
+      return name;
+    }
+
+    @Override public int hashCode() {
+      return name.hashCode();
+    }
+
+    @Override public boolean equals(Object other) {
+      if (other instanceof AxisName) {
+        AxisName that = (AxisName) other;
+        return this.name.equals(that.name);
+      }
+      return false;
+    }
+  }
+
+  private static class AxisValue {
+    private final String value;
+
+    public AxisValue(String value) {
+      this.value = checkNotNull(value);
+    }
+
+    @Override public String toString() {
+      return value;
+    }
+
+    @Override public int hashCode() {
+      return value.hashCode();
+    }
+
+    @Override public boolean equals(Object other) {
+      if (other instanceof AxisValue) {
+        AxisValue that = (AxisValue) other;
+        return this.value.equals(that.value);
+      }
+      return false;
+    }
+  }
+
   private static final Function<VM, String> VM_LOCAL_NAME_FUNCTION =
       new Function<VM, String>() {
         @Override public String apply(VM vm) {
           return vm.localName;
         }
       };
+
 }
