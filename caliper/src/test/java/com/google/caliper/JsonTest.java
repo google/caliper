@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableMap;
+
 import java.util.Date;
 import java.util.Locale;
 import java.util.Map;
@@ -35,6 +36,7 @@ public final class JsonTest extends TestCase {
    * Caliper's JSON files used to include dates specific to the host machine's
    * locale. http://code.google.com/p/caliper/issues/detail?id=113
    */
+
   public void testJsonSerializationWithFancyLocale() {
     Result original = newSampleResult();
 

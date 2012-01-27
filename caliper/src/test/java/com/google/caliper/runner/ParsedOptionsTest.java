@@ -41,12 +41,14 @@ public class ParsedOptionsTest extends TestCase {
     }
   }
 
+
   private static void makeTestVmTree(File baseDir) throws IOException {
     File bin = new File(baseDir, "testVm/bin");
     bin.mkdirs();
     File java = new File(bin, "java");
     Files.touch(java);
   }
+
 
   public void testNoOptions() throws InvalidCommandException {
     try {
@@ -57,6 +59,7 @@ public class ParsedOptionsTest extends TestCase {
     }
   }
 
+
   public void testHelp() throws InvalidCommandException {
     try {
       ParsedOptions.from(new String[] {"--help"});
@@ -64,7 +67,8 @@ public class ParsedOptionsTest extends TestCase {
     } catch (DisplayUsageException expected) {
     }
   }
-  
+
+
   public void testDefaults() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME});
 
@@ -81,6 +85,7 @@ public class ParsedOptionsTest extends TestCase {
     assertTrue(options.vmArguments().isEmpty());
     assertEquals(0, options.vmNames().size());
   }
+
 
   public void testKitchenSink() throws InvalidCommandException {
     String[] args = {

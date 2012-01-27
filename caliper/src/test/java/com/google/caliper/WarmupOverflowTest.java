@@ -19,6 +19,7 @@ package com.google.caliper;
 import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -36,6 +37,7 @@ public class WarmupOverflowTest extends TestCase {
     timeLimiter = new SimpleTimeLimiter(Executors.newSingleThreadExecutor());
   }
 
+
   public void testOptimizedAwayBenchmarkDoesNotTakeTooLongToRun() throws Exception {
     try {
       timeLimiter.callWithTimeout(new Callable<Void>() {
@@ -49,6 +51,7 @@ public class WarmupOverflowTest extends TestCase {
     } catch (DoesNotScaleLinearlyException expected) {
     }
   }
+
 
   public void testLongWarmupMillisDoesNotTakeTooLongToRun() throws Exception {
     timeLimiter.callWithTimeout(new Callable<Void>() {
