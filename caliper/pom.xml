@@ -124,7 +124,7 @@
           <execution>
             <id>attach-sources</id>
             <goals>
-              <goal>jar</goal>
+              <goal>jar-no-fork</goal>
             </goals>
           </execution>
         </executions>
@@ -135,9 +135,10 @@
         <version>2.7</version>
         <executions>
           <execution>
-            <id>attach-javadocs</id>
+            <id>generate-javadocs</id>
+            <phase>site</phase>
             <goals>
-              <goal>jar</goal>
+              <goal>javadoc</goal>
             </goals>
           </execution>
         </executions>
