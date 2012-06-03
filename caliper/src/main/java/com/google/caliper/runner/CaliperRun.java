@@ -107,17 +107,16 @@ public final class CaliperRun {
     try {
       ShortDuration perTrial = instrument.estimateRuntimePerTrial();
       estimate = perTrial.times(scenariosToRun.size() * options.trialsPerScenario());
-
     } catch (Exception e) {
       estimate = ShortDuration.zero();
     }
 
-    console.beforeRun(options.trialsPerScenario(), scenariosToRun.size(), estimate);
-    console.flush();
-
     if (options.dryRun()) {
       return;
     }
+
+    console.beforeRun(options.trialsPerScenario(), scenariosToRun.size(), estimate);
+    console.flush();
 
     ResultDataWriter results = new ResultDataWriter();
     results.writeInstrument(instrument);
