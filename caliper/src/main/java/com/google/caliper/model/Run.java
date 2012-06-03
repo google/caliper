@@ -24,7 +24,7 @@ import java.util.List;
  * to be a little more robust in the future.
  */
 public class Run {
-  public String label;
+  public String label = "default";
   public long timestamp;
   public List<Environment> environments = new ArrayList<Environment>();
   public List<VM> vms = new ArrayList<VM>();

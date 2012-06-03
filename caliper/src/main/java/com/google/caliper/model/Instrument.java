@@ -17,6 +17,7 @@
 package com.google.caliper.model;
 
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * The details of what kind of measurement was taken and how; three examples of instruments are
@@ -28,7 +29,7 @@ public class Instrument {
   public String localName;
   public String className;
 
-  public SortedMap<String, String> properties;
+  public TreeMap<String, String> properties = new TreeMap<String, String>();
 
   public static Instrument fromString(String json) {
     return ModelJson.fromJson(json, Instrument.class);

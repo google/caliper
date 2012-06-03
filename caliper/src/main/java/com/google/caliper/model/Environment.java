@@ -16,7 +16,9 @@
 
 package com.google.caliper.model;
 
+import java.util.LinkedHashMap;
 import java.util.SortedMap;
+import java.util.TreeMap;
 
 /**
  * The collected information that caliper detects about the hardware and operating system it is
@@ -25,7 +27,7 @@ import java.util.SortedMap;
 public class Environment {
   public String localName;
 
-  public SortedMap<String, String> properties;
+  public TreeMap<String, String> properties = new TreeMap<String, String>();
 
   public static Environment fromString(String json) {
     return ModelJson.fromJson(json, Environment.class);
