@@ -36,11 +36,20 @@ class Vm {
       ImmutableList<String> vmArgs, String className, ImmutableList<String> applicationArgs) {
     ProcessBuilder result = new ProcessBuilder();
     result.directory(workingDirectory);
-    result.command().addAll(vmArgs);
-    result.command().add("-cp");
-    result.command().add(classPath);
-    result.command().add(className);
-    result.command().addAll(applicationArgs);
+    List<String> command = result.command();
+
+    command.addAll(vmArgs);
+    addClassPath(command, classPath);
+    command.add(className);
+    command.addAll(applicationArgs);
     return result;
   }
+
+  private void addClassPath(List<String> command, String classPath) {
+    command.add("-cp");
+
+
+    command.add(classPath);
+  }
+
 }
