@@ -17,8 +17,8 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.config.CaliperRc;
 import com.google.caliper.runner.CaliperOptions;
+import com.google.caliper.runner.CaliperRc;
 import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.ConsoleWriter;
 import com.google.caliper.runner.InvalidBenchmarkException;
@@ -71,7 +71,7 @@ public class ExceptionsFromUserCodeTest extends TestCase {
 //      throwSomeUserException();
 //    }
 //  }
-
+  
   // end of tests
 
   private void expectException(Class<?> benchmarkClass)
@@ -81,7 +81,7 @@ public class ExceptionsFromUserCodeTest extends TestCase {
       // It's undefined whether these exceptions happen during the constructor or run()
       ImmutableMap<String, String> map = ImmutableMap.of(
           "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
-      new CaliperRun(options, new CaliperRc(map).asCaliperConfig(), SHH).run();
+      new CaliperRun(options, new CaliperRc(map), SHH).run();
       fail("no exception thrown");
     } catch (UserCodeException e) {
       if (!(e.getCause() instanceof SomeUserException)) {
