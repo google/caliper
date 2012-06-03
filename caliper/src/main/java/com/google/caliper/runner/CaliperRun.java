@@ -19,6 +19,8 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.config.CaliperConfig;
+import com.google.caliper.config.CaliperRc;
 import com.google.caliper.model.Run;
 import com.google.caliper.util.InterleavedReader;
 import com.google.caliper.util.InvalidCommandException;
@@ -53,22 +55,22 @@ import java.util.Set;
  */
 public final class CaliperRun {
   private final CaliperOptions options;
-  private final CaliperRc caliperRc;
+  private final CaliperConfig config;
   private final ConsoleWriter console;
   private final BenchmarkClass benchmarkClass;
   private final Collection<BenchmarkMethod> methods;
   private final Instrument instrument;
   private final List<ResultProcessor> resultProcessors;
 
-  public CaliperRun(CaliperOptions options, CaliperRc caliperRc, ConsoleWriter console)
+  public CaliperRun(CaliperOptions options, CaliperConfig config, ConsoleWriter console)
       throws InvalidCommandException, InvalidBenchmarkException {
     this.options = options;
-    this.caliperRc = caliperRc;
+    this.config = config;
     this.console = console;
 
     Class<?> aClass = classForName(options.benchmarkClassName());
     this.benchmarkClass = new BenchmarkClass(aClass);
-    this.instrument = Instrument.createInstrument(options.instrumentName(), caliperRc);
+    this.instrument = Instrument.createInstrument(options.instrumentName(), config.asCaliperRc());
     this.methods = chooseBenchmarkMethods(benchmarkClass, instrument, options);
     this.resultProcessors = createResultProcessors();
 
@@ -159,6 +161,7 @@ public final class CaliperRun {
   }
 
   private VirtualMachine findVm(String vmName) {
+    CaliperRc caliperRc = config.asCaliperRc();
     String home = Objects.firstNonNull(caliperRc.homeDirForVm(vmName), vmName);
     String absoluteHome =
         new File(home).isAbsolute() ? home : caliperRc.vmBaseDirectory() + "/" + home;
@@ -256,7 +259,7 @@ public final class CaliperRun {
     ImmutableList.Builder<ResultProcessor> builder = ImmutableList.builder();
     builder.add(new ConsoleResultProcessor(options.calculateAggregateScore()));
     builder.add(new OutputFileDumper(options.outputFileOrDir(), benchmarkClass.name()));
-    builder.add(WebappUploader.create(benchmarkClass.name(), caliperRc));
+    builder.add(WebappUploader.create(benchmarkClass.name(), config.asCaliperRc()));
     return builder.build();
   }
 

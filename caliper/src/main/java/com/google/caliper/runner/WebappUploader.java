@@ -4,6 +4,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.config.CaliperRc;
 import com.google.caliper.model.NewTrial;
 import com.google.caliper.model.Run;
 import com.google.caliper.util.Util;

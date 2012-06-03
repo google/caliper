@@ -19,8 +19,8 @@ package com.google.caliper.functional;
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.VmParam;
+import com.google.caliper.config.CaliperRc;
 import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.CaliperRc;
 import com.google.caliper.runner.CaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
 import com.google.caliper.runner.MicrobenchmarkInstrument;
@@ -152,7 +152,7 @@ public class InvalidBenchmarksTest extends TestCase {
       // Note that all the failures checked by this test are caught before even calling run()
       ImmutableMap<String, String> map = ImmutableMap.of(
           "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
-      new CaliperRun(options, new CaliperRc(map), null);
+      new CaliperRun(options, new CaliperRc(map).asCaliperConfig(), null);
       fail("no exception thrown");
 
     } catch (InvalidBenchmarkException e) {

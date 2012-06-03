@@ -17,6 +17,8 @@ package com.google.caliper.runner;
 import static com.google.common.collect.ObjectArrays.concat;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.config.CaliperConfig;
+import com.google.caliper.config.CaliperConfigLoader;
 import com.google.caliper.util.InvalidCommandException;
 
 import java.io.File;
@@ -80,11 +82,11 @@ public final class CaliperMain {
       throws InvalidCommandException, InvalidBenchmarkException {
 
     CaliperOptions options = ParsedOptions.from(args); // throws ICE
-    CaliperRc rc = CaliperRcManager.loadOrCreate(new File(options.caliperRcFilename()));
+    CaliperConfig config = CaliperConfigLoader.loadOrCreate(new File(options.caliperRcFilename()));
 
     ConsoleWriter console = new DefaultConsoleWriter(writer);
 
-    CaliperRun run = new CaliperRun(options, rc, console); // throws ICE, IBE
+    CaliperRun run = new CaliperRun(options, config, console); // throws ICE, IBE
     run.run(); // throws UCE
 
     // TODO(kevinb): when exactly do we need to do this?
