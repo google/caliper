@@ -41,8 +41,7 @@ final class EnvironmentGetter {
   Environment getEnvironmentSnapshot() {
     TreeMap<String, String> propertyMap = Maps.newTreeMap();
 
-    @SuppressWarnings("unchecked")
-    Map<String, String> sysProps = (Map<String, String>) (Map) System.getProperties();
+    Map<String, String> sysProps = Maps.fromProperties(System.getProperties());
 
     // Sometimes java.runtime.version is more descriptive than java.version
     String version = sysProps.get("java.version");

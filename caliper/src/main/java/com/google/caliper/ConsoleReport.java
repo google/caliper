@@ -70,8 +70,6 @@ final class ConsoleReport {
   private final List<MeasurementType> orderedMeasurementTypes;
   private final MeasurementType type;
   private final double maxValue;
-  private final double logMinValue;
-  private final double logMaxValue;
   private final EnumMap<MeasurementType, Integer> decimalDigitsMap =
       new EnumMap<MeasurementType, Integer>(MeasurementType.class);
   private final EnumMap<MeasurementType, Double> divideByMap =
@@ -158,8 +156,6 @@ final class ConsoleReport {
     this.variables = new StandardDeviationOrdering().reverse().sortedCopy(variablesBuilder);
     this.scenarios = new ByVariablesOrdering().sortedCopy(this.run.getMeasurements().keySet());
     this.maxValue = max;
-    this.logMinValue = Math.log(min);
-    this.logMaxValue = Math.log(max);
 
     EnumMap<MeasurementType, Integer> digitsBeforeDecimalMap =
       new EnumMap<MeasurementType, Integer>(MeasurementType.class);
@@ -277,6 +273,7 @@ final class ConsoleReport {
    * in an appropriate grouping of output values.
    */
   private static class StandardDeviationOrdering extends Ordering<Variable> {
+    @Override
     public int compare(Variable a, Variable b) {
       return Double.compare(a.stdDeviation, b.stdDeviation);
     }
@@ -286,6 +283,7 @@ final class ConsoleReport {
    * Orders scenarios by the variables.
    */
   private class ByVariablesOrdering extends Ordering<Scenario> {
+    @Override
     public int compare(Scenario a, Scenario b) {
       for (Variable variable : variables) {
         int aValue = variable.values.indexOf(variable.get(a));

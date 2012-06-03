@@ -21,31 +21,31 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 
 /**
- * A depth-first object graph explorer. The traversal starts at a root (an 
- * {@code Object}) and explores any other reachable object (recursively) or 
- * primitive value, excluding static fields from the traversal. The traversal 
- * is controlled by a user-supplied {@link ObjectVisitor}, which decides for 
- * each explored path whether to continue exploration of that path, and it can 
+ * A depth-first object graph explorer. The traversal starts at a root (an
+ * {@code Object}) and explores any other reachable object (recursively) or
+ * primitive value, excluding static fields from the traversal. The traversal
+ * is controlled by a user-supplied {@link ObjectVisitor}, which decides for
+ * each explored path whether to continue exploration of that path, and it can
  * also return a value at the end of the traversal.
  */
 public final class ObjectExplorer {
   private ObjectExplorer() { }
 
   /**
-   * Explores an object graph (defined by a root object and whatever is 
-   * reachable through it, following non-static fields) while using an 
+   * Explores an object graph (defined by a root object and whatever is
+   * reachable through it, following non-static fields) while using an
    * {@link ObjectVisitor} to both control the traversal and return a value.
    *
-   * <p>Equivalent to {@code exploreObject(rootObject, visitor, 
+   * <p>Equivalent to {@code exploreObject(rootObject, visitor,
    * EnumSet.noneOf(Feature.class))}.
    *
-   * @param <T> the type of the value obtained (after the traversal) by the 
+   * @param <T> the type of the value obtained (after the traversal) by the
    * ObjectVisitor
    * @param rootObject an object to be recursively explored
    * @param visitor a visitor that is notified for each explored path and
-   * decides whether to continue exploration of that path, and constructs a 
+   * decides whether to continue exploration of that path, and constructs a
    * return value at the end of the exploration
-   * @return whatever value is returned by the visitor at the end of the 
+   * @return whatever value is returned by the visitor at the end of the
    * traversal
    * @see ObjectVisitor
    */
@@ -54,27 +54,27 @@ public final class ObjectExplorer {
   }
 
   /**
-   * Explores an object graph (defined by a root object and whatever is 
-   * reachable through it, following non-static fields) while using an 
+   * Explores an object graph (defined by a root object and whatever is
+   * reachable through it, following non-static fields) while using an
    * {@link ObjectVisitor} to both control the traversal and return a value.
    *
-   * <p>The {@code features} further customizes the exploration behavior. 
+   * <p>The {@code features} further customizes the exploration behavior.
    * In particular:
    * <ul>
-   * <li>If {@link Feature#VISIT_PRIMITIVES} is contained in features, 
+   * <li>If {@link Feature#VISIT_PRIMITIVES} is contained in features,
    * the visitor will also be notified about exploration of primitive values.
-   * <li>If {@link Feature#VISIT_NULL} is contained in features, the visitor 
+   * <li>If {@link Feature#VISIT_NULL} is contained in features, the visitor
    * will also be notified about exploration of {@code null} values.
    * </ul>
-   * In both cases above, the return value of 
-   * {@link ObjectVisitor#visit(Chain)} is ignored, since neither primitive 
+   * In both cases above, the return value of
+   * {@link ObjectVisitor#visit(Chain)} is ignored, since neither primitive
    * values or {@code null} can be further explored.
    *
-   * @param <T> the type of the value obtained (after the traversal) by the 
+   * @param <T> the type of the value obtained (after the traversal) by the
    * ObjectVisitor
    * @param rootObject an object to be recursively explored
-   * @param visitor a visitor that is notified for each explored path 
-   * and decides whether to continue exploration of that path, and constructs 
+   * @param visitor a visitor that is notified for each explored path
+   * and decides whether to continue exploration of that path, and constructs
    * a return value at the end of the exploration
    * @param features a set of desired features that the object exploration should have
    * @return whatever value is returned by the visitor at the end of the traversal
@@ -102,7 +102,7 @@ public final class ObjectExplorer {
         boolean isPrimitive = valueClass.getComponentType().isPrimitive();
         /*
          * Since we push paths to explore in a stack, we push references found in the array in
-         * reverse order, so when we pop them, they will be in the array's order. 
+         * reverse order, so when we pop them, they will be in the array's order.
          */
         for (int i = Array.getLength(value) - 1; i >= 0; i--) {
           Object childValue = Array.get(value, i);
@@ -121,8 +121,8 @@ public final class ObjectExplorer {
       } else {
         /*
          * Reflection usually provides fields in declaration order. As above in arrays, we push
-         * them to the stack in reverse order, so when we pop them, we get them in the original 
-         * (declaration) order. 
+         * them to the stack in reverse order, so when we pop them, we get them in the original
+         * (declaration) order.
          */
         for (Field field : Lists.reverse(getAllFields(value))) {
           Object childValue = null;
@@ -159,13 +159,13 @@ public final class ObjectExplorer {
     private final Set<Object> seen = Collections.newSetFromMap(
         new IdentityHashMap<Object, Boolean>());
 
-    public boolean apply(Chain chain) {
+    @Override public boolean apply(Chain chain) {
       return seen.add(chain.getValue());
     }
   }
 
   static final Predicate<Chain> notEnumFieldsOrClasses = new Predicate<Chain>() {
-    public boolean apply(Chain chain) {
+    @Override public boolean apply(Chain chain) {
       return !(Enum.class.isAssignableFrom(chain.getValueType())
           || chain.getValue() instanceof Class<?>);
     }
@@ -173,7 +173,7 @@ public final class ObjectExplorer {
 
   static final Function<Chain, Object> chainToObject =
       new Function<Chain, Object>() {
-    public Object apply(Chain chain) {
+    @Override public Object apply(Chain chain) {
       return chain.getValue();
     }
   };
@@ -185,7 +185,7 @@ public final class ObjectExplorer {
       for (Field field : Arrays.asList(clazz.getDeclaredFields())) {
         // add only non-static fields
         if (!Modifier.isStatic(field.getModifiers())) {
-          fields.add(field); 
+          fields.add(field);
         }
       }
       clazz = clazz.getSuperclass();
@@ -197,7 +197,7 @@ public final class ObjectExplorer {
   }
 
   /**
-   * Enumeration of features that may be optionally requested for an object 
+   * Enumeration of features that may be optionally requested for an object
    * traversal.
    *
    * @see ObjectExplorer#exploreObject(Object, ObjectVisitor, EnumSet)

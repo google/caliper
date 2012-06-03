@@ -32,7 +32,7 @@ public final class ObjectGraphMeasurer {
         int.class, float.class, long.class, double.class);
 
     /**
-     * Constructs a Footprint, by specifying the number of objects, 
+     * Constructs a Footprint, by specifying the number of objects,
      * references, and primitives (represented as a {@link Multiset}).
      *
      * @param objects the number of objects
@@ -72,12 +72,12 @@ public final class ObjectGraphMeasurer {
     public ImmutableMultiset<Class<?>> getPrimitives() {
       return primitives;
     }
-    
+
     @Override
     public int hashCode() {
       return Objects.hashCode(getClass().getName(), objects, references, primitives);
     }
-    
+
     @Override
     public boolean equals(Object o) {
       if (o instanceof Footprint) {
@@ -101,11 +101,11 @@ public final class ObjectGraphMeasurer {
 
   /**
    * Measures the footprint of the specified object graph.
-   * The object graph is defined by a root object and whatever object can be 
-   * reached through that, excluding static fields, {@code Class} objects, 
-   * and fields defined in {@code enum}s (all these are considered shared 
-   * values, which should not contribute to the cost of any single object 
-   * graph).     
+   * The object graph is defined by a root object and whatever object can be
+   * reached through that, excluding static fields, {@code Class} objects,
+   * and fields defined in {@code enum}s (all these are considered shared
+   * values, which should not contribute to the cost of any single object
+   * graph).
    *
    * <p>Equivalent to {@code measure(rootObject, Predicates.alwaysTrue())}.
    *
@@ -118,16 +118,16 @@ public final class ObjectGraphMeasurer {
 
   /**
    * Measures the footprint of the specified object graph.
-   * The object graph is defined by a root object and whatever object can be 
-   * reached through that, excluding static fields, {@code Class} objects, 
-   * and fields defined in {@code enum}s (all these are considered shared 
-   * values, which should not contribute to the cost of any single object 
-   * graph), and any object for which the user-provided predicate returns 
+   * The object graph is defined by a root object and whatever object can be
+   * reached through that, excluding static fields, {@code Class} objects,
+   * and fields defined in {@code enum}s (all these are considered shared
+   * values, which should not contribute to the cost of any single object
+   * graph), and any object for which the user-provided predicate returns
    * {@code false}.
    *
    * @param rootObject the root object of the object graph
-   * @param objectAcceptor a predicate that returns {@code true} for objects 
-   * to be explored (and treated as part of the footprint), or {@code false} 
+   * @param objectAcceptor a predicate that returns {@code true} for objects
+   * to be explored (and treated as part of the footprint), or {@code false}
    * to forbid the traversal to traverse the given object
    * @return the footprint of the object graph
    */
@@ -147,7 +147,7 @@ public final class ObjectGraphMeasurer {
   private static class ObjectGraphVisitor implements ObjectVisitor<Footprint> {
     private int objects;
     // -1 to account for the root, which has no reference leading to it
-    private int references = -1; 
+    private int references = -1;
     private final Multiset<Class<?>> primitives = HashMultiset.create();
     private final Predicate<Chain> predicate;
 
@@ -155,7 +155,7 @@ public final class ObjectGraphMeasurer {
       this.predicate = predicate;
     }
 
-    public Traversal visit(Chain chain) {
+    @Override public Traversal visit(Chain chain) {
       if (chain.isPrimitive()) {
         primitives.add(chain.getValueType());
         return Traversal.SKIP;
@@ -169,10 +169,10 @@ public final class ObjectGraphMeasurer {
       return Traversal.SKIP;
     }
 
-    public Footprint result() {
+    @Override public Footprint result() {
       return new Footprint(objects, references, ImmutableMultiset.copyOf(primitives));
     }
   }
-  
+
   private ObjectGraphMeasurer() {}
 }

@@ -111,7 +111,7 @@ final class InProcessRunner {
 
   public PrintStream nullPrintStream() {
     return new PrintStream(new OutputStream() {
-      public void write(int b) {}
+      @Override public void write(int b) {}
     });
   }
 }

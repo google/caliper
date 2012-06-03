@@ -251,7 +251,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
    * in an appropriate grouping of output values.
    */
   private static class VarianceOrdering extends Ordering<Axis> {
-    public int compare(Axis a, Axis b) {
+    @Override public int compare(Axis a, Axis b) {
       return Double.compare(a.variance, b.variance);
     }
   }
@@ -260,7 +260,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
    * Orders scenarios by the axes.
    */
   private class ByAxisOrdering extends Ordering<ScenarioName> {
-    public int compare(ScenarioName scenarioALocalName, ScenarioName scenarioBLocalName) {
+    @Override public int compare(ScenarioName scenarioALocalName, ScenarioName scenarioBLocalName) {
       for (Axis axis : sortedAxes) {
         int aValue = axis.index(scenarioALocalName);
         int bValue = axis.index(scenarioBLocalName);

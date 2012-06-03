@@ -57,9 +57,9 @@ public abstract class SimpleBenchmark
     }
   }
 
-  protected void setUp() throws Exception {}
+  @Override protected void setUp() throws Exception {}
 
-  protected void tearDown() throws Exception {}
+  @Override protected void tearDown() throws Exception {}
 
   @Override public Set<String> parameterNames() {
     return ImmutableSet.<String>builder()

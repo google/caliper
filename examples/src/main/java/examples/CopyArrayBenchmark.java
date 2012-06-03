@@ -271,7 +271,7 @@ public class CopyArrayBenchmark extends SimpleBenchmark {
       byteArray[i] = (byte) num;
       charArray[i] = (char) num;
       doubleArray[i] = num;
-      floatArray[i] = (float) num;
+      floatArray[i] = num;
       intArray[i] = num;
       longArray[i] = num;
       shortArray[i] = (short) num;

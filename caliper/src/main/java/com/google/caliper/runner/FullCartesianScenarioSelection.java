@@ -89,7 +89,7 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
   }
 
   protected static <T> Set<List<T>> cartesian(SetMultimap<String, T> multimap) {
-    @SuppressWarnings("unchecked") // promised by spec
+    @SuppressWarnings({"unchecked", "rawtypes"}) // promised by spec
     ImmutableMap<String, Set<T>> paramsAsMap = (ImmutableMap) multimap.asMap();
     return Sets.cartesianProduct(paramsAsMap.values().asList());
   }

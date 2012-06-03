@@ -102,7 +102,7 @@ public final class Util {
     System.runFinalization();
     final CountDownLatch latch = new CountDownLatch(1);
     new Object() {
-      protected void finalize() {
+      @Override protected void finalize() {
         latch.countDown();
       }
     };

@@ -21,10 +21,11 @@ import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 import com.google.testing.testsize.Flaky;
 
+import junit.framework.TestCase;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import junit.framework.TestCase;
 
 /**
  * Test exposing an issue where any warmup that completes enough executions to reach

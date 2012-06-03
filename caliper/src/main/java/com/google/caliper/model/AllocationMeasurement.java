@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 /**
  * Annotation that identifies a given method as an "allocation measurement" method. The method
  * should take a single int parameter; its return value may be any type. Methods with this
- * annotation may be used with the {@link com.google.caliper.runner.AllocationInstrument}
+ * annotation may be used with the {@link com.google.caliper.runner.AllocationCountInstrument}
  * or the {@link com.google.caliper.runner.AllocationSizeInstrument}.
  */
 @Retention(RetentionPolicy.RUNTIME)

@@ -36,7 +36,6 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public final class Xml {
   private static final String DATE_FORMAT_STRING = "yyyy-MM-dd'T'HH:mm:ssz";
   private static final String ENVIRONMENT_ELEMENT_NAME = "environment";
-  private static final String RESULT_ELEMENT_NAME = "result";
   private static final String RUN_ELEMENT_NAME = "run";
   private static final String BENCHMARK_ATTRIBUTE = "benchmark";
   private static final String EXECUTED_TIMESTAMP_ATTRIBUTE = "executedTimestamp";

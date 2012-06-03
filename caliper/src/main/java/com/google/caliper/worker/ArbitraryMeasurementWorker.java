@@ -6,7 +6,6 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Util;
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Method;
@@ -17,23 +16,6 @@ import java.util.Map;
  * Worker for arbitrary measurements.
  */
 public final class ArbitraryMeasurementWorker implements Worker {
-  // TODO(schmoe): replace this with Ticker.systemTicker() in guava r10
-  private static final Ticker defaultTicker = new Ticker() {
-    public long read() {
-      return System.nanoTime();
-    }
-  };
-
-  private final Ticker ticker;
-
-  public ArbitraryMeasurementWorker() {
-    this(defaultTicker);
-  }
-
-  public ArbitraryMeasurementWorker(Ticker ticker) {
-    this.ticker = ticker;
-  }
-
   @Override
   public Collection<Measurement> measure(Benchmark benchmark, String methodName,
       Map<String, String> optionsMap, WorkerEventLog log) throws Exception {

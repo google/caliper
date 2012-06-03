@@ -128,7 +128,8 @@ abstract class Parameter<T> {
         @SuppressWarnings({"unchecked", "RawUseOfParameterizedType", "RedundantCast"})
         // guarded above
         @Override public Iterable<Object> values() throws Exception {
-          Set<Enum> set = EnumSet.allOf((Class<Enum>) field.getType());
+          @SuppressWarnings("rawtypes")
+          Set<Enum<?>> set = EnumSet.allOf((Class<Enum>) field.getType());
           return Collections.<Object>unmodifiableSet(set);
         }
       };

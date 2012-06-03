@@ -17,13 +17,10 @@
 package com.google.caliper;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Sets;
 
 import junit.framework.TestCase;
 
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 

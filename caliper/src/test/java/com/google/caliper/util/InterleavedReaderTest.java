@@ -26,12 +26,13 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
+@SuppressWarnings("resource")
 public final class InterleavedReaderTest extends TestCase {
 
   public void testBasic() throws IOException {
     InterleavedReader reader = new InterleavedReader("////", new StringReader("abc\n"
         + "////{\"z\":0}\n"
-        + "////{\"y\":0}\n" 
+        + "////{\"y\":0}\n"
         + "def////{\"x\":0}\n"
         + "ghi\n"
         + "jkl\n"

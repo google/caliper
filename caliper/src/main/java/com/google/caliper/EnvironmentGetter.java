@@ -18,6 +18,7 @@ package com.google.caliper;
 
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 
 import java.io.BufferedReader;
@@ -37,8 +38,7 @@ public final class EnvironmentGetter {
   public Environment getEnvironmentSnapshot() {
     Map<String, String> propertyMap = new HashMap<String, String>();
 
-    @SuppressWarnings("unchecked")
-    Map<String, String> sysProps = (Map<String, String>) (Map) System.getProperties();
+    Map<String, String> sysProps = Maps.fromProperties(System.getProperties());
 
     // Sometimes java.runtime.version is more descriptive than java.version
     String version = sysProps.get("java.version");

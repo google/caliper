@@ -20,9 +20,6 @@ import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
 
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Measures the various ways the JDK converts doubles to strings.
  */

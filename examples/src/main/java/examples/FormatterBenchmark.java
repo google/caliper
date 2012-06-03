@@ -28,6 +28,7 @@ public class FormatterBenchmark extends SimpleBenchmark {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that doesn't actually need any formatting");
+      f.close();
     }
   }
 
@@ -42,6 +43,7 @@ public class FormatterBenchmark extends SimpleBenchmark {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that has an int %d in it", i);
+      f.close();
     }
   }
 
@@ -58,6 +60,7 @@ public class FormatterBenchmark extends SimpleBenchmark {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that has a string %s in it", "hello");
+      f.close();
     }
   }
 

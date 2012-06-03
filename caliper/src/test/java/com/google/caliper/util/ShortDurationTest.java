@@ -18,7 +18,6 @@ package com.google.caliper.util;
 
 import junit.framework.TestCase;
 
-import java.math.RoundingMode;
 import java.util.concurrent.TimeUnit;
 
 public class ShortDurationTest extends TestCase {

@@ -50,7 +50,7 @@ public class ParsedOptionsTest extends TestCase {
   }
 
 
-  public void testNoOptions() throws InvalidCommandException {
+  public void testNoOptions() {
     try {
       ParsedOptions.from(new String[] {});
       fail();

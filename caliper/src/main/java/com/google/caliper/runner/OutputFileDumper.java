@@ -2,15 +2,14 @@
 
 package com.google.caliper.runner;
 
-import com.google.common.base.Charsets;
 import com.google.caliper.model.Run;
+import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;

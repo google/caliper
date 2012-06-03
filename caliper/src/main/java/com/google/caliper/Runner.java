@@ -432,7 +432,7 @@ public final class Runner {
     }
   }
 
-  @SuppressWarnings("unchecked") // temporary fakery
+  @SuppressWarnings({"unchecked", "rawtypes"}) // temporary fakery
   public static void main(Class<? extends Benchmark> suite, String[] args) {
     String env = System.getenv("USE_CANARY_CALIPER");
     if (env != null && !env.isEmpty()) {
