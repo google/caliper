@@ -19,6 +19,7 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.api.Benchmark;
+import com.google.caliper.config.CaliperRc;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
