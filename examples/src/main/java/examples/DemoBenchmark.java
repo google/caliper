@@ -19,12 +19,13 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.api.VmParam;
+import com.google.caliper.api.VmOptions;
 import com.google.caliper.runner.CaliperMain;
 import com.google.caliper.util.ShortDuration;
 
 import java.math.BigDecimal;
 
+@VmOptions("-server")
 public class DemoBenchmark extends Benchmark {
   @Param({"abc", "def", "xyz"}) String string;
   @Param({"1", "2"}) int number;
@@ -32,7 +33,6 @@ public class DemoBenchmark extends Benchmark {
 
   @Param({"0.00", "123.45"}) BigDecimal money;
   @Param({"1ns", "2 minutes"}) ShortDuration duration;
-  @VmParam({"-Xmx32m", "-Xmx1g"}) String memoryMax;
 
   enum Foo {
     FOO, BAR, BAZ, QUX;

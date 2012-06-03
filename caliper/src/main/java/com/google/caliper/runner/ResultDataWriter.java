@@ -116,7 +116,6 @@ public final class ResultDataWriter {
     modelScenario.benchmarkMethodName = scenario.benchmarkMethod().name();
     modelScenario.benchmarkClassName = scenario.benchmarkMethod().className();
     modelScenario.vmLocalName = vmLocalName;
-    modelScenario.vmArguments = new TreeMap<String, String>(scenario.vmArguments());
     modelScenario.environmentLocalName = ENVIRONMENT_LOCAL_NAME;
     modelScenario.userParameters = new TreeMap<String, String>(scenario.userParameters());
     run.scenarios.add(modelScenario);

@@ -31,16 +31,13 @@ public final class Scenario {
   private final BenchmarkMethod benchmarkMethod;
   private final VirtualMachine vm;
   private final ImmutableSortedMap<String, String> userParameters;
-  private final ImmutableSortedMap<String, String> vmArguments;
 
   public Scenario(
       BenchmarkMethod benchmarkMethod,
       Map<String, String> userParameters,
-      Map<String, String> vmArguments,
       VirtualMachine vm) {
     this.benchmarkMethod = benchmarkMethod;
     this.userParameters = ImmutableSortedMap.copyOf(userParameters);
-    this.vmArguments = ImmutableSortedMap.copyOf(vmArguments);
     this.vm = vm;
   }
 
@@ -56,23 +53,18 @@ public final class Scenario {
     return vm;
   }
 
-  public ImmutableSortedMap<String, String> vmArguments() {
-    return vmArguments;
-  }
-
   @Override public boolean equals(Object object) {
     if (object instanceof Scenario) {
       Scenario that = (Scenario) object;
       return this.benchmarkMethod.equals(that.benchmarkMethod)
           && this.vm.equals(that.vm)
-          && this.userParameters.equals(that.userParameters)
-          && this.vmArguments.equals(that.vmArguments);
+          && this.userParameters.equals(that.userParameters);
     }
     return false;
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(benchmarkMethod, vm, userParameters, vmArguments);
+    return Objects.hashCode(benchmarkMethod, vm, userParameters);
   }
 
   @Override public String toString() {
@@ -80,7 +72,6 @@ public final class Scenario {
         .add("benchmarkMethod", benchmarkMethod)
         .add("vm", vm)
         .add("userParameters", userParameters)
-        .add("vmArguments", vmArguments)
         .toString();
   }
 }

@@ -18,7 +18,6 @@ package com.google.caliper.runner;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.VmParam;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;
@@ -97,7 +96,7 @@ public final class Parameter {
   ImmutableList<String> defaults() {
     return defaults;
   }
-  
+
   void inject(Benchmark benchmark, String value) {
     try {
       Object o = parser.parse(value);
@@ -111,7 +110,7 @@ public final class Parameter {
   }
 
   private static ImmutableList<String> findDefaults(Field field) {
-    String[] defaultsAsStrings = getValuesFromParamAnnotation(field);
+    String[] defaultsAsStrings = field.getAnnotation(Param.class).value();
     if (defaultsAsStrings.length > 0) {
       return ImmutableList.copyOf(defaultsAsStrings);
     }
@@ -132,10 +131,4 @@ public final class Parameter {
   }
 
   private static final ImmutableList<String> ALL_BOOLEANS = ImmutableList.of("true", "false");
-
-  private static String[] getValuesFromParamAnnotation(Field field) {
-    return field.isAnnotationPresent(Param.class)
-        ? field.getAnnotation(Param.class).value()
-        : field.getAnnotation(VmParam.class).value();
-  }
 }

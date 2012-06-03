@@ -44,7 +44,6 @@ public final class WorkerMain {
 
     ImmutableMap<String, String> parameters = ImmutableMap.<String, String>builder()
         .putAll(request.injectedParameters)
-        .putAll(request.vmArguments)
         .build();
     for (String fieldName : parameters.keySet()) {
       Field field = benchmarkClass.getDeclaredField(fieldName);

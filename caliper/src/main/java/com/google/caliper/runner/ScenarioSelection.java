@@ -23,7 +23,6 @@ public interface ScenarioSelection {
   ImmutableSet<BenchmarkMethod> benchmarkMethods();
   ImmutableSet<VirtualMachine> vms();
   ImmutableSetMultimap<String, String> userParameters();
-  ImmutableSetMultimap<String, String> vmArguments();
 
   // The important method
   ImmutableSet<Scenario> buildScenarios();

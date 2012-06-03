@@ -22,10 +22,13 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * TODO: javadoc.
+ * An annotation applied to a benchmark that specifies flags to be applied to the VM. These flags
+ * are applied before those specified on the command-line and thus are not guaranteed to be applied.
+ *
+ * <p>This API is likely to change.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface VmParam {
+@Target(ElementType.TYPE)
+public @interface VmOptions {
   String[] value() default {};
 }

@@ -21,17 +21,16 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.api.VmParam;
+import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Sets;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Set;
 
 /**
  * An instance of this type represents a user-provided class that extends Benchmark. It manages
@@ -41,13 +40,13 @@ public final class BenchmarkClass {
   private final Class<? extends Benchmark> theClass;
   private final Constructor<? extends Benchmark> constructor;
   private final ParameterSet userParameters;
-  private final ParameterSet injectableVmArguments;
+  private final ImmutableSet<String> benchmarkFlags;
 
   public BenchmarkClass(Class<?> aClass) throws InvalidBenchmarkException {
     if (Modifier.isAbstract(aClass.getModifiers())) {
       throw new InvalidBenchmarkException("Class '%s' is abstract", aClass);
     }
-    
+
     // TODO: check for nested, non-static classes (non-abstract, but no constructor?)
     // this will fail later anyway (no way to declare parameterless nested constr., but
     // maybe signal this better?
@@ -65,24 +64,16 @@ public final class BenchmarkClass {
     this.constructor = findConstructor(theClass);
 
     this.userParameters = ParameterSet.create(theClass, Param.class);
-    this.injectableVmArguments = ParameterSet.create(theClass, VmParam.class);
 
-    validate();
-  }
-
-  private void validate() throws InvalidBenchmarkException {
-    Set<String> both = Sets.intersection(userParameters.names(), injectableVmArguments.names());
-    if (!both.isEmpty()) {
-      throw new InvalidBenchmarkException("Some fields have both @Param and @VmParam: " + both);
-    }
+    this.benchmarkFlags = getVmOptions(theClass);
   }
 
   public ParameterSet userParameters() {
     return userParameters;
   }
 
-  public ParameterSet injectableVmArguments() {
-    return injectableVmArguments;
+  public ImmutableSet<String> vmOptions() {
+    return benchmarkFlags;
   }
 
   // TODO: perhaps move this to Instrument and let instruments override it?
@@ -108,7 +99,6 @@ public final class BenchmarkClass {
   public Benchmark createAndStage(Scenario scenario) throws UserCodeException {
     Benchmark benchmark = createBenchmarkInstance(constructor);
     userParameters.injectAll(benchmark, scenario.userParameters());
-    injectableVmArguments.injectAll(benchmark, scenario.vmArguments());
 
     boolean setupSuccess = false;
     try {
@@ -184,6 +174,13 @@ public final class BenchmarkClass {
     }
     constructor.setAccessible(true);
     return constructor;
+  }
+
+  private static ImmutableSet<String> getVmOptions(Class<? extends Benchmark> benchmarkClass) {
+    VmOptions annotation = benchmarkClass.getAnnotation(VmOptions.class);
+    return (annotation == null)
+        ? ImmutableSet.<String>of()
+        : ImmutableSet.copyOf(annotation.value());
   }
 
   private static Benchmark createBenchmarkInstance(Constructor<? extends Benchmark> c)

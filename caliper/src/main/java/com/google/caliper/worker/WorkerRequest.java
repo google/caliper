@@ -36,21 +36,18 @@ public final class WorkerRequest {
   // TODO(kevinb): in the future we may have a list of scenarios
   public final String benchmarkMethodName;
   public final Map<String, String> injectedParameters;
-  public final Map<String, String> vmArguments;
 
   public WorkerRequest(
       Map<String, String> instrumentOptions,
       String workerClassName,
       String benchmarkClassName,
       String benchmarkMethodName,
-      Map<String, String> injectedParameters,
-      Map<String, String> vmArguments) {
+      Map<String, String> injectedParameters) {
     this.instrumentOptions = instrumentOptions;
     this.workerClassName = workerClassName;
     this.benchmarkClassName = benchmarkClassName;
     this.benchmarkMethodName = benchmarkMethodName;
     this.injectedParameters = injectedParameters;
-    this.vmArguments = vmArguments;
   }
 
   @Override public String toString() {

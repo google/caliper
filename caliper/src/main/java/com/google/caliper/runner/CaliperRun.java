@@ -85,12 +85,8 @@ public final class CaliperRun {
     ImmutableSetMultimap<String, String> combinedParams =
         benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
 
-    ImmutableSetMultimap<String, String> vmArguments =
-        benchmarkClass.injectableVmArguments().fillInDefaultsFor(options.vmArguments());
-
     // TODO(kevinb): other kinds of partial scenario selectors...
-    ScenarioSelection selection = new FullCartesianScenarioSelection(
-        methods, vms, combinedParams, vmArguments);
+    ScenarioSelection selection = new FullCartesianScenarioSelection(methods, vms, combinedParams);
 
     console.describe(selection);
 
@@ -176,8 +172,7 @@ public final class CaliperRun {
         instrument.workerClass().getName(),
         benchmarkClass.name(),
         scenario.benchmarkMethod().name(),
-        scenario.userParameters(),
-        scenario.vmArguments());
+        scenario.userParameters());
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(true);
 
@@ -185,7 +180,7 @@ public final class CaliperRun {
 
     String jdkPath = scenario.vm().execPath.getAbsolutePath();
     args.add(jdkPath);
-    args.addAll(scenario.vmArguments().values());
+    args.addAll(benchmarkClass.vmOptions());
 
     addAll(args, "-cp", System.getProperty("java.class.path"));
     if (options.detailedLogging()) {

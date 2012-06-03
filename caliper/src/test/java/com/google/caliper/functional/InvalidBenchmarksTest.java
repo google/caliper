@@ -18,7 +18,6 @@ package com.google.caliper.functional;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.api.VmParam;
 import com.google.caliper.config.CaliperRc;
 import com.google.caliper.runner.CaliperOptions;
 import com.google.caliper.runner.CaliperRun;
@@ -113,13 +112,6 @@ public class InvalidBenchmarksTest extends TestCase {
   }
   static class StaticParamBenchmark extends Benchmark {
     @Param static String oops;
-  }
-
-  public void testFieldIsBothParamAndVmParam() throws InvalidCommandException {
-    expectException(PARAM_AND_VMPARAM, ParamAndVmParamBenchmark.class);
-  }
-  static class ParamAndVmParamBenchmark extends Benchmark {
-    @Param @VmParam String oops;
   }
 
   public void testReservedParameterName() throws InvalidCommandException {

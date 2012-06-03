@@ -38,17 +38,14 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
   private final ImmutableSet<BenchmarkMethod> benchmarkMethods;
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, String> userParameters;
-  private final ImmutableSetMultimap<String, String> vmArguments;
 
   public FullCartesianScenarioSelection(
       Collection<BenchmarkMethod> benchmarkMethods,
       Collection<VirtualMachine> vms,
-      SetMultimap<String, String> userParameters,
-      SetMultimap<String, String> vmArguments) {
+      SetMultimap<String, String> userParameters) {
     this.benchmarkMethods = ImmutableSet.copyOf(benchmarkMethods);
     this.vms = ImmutableSet.copyOf(vms);
     this.userParameters = ImmutableSetMultimap.copyOf(userParameters);
-    this.vmArguments = ImmutableSetMultimap.copyOf(vmArguments);
 
     checkArgument(!benchmarkMethods.isEmpty());
     checkArgument(!vms.isEmpty());
@@ -66,10 +63,6 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
     return userParameters;
   }
 
-  @Override public ImmutableSetMultimap<String, String> vmArguments() {
-    return vmArguments;
-  }
-
   @Override public ImmutableSet<Scenario> buildScenarios() {
     List<Scenario> tmp = Lists.newArrayList();
     for (BenchmarkMethod benchmarkMethod : benchmarkMethods) {
@@ -77,11 +70,7 @@ public final class FullCartesianScenarioSelection implements ScenarioSelection {
         for (List<String> userParamsChoice : cartesian(userParameters)) {
           ImmutableMap<String, String> theseUserParams =
               zip(userParameters.keySet(), userParamsChoice);
-          for (List<String> vmArgsChoice : cartesian(vmArguments)) {
-            ImmutableMap<String, String> theseVmArgs =
-                zip(vmArguments.keySet(), vmArgsChoice);
-            tmp.add(new Scenario(benchmarkMethod, theseUserParams, theseVmArgs, vm));
-          }
+          tmp.add(new Scenario(benchmarkMethod, theseUserParams, vm));
         }
       }
     }

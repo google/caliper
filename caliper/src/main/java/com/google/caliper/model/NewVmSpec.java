@@ -31,15 +31,15 @@ import javax.annotation.concurrent.Immutable;
 @Immutable
 public final class NewVmSpec {
   private final ImmutableMap<String, String> properties;
-  private final ImmutableMap<String, String> flags;
+  private final ImmutableMap<String, String> options;
 
   private NewVmSpec(Builder builder) {
     this.properties = builder.propertiesBuilder.build();
-    this.flags = builder.flagsBuilder.build();
+    this.options = builder.optionsBuilder.build();
   }
 
-  public ImmutableMap<String, String> flags() {
-    return flags;
+  public ImmutableMap<String, String> options() {
+    return options;
   }
 
   public ImmutableMap<String, String> properties() {
@@ -52,44 +52,44 @@ public final class NewVmSpec {
     } else if (obj instanceof NewVmSpec) {
       NewVmSpec that = (NewVmSpec) obj;
       return this.properties.equals(that.properties)
-          && this.flags.equals(that.flags);
+          && this.options.equals(that.options);
     } else {
       return false;
     }
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(properties, flags);
+    return Objects.hashCode(properties, options);
   }
 
   @Override public String toString() {
     return Objects.toStringHelper(this)
         .add("properties", properties)
-        .add("flags", flags)
+        .add("options", options)
         .toString();
   }
 
   public static final class Builder {
     private final ImmutableMap.Builder<String, String> propertiesBuilder = ImmutableMap.builder();
-    private final ImmutableMap.Builder<String, String> flagsBuilder = ImmutableMap.builder();
+    private final ImmutableMap.Builder<String, String> optionsBuilder = ImmutableMap.builder();
 
-    public Builder addFlag(String flag, String value) {
-      flagsBuilder.put(flag, value);
+    public Builder addOption(String optionName, String value) {
+      optionsBuilder.put(optionName, value);
       return this;
     }
 
-    public Builder addAllFlags(Map<String, String> flags) {
-      flagsBuilder.putAll(flags);
+    public Builder addAllOptions(Map<String, String> options) {
+      optionsBuilder.putAll(options);
       return this;
     }
 
     public Builder addProperty(String property, String value) {
-      flagsBuilder.put(property, value);
+      optionsBuilder.put(property, value);
       return this;
     }
 
     public Builder addAllProperties(Map<String, String> properties) {
-      flagsBuilder.putAll(properties);
+      optionsBuilder.putAll(properties);
       return this;
     }
 

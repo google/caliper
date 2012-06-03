@@ -40,7 +40,6 @@ public class DefaultConsoleWriter implements ConsoleWriter {
     writer.println("  Benchmark methods: " + selection.benchmarkMethods());
     writer.println("  User parameters:   " + selection.userParameters());
     writer.println("  Virtual machines:  " + selection.vms());
-    writer.println("  VM parameters:     " + selection.vmArguments());
     writer.println("  Selection type:    " + selection.selectionType());
     writer.println();
   }
