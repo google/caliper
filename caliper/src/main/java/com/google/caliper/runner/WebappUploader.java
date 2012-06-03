@@ -35,6 +35,17 @@ final class WebappUploader implements ResultProcessor {
     this.apiKey = apiKey;
     this.benchmarkName = checkNotNull(benchmarkName);
     this.proxy = checkNotNull(proxy);
+
+    if (apiKeySpecified()) {
+      System.out.println(
+          "\nYou specified a Caliper API key, but web uploads are not yet available in new"
+          + " Caliper.\nIf you require use of the web application then please use old Caliper.\n");
+    }
+  }
+
+  private boolean apiKeySpecified() {
+    return (postUrl != null) && !CharMatcher.WHITESPACE.matchesAllOf(postUrl)
+        && (apiKey != null) && !CharMatcher.WHITESPACE.matchesAllOf(apiKey);
   }
 
   /**
@@ -63,14 +74,13 @@ final class WebappUploader implements ResultProcessor {
   }
 
   @Override public void handleResults(Run results) {
-    if ((postUrl == null) || CharMatcher.WHITESPACE.matchesAllOf(postUrl)
-        || (apiKey == null) || CharMatcher.WHITESPACE.matchesAllOf(apiKey)) {
+    if (apiKeySpecified()) {
+      String jsonResults = Util.GSON.toJson(results);
+      uploadResults(jsonResults);
+    } else {
       System.out.println(
           "To upload results to the Caliper web application, specify your Caliper API key\n"
               + "in your caliper configuration file (typically ~/.caliperrc)");
-    } else {
-      String jsonResults = Util.GSON.toJson(results);
-      uploadResults(jsonResults);
     }
   }
 
