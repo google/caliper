@@ -25,6 +25,7 @@ import junit.framework.TestCase;
 
 public final class JsonTest extends TestCase {
 
+
   public void testJsonSerialization() {
     Result original = newSampleResult();
     String json = Json.getGsonInstance().toJson(original, Result.class);

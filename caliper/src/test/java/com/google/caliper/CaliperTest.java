@@ -17,6 +17,7 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
+
 import java.util.Map;
 import java.util.Set;
 import junit.framework.TestCase;
@@ -27,6 +28,7 @@ public final class CaliperTest extends TestCase {
    * Test we detect and fail when benchmarks don't scale properly.
    * @throws Exception
    */
+
   public void testBenchmarkScalesNonLinearly() throws Exception {
     TimeMeasurer timeMeasurer = new TimeMeasurer(1000, 1000);
     try {
