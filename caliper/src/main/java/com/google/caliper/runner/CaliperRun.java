@@ -259,7 +259,7 @@ public final class CaliperRun {
     ImmutableList.Builder<ResultProcessor> builder = ImmutableList.builder();
     builder.add(new ConsoleResultProcessor(options.calculateAggregateScore()));
     builder.add(new OutputFileDumper(options.outputFileOrDir(), benchmarkClass.name()));
-    builder.add(WebappUploader.create(benchmarkClass.name(), config.asCaliperRc()));
+    builder.add(WebappUploader.create(config.asCaliperRc()));
     return builder.build();
   }
 

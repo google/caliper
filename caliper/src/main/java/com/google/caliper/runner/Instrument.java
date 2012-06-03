@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.config.CaliperRc;
+import com.google.caliper.config.NewInstrumentConfig;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
@@ -34,33 +35,43 @@ import java.util.Arrays;
 import java.util.Map;
 
 public abstract class Instrument {
+  static Instrument createInstrument(NewInstrumentConfig config)
+      throws InvalidCommandException, UserCodeException {
+    return createInstrument(config.className(), config.options());
+  }
+
   static Instrument createInstrument(String instrumentName, CaliperRc rc)
       throws InvalidCommandException, UserCodeException {
-    String instrumentClassName = rc.instrumentClassName(instrumentName);
+    return createInstrument(rc.instrumentClassName(instrumentName),
+        rc.instrumentOptions(instrumentName));
+  }
+
+  private static Instrument createInstrument(String className, ImmutableMap<String, String> options)
+      throws InvalidCommandException, UserCodeException {
     try {
-      Class<?> someClass = Util.lenientClassForName(instrumentClassName);
+      Class<?> someClass = Util.lenientClassForName(className);
       Class<? extends Instrument> instrumentClass = someClass.asSubclass(Instrument.class);
       Constructor<? extends Instrument> instrumentConstr = instrumentClass.getDeclaredConstructor();
       instrumentConstr.setAccessible(true);
       Instrument instrument = instrumentConstr.newInstance();
-      instrument.setOptions(rc.instrumentOptions(instrumentName));
+      instrument.setOptions(options);
       return instrument;
 
     } catch (ClassNotFoundException e) {
       throw new InvalidCommandException(
-          "Invalid instrument '%s'; cannot find class '%s'", instrumentName, instrumentClassName);
+          "Cannot find instrument class '%s'", className);
 
     } catch (ClassCastException e) {
       throw new InvalidInstrumentException(
-          "Instrument class '%s' does not implement Instrument", instrumentClassName);
+          "Instrument class '%s' does not implement Instrument", className);
 
     } catch (NoSuchMethodException e) {
       throw new InvalidInstrumentException(
-          "Instrument class '%s' has no parameterless constructor", instrumentClassName);
+          "Instrument class '%s' has no parameterless constructor", className);
 
     } catch (InstantiationException e) {
       throw new InvalidInstrumentException("Instrument class '%s' couldn't be constructed",
-          instrumentClassName);
+          className);
 
     } catch (InvocationTargetException e) {
       throw new UserCodeException(

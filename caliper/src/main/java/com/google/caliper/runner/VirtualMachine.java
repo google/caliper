@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.config.NewVmConfig;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 public final class VirtualMachine {
+  /** Prefer {@link NewVmConfig#hostVmConfig()}. */
   public static VirtualMachine hostVm() {
     String home = System.getProperty("java.home");
     String executable = home + "/bin/java";

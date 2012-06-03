@@ -5,11 +5,13 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.config.CaliperRc;
+import com.google.caliper.config.NewResultProcessorConfig;
 import com.google.caliper.model.NewTrial;
 import com.google.caliper.model.Run;
 import com.google.caliper.util.Util;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,14 +30,12 @@ import javax.annotation.Nullable;
 final class WebappUploader implements ResultProcessor {
   @Nullable private final String postUrl;
   @Nullable private final String apiKey;
-  private final String benchmarkName;
   private final Proxy proxy;
 
   private WebappUploader(
-      @Nullable String postUrl, @Nullable String apiKey, String benchmarkName, Proxy proxy) {
+      @Nullable String postUrl, @Nullable String apiKey, Proxy proxy) {
     this.postUrl = postUrl;
     this.apiKey = apiKey;
-    this.benchmarkName = checkNotNull(benchmarkName);
     this.proxy = checkNotNull(proxy);
 
     if (apiKeySpecified()) {
@@ -56,15 +56,20 @@ final class WebappUploader implements ResultProcessor {
    * still return a {@code WebappUploader}, but it won't actually upload to the webapp: it will
    * simply display a message describing why the results were not uploaded.
    */
-  public static WebappUploader create(String benchmarkName, CaliperRc rc) {
+  public static WebappUploader create(CaliperRc rc) {
     String postUrl = rc.getProperty("results.upload.url");
     String apiKey = rc.getProperty("results.upload.key");
-    return new WebappUploader(postUrl, apiKey, benchmarkName, getProxy(rc));
+    return new WebappUploader(postUrl, apiKey, getProxy(rc.getProperty("results.upload.proxy")));
   }
 
-  private static Proxy getProxy(CaliperRc rc) {
+  public static WebappUploader create(NewResultProcessorConfig config) {
+    ImmutableMap<String, String> options = config.options();
+    return new WebappUploader(options.get("url"), options.get("key"),
+        getProxy(options.get("proxy")));
+  }
+
+  private static Proxy getProxy(@Nullable String proxyAddress) {
     Proxy proxy;
-    String proxyAddress = rc.getProperty("results.upload.proxy");
     if ((proxyAddress == null) || CharMatcher.WHITESPACE.matchesAllOf(proxyAddress)) {
       proxy = Proxy.NO_PROXY;
     } else {
@@ -88,8 +93,8 @@ final class WebappUploader implements ResultProcessor {
 
   private void uploadResults(String json) {
     try {
-      URL url = new URL(postUrl + apiKey + "/" + benchmarkName);
-      // TODO: should we have an identifiable URL pattern to distinguish between old/new caliper?
+      URL url = new URL(postUrl + "?key=" + apiKey);
+      // TODO(gak): inform users of old caliper that they need to use 1.microbenchmarks.appspot.com
       HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection(proxy);
       urlConnection.setDoOutput(true);
       urlConnection.getOutputStream().write(json.getBytes(Charsets.UTF_8));
