@@ -16,7 +16,6 @@
 
 package com.google.caliper;
 
-import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
 
@@ -35,21 +34,6 @@ public class WarmupOverflowTest extends TestCase {
 
   @Override public void setUp() {
     timeLimiter = new SimpleTimeLimiter(Executors.newSingleThreadExecutor());
-  }
-
-
-  public void testOptimizedAwayBenchmarkDoesNotTakeTooLongToRun() throws Exception {
-    try {
-      timeLimiter.callWithTimeout(new Callable<Void>() {
-        @Override public Void call() throws Exception {
-          InProcessRunner runner = new InProcessRunner();
-          runner.run(OptimizedAwayBenchmark.class.getName(), "--warmupMillis", "3000",
-              "--measurementType", "TIME");
-          return null;
-        }
-      }, 90, TimeUnit.SECONDS, false);
-    } catch (DoesNotScaleLinearlyException expected) {
-    }
   }
 
 
