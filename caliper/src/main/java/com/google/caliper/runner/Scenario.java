@@ -17,7 +17,6 @@
 package com.google.caliper.runner;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 
 import java.util.Map;
@@ -59,18 +58,6 @@ public final class Scenario {
 
   public ImmutableSortedMap<String, String> vmArguments() {
     return vmArguments;
-  }
-
-  public ImmutableMap<String, String> asFlattenedMap() {
-    ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-    // We know these don't collide, because "benchmark" and "vm" are reserved words, so
-    // Parameter.validate() catches them, and because BenchmarkClass.validate() verifies that
-    // there's no overlap between userParameters and vmArguments.
-    builder.putAll(userParameters)
-        .putAll(vmArguments)
-        .put("benchmark", benchmarkMethod.name())
-        .put("vm", vm.name);
-    return builder.build();
   }
 
   @Override public boolean equals(Object object) {
