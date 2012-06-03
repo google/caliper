@@ -4,6 +4,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.model.NewTrial;
 import com.google.caliper.model.Run;
 import com.google.caliper.util.Util;
 import com.google.common.base.CharMatcher;
@@ -73,7 +74,7 @@ final class WebappUploader implements ResultProcessor {
     return proxy;
   }
 
-  @Override public void handleResults(Run results) {
+  @Override public void processRun(Run results) {
     if (apiKeySpecified()) {
       String jsonResults = Util.GSON.toJson(results);
       uploadResults(jsonResults);
@@ -107,4 +108,10 @@ final class WebappUploader implements ResultProcessor {
       System.out.println("Posting to " + postUrl + " failed: " + e);
     }
   }
+
+  @Override public void processTrial(NewTrial trial) {
+    // TODO(gak): implement this when we migrate to NewRun
+  }
+
+  @Override public void close() {}
 }

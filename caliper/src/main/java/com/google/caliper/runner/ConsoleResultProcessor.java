@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.model.Instrument;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.model.NewTrial;
 import com.google.caliper.model.Result;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
@@ -33,9 +34,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Table;
 import com.google.common.primitives.Doubles;
@@ -92,7 +93,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
     this.printScore = printScore;
   }
 
-  @Override public void handleResults(Run run) {
+  @Override public void processRun(Run run) {
     this.run = run;
     Map<String, VM> vms = Maps.uniqueIndex(run.vms, VM_LOCAL_NAME_FUNCTION);
     this.scenarioLocalVars = HashBasedTable.create();
@@ -532,4 +533,9 @@ final class ConsoleResultProcessor implements ResultProcessor {
         }
       };
 
+  @Override public void processTrial(NewTrial trial) {
+    // TODO(gak): implement this when we migrate to NewRun
+  }
+
+  @Override public void close() {}
 }

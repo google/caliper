@@ -1,5 +1,5 @@
 # Caliper global options file
-# Users' ~/.caliperrc settings may override these
+# Users' ~/.caliper/config settings may override these
 
 ######################
 # VM CONFIGURATION
@@ -9,24 +9,21 @@
 vm.baseDirectory=/usr/local/buildtools/java
 
 # Standard vm parameter options.
-vm.args.jdk.vmName=-server
-
-# options only used in --verbose/--logging modes
-vm.args.jdk.verboseMode=-verbose:gc -XX:+PrintCompilation
+vm.args=
 
 # Common configurations
 
 vm.jdk-32-client.home=jdk-32
-vm.jdk-32-client.args.vmName=-client
+vm.jdk-32-client.args=-d32 -client
 
 vm.jdk-32-server.home=jdk-32
-vm.jdk-32-server.args.vmName=-server
+vm.jdk-32-server.args=-d32 -server
 
 vm.jdk-64-compressed.home=jdk-64
-vm.jdk-64-compressed.args.compressedOops=-XX:+UseCompressedOops
+vm.jdk-64-compressed.args=-d64 -XX:+UseCompressedOops
 
 vm.jdk-64-uncompressed.home=jdk-64
-vm.jdk-64-uncompressed.args.compressedOops=-XX:-UseCompressedOops
+vm.jdk-64-uncompressed.args=-d64 -XX:-UseCompressedOops
 
 
 ######################
@@ -91,10 +88,9 @@ instrument.allocationSize.options.allocationAgentJar=lib/allocation.jar
 # RESULTS STORAGE
 ######################
 
-results.dir=
+results.file.class=com.google.caliper.runner.OutputFileDumper
+results.file.options.dir=~/.caliper/results
 
-results.upload.url=http://microbenchmarks.appspot.com:80/run/
-results.upload.proxy=
-
-results.upload.deleteAfterUpload=false
-results.upload.browserAfterUpload=true
+results.upload.class=com.google.caliper.runner.WebappUploader
+results.upload.options.url=https://microbenchmarks.appspot.com/runs/
+#results.upload.options.browserAfterUpload=true

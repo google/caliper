@@ -142,7 +142,7 @@ public final class CaliperRun {
 
     Run run = results.getRun();
     for (ResultProcessor resultProcessor : resultProcessors) {
-      resultProcessor.handleResults(run);
+      resultProcessor.processRun(run);
     }
   }
 

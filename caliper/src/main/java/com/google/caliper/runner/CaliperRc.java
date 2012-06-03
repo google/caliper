@@ -27,6 +27,7 @@ import com.google.common.collect.Maps;
 import java.util.List;
 import java.util.Map;
 
+// TODO(gak): remove this file (and the other CaliperRc) when we migrate to CaliperConfig
 public final class CaliperRc {
   static CaliperRc create(Map<String, String> overrides, Map<String, String> defaults) {
     Map<String, String> map = Maps.newHashMap(defaults);

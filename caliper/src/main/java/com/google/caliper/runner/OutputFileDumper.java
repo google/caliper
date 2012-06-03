@@ -2,6 +2,7 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.model.NewTrial;
 import com.google.caliper.model.Run;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
@@ -33,7 +34,7 @@ final class OutputFileDumper implements ResultProcessor {
     this.benchmarkName = benchmarkName;
   }
 
-  @Override public void handleResults(Run results) {
+  @Override public void processRun(Run results) {
     try {
       Gson gson = new GsonBuilder().setPrettyPrinting().create();
       Files.write(gson.toJson(results), getOutputFile(), Charsets.UTF_8);
@@ -75,4 +76,10 @@ final class OutputFileDumper implements ResultProcessor {
     dateFormat.setLenient(true);
     return dateFormat.format(new Date());
   }
+
+  @Override public void processTrial(NewTrial trial) {
+    // TODO(gak): implement this when we migrate to NewRun
+  }
+
+  @Override public void close() {}
 }
