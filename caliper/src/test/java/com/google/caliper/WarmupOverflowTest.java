@@ -19,7 +19,6 @@ package com.google.caliper;
 import com.google.caliper.UserException.DoesNotScaleLinearlyException;
 import com.google.common.util.concurrent.SimpleTimeLimiter;
 import com.google.common.util.concurrent.TimeLimiter;
-import com.google.testing.testsize.Flaky;
 
 import junit.framework.TestCase;
 
@@ -39,7 +38,6 @@ public class WarmupOverflowTest extends TestCase {
     timeLimiter = new SimpleTimeLimiter(Executors.newSingleThreadExecutor());
   }
 
-  @Flaky
 
   public void testOptimizedAwayBenchmarkDoesNotTakeTooLongToRun() throws Exception {
     try {
@@ -55,7 +53,6 @@ public class WarmupOverflowTest extends TestCase {
     }
   }
 
-  @Flaky
 
   public void testLongWarmupMillisDoesNotTakeTooLongToRun() throws Exception {
     timeLimiter.callWithTimeout(new Callable<Void>() {

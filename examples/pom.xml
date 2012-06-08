@@ -81,8 +81,11 @@
   </build>
   <developers>
     <developer>
-      <name>Jesse Wilson</name>
+      <name>Gregory Kick</name>
       <organization>Google Inc.</organization>
+    </developer>
+    <developer>
+      <name>Jesse Wilson</name>
     </developer>
   </developers>
 </project>

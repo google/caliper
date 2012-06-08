@@ -17,7 +17,6 @@
 package com.google.caliper;
 
 import com.google.common.base.Supplier;
-import com.google.testing.testsize.Flaky;
 
 import java.util.Map;
 import java.util.Set;
@@ -29,7 +28,6 @@ public final class CaliperTest extends TestCase {
    * Test we detect and fail when benchmarks don't scale properly.
    * @throws Exception
    */
-  @Flaky
 
   public void testBenchmarkScalesNonLinearly() throws Exception {
     TimeMeasurer timeMeasurer = new TimeMeasurer(1000, 1000);
