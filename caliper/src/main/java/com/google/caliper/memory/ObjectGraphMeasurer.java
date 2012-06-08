@@ -24,7 +24,8 @@ public final class ObjectGraphMeasurer {
    */
   public final static class Footprint {
     private final int objects;
-    private final int references;
+    private final int nonNullRefs;
+    private final int nullRefs;
     private final ImmutableMultiset<Class<?>> primitives;
 
     private static final ImmutableSet<Class<?>> primitiveTypes = ImmutableSet.<Class<?>>of(
@@ -36,17 +37,21 @@ public final class ObjectGraphMeasurer {
      * references, and primitives (represented as a {@link Multiset}).
      *
      * @param objects the number of objects
-     * @param references the number of references
+     * @param nonNullRefs the number of non-null references
+     * @param nullRefs the number of null references
      * @param primitives the number of primitives (represented by the
      * respective primitive classes, e.g. {@code int.class} etc)
      */
-    public Footprint(int objects, int references, Multiset<Class<?>> primitives) {
+    public Footprint(int objects, int nonNullRefs, int nullRefs,
+        Multiset<Class<?>> primitives) {
       Preconditions.checkArgument(objects >= 0, "Negative number of objects");
-      Preconditions.checkArgument(references >= 0, "Negative number of references");
+      Preconditions.checkArgument(nonNullRefs >= 0, "Negative number of references");
+      Preconditions.checkArgument(nullRefs >= 0, "Negative number of references");
       Preconditions.checkArgument(primitiveTypes.containsAll(primitives.elementSet()),
           "Unexpected primitive type");
       this.objects = objects;
-      this.references = references;
+      this.nonNullRefs = nonNullRefs;
+      this.nullRefs = nullRefs;
       this.primitives = ImmutableMultiset.copyOf(primitives);
     }
 
@@ -58,10 +63,24 @@ public final class ObjectGraphMeasurer {
     }
 
     /**
-     * Returns the number of references of this footprint.
+     * Returns the number of non-null references of this footprint.
      */
-    public int getReferences() {
-      return references;
+    public int getNonNullReferences() {
+      return nonNullRefs;
+    }
+
+    /**
+     * Returns the number of null references of this footprint.
+     */
+    public int getNullReferences() {
+      return nullRefs;
+    }
+
+    /**
+     * Returns the number of all references (null and non-null) of this footprint.
+     */
+    public int getAllReferences() {
+      return nonNullRefs + nullRefs;
     }
 
     /**
@@ -75,7 +94,8 @@ public final class ObjectGraphMeasurer {
 
     @Override
     public int hashCode() {
-      return Objects.hashCode(getClass().getName(), objects, references, primitives);
+      return Objects.hashCode(getClass().getName(),
+          objects, nonNullRefs, nullRefs, primitives);
     }
 
     @Override
@@ -83,7 +103,8 @@ public final class ObjectGraphMeasurer {
       if (o instanceof Footprint) {
         Footprint that = (Footprint) o;
         return this.objects == that.objects
-            && this.references == that.references
+            && this.nonNullRefs == that.nonNullRefs
+            && this.nullRefs == that.nullRefs
             && this.primitives.equals(that.primitives);
       }
       return false;
@@ -93,7 +114,8 @@ public final class ObjectGraphMeasurer {
     public String toString() {
       return Objects.toStringHelper(this)
           .add("Objects", objects)
-          .add("References", references)
+          .add("NonNullRefs", nonNullRefs)
+          .add("NullRefs", nullRefs)
           .add("Primitives", primitives)
           .toString();
     }
@@ -147,7 +169,8 @@ public final class ObjectGraphMeasurer {
   private static class ObjectGraphVisitor implements ObjectVisitor<Footprint> {
     private int objects;
     // -1 to account for the root, which has no reference leading to it
-    private int references = -1;
+    private int nonNullReferences = -1;
+    private int nullReferences = 0;
     private final Multiset<Class<?>> primitives = HashMultiset.create();
     private final Predicate<Chain> predicate;
 
@@ -160,7 +183,11 @@ public final class ObjectGraphMeasurer {
         primitives.add(chain.getValueType());
         return Traversal.SKIP;
       } else {
-        references++;
+        if (chain.getValue() == null) {
+          nullReferences++;
+        } else {
+          nonNullReferences++;
+        }
       }
       if (predicate.apply(chain) && chain.getValue() != null) {
         objects++;
@@ -170,7 +197,8 @@ public final class ObjectGraphMeasurer {
     }
 
     @Override public Footprint result() {
-      return new Footprint(objects, references, ImmutableMultiset.copyOf(primitives));
+      return new Footprint(objects, nonNullReferences, nullReferences,
+          ImmutableMultiset.copyOf(primitives));
     }
   }
 
