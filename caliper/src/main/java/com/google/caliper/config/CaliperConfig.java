@@ -1,64 +1,162 @@
-// Copyright 2012 Google Inc. All Rights Reserved.
+/*
+ * Copyright (C) 2012 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.caliper.config;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
+import com.google.caliper.api.ResultProcessor;
+import com.google.caliper.config.VmConfig.Builder;
 import com.google.caliper.util.Util;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Objects;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Lists;
+import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
 /**
- * Represents caliper Config.  By default, {@code ~/.caliper/config} and
+ * Represents caliper configuration.  By default, {@code ~/.caliper/config.properties} and
  * {@code global.caliperrc}.
  *
  * @author gak@google.com (Gregory Kick)
  */
 public final class CaliperConfig {
-  private final ImmutableMap<String, String> properties;
+  @VisibleForTesting final ImmutableMap<String, String> properties;
+  private final ImmutableMap<Class<? extends ResultProcessor>, ResultProcessorConfig>
+      resultProcessorConfigs;
 
-  CaliperConfig(ImmutableMap<String, String> properties) {
+  @VisibleForTesting
+  public CaliperConfig(ImmutableMap<String, String> properties)
+      throws InvalidConfigurationException {
     this.properties = checkNotNull(properties);
+    this.resultProcessorConfigs = findResultProcessorConfigs(subgroupMap(properties, "results"));
   }
 
-  public NewVmConfig getVmConfig(String name) throws InvalidConfigurationException {
+  private static final Pattern CLASS_PROPERTY_PATTERN = Pattern.compile("(\\w+)\\.class");
+
+  private static <T> ImmutableBiMap<String, Class<? extends T>> mapGroupNamesToClasses(
+      ImmutableMap<String, String> groupProperties, Class<T> type)
+          throws InvalidConfigurationException {
+    BiMap<String, Class<? extends T>> namesToClasses = HashBiMap.create();
+    for (Entry<String, String> entry : groupProperties.entrySet()) {
+      Matcher matcher = CLASS_PROPERTY_PATTERN.matcher(entry.getKey());
+      if (matcher.matches() && !entry.getValue().isEmpty()) {
+        try {
+          Class<?> someClass = Class.forName(entry.getValue());
+          checkState(type.isAssignableFrom(someClass));
+          @SuppressWarnings("unchecked")
+          Class<? extends T> verifiedClass = (Class<? extends T>) someClass;
+          namesToClasses.put(matcher.group(1), verifiedClass);
+        } catch (ClassNotFoundException e) {
+          throw new InvalidConfigurationException("Cannot find result processor class: "
+              + entry.getValue());
+        }
+      }
+    }
+    return ImmutableBiMap.copyOf(namesToClasses);
+  }
+
+  private static ImmutableMap<Class<? extends ResultProcessor>, ResultProcessorConfig>
+      findResultProcessorConfigs(ImmutableMap<String, String> resultsProperties)
+          throws InvalidConfigurationException {
+    ImmutableBiMap<String, Class<? extends ResultProcessor>> processorToClass =
+        mapGroupNamesToClasses(resultsProperties, ResultProcessor.class);
+    ImmutableMap.Builder<Class<? extends ResultProcessor>, ResultProcessorConfig> builder =
+        ImmutableMap.builder();
+    for (Entry<String, Class<? extends ResultProcessor>> entry : processorToClass.entrySet()) {
+      builder.put(entry.getValue(), getResultProcessorConfig(resultsProperties, entry.getKey()));
+    }
+    return builder.build();
+  }
+
+  public ImmutableMap<String, String> properties() {
+    return properties;
+  }
+
+  /**
+   * Returns the configuration of the current host JVM (including the flags used to create it). Any
+   * args specified using {@code vm.args} will also be applied
+   */
+  public VmConfig getDefaultVmConfig() {
+    return new Builder(new File(System.getProperty("java.home")))
+        .addAllOptions(ManagementFactory.getRuntimeMXBean().getInputArguments())
+        // still incorporate vm.args
+        .addAllOptions(getArgs(subgroupMap(properties, "vm")))
+        .build();
+  }
+
+  public VmConfig getVmConfig(String name) throws InvalidConfigurationException {
     checkNotNull(name);
     ImmutableMap<String, String> vmGroupMap = subgroupMap(properties, "vm");
     ImmutableMap<String, String> vmMap = subgroupMap(vmGroupMap, name);
     File homeDir = getJdkHomeDir(vmGroupMap.get("baseDirectory"), vmMap.get("home"), name);
-    return new NewVmConfig.Builder(homeDir)
+    return new VmConfig.Builder(homeDir)
         .addAllOptions(getArgs(vmGroupMap))
         .addAllOptions(getArgs(vmMap))
         .build();
   }
 
-  public NewInstrumentConfig getInstrumentConfig(String name) {
+  public InstrumentConfig getInstrumentConfig(String name) {
     checkNotNull(name);
     ImmutableMap<String, String> instrumentGroupMap = subgroupMap(properties, "instrument");
     ImmutableMap<String, String> insrumentMap = subgroupMap(instrumentGroupMap, name);
-    return new NewInstrumentConfig.Builder()
+    return new InstrumentConfig.Builder()
         .className(insrumentMap.get("class"))
         .addAllOptions(subgroupMap(insrumentMap, "options"))
         .build();
   }
 
-  public NewResultProcessorConfig getResultProcessorConfig(String name) {
-    checkNotNull(name);
-    ImmutableMap<String, String> resultsGroupMap = subgroupMap(properties, "results");
-    ImmutableMap<String, String> resultsMap = subgroupMap(resultsGroupMap, name);
-    return new NewResultProcessorConfig.Builder()
+  public ImmutableSet<Class<? extends ResultProcessor>> getConfiguredResultProcessors() {
+    return resultProcessorConfigs.keySet();
+  }
+
+  public ResultProcessorConfig getResultProcessorConfig(
+      Class<? extends ResultProcessor> resultProcessorClass) {
+    return resultProcessorConfigs.get(resultProcessorClass);
+  }
+
+  private static ResultProcessorConfig getResultProcessorConfig(
+      ImmutableMap<String, String> resultsProperties, String name) {
+    ImmutableMap<String, String> resultsMap = subgroupMap(resultsProperties, name);
+    return new ResultProcessorConfig.Builder()
         .className(resultsMap.get("class"))
         .addAllOptions(subgroupMap(resultsMap, "options"))
         .build();
+  }
+
+  @Override public String toString() {
+    return Objects.toStringHelper(this)
+        .add("properties", properties)
+        .toString();
   }
 
   private static final ImmutableMap<String, String> subgroupMap(ImmutableMap<String, String> map,
@@ -122,9 +220,5 @@ public final class CaliperConfig {
     if (!check) {
       throw new InvalidConfigurationException(String.format(messageFormat, args));
     }
-  }
-
-  public CaliperRc asCaliperRc() {
-    return new CaliperRc(properties);
   }
 }

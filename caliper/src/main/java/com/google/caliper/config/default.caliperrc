@@ -3,21 +3,12 @@
 # See that file for a more complete picture of what you can do here
 
 # INSTRUMENT CONFIG
-
-instrument.micro.warmup=10s
-instrument.micro.timingInterval=500ms
-instrument.micro.reportedIntervals=7
-instrument.micro.maxRuntime=10s
-instrument.micro.shortCircuitTolerance=0.002
+# instrument.micro.options.warmup=10s
+# instrument.micro.options.timingInterval=500ms
+# instrument.micro.options.reportedIntervals=7
+# instrument.micro.options.maxRuntime=10s
 
 
-# RESULTS UPLOAD
-
-results.dir=/tmp/caliper-results
-
-# This only applies if no --output option was specified at the command line. When --output is
-# given we never delete.
-results.deleteAfterUpload=true
-
-# See (where?) to get a key so you can upload results
-results.upload.key=
+# See the Caliper webapp to get a key so you can associate results with your
+# account
+results.upload.options.key=

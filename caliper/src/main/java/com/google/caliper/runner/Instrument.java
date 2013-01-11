@@ -19,73 +19,32 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.config.CaliperRc;
-import com.google.caliper.config.NewInstrumentConfig;
-import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.bridge.AbstractLogMessageVisitor;
+import com.google.caliper.bridge.LogMessageVisitor;
+import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.model.InstrumentSpec;
+import com.google.caliper.model.Measurement;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.Predicates;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ListMultimap;
+import com.google.common.collect.Maps;
+import com.google.inject.Inject;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.Map;
 
 public abstract class Instrument {
-  static Instrument createInstrument(NewInstrumentConfig config)
-      throws InvalidCommandException, UserCodeException {
-    return createInstrument(config.className(), config.options());
-  }
-
-  static Instrument createInstrument(String instrumentName, CaliperRc rc)
-      throws InvalidCommandException, UserCodeException {
-    return createInstrument(rc.instrumentClassName(instrumentName),
-        rc.instrumentOptions(instrumentName));
-  }
-
-  private static Instrument createInstrument(String className, ImmutableMap<String, String> options)
-      throws InvalidCommandException, UserCodeException {
-    try {
-      Class<?> someClass = Util.lenientClassForName(className);
-      Class<? extends Instrument> instrumentClass = someClass.asSubclass(Instrument.class);
-      Constructor<? extends Instrument> instrumentConstr = instrumentClass.getDeclaredConstructor();
-      instrumentConstr.setAccessible(true);
-      Instrument instrument = instrumentConstr.newInstance();
-      instrument.setOptions(options);
-      return instrument;
-
-    } catch (ClassNotFoundException e) {
-      throw new InvalidCommandException(
-          "Cannot find instrument class '%s'", className);
-
-    } catch (ClassCastException e) {
-      throw new InvalidInstrumentException(
-          "Instrument class '%s' does not implement Instrument", className);
-
-    } catch (NoSuchMethodException e) {
-      throw new InvalidInstrumentException(
-          "Instrument class '%s' has no parameterless constructor", className);
-
-    } catch (InstantiationException e) {
-      throw new InvalidInstrumentException("Instrument class '%s' couldn't be constructed",
-          className);
-
-    } catch (InvocationTargetException e) {
-      throw new UserCodeException(
-          "An exception was thrown when constructing the instrument", e.getCause());
-
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    }
-  }
-
   protected ImmutableMap<String, String> options;
 
-  protected void setOptions(Map<String, String> options) {
-    this.options = ImmutableMap.copyOf(options);
+  @Inject void setOptions(@InstrumentOptions ImmutableMap<String, String> options) {
+    this.options = ImmutableMap.copyOf(
+        Maps.filterKeys(options, Predicates.in(instrumentOptions())));
   }
 
   public ShortDuration estimateRuntimePerTrial() {
@@ -101,13 +60,37 @@ public abstract class Instrument {
   public abstract BenchmarkMethod createBenchmarkMethod(
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method) throws UserCodeException;
+  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method)
+      throws InvalidBenchmarkException;
 
-  public Map<String, String> workerOptions() {
+  public final ImmutableMap<String, String> options() {
+    return options;
+  }
+
+  /**
+   * Return the subset of options (and possibly a transformation thereof) to be used in the worker.
+   * Returns all instrument options by default.
+   */
+  public ImmutableMap<String, String> workerOptions() {
     return options;
   }
 
   public abstract Class<? extends Worker> workerClass();
+
+  final InstrumentSpec getSpec() {
+    return new InstrumentSpec.Builder()
+        .instrumentClass(getClass())
+        .addAllOptions(options())
+        .build();
+  }
+
+  /**
+   * Defines the list of options applicable to this instrument. Implementations that use options
+   * will need to override this method.
+   */
+  protected ImmutableSet<String> instrumentOptions() {
+    return ImmutableSet.of();
+  }
 
   /**
    * Returns some arguments that should be added to the command line when invoking
@@ -147,5 +130,57 @@ public abstract class Instrument {
     String methodName = timeMethod.getName();
     String shortName = methodName.substring("time".length());
     return new BenchmarkMethod(benchmarkClass, timeMethod, shortName);
+  }
+
+  abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
+
+  interface MeasurementCollectingVisitor extends LogMessageVisitor {
+    boolean isDoneCollecting();
+    ImmutableList<Measurement> getMeasurements();
+  }
+
+  /**
+   * A default implementation of {@link MeasurementCollectingVisitor} that collects measurements for
+   * pre-specified descriptions.
+   */
+  protected static final class DefaultMeasurementCollectingVisitor
+      extends AbstractLogMessageVisitor implements MeasurementCollectingVisitor {
+    static final int DEFAULT_NUMBER_OF_MEASUREMENTS = 9;
+    final ImmutableSet<String> requiredDescriptions;
+    final ListMultimap<String, Measurement> measurementsByDescription;
+    final int requiredMeasurements;
+
+    DefaultMeasurementCollectingVisitor(ImmutableSet<String> requiredDescriptions) {
+      this(requiredDescriptions, DEFAULT_NUMBER_OF_MEASUREMENTS);
+    }
+
+    DefaultMeasurementCollectingVisitor(ImmutableSet<String> requiredDescriptions,
+        int requiredMeasurements) {
+      this.requiredDescriptions = requiredDescriptions;
+      checkArgument(!requiredDescriptions.isEmpty());
+      this.requiredMeasurements = requiredMeasurements;
+      checkArgument(requiredMeasurements > 0);
+      this.measurementsByDescription =
+          ArrayListMultimap.create(requiredDescriptions.size(), requiredMeasurements);
+    }
+
+    @Override public void visit(StopTimingLogMessage logMessage) {
+      for (Measurement measurement : logMessage.measurements()) {
+        measurementsByDescription.put(measurement.description(), measurement);
+      }
+    }
+
+    @Override public boolean isDoneCollecting() {
+      for (String description : requiredDescriptions) {
+        if (measurementsByDescription.get(description).size() < requiredMeasurements) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    @Override public ImmutableList<Measurement> getMeasurements() {
+      return ImmutableList.copyOf(measurementsByDescription.values());
+    }
   }
 }

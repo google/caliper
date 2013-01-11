@@ -40,8 +40,8 @@ public final class BenchmarkMethod {
     return shortName;
   }
 
-  public String className() {
-    return benchmarkClass.name();
+  public BenchmarkClass benchmarkClass() {
+    return benchmarkClass;
   }
 
   public Method method() {

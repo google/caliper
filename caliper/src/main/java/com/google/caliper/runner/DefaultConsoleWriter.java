@@ -17,13 +17,15 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.util.ShortDuration;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 
 import java.io.PrintWriter;
 
-public class DefaultConsoleWriter implements ConsoleWriter {
+final class DefaultConsoleWriter implements ConsoleWriter {
   private final PrintWriter writer;
 
-  public DefaultConsoleWriter(PrintWriter writer) {
+  DefaultConsoleWriter(PrintWriter writer) {
     this.writer = writer;
   }
 
@@ -35,21 +37,36 @@ public class DefaultConsoleWriter implements ConsoleWriter {
     writer.print(s);
   }
 
-  @Override public void describe(ScenarioSelection selection) {
-    writer.println("Scenario selection: ");
-    writer.println("  Benchmark methods: " + selection.benchmarkMethods());
-    writer.println("  User parameters:   " + selection.userParameters());
-    writer.println("  Virtual machines:  " + selection.vms());
-    writer.println("  Selection type:    " + selection.selectionType());
+  @Override public void printf(String format, Object... args) {
+    writer.printf(format, args);
+  }
+
+  @Override public void describe(ExperimentSelector selector) {
+    writer.println("Experiment selection: ");
+    writer.println("  Instruments:   " + FluentIterable.from(selector.instruments())
+        .transform(new Function<Instrument, String>() {
+              @Override public String apply(Instrument input) {
+                return input.getClass().getSimpleName();
+              }
+            }));
+    writer.println("  User parameters:   " + selector.userParameters());
+    writer.println("  Virtual machines:  " + FluentIterable.from(selector.vms())
+        .transform(
+            new Function<VirtualMachine, String>() {
+              @Override public String apply(VirtualMachine input) {
+                return input.name;
+              }
+            }));
+    writer.println("  Selection type:    " + selector.selectionType());
     writer.println();
   }
 
-  @Override public void beforeDryRun(int scenarioCount) {
-    writer.format("This selection yields %s scenarios.%n", scenarioCount);
+  @Override public void beforeDryRun(int experimentCount) {
+    writer.format("This selection yields %s experiments.%n", experimentCount);
   }
 
-  @Override public void beforeRun(int trials, int scenarioCount, ShortDuration estimate) {
-    writer.format("Measuring %s trials each of %s scenarios. ", trials, scenarioCount);
+  @Override public void beforeRun(int trials, int experimentCount, ShortDuration estimate) {
+    writer.format("Measuring %s trials each of %s experiments. ", trials, experimentCount);
     if (estimate.equals(ShortDuration.zero())) {
       writer.println("(Cannot estimate runtime.)");
     } else {
@@ -61,7 +78,7 @@ public class DefaultConsoleWriter implements ConsoleWriter {
     writer.format("Execution complete: %s.%n", elapsed);
   }
 
-  @Override public void skippedScenarios(int nSkipped) {
-    writer.format("%d scenarios were skipped.%n", nSkipped);
+  @Override public void skippedExperiments(int nSkipped) {
+    writer.format("%d experiments were skipped.%n", nSkipped);
   }
 }

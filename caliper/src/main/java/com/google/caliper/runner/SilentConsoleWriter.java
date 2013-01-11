@@ -22,9 +22,10 @@ import com.google.caliper.util.ShortDuration;
 public class SilentConsoleWriter implements ConsoleWriter {
   @Override public void flush() {}
   @Override public void print(String s) {}
-  @Override public void describe(ScenarioSelection selection) {}
+  @Override public void printf(String format, Object... args) {}
+  @Override public void describe(ExperimentSelector selection) {}
   @Override public void beforeDryRun(int count) {}
   @Override public void beforeRun(int trials, int scenarioCount, ShortDuration estimate) { }
   @Override public void afterRun(ShortDuration elapsed) { }
-  @Override public void skippedScenarios(int nSkipped) { }
+  @Override public void skippedExperiments(int nSkipped) { }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2012 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,119 @@
 
 package com.google.caliper.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static javax.persistence.AccessType.FIELD;
+
+import com.google.common.base.Objects;
+
+import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Type;
+import org.joda.time.Instant;
+
+import java.util.UUID;
+
+import javax.persistence.Access;
+import javax.persistence.Basic;
+import javax.persistence.Cacheable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
 
 /**
- * Note: classes in this package are deliberately quick-and-dirty and minimal, and may be upgraded
- * to be a little more robust in the future.
+ * A single invocation of caliper.
+ *
+ * @author gak@google.com (Gregory Kick)
  */
-public class Run {
-  public String label = "default";
-  public long timestamp;
-  public List<Environment> environments = new ArrayList<Environment>();
-  public List<VM> vms = new ArrayList<VM>();
-  public List<Instrument> instruments = new ArrayList<Instrument>();
-  public List<Scenario> scenarios = new ArrayList<Scenario>();
-  public List<Result> results = new ArrayList<Result>();
+@Entity
+@Access(FIELD)
+@Immutable
+@Cacheable
+public final class Run {
+  static final Run DEFAULT = new Run();
 
-  public static Run fromString(String json) {
-    return ModelJson.fromJson(json, Run.class);
+  @Id
+  @Type(type = "uuid-binary")
+  @Column(length = 16)
+  private UUID id;
+  @Basic(optional = false)
+  private String label;
+  @Basic(optional = false)
+  @Type(type = "org.joda.time.contrib.hibernate.PersistentInstant")
+  private Instant startTime;
+
+  private Run() {
+    this.id = Defaults.UUID;
+    this.label = "";
+    this.startTime = Defaults.INSTANT;
+  }
+
+  private Run(Builder builder) {
+    this.id = builder.id;
+    this.label = builder.label;
+    this.startTime = builder.startTime;
+  }
+
+  public UUID id() {
+    return id;
+  }
+
+  public String label() {
+    return label;
+  }
+
+  public Instant startTime() {
+    return startTime;
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof Run) {
+      Run that = (Run) obj;
+      return this.id.equals(that.id)
+          && this.label.equals(that.label)
+          && this.startTime.equals(that.startTime);
+    } else {
+      return false;
+    }
+  }
+
+  @Override public int hashCode() {
+    return Objects.hashCode(id, label, startTime);
   }
 
   @Override public String toString() {
-    return ModelJson.toJson(this);
+    return Objects.toStringHelper(this)
+        .add("id", id)
+        .add("label", label)
+        .add("startTime", startTime)
+        .toString();
+  }
+
+  public static final class Builder {
+    private UUID id;
+    private String label = "";
+    private Instant startTime;
+
+    public Builder(UUID id) {
+      this.id = checkNotNull(id);
+    }
+
+    public Builder label(String label) {
+      this.label = checkNotNull(label);
+      return this;
+    }
+
+    public Builder startTime(Instant startTime) {
+      this.startTime = checkNotNull(startTime);
+      return this;
+    }
+
+    public Run build() {
+      checkState(id != null);
+      checkState(startTime != null);
+      return new Run(this);
+    }
   }
 }

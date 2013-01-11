@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.Environment;
+import com.google.caliper.model.Host;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
@@ -25,8 +25,6 @@ import com.google.common.io.Files;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.List;
@@ -38,7 +36,13 @@ import java.util.TreeMap;
  * JVM version, os details, etc.
  */
 final class EnvironmentGetter {
-  Environment getEnvironmentSnapshot() {
+  Host getHost() {
+    return new Host.Builder()
+        .addAllProperies(getProperties())
+        .build();
+  }
+  
+  private Map<String, String> getProperties() {
     TreeMap<String, String> propertyMap = Maps.newTreeMap();
 
     Map<String, String> sysProps = Maps.fromProperties(System.getProperties());
@@ -61,13 +65,7 @@ final class EnvironmentGetter {
       getLinuxEnvironment(propertyMap);
     }
 
-    Environment env = new Environment();
-    env.properties = propertyMap;
-    try {
-      env.localName = InetAddress.getLocalHost().getHostName();
-    } catch (UnknownHostException ignored) {
-    }
-    return env;
+    return propertyMap;
   }
 
   private void getLinuxEnvironment(Map<String, String> propertyMap) {

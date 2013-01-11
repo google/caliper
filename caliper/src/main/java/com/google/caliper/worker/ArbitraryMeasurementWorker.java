@@ -1,15 +1,28 @@
-// Copyright 2011 Google Inc. All Rights Reserved.
+/*
+ * Copyright (C) 2011 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 package com.google.caliper.worker;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.model.Value;
 import com.google.caliper.util.Util;
-import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Method;
-import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -17,7 +30,7 @@ import java.util.Map;
  */
 public final class ArbitraryMeasurementWorker implements Worker {
   @Override
-  public Collection<Measurement> measure(Benchmark benchmark, String methodName,
+  public void measure(Benchmark benchmark, String methodName,
       Map<String, String> optionsMap, WorkerEventLog log) throws Exception {
 
     Options options = new Options(optionsMap);
@@ -35,14 +48,11 @@ public final class ArbitraryMeasurementWorker implements Worker {
 
     log.notifyMeasurementStarting();
     double measured = (Double) method.invoke(benchmark);
-    Measurement m = new Measurement();
-    m.value = measured;
-    m.weight = 1;
-    m.unit = unit;
-    m.description = description;
-    log.notifyMeasurementEnding(m.value);
-
-    return ImmutableList.of(m);
+    log.notifyMeasurementEnding(new Measurement.Builder()
+        .value(Value.create(measured, unit))
+        .weight(1)
+        .description(description)
+        .build());
   }
 
   private static class Options {

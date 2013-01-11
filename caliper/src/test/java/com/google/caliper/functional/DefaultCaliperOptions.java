@@ -16,9 +16,13 @@
 
 package com.google.caliper.functional;
 
-import com.google.caliper.runner.CaliperOptions;
+import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.util.ShortDuration;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+
+import java.io.File;
 
 public class DefaultCaliperOptions implements CaliperOptions {
   private final String benchmarkClassName;
@@ -47,27 +51,31 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return ImmutableSetMultimap.of();
   }
 
-  @Override public String instrumentName() {
-    return "micro";
+  @Override public ImmutableMap<String, String> configProperties() {
+    return ImmutableMap.of();
+  }
+
+  @Override public ImmutableSet<String> instrumentNames() {
+    return ImmutableSet.of("micro");
   }
 
   @Override public int trialsPerScenario() {
     return 1;
   }
 
-  @Override public String outputFileOrDir() {
-    return null;
+  @Override public ShortDuration timeLimit() {
+    return ShortDuration.zero();
   }
 
-  @Override public boolean detailedLogging() {
-    return false;
+  @Override public String runName() {
+    return "";
   }
 
   @Override public boolean verbose() {
     return false;
   }
 
-  @Override public boolean calculateAggregateScore() {
+  @Override public boolean printConfiguration() {
     return false;
   }
 
@@ -75,7 +83,11 @@ public class DefaultCaliperOptions implements CaliperOptions {
     return false;
   }
 
-  @Override public String caliperRcFilename() {
+  @Override public File caliperDirectory() {
+    throw new UnsupportedOperationException();
+  }
+
+  @Override public File caliperConfigFile() {
     throw new UnsupportedOperationException();
   }
 

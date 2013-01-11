@@ -16,18 +16,17 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.api.Benchmark;
-import com.google.caliper.model.Measurement;
-import com.google.caliper.util.InterleavedReader;
-import com.google.caliper.util.Parser;
-import com.google.caliper.util.Parsers;
-import com.google.caliper.util.Util;
-import com.google.common.collect.ImmutableMap;
+import static com.google.inject.Stage.PRODUCTION;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
+import com.google.caliper.api.Benchmark;
+import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.json.GsonModule;
+import com.google.gson.Gson;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 import java.lang.reflect.Method;
-import java.util.Collection;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
@@ -37,44 +36,29 @@ public final class WorkerMain {
   private WorkerMain() {}
 
   public static void main(String[] args) throws Exception {
-    WorkerRequest request = Util.GSON.fromJson(args[0], WorkerRequest.class);
+    Injector gsonInjector = Guice.createInjector(PRODUCTION, new GsonModule());
+    WorkerSpec request =
+        gsonInjector.getInstance(Gson.class).fromJson(args[0], WorkerSpec.class);
 
-    Class<?> benchmarkClass = Class.forName(request.benchmarkClassName);
-    Benchmark benchmark = (Benchmark) construct(benchmarkClass);
+    Injector workerInjector = gsonInjector.createChildInjector(new WorkerModule(request),
+        new BridgeModule());
 
-    ImmutableMap<String, String> parameters = ImmutableMap.<String, String>builder()
-        .putAll(request.injectedParameters)
-        .build();
-    for (String fieldName : parameters.keySet()) {
-      Field field = benchmarkClass.getDeclaredField(fieldName);
-      field.setAccessible(true);
-      Parser<?> parser = Parsers.conventionalParser(field.getType());
-      field.set(benchmark, parser.parse(parameters.get(fieldName)));
-    }
-    Worker worker = (Worker) construct(request.workerClassName);
-    WorkerEventLog log = new WorkerEventLog();
+    Worker worker = workerInjector.getInstance(Worker.class);
+    Benchmark benchmark = workerInjector.getInstance(Benchmark.class);
+    WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
+
+    log.notifyWorkerStarted();
 
     try {
       runSetUp(benchmark);
 
-      Collection<Measurement> measurements =
-          worker.measure(benchmark, request.benchmarkMethodName, request.instrumentOptions, log);
-
-      System.out.println(InterleavedReader.DEFAULT_MARKER + new WorkerResponse(measurements));
-      System.out.flush(); // ?
+      worker.measure(benchmark, request.benchmarkSpec.methodName(), request.workerOptions, log);
+    } catch (Exception e) {
+      log.notifyFailure(e);
     } finally {
+      System.out.flush(); // ?
       runTearDown(benchmark);
     }
-  }
-
-  private static Object construct(String className) throws Exception {
-    return construct(Class.forName(className));
-  }
-
-  private static Object construct(Class<?> aClass) throws Exception {
-    Constructor<?> constructor = aClass.getDeclaredConstructor();
-    constructor.setAccessible(true);
-    return constructor.newInstance();
   }
 
   private static void runSetUp(Benchmark benchmark) throws Exception {

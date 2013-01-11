@@ -16,24 +16,49 @@
 
 package com.google.caliper.runner;
 
+import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
+import static com.google.caliper.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.bridge.AbstractLogMessageVisitor;
+import com.google.caliper.bridge.GcLogMessage;
+import com.google.caliper.bridge.HotspotLogMessage;
+import com.google.caliper.bridge.StartTimingLogMessage;
+import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.model.Measurement;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.MicrobenchmarkWorker;
 import com.google.caliper.worker.Worker;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
+
+import javax.annotation.Nullable;
 
 public final class MicrobenchmarkInstrument extends Instrument {
+  private static final Logger logger = Logger.getLogger(MicrobenchmarkInstrument.class.getName());
+
+  private static final String WARMUP_OPTION = "warmup";
+  private static final String TIMING_INTERVAL_OPTION = "timingInterval";
 
   @Override public ShortDuration estimateRuntimePerTrial() {
-    return ShortDuration.valueOf(options.get("maxTotalRuntime"));
+    return ShortDuration.valueOf(options.get(TIMING_INTERVAL_OPTION))
+        .times(Integer.valueOf(options.get(MEASUREMENTS_OPTION)))
+        .plus(ShortDuration.valueOf(options.get(WARMUP_OPTION)));
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -60,14 +85,15 @@ public final class MicrobenchmarkInstrument extends Instrument {
     }
   }
 
-  @Override public Map<String, String> workerOptions() {
+  @Override public ImmutableSet<String> instrumentOptions() {
+    return ImmutableSet.of(
+        WARMUP_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION, GC_BEFORE_EACH_OPTION);
+  }
+
+  @Override public ImmutableMap<String, String> workerOptions() {
     return new ImmutableMap.Builder<String, String>()
-        .put("warmupNanos", toNanosString("warmup"))
-        .put("timingIntervalNanos", toNanosString("timingInterval"))
-        .put("reportedIntervals", options.get("reportedIntervals"))
-        .put("shortCircuitTolerance", options.get("shortCircuitTolerance"))
-        .put("maxTotalRuntimeNanos", toNanosString("maxTotalRuntime"))
-        .put("gcBeforeEach", options.get("gcBeforeEach"))
+        .put(TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION))
+        .put(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION))
         .build();
   }
 
@@ -89,5 +115,110 @@ public final class MicrobenchmarkInstrument extends Instrument {
 
   @Override public String toString() {
     return "micro";
+  }
+
+  /**
+   * These are flags that are essential to the operation of the instrument and should not ever be
+   * disabled.
+   */
+  private static final ImmutableSet<String> MICROBENCHMARK_JVM_ARGS = ImmutableSet.of(
+      // do compilation serially
+      "-Xbatch",
+      // make sure compilation doesn't run in parallel with itself
+      "-XX:CICompilerCount=1",
+      // ensure the parallel garbage collector
+      "-XX:+UseParallelGC");
+
+  @Override ImmutableSet<String> getExtraCommandLineArgs() {
+    return MICROBENCHMARK_JVM_ARGS;
+  }
+
+  @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+    return new RuntimeMeasurementCollector(getMeasurementsPerTrial(),
+        ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+  }
+
+  private int getMeasurementsPerTrial() {
+    @Nullable String measurementsString = options.get(MEASUREMENTS_OPTION);
+    int measurementsPerTrial = (measurementsString == null)
+        ? 1
+        : Integer.parseInt(measurementsString);
+    // TODO(gak): fail faster
+    checkState(measurementsPerTrial > 0);
+    return measurementsPerTrial;
+  }
+
+  private static final class RuntimeMeasurementCollector extends AbstractLogMessageVisitor
+      implements MeasurementCollectingVisitor {
+    final int measurementsPerTrial;
+    final ShortDuration warmup;
+    final List<Measurement> measurements = Lists.newArrayList();
+    boolean timing = false;
+    boolean invalidMeasurements = false;
+    ShortDuration elapsedWarmup = ShortDuration.zero();
+
+    RuntimeMeasurementCollector(int measurementsPerTrial, ShortDuration warmup) {
+      this.measurementsPerTrial = measurementsPerTrial;
+      this.warmup = warmup;
+    }
+
+    boolean isInWarmup() {
+      return elapsedWarmup.compareTo(warmup) < 0;
+    }
+
+    @Override
+    public void visit(GcLogMessage logMessage) {
+      if (timing && !isInWarmup()) {
+        invalidMeasurements = true;
+        logger.severe("GC occurred during timing.");
+      }
+    }
+
+    @Override
+    public void visit(HotspotLogMessage logMessage) {
+      if (!isInWarmup()) {
+        if (timing) {
+          logger.severe(
+              "Hotspot compilation occurred during timing. Warmup is likely insufficent.");
+        } else {
+          logger.log(WARNING, "Hotspot compilation occurred after warmup, but outside of timing. "
+              + "Results may be affected. Run with --verbose to see which method was compiled.");
+        }
+      }
+    }
+
+    @Override
+    public void visit(StartTimingLogMessage logMessage) {
+      checkState(!timing);
+      timing = true;
+    }
+
+    @Override
+    public void visit(StopTimingLogMessage logMessage) {
+      checkState(timing);
+      ImmutableList<Measurement> newMeasurements = logMessage.measurements();
+      if (isInWarmup()) {
+        for (Measurement measurement : newMeasurements) {
+          // TODO(gak): eventually we will need to resolve different units
+          checkArgument("ns".equals(measurement.value().unit()));
+          elapsedWarmup = elapsedWarmup.plus(
+              ShortDuration.of(BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
+        }
+      } else if (invalidMeasurements) {
+        logger.fine(String.format("Discarding %s as they were marked invalid.", newMeasurements));
+      } else {
+        this.measurements.addAll(newMeasurements);
+      }
+      invalidMeasurements = false;
+      timing = false;
+    }
+
+    @Override public boolean isDoneCollecting() {
+      return measurements.size() >= measurementsPerTrial;
+    }
+
+    @Override public ImmutableList<Measurement> getMeasurements() {
+      return ImmutableList.copyOf(measurements);
+    }
   }
 }

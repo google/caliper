@@ -17,11 +17,21 @@ package com.google.caliper.runner;
 import static com.google.common.collect.ObjectArrays.concat;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.config.CaliperConfigLoader;
+import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.config.ConfigModule;
+import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.json.GsonModule;
+import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.base.Throwables;
+import com.google.inject.CreationException;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.ProvisionException;
+import com.google.inject.spi.Message;
 
-import java.io.File;
 import java.io.PrintWriter;
 
 /**
@@ -67,6 +77,9 @@ public final class CaliperMain {
     } catch (InvalidBenchmarkException e) {
       e.display(writer);
 
+    } catch (InvalidConfigurationException e) {
+      e.display(writer);
+
     } catch (Throwable t) {
       t.printStackTrace(writer);
       writer.println();
@@ -79,17 +92,39 @@ public final class CaliperMain {
   }
 
   public static void exitlessMain(String[] args, PrintWriter writer)
-      throws InvalidCommandException, InvalidBenchmarkException {
-
-    CaliperOptions options = ParsedOptions.from(args); // throws ICE
-    CaliperConfig config = CaliperConfigLoader.loadOrCreate(new File(options.caliperRcFilename()));
-
-    ConsoleWriter console = new DefaultConsoleWriter(writer);
-
-    CaliperRun run = new CaliperRun(options, config, console); // throws ICE, IBE
-    run.run(); // throws UCE
+      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
+    try {
+      // TODO(gak): see if there's a better way to deal with options and writer. probably a module
+      Injector optionsInjector = Guice.createInjector(new OptionsModule(args));
+      CaliperOptions options = optionsInjector.getInstance(CaliperOptions.class);
+      Module runnerModule = new ExperimentingRunnerModule(writer);
+      Injector injector = optionsInjector.createChildInjector(
+          new BridgeModule(),
+          new GsonModule(),
+          new ConfigModule(),
+          runnerModule);
+      CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
+      run.run(); // throws IBE
+    } catch (CreationException e) {
+      propogateIfCaliperException(e.getCause());
+      throw e;
+    } catch (ProvisionException e) {
+      Throwable cause = e.getCause();
+      propogateIfCaliperException(e.getCause());
+      for (Message message : e.getErrorMessages()) {
+        propogateIfCaliperException(message.getCause());
+      }
+      throw e;
+    }
 
     // TODO(kevinb): when exactly do we need to do this?
     writer.flush();
+  }
+
+  private static void propogateIfCaliperException(Throwable throwable)
+      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
+    Throwables.propagateIfInstanceOf(throwable, InvalidCommandException.class);
+    Throwables.propagateIfInstanceOf(throwable, InvalidBenchmarkException.class);
+    Throwables.propagateIfInstanceOf(throwable, InvalidConfigurationException.class);
   }
 }

@@ -16,6 +16,8 @@
 
 package com.google.caliper.util;
 
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
@@ -29,13 +31,11 @@ import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public final class Util {
-
-  public static final Gson GSON = new GsonBuilder().create();
-
   private Util() {}
 
   // Users have no idea that nested classes are identified with '$', not '.', so if class lookup
@@ -112,6 +112,23 @@ public final class Util {
       latch.await(FORCE_GC_TIMEOUT_SECS, TimeUnit.SECONDS);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    }
+  }
+  
+  public static <T> ImmutableBiMap<T, String> assignNames(Set<T> items) {
+    ImmutableList<T> itemList = ImmutableList.copyOf(items);
+    ImmutableBiMap.Builder<T, String> itemNamesBuilder = ImmutableBiMap.builder();
+    for (int i = 0; i < itemList.size(); i++) {
+      itemNamesBuilder.put(itemList.get(i), generateUniqueName(i));
+    }
+    return itemNamesBuilder.build();
+  }
+  
+  private static String generateUniqueName(int index) {
+    if (index < 26) {
+      return String.valueOf((char) ('A' + index));
+    } else {
+      return generateUniqueName(index / 26 - 1) + generateUniqueName(index % 26);
     }
   }
 }

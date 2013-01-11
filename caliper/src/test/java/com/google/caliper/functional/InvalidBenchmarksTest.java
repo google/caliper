@@ -18,21 +18,21 @@ package com.google.caliper.functional;
 
 import com.google.caliper.Param;
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.config.CaliperRc;
-import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.CaliperRun;
+import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.BenchmarkClass;
+import com.google.caliper.runner.ExperimentingCaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
 import com.google.caliper.runner.MicrobenchmarkInstrument;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableMap;
 
+import junit.framework.Assert;
 import junit.framework.AssertionFailedError;
-import junit.framework.TestCase;
 
 /**
  * Unit test covering common user mistakes in benchmark classes.
  */
-public class InvalidBenchmarksTest extends TestCase {
+public class InvalidBenchmarksTest extends Assert /* temporarily not a TestCase */ {
   // Put the expected messages together here, which may promote some kind of
   // consistency in their wording. :)
 
@@ -137,14 +137,14 @@ public class InvalidBenchmarksTest extends TestCase {
 
   // end of tests
 
-  private void expectException(String expectedMessageFmt, Class<?> benchmarkClass)
-      throws InvalidCommandException {
+  private void expectException(String expectedMessageFmt, Class<?> benchmarkClass) {
     CaliperOptions options = new DefaultCaliperOptions(benchmarkClass.getName());
     try {
       // Note that all the failures checked by this test are caught before even calling run()
       ImmutableMap<String, String> map = ImmutableMap.of(
           "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
-      new CaliperRun(options, new CaliperRc(map).asCaliperConfig(), null);
+      new ExperimentingCaliperRun(options, null, null, new BenchmarkClass(benchmarkClass),
+          null, null, null, null, null, null, null).run();
       fail("no exception thrown");
 
     } catch (InvalidBenchmarkException e) {

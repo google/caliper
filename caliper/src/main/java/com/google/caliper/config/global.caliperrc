@@ -47,7 +47,7 @@ instrument.micro.options.warmup=10s
 instrument.micro.options.timingInterval=500ms
 
 # Caliper ultimately records only the final N measurements, where N is this value.
-instrument.micro.options.reportedIntervals=9
+instrument.micro.options.measurements=9
 
 # End the test once the normalized standard deviation of the last N measurements is under
 # this value
@@ -77,20 +77,20 @@ instrument.arbitrary.class=com.google.caliper.runner.ArbitraryMeasurementInstrum
 instrument.arbitrary.options.gcBeforeEach=false
 
 # Instrument "allocationCount"
-instrument.allocationCount.class=com.google.caliper.runner.AllocationCountInstrument
-instrument.allocationCount.options.allocationAgentJar=lib/allocation.jar
+instrument.allocation.class=com.google.caliper.runner.AllocationInstrument
+instrument.allocation.options.allocationAgentJar=lib/allocation.jar
 
-# Instrument "allocationSize"
-instrument.allocationSize.class=com.google.caliper.runner.AllocationSizeInstrument
-instrument.allocationSize.options.allocationAgentJar=lib/allocation.jar
+# Instrument "footprint"
+instrument.footprint.class=com.google.caliper.runner.ObjectFootprintInstrument
 
 ######################
-# RESULTS STORAGE
+# RESULTS PROCESSORS
 ######################
+
+results.console.class=com.google.caliper.runner.ConsoleResultProcessor
 
 results.file.class=com.google.caliper.runner.OutputFileDumper
-results.file.options.dir=~/.caliper/results
 
-results.upload.class=com.google.caliper.runner.WebappUploader
-results.upload.options.url=https://microbenchmarks.appspot.com/runs/
-#results.upload.options.browserAfterUpload=true
+# results.upload.class=com.google.caliper.runner.HttpUploader
+
+# results.upload.options.url=

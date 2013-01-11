@@ -23,6 +23,7 @@ import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -80,25 +81,20 @@ public final class BenchmarkClass {
 
   public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
       Instrument instrument) throws InvalidBenchmarkException {
-    boolean gotOne = false;
     ImmutableSortedMap.Builder<String, BenchmarkMethod> result = ImmutableSortedMap.naturalOrder();
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
         BenchmarkMethod benchmarkMethod = instrument.createBenchmarkMethod(this, method);
         result.put(benchmarkMethod.name(), benchmarkMethod);
-        gotOne = true;
       }
-    }
-    if (!gotOne) {
-      throw new InvalidBenchmarkException(
-          "Class '%s' contains no benchmark methods for instrument '%s'", theClass, instrument);
     }
     return result.build();
   }
 
-  public Benchmark createAndStage(Scenario scenario) throws UserCodeException {
+  public Benchmark createAndStage(ImmutableSortedMap<String, String> userParameterValues)
+      throws UserCodeException {
     Benchmark benchmark = createBenchmarkInstance(constructor);
-    userParameters.injectAll(benchmark, scenario.userParameters());
+    userParameters.injectAll(benchmark, userParameterValues);
 
     boolean setupSuccess = false;
     try {
@@ -117,6 +113,10 @@ public final class BenchmarkClass {
 
   public void cleanup(Benchmark benchmark) throws UserCodeException {
     callTearDown(benchmark);
+  }
+
+  @VisibleForTesting Class<? extends Benchmark> benchmarkClass() {
+    return theClass;
   }
 
   public String name() {

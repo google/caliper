@@ -17,10 +17,10 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.api.Benchmark;
-import com.google.caliper.config.CaliperRc;
-import com.google.caliper.runner.CaliperOptions;
-import com.google.caliper.runner.CaliperRun;
+import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.BenchmarkClass;
 import com.google.caliper.runner.ConsoleWriter;
+import com.google.caliper.runner.ExperimentingCaliperRun;
 import com.google.caliper.runner.InvalidBenchmarkException;
 import com.google.caliper.runner.MicrobenchmarkInstrument;
 import com.google.caliper.runner.SilentConsoleWriter;
@@ -28,12 +28,12 @@ import com.google.caliper.runner.UserCodeException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableMap;
 
-import junit.framework.TestCase;
+import junit.framework.Assert;
 
 /**
  * Unit test covering common user mistakes in benchmark classes.
  */
-public class ExceptionsFromUserCodeTest extends TestCase {
+public class ExceptionsFromUserCodeTest extends Assert /* temporarily not a TestCase */ {
   public void testExceptionInInit() throws Exception {
     expectException(ExceptionInInitBenchmark.class);
   }
@@ -81,7 +81,8 @@ public class ExceptionsFromUserCodeTest extends TestCase {
       // It's undefined whether these exceptions happen during the constructor or run()
       ImmutableMap<String, String> map = ImmutableMap.of(
           "instrument.micro.class", MicrobenchmarkInstrument.class.getName());
-      new CaliperRun(options, new CaliperRc(map).asCaliperConfig(), SHH).run();
+      new ExperimentingCaliperRun(options, null, SHH, new BenchmarkClass(benchmarkClass),
+          null, null, null, null, null, null, null).run();
       fail("no exception thrown");
     } catch (UserCodeException e) {
       if (!(e.getCause() instanceof SomeUserException)) {

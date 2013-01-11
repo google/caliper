@@ -22,6 +22,7 @@ import com.google.caliper.runner.CaliperMain;
 import com.google.caliper.util.InterleavedReader;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ObjectArrays;
@@ -50,6 +51,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -432,10 +435,13 @@ public final class Runner {
     }
   }
 
+  private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
+
   @SuppressWarnings({"unchecked", "rawtypes"}) // temporary fakery
   public static void main(Class<? extends Benchmark> suite, String[] args) {
-    String env = System.getenv("USE_CANARY_CALIPER");
-    if (env != null && !env.isEmpty()) {
+    // TODO(gak): remove this once we've stabilized on the new Caliper
+    @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
+    if (Strings.isNullOrEmpty(legacyCaliperEnv)) {
       CaliperMain.main((Class) suite, args);
     } else {
       main(ObjectArrays.concat(args, suite.getName()));

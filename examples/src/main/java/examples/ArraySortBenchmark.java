@@ -19,6 +19,7 @@ package examples;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
 import com.google.caliper.SimpleBenchmark;
+
 import java.util.Arrays;
 import java.util.Random;
 

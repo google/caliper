@@ -21,9 +21,10 @@ import com.google.caliper.util.ShortDuration;
 public interface ConsoleWriter {
   void flush();
   void print(String s);
-  void describe(ScenarioSelection selection);
+  void printf(String format, Object... args);
+  void describe(ExperimentSelector selection);
   void beforeDryRun(int count);
   void beforeRun(int trials, int scenarioCount, ShortDuration estimate);
   void afterRun(ShortDuration elapsed);
-  void skippedScenarios(int nSkipped);
+  void skippedExperiments(int nSkipped);
 }

@@ -62,6 +62,9 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
   }
 
   public static ShortDuration valueOf(String s) {
+    if ("0".equals(s)) {
+      return ZERO;
+    }
     Matcher matcher = PATTERN.matcher(s);
     checkArgument(matcher.matches(), "Invalid ShortDuration: %s", s);
 
