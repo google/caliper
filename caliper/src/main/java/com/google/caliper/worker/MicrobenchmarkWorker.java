@@ -28,10 +28,11 @@ import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Predicate;
 import com.google.common.base.Ticker;
-import com.google.common.collect.FluentIterable;
+import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -61,16 +62,18 @@ public class MicrobenchmarkWorker implements Worker {
       Options options, WorkerEventLog log) {
     final String timeMethodName = "time" + methodName;
     // where's the right place for 'time' to be prepended again?
-    Method timeMethod = FluentIterable.of(benchmark.getClass().getDeclaredMethods())
-        .filter(new Predicate<Method>() {
-          @Override public boolean apply(@Nullable Method input) {
-            return timeMethodName.equals(input.getName());
-          }
-        })
-        .getOnlyElement();
+    Iterable<Method> timeMethods =
+        Iterables.filter(Arrays.asList(benchmark.getClass().getDeclaredMethods()),
+            new Predicate<Method>() {
+              @Override public boolean apply(@Nullable Method input) {
+                return timeMethodName.equals(input.getName());
+              }
+            });
+
+    Method timeMethod = Iterables.getOnlyElement(timeMethods);
     timeMethod.setAccessible(true);
 
-    Class<?> repsType = FluentIterable.of(timeMethod.getParameterTypes()).getOnlyElement();
+    Class<?> repsType = Iterables.getOnlyElement(Arrays.asList(timeMethod.getParameterTypes()));
     if (int.class.equals(repsType)) {
       return new IntTrial(benchmark, timeMethod, options, log);
     } else if (long.class.equals(repsType)) {
