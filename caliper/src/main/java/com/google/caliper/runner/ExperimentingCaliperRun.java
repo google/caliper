@@ -47,6 +47,7 @@ import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
+import com.google.common.base.Predicate;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
@@ -54,6 +55,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.io.Closeables;
 import com.google.common.io.LineReader;
@@ -438,9 +440,21 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       vmOptionsBuilder.put(logMessage.name(), logMessage.value());
     }
 
+    static final Predicate<String> PROPERTIES_TO_RETAIN = new Predicate<String>() {
+      @Override public boolean apply(String input) {
+        return input.startsWith("java.vm")
+            || input.startsWith("java.runtime")
+            || input.equals("java.version")
+            || input.equals("java.vendor")
+            || input.equals("sun.reflect.noInflation")
+            || input.equals("sun.reflect.inflationThreshold");
+      }
+    };
+
     @Override
     public void visit(VmPropertiesLogMessage logMessage) {
-      vmProperties = Optional.of(logMessage.properties());
+      vmProperties = Optional.of(ImmutableMap.copyOf(
+          Maps.filterKeys(logMessage.properties(), PROPERTIES_TO_RETAIN)));
     }
   }
 

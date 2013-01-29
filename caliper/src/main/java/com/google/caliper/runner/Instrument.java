@@ -93,15 +93,17 @@ public abstract class Instrument {
   }
 
   /**
-   * Some default JVM args to keep worker VMs somewhat predicatable.
+   * Some default JVM args to keep worker VMs somewhat predictable.
    */
-  private static final ImmutableSet<String> JVM_ARGS = ImmutableSet.of(
+  static final ImmutableSet<String> JVM_ARGS = ImmutableSet.of(
       // do compilation serially
       "-Xbatch",
       // make sure compilation doesn't run in parallel with itself
       "-XX:CICompilerCount=1",
       // ensure the parallel garbage collector
-      "-XX:+UseParallelGC");
+      "-XX:+UseParallelGC",
+      // generate classes or don't, but do it immediately
+      "-Dsun.reflect.inflationThreshold=0");
 
   /**
    * Returns some arguments that should be added to the command line when invoking
