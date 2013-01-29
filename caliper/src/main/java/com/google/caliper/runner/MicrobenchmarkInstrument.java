@@ -24,7 +24,7 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.logging.Level.WARNING;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.GcLogMessage;

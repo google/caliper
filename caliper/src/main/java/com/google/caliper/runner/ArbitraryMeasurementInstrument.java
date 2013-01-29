@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopTimingLogMessage;

@@ -16,7 +16,7 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
 import com.google.common.collect.ImmutableList;

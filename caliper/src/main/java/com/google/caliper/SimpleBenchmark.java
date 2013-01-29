@@ -39,7 +39,7 @@ import java.util.Set;
  * <h3>Parameters</h3>
  * See the {@link Param} documentation to learn about parameters.
  */
-public abstract class SimpleBenchmark extends com.google.caliper.api.Benchmark {
+public abstract class SimpleBenchmark extends com.google.caliper.Benchmark {
   private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 
   private final Map<String, Parameter<?>> parameters;

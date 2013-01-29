@@ -16,7 +16,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.collect.ObjectArrays.concat;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.config.ConfigModule;
 import com.google.caliper.config.InvalidConfigurationException;

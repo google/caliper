@@ -18,8 +18,8 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.api.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;

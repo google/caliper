@@ -18,8 +18,8 @@ package com.google.caliper.worker;
 
 import static com.google.common.base.Charsets.UTF_8;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.api.Benchmark;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;

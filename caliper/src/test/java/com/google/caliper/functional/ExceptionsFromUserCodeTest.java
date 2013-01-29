@@ -16,7 +16,7 @@
 
 package com.google.caliper.functional;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.BenchmarkClass;
 import com.google.caliper.runner.ConsoleWriter;

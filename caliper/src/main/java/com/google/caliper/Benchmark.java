@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.api;
+package com.google.caliper;
 
 /**
  * This is the class users must extend.

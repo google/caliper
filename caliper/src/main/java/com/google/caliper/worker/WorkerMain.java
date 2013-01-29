@@ -18,7 +18,7 @@ package com.google.caliper.worker;
 
 import static com.google.inject.Stage.PRODUCTION;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;

@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.worker.AllocationWorker;
 import com.google.caliper.worker.Worker;

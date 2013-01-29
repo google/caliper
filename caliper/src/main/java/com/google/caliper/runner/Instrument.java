@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.caliper.api.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopTimingLogMessage;
