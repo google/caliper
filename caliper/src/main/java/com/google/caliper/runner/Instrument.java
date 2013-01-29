@@ -93,11 +93,22 @@ public abstract class Instrument {
   }
 
   /**
+   * Some default JVM args to keep worker VMs somewhat predicatable.
+   */
+  private static final ImmutableSet<String> JVM_ARGS = ImmutableSet.of(
+      // do compilation serially
+      "-Xbatch",
+      // make sure compilation doesn't run in parallel with itself
+      "-XX:CICompilerCount=1",
+      // ensure the parallel garbage collector
+      "-XX:+UseParallelGC");
+
+  /**
    * Returns some arguments that should be added to the command line when invoking
    * this instrument's worker.
    */
-  Iterable<String> getExtraCommandLineArgs() {
-    return ImmutableList.of();
+  ImmutableSet<String> getExtraCommandLineArgs() {
+    return JVM_ARGS;
   }
 
   /**
