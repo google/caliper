@@ -23,6 +23,7 @@ import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
 import com.google.inject.MembersInjector;
@@ -68,6 +69,7 @@ final class WorkerModule extends AbstractModule {
     bind(benchmarkClass);  // TypeListener doesn't fire without this
     bind(Benchmark.class).to(benchmarkClass);
     bind(Worker.class).to(workerClass);
+    bind(Ticker.class).toInstance(Ticker.systemTicker());
 
     bindListener(new BenchmarkTypeMatcher(), new BenchmarkParameterInjector());
   }

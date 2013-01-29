@@ -99,6 +99,10 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
     this.picos = picos;
   }
 
+  public long toPicos() {
+    return picos;
+  }
+
   public long to(TimeUnit unit) {
     return to(unit, RoundingMode.HALF_UP);
   }
