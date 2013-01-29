@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -54,6 +55,10 @@ public class VmPropertiesLogMessage extends CaliperControlLogMessage {
   }
 
   private final ImmutableMap<String, String> properties;
+
+  public VmPropertiesLogMessage() {
+    this(ImmutableMap.copyOf(Maps.fromProperties(System.getProperties())));
+  }
 
   public VmPropertiesLogMessage(ImmutableMap<String, String> properties) {
     this.properties = checkNotNull(properties);

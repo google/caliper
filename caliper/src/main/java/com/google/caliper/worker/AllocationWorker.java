@@ -16,6 +16,8 @@
 
 package com.google.caliper.worker;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.caliper.Benchmark;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
@@ -113,8 +115,11 @@ public final class AllocationWorker implements Worker {
     final int reps;
 
     AllocationStats(int allocationCount, long allocationSize, int reps) {
+      checkArgument(allocationCount >= 0);
       this.allocationCount = allocationCount;
+      checkArgument(allocationSize >= 0);
       this.allocationSize = allocationSize;
+      checkArgument(reps >= 0);
       this.reps = reps;
     }
   }
