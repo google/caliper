@@ -16,78 +16,98 @@
 
 package com.google.caliper.worker;
 
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
+
 import com.google.caliper.Benchmark;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Measurement.Builder;
 import com.google.caliper.model.Value;
+import com.google.caliper.runner.InvalidBenchmarkException;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Predicate;
+import com.google.common.base.Ticker;
+import com.google.common.collect.FluentIterable;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Random;
-import java.util.logging.Logger;
+
+import javax.annotation.Nullable;
 
 public class MicrobenchmarkWorker implements Worker {
-  private static final Logger logger = Logger.getLogger(MicrobenchmarkWorker.class.getName());
-  private static final int INITIAL_REPS = 30;
+  @VisibleForTesting static final int INITIAL_REPS = 100;
 
   private final Random random;
+  private final Ticker ticker;
 
-  @Inject MicrobenchmarkWorker(Random random) {
+  @Inject MicrobenchmarkWorker(Random random, Ticker ticker) {
     this.random = random;
+    // TODO(gak): investigate whether or not we can use Stopwatch
+    this.ticker = ticker;
   }
 
   @Override public void measure(Benchmark benchmark, String methodName,
       Map<String, String> optionMap, WorkerEventLog log) throws Exception {
     Options options = new Options(optionMap);
-    Trial trial = new Trial(benchmark, methodName, options, log);
-
+    Trial trial = createTrial(benchmark, methodName, options, log);
     long warmupNanos = trial.warmUp(INITIAL_REPS);
-
     trial.run(INITIAL_REPS, warmupNanos);
   }
 
-  private class Trial {
+  private Trial createTrial(Benchmark benchmark, String methodName,
+      Options options, WorkerEventLog log) {
+    final String timeMethodName = "time" + methodName;
+    // where's the right place for 'time' to be prepended again?
+    Method timeMethod = FluentIterable.of(benchmark.getClass().getDeclaredMethods())
+        .filter(new Predicate<Method>() {
+          @Override public boolean apply(@Nullable Method input) {
+            return timeMethodName.equals(input.getName());
+          }
+        })
+        .getOnlyElement();
+    timeMethod.setAccessible(true);
+
+    Class<?> repsType = FluentIterable.of(timeMethod.getParameterTypes()).getOnlyElement();
+    if (int.class.equals(repsType)) {
+      return new IntTrial(benchmark, timeMethod, options, log);
+    } else if (long.class.equals(repsType)) {
+      return new LongTrial(benchmark, timeMethod, options, log);
+    } else {
+      throw new IllegalStateException(String.format(
+          "Got a benchmark method (%s) with an invalid reps parameter.", timeMethod));
+    }
+  }
+
+  /**
+   * Returns a random number of reps based on a normal distribution around the estimated number of
+   * reps for the timing interval. The distribution used has a standard deviation of one fifth of
+   * the estimated number of reps.
+   */
+  @VisibleForTesting static long calculateTargetReps(long reps, long nanos, long targetNanos,
+      double gaussian) {
+    double targetReps = (((double) reps) / nanos) * targetNanos;
+    return Math.max(1L, Math.round((gaussian * (targetReps / 5)) + targetReps));
+  }
+
+  private abstract class Trial {
     final Benchmark benchmark;
     final Method timeMethod;
     final Options options;
     final WorkerEventLog log;
 
-    Trial(Benchmark benchmark, String methodName, Options options, WorkerEventLog log)
-        throws Exception {
+    Trial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
       this.benchmark = benchmark;
-
-      // where's the right place for 'time' to be prepended again?
-      this.timeMethod = benchmark.getClass().getDeclaredMethod("time" + methodName, int.class);
+      this.timeMethod = timeMethod;
       this.options = options;
       this.log = log;
-
-      timeMethod.setAccessible(true);
     }
 
     long warmUp(int warmupReps) throws Exception {
       log.notifyWarmupPhaseStarting();
-
-      long warmupNanos = invokeTimeMethod(warmupReps);
-      int estimatedReps =
-          (int) ((((double) warmupReps) / warmupNanos) * options.timingIntervalNanos);
-
-      logger.fine(String.format(
-          "performed %d reps in %dns. estimated %d reps for a %dns timing interval",
-              warmupReps, warmupNanos, estimatedReps, options.timingIntervalNanos));
-
-      return warmupNanos;
-    }
-
-    /**
-     * Returns a random number of reps based on a normal distribution around the estimated number of
-     * reps for the timing interval. The distribution used has a standard deviation of one fifth of
-     * the estimated number of reps.
-     */
-    private int calculateTargetReps(long reps, long nanos) {
-      double targetReps = (((double) reps) / nanos) * options.timingIntervalNanos;
-      return Math.max(1, (int) Math.round((random.nextGaussian() * (targetReps / 5)) + targetReps));
+      return invokeTimeMethod(warmupReps);
     }
 
     void run(int warmupReps, long warmupNanos) throws Exception {
@@ -97,7 +117,8 @@ public class MicrobenchmarkWorker implements Worker {
       long totalNanos = warmupNanos;
 
       while (true) {
-        int reps = calculateTargetReps(totalReps, totalNanos);
+        long reps = calculateTargetReps(totalReps, totalNanos, options.timingIntervalNanos,
+            random.nextGaussian());
 
         if (options.gcBeforeEach) {
           Util.forceGc();
@@ -119,14 +140,43 @@ public class MicrobenchmarkWorker implements Worker {
       }
     }
 
-    private long invokeTimeMethod(int reps) throws Exception {
-      long before = System.nanoTime();
-      timeMethod.invoke(benchmark, reps);
-      return System.nanoTime() - before;
+    abstract long invokeTimeMethod(long reps) throws Exception;
+  }
+
+  private final class IntTrial extends Trial {
+    IntTrial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
+      super(benchmark, timeMethod, options, log);
+    }
+
+    @Override  long invokeTimeMethod(long reps) throws Exception {
+      int intReps = (int) reps;
+      if (reps != intReps) {
+        throw new InvalidBenchmarkException("%s.%s takes an int for reps, "
+            + "but requires a greater number to fill the given timing interval (%s). "
+            + "If this is expected (the benchmarked code is very fast), use a long parameter."
+            + "Otherwise, check your benchmark for errors.",
+                benchmark.getClass(), timeMethod.getName(),
+                    ShortDuration.of(options.timingIntervalNanos, NANOSECONDS));
+      }
+      long before = ticker.read();
+      timeMethod.invoke(benchmark, intReps);
+      return ticker.read() - before;
     }
   }
 
-  private static class Options {
+  private final class LongTrial extends Trial {
+    LongTrial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
+      super(benchmark, timeMethod, options, log);
+    }
+
+    @Override long invokeTimeMethod(long reps) throws Exception {
+      long before = ticker.read();
+      timeMethod.invoke(benchmark, reps);
+      return ticker.read() - before;
+    }
+  }
+
+  private static final class Options {
     long timingIntervalNanos;
     boolean gcBeforeEach;
 
