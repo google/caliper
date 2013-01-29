@@ -17,7 +17,7 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.Runner;
+import com.google.caliper.runner.CaliperMain;
 
 /**
  * This fails with a runtime out of range error.
@@ -29,6 +29,6 @@ public class BrokenNoOpBenchmark extends Benchmark {
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(BrokenNoOpBenchmark.class, args);
+    CaliperMain.main(BrokenNoOpBenchmark.class, args);
   }
 }

@@ -18,7 +18,7 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.Runner;
+import com.google.caliper.runner.CaliperMain;
 
 /**
  * Tests various Character methods, intended for testing multiple
@@ -295,6 +295,6 @@ public class CharacterBenchmark extends Benchmark {
 
     // TODO: remove this from all examples when IDE plugins are ready
     public static void main(String[] args) throws Exception {
-        Runner.main(CharacterBenchmark.class, args);
+        CaliperMain.main(CharacterBenchmark.class, args);
     }
 }
