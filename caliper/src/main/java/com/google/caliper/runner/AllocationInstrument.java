@@ -22,7 +22,6 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.worker.AllocationWorker;
 import com.google.caliper.worker.Worker;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
@@ -83,9 +82,10 @@ public final class AllocationInstrument extends Instrument {
       throw new IllegalStateException("Can't find required allocationinstrumenter agent jar");
     }
     // Add microbenchmark args to minimize differences in the output
-    return FluentIterable.from(super.getExtraCommandLineArgs())
-        .append("-javaagent:" + agentJar)
-        .toSet();
+    return new ImmutableSet.Builder<String>()
+        .addAll(super.getExtraCommandLineArgs())
+        .add("-javaagent:" + agentJar)
+        .build();
   }
 
   @Override
