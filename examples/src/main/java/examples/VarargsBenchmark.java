@@ -16,9 +16,9 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 
 import java.util.Random;
@@ -28,7 +28,7 @@ import java.util.Random;
  *
  * @author gak@google.com (Gregory Kick)
  */
-public final class VarargsBenchmark extends SimpleBenchmark {
+public final class VarargsBenchmark extends Benchmark {
   enum Strategy {
     VARARGS {
       @Override long one(long a) {

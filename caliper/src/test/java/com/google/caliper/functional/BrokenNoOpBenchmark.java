@@ -16,13 +16,13 @@
 
 package com.google.caliper.functional;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 /**
  * This fails with a runtime out of range error.
  */
-public class BrokenNoOpBenchmark extends SimpleBenchmark {
+public class BrokenNoOpBenchmark extends Benchmark {
 
   public void timeNoOp(int reps) {
     for (int i = 0; i < reps; i++) {}

@@ -16,9 +16,9 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,7 +28,7 @@ import java.util.List;
 /**
  * Measures performance of list operations.
  */
-public class ListModificationBenchmark extends SimpleBenchmark {
+public class ListModificationBenchmark extends Benchmark {
 
   private enum Element {
     INSTANCE,

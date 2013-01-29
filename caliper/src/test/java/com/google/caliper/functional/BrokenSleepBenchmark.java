@@ -16,13 +16,13 @@
 
 package com.google.caliper.functional;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 /**
  * Should fail with a measurement error.
  */
-public class BrokenSleepBenchmark extends SimpleBenchmark {
+public class BrokenSleepBenchmark extends Benchmark {
   // And look, IDEA tries to warn you
   @SuppressWarnings({"UnusedDeclaration", "UnusedParameters"})
   public void timeSleepOneSecond(int reps) {

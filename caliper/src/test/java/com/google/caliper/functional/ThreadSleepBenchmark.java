@@ -16,14 +16,14 @@
 
 package com.google.caliper.functional;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 /**
  * If everything is working properly, this should report runtime very close to
  * 1ms.
  */
-public class ThreadSleepBenchmark extends SimpleBenchmark {
+public class ThreadSleepBenchmark extends Benchmark {
 
   public void timeSleep(int reps) {
     try {
