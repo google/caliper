@@ -171,8 +171,8 @@ public abstract class UserException extends RuntimeException {
 
   public static class DoesntImplementBenchmarkException extends ErrorInUserCodeException {
     public DoesntImplementBenchmarkException(Class<?> specifiedClass) {
-      super("Class [" + specifiedClass + "] does not implement the " + Benchmark.class.getName()
-          + " interface.", "Add 'extends " + SimpleBenchmark.class + "' to the class declaration.");
+      super("Class [" + specifiedClass + "] does not extend " + SimpleBenchmark.class.getName(),
+          "Add 'extends " + SimpleBenchmark.class + "' to the class declaration.");
     }
   }
 

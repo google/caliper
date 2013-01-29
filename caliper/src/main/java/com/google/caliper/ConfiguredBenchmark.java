@@ -20,9 +20,9 @@ import java.util.Map;
 
 public abstract class ConfiguredBenchmark {
 
-  private final Benchmark underlyingBenchmark;
+  private final SimpleBenchmark underlyingBenchmark;
 
-  protected ConfiguredBenchmark(Benchmark underlyingBenchmark) {
+  protected ConfiguredBenchmark(SimpleBenchmark underlyingBenchmark) {
     this.underlyingBenchmark = underlyingBenchmark;
   }
 
@@ -37,7 +37,7 @@ public abstract class ConfiguredBenchmark {
 
   public abstract void close() throws Exception;
 
-  public final Benchmark getBenchmark() {
+  public final SimpleBenchmark getBenchmark() {
     return underlyingBenchmark;
   }
 

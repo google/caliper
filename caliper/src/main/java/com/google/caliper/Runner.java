@@ -438,11 +438,11 @@ public final class Runner {
   private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
 
   @SuppressWarnings({"unchecked", "rawtypes"}) // temporary fakery
-  public static void main(Class<? extends Benchmark> suite, String[] args) {
+  public static void main(Class<? extends SimpleBenchmark> suite, String[] args) {
     // TODO(gak): remove this once we've stabilized on the new Caliper
     @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
     if (Strings.isNullOrEmpty(legacyCaliperEnv)) {
-      CaliperMain.main((Class) suite, args);
+      CaliperMain.main(suite, args);
     } else {
       main(ObjectArrays.concat(args, suite.getName()));
     }

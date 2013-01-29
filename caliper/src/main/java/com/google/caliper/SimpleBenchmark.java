@@ -39,9 +39,7 @@ import java.util.Set;
  * <h3>Parameters</h3>
  * See the {@link Param} documentation to learn about parameters.
  */
-public abstract class SimpleBenchmark
-    extends com.google.caliper.api.Benchmark // TEMPORARY for transition
-    implements Benchmark {
+public abstract class SimpleBenchmark extends com.google.caliper.api.Benchmark {
   private static final Class<?>[] ARGUMENT_TYPES = { int.class };
 
   private final Map<String, Parameter<?>> parameters;
@@ -61,14 +59,14 @@ public abstract class SimpleBenchmark
 
   @Override protected void tearDown() throws Exception {}
 
-  @Override public Set<String> parameterNames() {
+  public Set<String> parameterNames() {
     return ImmutableSet.<String>builder()
         .add("benchmark")
         .addAll(parameters.keySet())
         .build();
   }
 
-  @Override public Set<String> parameterValues(String parameterName) {
+  public Set<String> parameterValues(String parameterName) {
     if ("benchmark".equals(parameterName)) {
       return methods.keySet();
     }
@@ -90,7 +88,7 @@ public abstract class SimpleBenchmark
     }
   }
 
-  @Override public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
+  public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
     if (!parameterNames().equals(parameterValues.keySet())) {
       throw new IllegalArgumentException("Invalid parameters specified. Expected "
           + parameterNames() + " but was " + parameterValues.keySet());
@@ -193,36 +191,47 @@ public abstract class SimpleBenchmark
     return result.build();
   }
 
-  @Override public Map<String, Integer> getTimeUnitNames() {
+  /**
+   * A mapping of units to their values. Their values must be integers, but all values are relative,
+   * so if one unit is 1.5 times the size of another, then these units can be expressed as
+   * {"unit1"=10,"unit2"=15}. The smallest unit given by the function will be used to display
+   * immediate results when running at the command line.
+   *
+   * e.g. 0% Scenario{...} 16.08<SMALLEST-UNIT>; σ=1.72<SMALLEST-UNIT> @ 3 trials
+   */
+  public Map<String, Integer> getTimeUnitNames() {
     return ImmutableMap.of("ns", 1,
         "us", 1000,
         "ms", 1000000,
         "s", 1000000000);
   }
 
-  @Override public double nanosToUnits(double nanos) {
+  /**
+   * Converts nanoseconds to the smallest unit defined in {@link #getTimeUnitNames()}.
+   */
+  public double nanosToUnits(double nanos) {
     return nanos;
   }
 
-  @Override public Map<String, Integer> getInstanceUnitNames() {
+  public Map<String, Integer> getInstanceUnitNames() {
     return ImmutableMap.of(" instances", 1,
         "K instances", 1000,
         "M instances", 1000000,
         "B instances", 1000000000);
   }
 
-  @Override public double instancesToUnits(long instances) {
+  public double instancesToUnits(long instances) {
     return instances;
   }
 
-  @Override public Map<String, Integer> getMemoryUnitNames() {
+  public Map<String, Integer> getMemoryUnitNames() {
     return ImmutableMap.of("B", 1,
         "KiB", 1024,
         "MiB", 1048576,
         "GiB", 1073741824);
   }
 
-  @Override public double bytesToUnits(long bytes) {
+  public double bytesToUnits(long bytes) {
     return bytes;
   }
 }

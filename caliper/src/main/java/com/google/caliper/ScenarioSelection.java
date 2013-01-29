@@ -59,7 +59,7 @@ public final class ScenarioSelection {
   private Multimap<String, String> userParameters;
 
   private final int trials;
-  private Benchmark suite;
+  private SimpleBenchmark suite;
 
 
   public ScenarioSelection(Arguments arguments) {
@@ -95,10 +95,6 @@ public final class ScenarioSelection {
     // used benchmark class. Have to do this horrible stuff since Benchmark API
     // doesn't provide scenario-normalization (and it shouldn't), which SimpleBenchmark
     // requires.
-    if (suite instanceof SimpleBenchmark) {
-      return ((SimpleBenchmark) suite).normalizeScenario(scenario);
-    }
-
     return scenario;
   }
 
@@ -142,8 +138,8 @@ public final class ScenarioSelection {
       throw new ExceptionFromUserCodeException(e.getCause());
     }
 
-    if (s instanceof Benchmark) {
-      this.suite = (Benchmark) s;
+    if (s instanceof SimpleBenchmark) {
+      this.suite = (SimpleBenchmark) s;
     } else {
       throw new DoesntImplementBenchmarkException(benchmarkClass);
     }

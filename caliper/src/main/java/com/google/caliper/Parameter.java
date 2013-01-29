@@ -16,6 +16,7 @@
 
 package com.google.caliper;
 
+import com.google.caliper.api.Benchmark;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.lang.reflect.Field;
@@ -49,7 +50,7 @@ abstract class Parameter<T> {
   /**
    * Returns all parameters for the given class.
    */
-  public static Map<String, Parameter<?>> forClass(Class<? extends Benchmark> suiteClass) {
+  public static Map<String, Parameter<?>> forClass(Class<? extends SimpleBenchmark> suiteClass) {
     Map<String, Parameter<?>> parameters = new TreeMap<String, Parameter<?>>();
     for (Field field : suiteClass.getDeclaredFields()) {
       if (field.isAnnotationPresent(Param.class)) {
@@ -63,7 +64,7 @@ abstract class Parameter<T> {
 
   @VisibleForTesting
   static Parameter<?> forField(
-      Class<? extends Benchmark> suiteClass, final Field field) {
+      Class<? extends SimpleBenchmark> suiteClass, final Field field) {
     // First check for String values on the annotation itself
     final Object[] defaults = field.getAnnotation(Param.class).value();
     if (defaults.length > 0) {

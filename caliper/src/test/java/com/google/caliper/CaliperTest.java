@@ -18,8 +18,6 @@ package com.google.caliper;
 
 import com.google.common.base.Supplier;
 
-import java.util.Map;
-import java.util.Set;
 import junit.framework.TestCase;
 
 public final class CaliperTest extends TestCase {
@@ -55,41 +53,8 @@ public final class CaliperTest extends TestCase {
     @Override public void close() throws Exception {}
   }
 
-  private static class NoOpBenchmark implements Benchmark {
-    @Override public Set<String> parameterNames() {
-      return null;
-    }
-
-    @Override public Set<String> parameterValues(String parameterName) {
-      return null;
-    }
-
-    @Override public ConfiguredBenchmark createBenchmark(Map<String, String> parameterValues) {
-      return null;
-    }
-
-    @Override public Map<String, Integer> getTimeUnitNames() {
-      return null;
-    }
-
-    @Override public Map<String, Integer> getInstanceUnitNames() {
-      return null;
-    }
-
-    @Override public Map<String, Integer> getMemoryUnitNames() {
-      return null;
-    }
-
-    @Override public double nanosToUnits(double nanos) {
-      return 0;
-    }
-
-    @Override public double instancesToUnits(long instances) {
-      return 0;
-    }
-
-    @Override public double bytesToUnits(long bytes) {
-      return 0;
-    }
+  private static class NoOpBenchmark extends SimpleBenchmark {
+    @SuppressWarnings("unused")
+    public void timeNothing(int reps) {}
   }
 }
