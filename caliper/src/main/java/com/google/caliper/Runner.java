@@ -22,7 +22,6 @@ import com.google.caliper.runner.CaliperMain;
 import com.google.caliper.util.InterleavedReader;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.io.Closeables;
@@ -50,8 +49,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.TimeZone;
 import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
 
 /**
  * Creates, executes and reports benchmark runs.
@@ -434,13 +431,11 @@ public final class Runner {
     }
   }
 
-  private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
-
+  /**
+   * @deprecated Use {@link CaliperMain#main(Class, String[])}
+   */
+  @Deprecated
   public static void main(Class<? extends Benchmark> suite, String[] args) {
-    @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
-    if (!Strings.isNullOrEmpty(legacyCaliperEnv)) {
-      System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
-    }
     CaliperMain.main(suite, args);
   }
 }
