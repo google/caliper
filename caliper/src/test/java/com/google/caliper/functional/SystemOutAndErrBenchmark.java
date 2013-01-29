@@ -17,7 +17,7 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.Runner;
+import com.google.caliper.runner.CaliperMain;
 
 /**
  * Demonstrates that the benchmark can emit output without consequence.
@@ -32,6 +32,6 @@ public class SystemOutAndErrBenchmark extends Benchmark {
   }
 
   public static void main(String[] args) {
-    Runner.main(SystemOutAndErrBenchmark.class, args);
+    CaliperMain.main(SystemOutAndErrBenchmark.class, args);
   }
 }

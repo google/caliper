@@ -18,7 +18,8 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.Runner;
+import com.google.caliper.runner.CaliperMain;
+
 import java.util.EnumSet;
 import java.util.Set;
 
@@ -87,6 +88,6 @@ public class EnumSetContainsBenchmark extends Benchmark {
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(EnumSetContainsBenchmark.class, args);
+    CaliperMain.main(EnumSetContainsBenchmark.class, args);
   }
 }

@@ -17,7 +17,7 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.Runner;
+import com.google.caliper.runner.CaliperMain;
 
 /**
  * Should fail with a measurement error.
@@ -33,6 +33,6 @@ public class BrokenSleepBenchmark extends Benchmark {
   }
 
   public static void main(String[] args) throws Exception {
-    Runner.main(BrokenSleepBenchmark.class, args);
+    CaliperMain.main(BrokenSleepBenchmark.class, args);
   }
 }
