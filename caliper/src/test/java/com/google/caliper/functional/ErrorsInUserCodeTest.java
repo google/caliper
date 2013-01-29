@@ -17,11 +17,11 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.Runner;
 import com.google.caliper.UserException.AbstractBenchmarkException;
 import com.google.caliper.UserException.DoesntImplementBenchmarkException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.caliper.UserException.NoParameterlessConstructorException;
-import com.google.caliper.runner.CaliperMain;
 
 import junit.framework.Assert;
 
