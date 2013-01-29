@@ -117,22 +117,6 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return "micro";
   }
 
-  /**
-   * These are flags that are essential to the operation of the instrument and should not ever be
-   * disabled.
-   */
-  private static final ImmutableSet<String> MICROBENCHMARK_JVM_ARGS = ImmutableSet.of(
-      // do compilation serially
-      "-Xbatch",
-      // make sure compilation doesn't run in parallel with itself
-      "-XX:CICompilerCount=1",
-      // ensure the parallel garbage collector
-      "-XX:+UseParallelGC");
-
-  @Override ImmutableSet<String> getExtraCommandLineArgs() {
-    return MICROBENCHMARK_JVM_ARGS;
-  }
-
   @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
     return new RuntimeMeasurementCollector(getMeasurementsPerTrial(),
         ShortDuration.valueOf(options.get(WARMUP_OPTION)));
