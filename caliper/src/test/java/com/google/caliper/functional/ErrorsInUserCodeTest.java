@@ -22,15 +22,18 @@ import com.google.caliper.UserException.AbstractBenchmarkException;
 import com.google.caliper.UserException.DoesntImplementBenchmarkException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
 import com.google.caliper.UserException.NoParameterlessConstructorException;
-import junit.framework.TestCase;
+
+import junit.framework.Assert;
 
 /**
  * Unit test covering common user mistakes.
  */
-public class ErrorsInUserCodeTest extends TestCase {
+// Disabled because they rely on the now defunct SimpleBenchmark
+// TODO(gak): migrate to the new runner with the new exceptions
+public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase */ {
   private Runner runner;
 
-  @Override protected void setUp() throws Exception {
+  protected void setUp() throws Exception {
     runner = new Runner();
   }
 
@@ -40,7 +43,7 @@ public class ErrorsInUserCodeTest extends TestCase {
       fail();
     } catch (ExceptionFromUserCodeException expected) {
       assertEquals(DoesntImplementBenchmarkException.class.getCanonicalName(),
-    		  expected.getCause().getClass().getCanonicalName());
+          expected.getCause().getClass().getCanonicalName());
     }
   }
 
@@ -57,7 +60,7 @@ public class ErrorsInUserCodeTest extends TestCase {
       fail();
     } catch (ExceptionFromUserCodeException expected) {
         assertEquals(AbstractBenchmarkException.class.getCanonicalName(),
-      		  expected.getCause().getClass().getCanonicalName());
+            expected.getCause().getClass().getCanonicalName());
     }
   }
 
@@ -74,7 +77,7 @@ public class ErrorsInUserCodeTest extends TestCase {
       fail();
     } catch (ExceptionFromUserCodeException expected) {
         assertEquals(NoParameterlessConstructorException.class.getCanonicalName(),
-        		  expected.getCause().getClass().getCanonicalName());
+            expected.getCause().getClass().getCanonicalName());
     }
   }
 
