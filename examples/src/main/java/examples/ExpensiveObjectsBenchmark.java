@@ -16,7 +16,7 @@
 
 package examples;
 
-import com.google.caliper.SimpleBenchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.runner.CaliperMain;
 
 import java.text.DecimalFormatSymbols;
@@ -28,7 +28,7 @@ import java.util.Locale;
  * Benchmarks creation and cloning various expensive objects.
  */
 @SuppressWarnings({"ResultOfObjectAllocationIgnored"}) // TODO: should fix!
-public class ExpensiveObjectsBenchmark extends SimpleBenchmark {
+public class ExpensiveObjectsBenchmark extends Benchmark {
   public void timeNewDecimalFormatSymbols(int reps) {
     for (int i = 0; i < reps; ++i) {
       new DecimalFormatSymbols(Locale.US);

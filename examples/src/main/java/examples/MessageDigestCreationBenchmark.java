@@ -16,16 +16,16 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 import java.security.MessageDigest;
 
 /**
  * Times creating new MessageDigest instances.
  */
-public class MessageDigestCreationBenchmark extends SimpleBenchmark {
+public class MessageDigestCreationBenchmark extends Benchmark {
   // By default, just the "interesting ones". Also consider Adler32 and CRC32,
   // but these are not guaranteed to be supported in all runtime environments.
   @Param({"MD5", "SHA-1", "SHA-256", "SHA-512"})

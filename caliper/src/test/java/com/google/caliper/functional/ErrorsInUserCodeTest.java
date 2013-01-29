@@ -16,8 +16,8 @@
 
 package com.google.caliper.functional;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 import com.google.caliper.UserException.AbstractBenchmarkException;
 import com.google.caliper.UserException.DoesntImplementBenchmarkException;
 import com.google.caliper.UserException.ExceptionFromUserCodeException;
@@ -61,7 +61,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  abstract static class AbstractBenchmark extends SimpleBenchmark {
+  abstract static class AbstractBenchmark extends Benchmark {
     public void timeSomething(int reps) {
       fail("" + reps);
     }
@@ -78,7 +78,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  static class BadConstructorBenchmark extends SimpleBenchmark {
+  static class BadConstructorBenchmark extends Benchmark {
     BadConstructorBenchmark(String damnParam) {
       fail(damnParam);
     }
@@ -104,7 +104,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  static class ExceptionInInitBenchmark extends SimpleBenchmark {
+  static class ExceptionInInitBenchmark extends Benchmark {
     static {
       throwSomeUserException();
     }
@@ -122,7 +122,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  static class ExceptionInConstructorBenchmark extends SimpleBenchmark {
+  static class ExceptionInConstructorBenchmark extends Benchmark {
     ExceptionInConstructorBenchmark() {
       throw new SomeUserException();
     }
@@ -140,7 +140,7 @@ public class ErrorsInUserCodeTest extends TestCase {
     }
   }
 
-  public static class ExceptionInMethodBenchmark extends SimpleBenchmark {
+  public static class ExceptionInMethodBenchmark extends Benchmark {
     public void timeSomething(int reps) {
       throw new SomeUserException();
     }
@@ -151,7 +151,7 @@ public class ErrorsInUserCodeTest extends TestCase {
         "--warmupMillis", "100", "--runMillis", "100");
   }
 
-  public static class UserCodePrintsBenchmark extends SimpleBenchmark {
+  public static class UserCodePrintsBenchmark extends Benchmark {
     public void timeSomething(int reps) throws InterruptedException {
       System.out.println("output to System.out!");
       Thread.sleep(reps);

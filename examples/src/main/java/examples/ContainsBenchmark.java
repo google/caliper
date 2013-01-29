@@ -16,9 +16,9 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-public class ContainsBenchmark extends SimpleBenchmark {
+public class ContainsBenchmark extends Benchmark {
   @Param({"0", "25", "50", "75", "100"}) private int percentNulls;
   @Param({"100", "1000", "10000"}) private int containsPerRep;
 

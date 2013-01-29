@@ -16,8 +16,8 @@
 
 package tutorial;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.SimpleBenchmark;
 
 /**
  * Caliper tutorial. To run the example benchmarks in this file:
@@ -31,7 +31,7 @@ public class Tutorial {
    *
    * Notice:
    *
-   *  - We write a class that extends com.google.caliper.SimpleBenchmark.
+   *  - We write a class that extends com.google.caliper.Benchmark.
    *  - It contains a public instance method whose name begins with 'time' and
    *    which accepts a single 'int reps' parameter.
    *  - The body of the method simply executes the code we wish to measure,
@@ -48,7 +48,7 @@ public class Tutorial {
    *    ---------  ---
    *    NanoTime   233
    */
-  public static class Benchmark1 extends SimpleBenchmark {
+  public static class Benchmark1 extends Benchmark {
     public void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
@@ -69,7 +69,7 @@ public class Tutorial {
    *   NanoTime           248
    *   CurrentTimeMillis  118
    */
-  public static class Benchmark2 extends SimpleBenchmark {
+  public static class Benchmark2 extends Benchmark {
     public void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
@@ -86,7 +86,7 @@ public class Tutorial {
    * Let's try iterating over a large array. This seems simple enough, but
    * there is a problem!
    */
-  public static class Benchmark3 extends SimpleBenchmark {
+  public static class Benchmark3 extends Benchmark {
     private final int[] array = new int[1000000];
 
     @SuppressWarnings("UnusedDeclaration") // IDEA tries to warn us!
@@ -123,7 +123,7 @@ public class Tutorial {
    * With this change, Caliper should report a much more realistic value, more
    * on the order of an entire millisecond.
    */
-  public static class Benchmark4 extends SimpleBenchmark {
+  public static class Benchmark4 extends Benchmark {
     private final int[] array = new int[1000000];
 
     public int timeArrayIteration_fixed(int reps) {
@@ -164,7 +164,7 @@ public class Tutorial {
    *   ArrayIteration  1000  477 ||||||||||||||||||||||||||||||
    *
    */
-  public static class Benchmark5 extends SimpleBenchmark {
+  public static class Benchmark5 extends Benchmark {
     @Param int size; // set automatically by framework
 
     private int[] array; // set by us, in setUp()

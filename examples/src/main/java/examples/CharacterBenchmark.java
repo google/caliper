@@ -16,15 +16,15 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.Runner;
-import com.google.caliper.SimpleBenchmark;
 
 /**
  * Tests various Character methods, intended for testing multiple
  * implementations against each other.
  */
-public class CharacterBenchmark extends SimpleBenchmark {
+public class CharacterBenchmark extends Benchmark {
 
     @Param private CharacterSet characterSet;
 
