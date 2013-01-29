@@ -25,7 +25,6 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ObjectArrays;
 import com.google.common.io.Closeables;
 import com.google.gson.JsonObject;
 
@@ -437,14 +436,11 @@ public final class Runner {
 
   private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
 
-  @SuppressWarnings({"unchecked", "rawtypes"}) // temporary fakery
-  public static void main(Class<? extends SimpleBenchmark> suite, String[] args) {
-    // TODO(gak): remove this once we've stabilized on the new Caliper
+  public static void main(Class<? extends Benchmark> suite, String[] args) {
     @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
-    if (Strings.isNullOrEmpty(legacyCaliperEnv)) {
-      CaliperMain.main(suite, args);
-    } else {
-      main(ObjectArrays.concat(args, suite.getName()));
+    if (!Strings.isNullOrEmpty(legacyCaliperEnv)) {
+      System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
     }
+    CaliperMain.main(suite, args);
   }
 }
