@@ -49,7 +49,7 @@ import javax.annotation.Nullable;
 abstract class ResultsUploader implements ResultProcessor {
   private static final Logger logger = Logger.getLogger(ResultsUploader.class.getName());
   private static final String POST_PATH = "/data/trials";
-  private static final String RESULTS_PATH_PATTERN = "/run/%s";
+  private static final String RESULTS_PATH_PATTERN = "/runs/%s";
 
   private final PrintWriter writer;
   private final Client client;

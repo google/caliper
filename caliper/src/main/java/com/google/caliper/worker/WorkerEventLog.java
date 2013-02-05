@@ -72,9 +72,14 @@ public final class WorkerEventLog {
   public void notifyMeasurementEnding(Iterable<Measurement> measurements) {
     writer.println(stopTimingRenderer.render(new StopTimingLogMessage(measurements)));
     for (Measurement measurement : measurements) {
-      writer.println(String.format("I got a result! %s: %f%s", measurement.description(),
-          measurement.value().magnitude() / measurement.weight(), measurement.value().unit()));
+      writer.printf("I got a result! %s: %f%s%n", measurement.description(),
+          measurement.value().magnitude() / measurement.weight(), measurement.value().unit());
     }
+  }
+
+  public void notifyMeasurementFailure(Exception e) {
+    writer.println("MEASUREMENT FAILURE!");
+    e.printStackTrace(writer);
   }
 
   public void notifyFailure(Exception e) {

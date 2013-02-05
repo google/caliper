@@ -26,8 +26,6 @@ import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -84,32 +82,26 @@ final class ExperimentingRunnerModule extends AbstractModule {
     return new Run.Builder(id).label(options.runName()).startTime(startTime).build();
   }
 
-  @Provides ImmutableSet<InstrumentConfig> provideInstrumentConfigs(CaliperOptions options,
-      final CaliperConfig config) {
-    return FluentIterable.from(options.instrumentNames())
-        .transform(new Function<String, InstrumentConfig>() {
-          @Override public InstrumentConfig apply(String input) {
-            return config.getInstrumentConfig(input);
-          }
-        })
-        .toSet();
-  }
-
   @Provides ImmutableSet<Instrument> provideInstrument(Injector injector,
-      ImmutableSet<InstrumentConfig> configs) throws InvalidCommandException {
+      CaliperOptions options, final CaliperConfig config) throws InvalidCommandException {
     ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
-    for (final InstrumentConfig config : configs) {
-      String className = config.className();
+    for (final String instrumentName : options.instrumentNames()) {
+      final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
       Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
         @Override protected void configure() {
-          bind(InstrumentConfig.class).toInstance(config);
+          bind(InstrumentConfig.class).toInstance(instrumentConfig);
         }
 
         @Provides @InstrumentOptions ImmutableMap<String, String> provideInstrumentOptions(
             InstrumentConfig config) {
           return config.options();
         }
+
+        @Provides @InstrumentName String provideInstrumentName() {
+          return instrumentName;
+        }
       });
+      String className = instrumentConfig.className();
       try {
         builder.add(instrumentInjector.getInstance(
             Util.lenientClassForName(className).asSubclass(Instrument.class)));

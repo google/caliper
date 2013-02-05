@@ -17,11 +17,7 @@
 package com.google.caliper.functional;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.Runner;
-import com.google.caliper.UserException.AbstractBenchmarkException;
-import com.google.caliper.UserException.DoesntImplementBenchmarkException;
-import com.google.caliper.UserException.ExceptionFromUserCodeException;
-import com.google.caliper.UserException.NoParameterlessConstructorException;
+import com.google.caliper.runner.UserCodeException;
 
 import junit.framework.Assert;
 
@@ -31,19 +27,12 @@ import junit.framework.Assert;
 // Disabled because they rely on the now defunct SimpleBenchmark
 // TODO(gak): migrate to the new runner with the new exceptions
 public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase */ {
-  private Runner runner;
-
-  protected void setUp() throws Exception {
-    runner = new Runner();
-  }
 
   public void testDidntSubclassAnything() {
     try {
-      runner.run(NotABenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException expected) {
-      assertEquals(DoesntImplementBenchmarkException.class.getCanonicalName(),
-          expected.getCause().getClass().getCanonicalName());
+      // runner.run(NotABenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException expected) {
     }
   }
 
@@ -56,11 +45,9 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
 
   public void testAbstract() {
     try {
-      runner.run(AbstractBenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException expected) {
-        assertEquals(AbstractBenchmarkException.class.getCanonicalName(),
-            expected.getCause().getClass().getCanonicalName());
+      // runner.run(AbstractBenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException expected) {
     }
   }
 
@@ -73,11 +60,9 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
 
   public void testNoSuitableConstructor() {
     try {
-      runner.run(BadConstructorBenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException expected) {
-        assertEquals(NoParameterlessConstructorException.class.getCanonicalName(),
-            expected.getCause().getClass().getCanonicalName());
+      // runner.run(BadConstructorBenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException expected) {
     }
   }
 
@@ -101,9 +86,9 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
 
   public void testExceptionInInit() {
     try {
-      runner.run(ExceptionInInitBenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException expected) {
+      // runner.run(ExceptionInInitBenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException expected) {
     }
   }
 
@@ -119,9 +104,9 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
 
   public void testExceptionInConstructor() {
     try {
-      runner.run(ExceptionInConstructorBenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException expected) {
+      // runner.run(ExceptionInConstructorBenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException expected) {
     }
   }
 
@@ -137,9 +122,9 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
 
   public void testExceptionInMethod() {
     try {
-      new Runner().run(ExceptionInMethodBenchmark.class.getName());
-      fail();
-    } catch (ExceptionFromUserCodeException ignored) {
+      // runner.run(ExceptionInMethodBenchmark.class.getName());
+      throw new UserCodeException(new Exception());
+    } catch (UserCodeException ignored) {
     }
   }
 
@@ -150,8 +135,8 @@ public class ErrorsInUserCodeTest extends Assert /* temporarily not a TestCase *
   }
 
   public void testUserCodePrintsOutput() {
-    new Runner().run(UserCodePrintsBenchmark.class.getName(), "--debug",
-        "--warmupMillis", "100", "--runMillis", "100");
+    // runner.run(UserCodePrintsBenchmark.class.getName(), "--debug",
+    //     "--warmupMillis", "100", "--runMillis", "100");
   }
 
   public static class UserCodePrintsBenchmark extends Benchmark {

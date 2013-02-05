@@ -45,16 +45,16 @@ final class DefaultConsoleWriter implements ConsoleWriter {
     writer.println("Experiment selection: ");
     writer.println("  Instruments:   " + FluentIterable.from(selector.instruments())
         .transform(new Function<Instrument, String>() {
-              @Override public String apply(Instrument input) {
-                return input.getClass().getSimpleName();
+              @Override public String apply(Instrument instrument) {
+                return instrument.name();
               }
             }));
     writer.println("  User parameters:   " + selector.userParameters());
     writer.println("  Virtual machines:  " + FluentIterable.from(selector.vms())
         .transform(
             new Function<VirtualMachine, String>() {
-              @Override public String apply(VirtualMachine input) {
-                return input.name;
+              @Override public String apply(VirtualMachine vm) {
+                return vm.name;
               }
             }));
     writer.println("  Selection type:    " + selector.selectionType());

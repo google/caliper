@@ -18,7 +18,10 @@ package com.google.caliper.config;
 
 import static java.util.logging.Level.WARNING;
 
+import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperDirectory;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Charsets;
 import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -26,8 +29,10 @@ import com.google.inject.Singleton;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.logging.FileHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 /**
  * Loading the logging configuration at {@code ~/.caliper/logging.properties} if present.
@@ -38,10 +43,13 @@ final class LoggingConfigLoader {
 
   private final File caliperDirectory;
   private final LogManager logManager;
+  private final Run run;
 
-  @Inject LoggingConfigLoader(@CaliperDirectory File caliperDirectory, LogManager logManager) {
+  @Inject LoggingConfigLoader(@CaliperDirectory File caliperDirectory, LogManager logManager,
+      Run run) {
     this.caliperDirectory = caliperDirectory;
     this.logManager = logManager;
+    this.run = run;
   }
 
   @Inject void loadLoggingConfig() {
@@ -58,8 +66,29 @@ final class LoggingConfigLoader {
       } finally {
         Closeables.closeQuietly(fis);
       }
+      logger.info(String.format("Using logging configuration at %s", loggingPropertiesFile));
+    } else {
+      try {
+        maybeLoadDefaultLogConfiguration(LogManager.getLogManager());
+      } catch (SecurityException e) {
+        logConfigurationException(e);
+      } catch (IOException e) {
+        logConfigurationException(e);
+      }
     }
-    logger.info(String.format("Using logging configuration at %s", loggingPropertiesFile));
+  }
+
+  @VisibleForTesting void maybeLoadDefaultLogConfiguration(LogManager logManager)
+      throws SecurityException, IOException {
+    logManager.reset();
+    File logDirectory = new File(caliperDirectory, "log");
+    logDirectory.mkdirs();
+    FileHandler fileHandler = new FileHandler(String.format("%s/%s.%s.log",
+        logDirectory.getAbsolutePath(), run.startTime(), run.id()));
+    fileHandler.setEncoding(Charsets.UTF_8.name());
+    fileHandler.setFormatter(new SimpleFormatter());
+    Logger globalLogger = logManager.getLogger("");
+    globalLogger.addHandler(fileHandler);
   }
 
   private static void logConfigurationException(Exception e) {
