@@ -41,10 +41,19 @@ import java.util.Arrays;
 
 public abstract class Instrument {
   protected ImmutableMap<String, String> options;
+  private String name = getClass().getSimpleName();
 
   @Inject void setOptions(@InstrumentOptions ImmutableMap<String, String> options) {
     this.options = ImmutableMap.copyOf(
         Maps.filterKeys(options, Predicates.in(instrumentOptions())));
+  }
+
+  @Inject void setInstrumentName(@InstrumentName String name) {
+    this.name = name;
+  }
+
+  String name() {
+    return name;
   }
 
   public ShortDuration estimateRuntimePerTrial() {
