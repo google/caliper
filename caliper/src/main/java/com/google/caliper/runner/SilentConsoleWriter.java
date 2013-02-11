@@ -22,6 +22,7 @@ import com.google.caliper.util.ShortDuration;
 public class SilentConsoleWriter implements ConsoleWriter {
   @Override public void flush() {}
   @Override public void print(String s) {}
+  @Override public void println(String s) {}
   @Override public void printf(String format, Object... args) {}
   @Override public void describe(ExperimentSelector selection) {}
   @Override public void beforeDryRun(int count) {}

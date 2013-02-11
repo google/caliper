@@ -125,7 +125,7 @@ public final class Host {
     }
 
     public Builder addAllProperies(Map<String, String> properties) {
-      properties.putAll(properties);
+      this.properties.putAll(properties);
       return this;
     }
 

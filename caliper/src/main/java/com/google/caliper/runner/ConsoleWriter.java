@@ -21,6 +21,7 @@ import com.google.caliper.util.ShortDuration;
 public interface ConsoleWriter {
   void flush();
   void print(String s);
+  void println(String s);
   void printf(String format, Object... args);
   void describe(ExperimentSelector selection);
   void beforeDryRun(int count);

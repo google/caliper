@@ -113,10 +113,6 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return 0x5FE89C3A;
   }
 
-  @Override public String toString() {
-    return "micro";
-  }
-
   @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
     return new RuntimeMeasurementCollector(getMeasurementsPerTrial(),
         ShortDuration.valueOf(options.get(WARMUP_OPTION)));

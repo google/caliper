@@ -1,5 +1,5 @@
-/**
- * Copyright (C) 2009 Google Inc.
+/*
+ * Copyright (C) 2012 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.functional;
+package com.google.caliper.config;
 
-import com.google.caliper.Benchmark;
-import com.google.caliper.runner.CaliperMain;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+
+import java.io.File;
 
 /**
- * This fails with a runtime out of range error.
+ * Tests {@link VmConfig}.
+ *
+ * @author gak@google.com (Gregory Kick)
  */
-public class BrokenNoOpBenchmark extends Benchmark {
-
-  public void timeNoOp(int reps) {
-    for (int i = 0; i < reps; i++) {}
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(BrokenNoOpBenchmark.class, args);
+@RunWith(JUnit4.class)
+public class VmConfigTest {
+  @Test public void testExecutable() {
+    assertEquals(new File("/some/home/dir/bin/java"),
+        new VmConfig.Builder(new File("/some/home/dir")).build().javaExecutable());
   }
 }

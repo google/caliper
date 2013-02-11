@@ -56,6 +56,10 @@ public abstract class Instrument {
     return name;
   }
 
+  @Override public String toString() {
+    return name();
+  }
+
   public ShortDuration estimateRuntimePerTrial() {
     throw new UnsupportedOperationException();
   }

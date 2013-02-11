@@ -123,6 +123,8 @@ final class ExperimentingRunnerModule extends AbstractModule {
     } catch (ExceptionInInitializerError e) {
       throw new UserCodeException(
           "Exception thrown while initializing class '" + className + "'", e.getCause());
+    } catch (NoClassDefFoundError e) {
+      throw new UserCodeException("Unable to load " + className, e);
     }
   }
 
