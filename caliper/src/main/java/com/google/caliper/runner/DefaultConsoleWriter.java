@@ -37,6 +37,10 @@ final class DefaultConsoleWriter implements ConsoleWriter {
     writer.print(s);
   }
 
+  @Override public void println(String s) {
+    writer.println(s);
+  }
+
   @Override public void printf(String format, Object... args) {
     writer.printf(format, args);
   }

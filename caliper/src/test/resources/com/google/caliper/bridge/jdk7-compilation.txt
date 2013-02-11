@@ -1,0 +1,352 @@
+     91    1    b        java.lang.String::hashCode (67 bytes)
+    106    2    b        sun.nio.cs.UTF_8$Decoder::decode (640 bytes)
+    130    3    b        java.lang.String::lastIndexOf (68 bytes)
+    132    4    b        java.lang.String::indexOf (87 bytes)
+    136    5    b        java.io.UnixFileSystem::normalize (75 bytes)
+    138    1 %  b        java.io.UnixFileSystem::normalize @ 10 (75 bytes)
+    142    6    b        sun.nio.cs.UTF_8$Encoder::encode (361 bytes)
+    149    2 %  b        sun.nio.cs.UTF_8$Encoder::encode @ 20 (361 bytes)
+    162    2             sun.nio.cs.UTF_8$Decoder::decode (640 bytes)   made not entrant
+    165    7    b        sun.nio.cs.UTF_8$Decoder::decode (640 bytes)
+    185    8    b        sun.net.www.ParseUtil::encodePath (336 bytes)
+    200    9    b        java.lang.String::indexOf (166 bytes)
+    236   10    b        java.lang.String::equals (88 bytes)
+    253   11    b        java.util.Arrays::binarySearch0 (72 bytes)
+    255   12    b        com.google.common.base.CharMatcher$10::matches (17 bytes)
+    256   13    b        java.util.Arrays::binarySearch (9 bytes)
+    257    3 %  b        com.google.common.base.CharMatcher::setBits @ 3 (28 bytes)
+made not compilable  com.google.common.base.CharMatcher::matches
+    263   14    b        com.google.common.base.CharMatcher::setBits (28 bytes)
+    363   15    b        java.lang.Object::<init> (1 bytes)
+    365   16    b        java.lang.String::charAt (33 bytes)
+    483   17    b        java.lang.String::length (5 bytes)
+    487   18     n       java.util.zip.ZipFile::getEntryBytes (0 bytes)   (static)
+    524   19    b        java.util.zip.ZipFile::ensureOpen (37 bytes)
+    525   20    b        java.util.zip.ZipFile::access$400 (5 bytes)
+    527   21    b        java.util.zip.ZipFile::access$200 (5 bytes)
+    527   22    b        java.util.zip.ZipFile::access$300 (5 bytes)
+    534   23     n       java.lang.System::arraycopy (0 bytes)   (static)
+    550   24    b        java.lang.Math::min (11 bytes)
+    557   25    b        java.util.HashMap::indexFor (6 bytes)
+    559   26    b        java.util.HashMap::hash (23 bytes)
+    561   27    b        java.lang.String::<init> (20 bytes)
+    563   28    b        java.lang.String::substring (83 bytes)
+    566   29    b        java.util.HashMap::get (79 bytes)
+    569   30    b        java.util.Arrays::copyOfRange (63 bytes)
+    573   31    b        java.lang.String::<init> (72 bytes)
+    577   32    b        java.lang.String::lastIndexOf (12 bytes)
+    588   33     n       java.util.zip.ZipFile::getEntrySize (0 bytes)   (static)
+    588   34    b        java.nio.charset.CharsetDecoder::maxCharsPerByte (5 bytes)
+    589   35     n       java.util.zip.ZipFile::getEntryCSize (0 bytes)   (static)
+    589   36     n       java.util.zip.ZipFile::getEntryMethod (0 bytes)   (static)
+    589   37     n       java.util.zip.ZipFile::freeEntry (0 bytes)   (static)
+    590   38    b        java.util.zip.ZipFile::getZipEntry (245 bytes)
+made not compilable  java.nio.charset.Charset::newDecoder
+    612   39    b        java.util.zip.ZipEntry::<init> (43 bytes)
+    613   40     n       java.util.zip.ZipFile::getEntryFlag (0 bytes)   (static)
+    613   41    b        java.util.zip.ZipCoder::isUTF8 (5 bytes)
+    613   42     n       java.util.zip.ZipFile::getEntryTime (0 bytes)   (static)
+    613   43     n       java.util.zip.ZipFile::getEntryCrc (0 bytes)   (static)
+    613   44    b        java.util.zip.ZipFile::access$1000 (6 bytes)
+    614   45    b        java.util.jar.JarFile$JarFileEntry::<init> (11 bytes)
+    615   46    b        java.util.jar.JarEntry::<init> (6 bytes)
+    615   47    b        java.util.zip.ZipEntry::<init> (115 bytes)
+    616   48    b        sun.misc.URLClassPath::getResourceMapKey (55 bytes)
+    621   49    b        java.util.jar.JarFile$1::hasMoreElements (10 bytes)
+    623   50   !b        java.util.zip.ZipFile$1::hasMoreElements (41 bytes)
+    624   51    b        java.util.zip.ZipEntry::getName (5 bytes)
+    625   52    b        java.util.jar.JarFile$1::nextElement (5 bytes)
+    629   53    b        java.util.jar.JarFile$1::nextElement (26 bytes)
+    633   54    b        java.util.zip.ZipFile$1::nextElement (5 bytes)
+    636   55   !b        java.util.zip.ZipFile$1::nextElement (212 bytes)
+    639   56    b        java.util.zip.ZipFile::access$500 (6 bytes)
+    639   57     n       java.util.zip.ZipFile::getNextEntry (0 bytes)   (static)
+    639   58    b        java.util.zip.ZipFile::access$900 (7 bytes)
+    640   59    b        java.util.ArrayList::size (5 bytes)
+    641   60    b        sun.misc.URLClassPath$JarLoader::addJarEntriesToEntryMap (202 bytes)
+    664   61    b        java.util.ArrayList::get (11 bytes)
+    664   62    b        java.util.ArrayList::rangeCheck (22 bytes)
+    665   63    b        java.util.ArrayList::elementData (7 bytes)
+    707   29             java.util.HashMap::get (79 bytes)   made not entrant
+    719   64    b        java.lang.String::replace (142 bytes)
+    749   65    b        java.lang.String::startsWith (78 bytes)
+    865   66    b        java.util.HashMap::get (79 bytes)
+    867   67    b        java.io.DataOutputStream::writeUTF (435 bytes)
+    913   68    b        java.lang.String::getChars (66 bytes)
+    917   69   !b        sun.reflect.generics.parser.SignatureParser::current (40 bytes)
+    918   70    b        java.lang.AbstractStringBuilder::ensureCapacityInternal (16 bytes)
+    922   71    b        java.io.ByteArrayOutputStream::ensureCapacity (16 bytes)
+    922   72    b        java.io.DataOutputStream::incCount (20 bytes)
+    923   73  s b        java.io.ByteArrayOutputStream::write (32 bytes)
+    933   74    b        java.lang.CharacterData::of (120 bytes)
+    934   75    b        java.lang.CharacterDataLatin1::getProperties (11 bytes)
+    967   76    b        java.util.concurrent.ConcurrentSkipListMap::findPredecessor (121 bytes)
+    979   77    b        java.lang.Integer::compareTo (9 bytes)
+    980   78    b        java.lang.Integer::compareTo (12 bytes)
+    980   79    b        java.lang.Integer::compare (20 bytes)
+   1030   80    b        java.lang.AbstractStringBuilder::append (29 bytes)
+   1046   81    b        java.util.jar.Manifest$FastInputStream::readLine (167 bytes)
+   1073   82    b        net.sf.cglib.asm.ByteVector::putUTF8 (394 bytes)
+   1081   83    b        net.sf.cglib.asm.Type::a (253 bytes)
+   1087   84  s b        java.lang.StringBuffer::append (8 bytes)
+   1091   85    b        net.sf.cglib.asm.Type::a (214 bytes)
+   1116   86    b        java.util.ArrayList::access$100 (5 bytes)
+   1118   87    b        java.lang.AbstractStringBuilder::append (48 bytes)
+   1127   88    b        net.sf.cglib.asm.Type::getArgumentTypes (131 bytes)
+   1154   89    b        sun.misc.MetaIndex::mayContain (51 bytes)
+   1181   90    b        sun.reflect.generics.parser.SignatureParser::advance (37 bytes)
+   1189   91    b        java.lang.Character::isWhitespace (5 bytes)
+   1189   92    b        java.lang.Character::isWhitespace (9 bytes)
+   1190   93    b        java.lang.CharacterDataLatin1::isWhitespace (23 bytes)
+   1190   94    b        sun.reflect.generics.parser.SignatureParser::parseIdentifier (115 bytes)
+   1253   95    b        java.util.Properties$LineReader::readLine (452 bytes)
+made not compilable  java.io.Reader::read
+   1287   96    b        java.util.zip.ZStreamRef::address (5 bytes)
+   1314   97    b        java.lang.StringBuilder::append (8 bytes)
+   1323   98     n       java.lang.Thread::currentThread (0 bytes)   (static)
+   1327   99    b        java.lang.String::compareTo (150 bytes)
+   1346  100    b        sun.misc.URLClassPath::access$100 (5 bytes)
+   1353  101    b        java.util.HashMap::put (126 bytes)
+   1377  102    b        java.lang.AbstractStringBuilder::<init> (12 bytes)
+   1396  103    b        java.util.zip.InflaterInputStream::ensureOpen (18 bytes)
+   1399  104    b        java.util.concurrent.ConcurrentSkipListMap::findNode (108 bytes)
+   1407  105    b        java.util.HashMap::transfer (83 bytes)
+   1413  106    b        sun.reflect.ClassFileAssembler::emitByte (11 bytes)
+   1414  107    b        sun.reflect.ByteVectorImpl::add (38 bytes)
+   1422  108    b        java.util.HashMap$HashIterator::nextEntry (99 bytes)
+   1425  109    b        java.lang.reflect.Method::getName (5 bytes)
+   1428  110     n       java.lang.Object::hashCode (0 bytes)   
+   1443  111    b        java.lang.String::startsWith (7 bytes)
+   1452  112    b        java.lang.ref.Reference::get (5 bytes)
+   1453  113    b        java.lang.Class::searchMethods (90 bytes)
+   1463  114    b        java.util.ArrayList$Itr::hasNext (20 bytes)
+   1463  115    b        java.util.HashMap$HashIterator::<init> (63 bytes)
+   1473  116    b        java.util.ArrayList::ensureCapacityInternal (26 bytes)
+   1478  117    b        java.util.ArrayList::add (29 bytes)
+   1484  118     n       java.lang.Object::clone (0 bytes)   
+   1489  119    b        java.lang.reflect.AccessibleObject::<init> (5 bytes)
+   1490  120    b        sun.reflect.ReflectionFactory::langReflectAccess (15 bytes)
+   1493  121    b        java.lang.Class::copyMethods (36 bytes)
+   1501  122    b        java.util.ArrayList$Itr::checkForComodification (23 bytes)
+   1503  123    b        java.util.Arrays::hashCode (56 bytes)
+   1505  124    b        java.lang.reflect.ReflectAccess::copyMethod (5 bytes)
+   1507  125    b        java.lang.reflect.Method::copy (67 bytes)
+   1508  126    b        java.lang.reflect.Method::<init> (68 bytes)
+   1510  127    b        java.lang.reflect.Method::getDeclaringClass (5 bytes)
+   1521  128    b        java.lang.reflect.Method::getParameterTypes (14 bytes)
+   1524  129   !b        com.sun.jersey.core.reflection.ReflectionHelper::findMethodOnClass (94 bytes)
+   1545  130    b        java.lang.System::getSecurityManager (4 bytes)
+   1546  131    b        java.util.ArrayList$Itr::next (66 bytes)
+   1547  132    b        java.util.ArrayList::access$200 (5 bytes)
+   1553  133    b        java.util.HashMap$HashIterator::hasNext (13 bytes)
+   1555  134    b        java.util.HashMap$Entry::<init> (26 bytes)
+   1558  135    b        java.lang.Integer::valueOf (54 bytes)
+   1560  136    b        java.lang.ref.SoftReference::get (29 bytes)
+   1565  137  s b        java.lang.reflect.Method::declaredAnnotations (39 bytes)
+   1569  138    b        java.lang.StringBuilder::toString (17 bytes)
+   1574  139    b        java.lang.Class::clearCachesOnClassRedefinition (70 bytes)
+   1580  140    b        java.util.AbstractCollection::<init> (5 bytes)
+   1581  141    b        java.lang.Class::checkInitted (19 bytes)
+   1595  142    b        com.sun.jersey.core.reflection.AnnotatedMethod::hasParameterAnnotations (80 bytes)
+   1604  143     n       java.lang.Class::getClassLoader0 (0 bytes)   
+   1607  144    b        java.lang.Class::getMethod0 (97 bytes)
+   1634  145    b        java.util.HashMap$Entry::getKey (5 bytes)
+   1634  146    b        java.util.Collections$EmptyMap::get (2 bytes)
+   1636  147     n       java.lang.String::intern (0 bytes)   
+   1636  148    b        java.lang.reflect.Method::getAnnotation (26 bytes)
+   1640  148             java.lang.reflect.Method::getAnnotation (26 bytes)   made not entrant
+   1641  149    b        java.util.HashMap$KeyIterator::next (8 bytes)
+   1646  150    b        java.lang.reflect.Method::getReturnType (5 bytes)
+   1647  151    b        java.lang.Class::getName (21 bytes)
+   1658  152     n       java.lang.Class::getInterfaces (0 bytes)   
+   1659  153    b        java.util.AbstractList::<init> (10 bytes)
+   1660  154    b        com.sun.jersey.core.reflection.AnnotatedMethod::hasMethodAnnotations (43 bytes)
+   1676  155    b        java.lang.Character::toLowerCase (9 bytes)
+   1677  156    b        java.lang.CharacterDataLatin1::toLowerCase (39 bytes)
+   1688  157    b        java.util.concurrent.locks.AbstractQueuedSynchronizer::getState (5 bytes)
+   1695  158    b        java.lang.Class::argumentTypesToString (78 bytes)
+   1701    2             sun.nio.cs.UTF_8$Decoder::decode (640 bytes)   made zombie
+   1701   29             java.util.HashMap::get (79 bytes)   made zombie
+   1702  159    b        java.lang.Class::checkMemberAccess (78 bytes)
+   1704  160    b        sun.reflect.generics.parser.SignatureParser::parsePackageNameAndSimpleClassTypeSignature (139 bytes)
+   1734  161  s!b        sun.misc.URLClassPath::getLoader (182 bytes)
+   1772  162    b        java.util.Properties::loadConvert (505 bytes)
+   1789  163    b        sun.reflect.ClassFileAssembler::emitConstantPoolUTF8 (50 bytes)
+   1809  164   !b        sun.reflect.UTF8::encode (189 bytes)
+   1818  165    b        sun.reflect.UTF8::utf8Length (81 bytes)
+   1841  166    b        sun.nio.cs.UTF_8$Decoder::decodeArrayLoop (543 bytes)
+   1869  167    b        java.util.regex.Pattern$BmpCharProperty::match (50 bytes)
+made not compilable  java.util.regex.Pattern$CharProperty::isSatisfiedBy
+   1882  168    b        java.util.regex.Matcher::search (109 bytes)
+   2023  169    b        java.lang.Character::charCount (12 bytes)
+   2023  170    b        java.lang.Character::isHighSurrogate (18 bytes)
+   2024  171    b        java.lang.String::codePointAt (44 bytes)
+   2025  172    b        java.lang.Character::codePointAtImpl (41 bytes)
+   2036  173    b        java.nio.Buffer::checkIndex (22 bytes)
+   2036  174    b        java.nio.DirectLongBufferU::ix (10 bytes)
+   2040  175    b        java.util.concurrent.locks.AbstractOwnableSynchronizer::setExclusiveOwnerThread (6 bytes)
+   2041  176    b        sun.misc.URLClassPath::getResource (79 bytes)
+made not compilable  java.net.URLStreamHandler::openConnection
+   2059  176             sun.misc.URLClassPath::getResource (79 bytes)   made not entrant
+   2063  177    b        com.google.common.io.LineBuffer::add (201 bytes)
+made not compilable  com.google.common.io.LineBuffer::handleLine
+   2073  178    b        java.util.regex.Pattern::has (15 bytes)
+   2074  179    b        java.util.ArrayList::<init> (44 bytes)
+   2080  180    b        java.net.URL::getHost (5 bytes)
+   2089  168             java.util.regex.Matcher::search (109 bytes)   made not entrant
+   2089  167             java.util.regex.Pattern$BmpCharProperty::match (50 bytes)   made not entrant
+   2124  181    b        java.util.HashMap::addEntry (58 bytes)
+   2140  182     n       java.lang.System::nanoTime (0 bytes)   (static)
+   2145  183    b        java.util.zip.Inflater::ensureOpen (47 bytes)
+   2204  184    b        java.lang.String::trim (87 bytes)
+   3019  185    b        java.lang.String::indexOf (7 bytes)
+   3023  186    b        java.util.regex.Pattern$Curly::match0 (174 bytes)
+   3030  187    b        java.util.regex.Matcher::reset (83 bytes)
+   3035  188    b        java.util.regex.Pattern$Node::match (27 bytes)
+   3036  148             java.lang.reflect.Method::getAnnotation (26 bytes)   made zombie
+   3037  189    b        java.util.regex.Pattern$BmpCharProperty::match (50 bytes)
+   3039  190    b        java.util.regex.Pattern$Ctype::isSatisfiedBy (24 bytes)
+   3039  191    b        java.util.regex.ASCII::isType (15 bytes)
+   3040  192    b        java.util.regex.ASCII::getType (17 bytes)
+   3042  193    b        java.util.regex.Pattern$CharProperty::match (56 bytes)
+   3045  194    b        java.util.regex.Pattern$Slice::match (79 bytes)
+   3052  195    b        java.util.regex.Matcher::match (109 bytes)
+   3062  196    b        java.util.regex.Pattern$Curly::match (86 bytes)
+   3074  197    b        com.google.common.collect.AbstractIndexedListIterator::hasNext (17 bytes)
+   3078  198    b        java.util.concurrent.ConcurrentHashMap$Segment::rehash (262 bytes)
+   3094  101             java.util.HashMap::put (126 bytes)   made not entrant
+  15172  199    b        java.util.concurrent.locks.AbstractOwnableSynchronizer::getExclusiveOwnerThread (5 bytes)
+  17427  200     n       sun.misc.Unsafe::compareAndSwapInt (0 bytes)   
+  17431  193             java.util.regex.Pattern$CharProperty::match (56 bytes)   made not entrant
+  17436  201    b        java.lang.String::toUpperCase (442 bytes)
+  17484  202   !b        sun.misc.URLClassPath$JarLoader::getResource (91 bytes)
+  17518  203    b        java.nio.Buffer::position (43 bytes)
+  17519  167             java.util.regex.Pattern$BmpCharProperty::match (50 bytes)   made zombie
+  17519  176             sun.misc.URLClassPath::getResource (79 bytes)   made zombie
+  17519  168             java.util.regex.Matcher::search (109 bytes)   made zombie
+  17519  204    b        java.nio.ByteBuffer::arrayOffset (35 bytes)
+  17520  205    b        java.nio.CharBuffer::arrayOffset (35 bytes)
+  17524  206    b        java.nio.Buffer::position (5 bytes)
+  17524  207    b        sun.nio.cs.UTF_8$Encoder::encodeArrayLoop (489 bytes)
+  17531  208    b        java.nio.charset.CoderResult::isUnderflow (13 bytes)
+  17539  209    b        java.nio.Buffer::limit (62 bytes)
+  17540  210    b        java.nio.Buffer::<init> (121 bytes)
+  17541  211    b        java.nio.Buffer::remaining (10 bytes)
+  17542  212    b        java.nio.charset.CoderResult::isOverflow (14 bytes)
+  17542  213    b        java.nio.Buffer::hasRemaining (17 bytes)
+  17542  214    b        java.nio.CharBuffer::hasArray (20 bytes)
+  17543  215    b        java.nio.ByteBuffer::hasArray (20 bytes)
+  17543  216   !b        java.nio.CharBuffer::wrap (20 bytes)
+  17545  217    b        java.nio.HeapCharBuffer::<init> (14 bytes)
+  17546  218    b        java.nio.CharBuffer::<init> (22 bytes)
+  17547  219    b        sun.nio.cs.StreamEncoder::ensureOpen (18 bytes)
+  17547  220    b        sun.nio.cs.StreamEncoder::implWrite (156 bytes)
+  17556  221   !b        java.nio.charset.CharsetEncoder::encode (285 bytes)
+  17561  222    b        sun.nio.cs.UTF_8$Encoder::encodeLoop (28 bytes)
+  17562  223   !b        sun.nio.cs.StreamEncoder::write (78 bytes)
+  17565  224    b        com.google.gson.stream.JsonWriter::string (365 bytes)
+  17577  225    b        sun.nio.cs.StreamEncoder::write (37 bytes)
+  17588  224             com.google.gson.stream.JsonWriter::string (365 bytes)   made not entrant
+  17589  226    b        com.google.gson.stream.JsonWriter::string (365 bytes)
+  17618  227    b        java.lang.String::toLowerCase (477 bytes)
+  17637   10             java.lang.String::equals (88 bytes)   made not entrant
+  17641   73  s          java.io.ByteArrayOutputStream::write (32 bytes)   made not entrant
+  17656    7             sun.nio.cs.UTF_8$Decoder::decode (640 bytes)   made not entrant
+  17656   34             java.nio.charset.CharsetDecoder::maxCharsPerByte (5 bytes)   made not entrant
+  17656   38             java.util.zip.ZipFile::getZipEntry (245 bytes)   made not entrant
+  17658  228    b        sun.nio.cs.UTF_8$Decoder::decode (640 bytes)
+  17672  229    b        java.lang.StringBuilder::<init> (7 bytes)
+  17680  230    b        java.math.BigInteger::destructiveMulAdd (150 bytes)
+  17685  101             java.util.HashMap::put (126 bytes)   made zombie
+  17685  231    b        java.util.regex.Pattern$Single::isSatisfiedBy (14 bytes)
+  17687  232    b        java.lang.Integer::parseInt (261 bytes)
+  17693  233    b        java.lang.Character::digit (6 bytes)
+  17693  234    b        java.lang.Character::digit (10 bytes)
+  17694  235    b        java.lang.CharacterDataLatin1::digit (91 bytes)
+  17698  236    b        sun.security.util.Cache$EqualByteArray::hashCode (57 bytes)
+  17721  237    b        java.lang.String::equals (88 bytes)
+  17733  238    b        java.math.BigInteger::stripLeadingZeroBytes (132 bytes)
+  17740  239  s b        java.io.ByteArrayInputStream::read (36 bytes)
+  17749  240  s b        java.io.ByteArrayInputStream::available (10 bytes)
+  17756  241    b        java.io.ByteArrayInputStream::mark (9 bytes)
+  17768  242    b        sun.security.util.DerInputStream::getLength (111 bytes)
+made not compilable  java.io.InputStream::read
+  17774  243    b        java.util.Arrays::copyOf (19 bytes)
+  17781  244    b        java.io.DataInputStream::readUTF (501 bytes)
+  17822  245    b        sun.security.util.ObjectIdentifier::check (78 bytes)
+  17829  246  s b        java.io.ByteArrayOutputStream::write (32 bytes)
+  17854  247    b        sun.security.util.DerInputStream::<init> (19 bytes)
+  17858  248    b        sun.security.util.DerInputStream::available (8 bytes)
+  17863  249   !b        java.security.cert.Certificate::hashCode (34 bytes)
+  17889  202   !         sun.misc.URLClassPath$JarLoader::getResource (91 bytes)   made not entrant
+  17919  250    b        java.util.Arrays::equals (54 bytes)
+  17930  251    b        java.util.Arrays::hashCode (44 bytes)
+  17936  252    b        java.math.BigInteger::mulAdd (81 bytes)
+  17957  195             java.util.regex.Matcher::match (109 bytes)   made not entrant
+  17965    4 %  b        com.sun.crypto.provider.AESCrypt::<clinit> @ 724 (1577 bytes)
+  18073  232             java.lang.Integer::parseInt (261 bytes)   made not entrant
+  18142  233             java.lang.Character::digit (6 bytes)   made not entrant
+  18142   74             java.lang.CharacterData::of (120 bytes)   made not entrant
+  18142   91             java.lang.Character::isWhitespace (5 bytes)   made not entrant
+  18142   94             sun.reflect.generics.parser.SignatureParser::parseIdentifier (115 bytes)   made not entrant
+  18142   92             java.lang.Character::isWhitespace (9 bytes)   made not entrant
+  18142  155             java.lang.Character::toLowerCase (9 bytes)   made not entrant
+  18142  201             java.lang.String::toUpperCase (442 bytes)   made not entrant
+  18142  234             java.lang.Character::digit (10 bytes)   made not entrant
+  18142  227             java.lang.String::toLowerCase (477 bytes)   made not entrant
+  18143  253    b        java.lang.Character::toUpperCaseEx (30 bytes)
+  18145   10             java.lang.String::equals (88 bytes)   made zombie
+  18148  254    b        java.io.BufferedInputStream::getBufIfOpen (21 bytes)
+  18148  255  s b        java.io.BufferedInputStream::read (49 bytes)
+  18151  256    b        java.io.DataInputStream::readChar (40 bytes)
+  18158  193             java.util.regex.Pattern$CharProperty::match (56 bytes)   made zombie
+  18158  224             com.google.gson.stream.JsonWriter::string (365 bytes)   made zombie
+  18158    5 %  b        sun.text.normalizer.NormalizerDataReader::read @ 11 (83 bytes)
+  18165  256             java.io.DataInputStream::readChar (40 bytes)   made not entrant
+  18169  257    b        java.io.DataInputStream::readInt (72 bytes)
+  18180  258    b        java.io.DataInputStream::readChar (40 bytes)
+  18192  259    b        java.lang.StringBuilder::append (8 bytes)
+  18203  260    b        java.lang.CharacterData::of (120 bytes)
+  18206  261    b        java.lang.Character::toLowerCase (6 bytes)
+made not compilable  java.lang.CharacterData::toLowerCase
+  18208  262    b        java.lang.String::toLowerCase (477 bytes)
+  18229  263    b        java.lang.String::toUpperCase (442 bytes)
+  18251  264    b        java.lang.Character::isWhitespace (5 bytes)
+made not compilable  java.lang.CharacterData::isWhitespace
+  18251  265    b        java.lang.Character::isWhitespace (9 bytes)
+  18255  266    b        sun.text.normalizer.NormalizerBase::normalize (223 bytes)
+  18262  267   !b        sun.security.x509.AVA::toRFC2253CanonicalString (484 bytes)
+made not compilable  java.nio.charset.spi.CharsetProvider::charsetForName
+  18334  268    b        java.lang.String::regionMatches (157 bytes)
+made not compilable  java.lang.CharacterData::toUpperCase
+  18347    7             sun.nio.cs.UTF_8$Decoder::decode (640 bytes)   made zombie
+  18347   34             java.nio.charset.CharsetDecoder::maxCharsPerByte (5 bytes)   made zombie
+  18347   73  s          java.io.ByteArrayOutputStream::write (32 bytes)   made zombie
+  18347   38             java.util.zip.ZipFile::getZipEntry (245 bytes)   made zombie
+  18348  232             java.lang.Integer::parseInt (261 bytes)   made zombie
+  18348  249   !         java.security.cert.Certificate::hashCode (34 bytes)   made not entrant
+  18357  269    b        sun.security.provider.SHA::implCompress (491 bytes)
+  18429    6 %  b        com.sun.crypto.provider.ARCFOURCipher::crypt @ 15 (129 bytes)
+  18435  270     n       sun.misc.Unsafe::getInt (0 bytes)   
+  18436  271    b        java.lang.Integer::reverseBytes (26 bytes)
+  18436  272    b        com.sun.crypto.provider.ARCFOURCipher::crypt (129 bytes)
+  18442  202   !         sun.misc.URLClassPath$JarLoader::getResource (91 bytes)   made zombie
+  18442  195             java.util.regex.Matcher::match (109 bytes)   made zombie
+  49381  233             java.lang.Character::digit (6 bytes)   made zombie
+  49381   74             java.lang.CharacterData::of (120 bytes)   made zombie
+  49381   91             java.lang.Character::isWhitespace (5 bytes)   made zombie
+  49381   94             sun.reflect.generics.parser.SignatureParser::parseIdentifier (115 bytes)   made zombie
+  49381   92             java.lang.Character::isWhitespace (9 bytes)   made zombie
+  49381  155             java.lang.Character::toLowerCase (9 bytes)   made zombie
+  49381  161  s!         sun.misc.URLClassPath::getLoader (182 bytes)   made not entrant
+  49381  201             java.lang.String::toUpperCase (442 bytes)   made zombie
+  49381  234             java.lang.Character::digit (10 bytes)   made zombie
+  49381  227             java.lang.String::toLowerCase (477 bytes)   made zombie
+  49382  273    b        sun.misc.URLClassPath$LoaderSearchCursor::nextLoader (211 bytes)
+  49406   66             java.util.HashMap::get (79 bytes)   made not entrant
+  49420  274    b        java.util.HashMap$EntryIterator::next (5 bytes)
+  49422  275    b        java.util.HashMap$EntryIterator::next (5 bytes)
+  49434  276    b        java.util.HashMap$Entry::hashCode (38 bytes)
+  49436  256             java.io.DataInputStream::readChar (40 bytes)   made zombie
+  49436  277    b        java.util.AbstractMap::hashCode (43 bytes)
+made not compilable  java.util.AbstractMap::entrySet

@@ -151,11 +151,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   public void run() throws InvalidBenchmarkException {
     // TODO(gak): this class is getting big again.  is there a better place for this?
     if (options.printConfiguration()) {
-      System.out.println("Configuration:");
+      console.println("Configuration:");
       ImmutableSortedMap<String, String> sortedProperties =
           ImmutableSortedMap.copyOf(config.properties());
       for (Entry<String, String> entry : sortedProperties.entrySet()) {
-        System.out.printf("  %s = %s%n", entry.getKey(), entry.getValue());
+        console.printf("  %s = %s%n", entry.getKey(), entry.getValue());
       }
     }
 
@@ -165,7 +165,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     if (allExperiments.isEmpty()) {
       throw new InvalidBenchmarkException(
           "There were no experiments to be peformed for the class %s using the instruments %s",
-          benchmarkClass.getClass(), instruments);
+          benchmarkClass.benchmarkClass().getSimpleName(), instruments);
     }
 
     console.beforeDryRun(allExperiments.size());
@@ -529,7 +529,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     void processLine(String line) {
       LogMessage logMessage = parseLogMessage(line);
       if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
-        System.out.printf("[trial-%d] %s%n", trialsExecuted, line);
+        console.printf("[trial-%d] %s%n", trialsExecuted, line);
       }
       logMessage.accept(measurementCollectingVisitor);
       for (LogMessageVisitor visitor : otherVisitors) {
