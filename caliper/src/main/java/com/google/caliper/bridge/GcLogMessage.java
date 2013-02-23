@@ -16,32 +16,68 @@
 
 package com.google.caliper.bridge;
 
-import com.google.common.base.Optional;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import com.google.caliper.util.ShortDuration;
+import com.google.common.base.Objects;
+
 
 /**
  * A message representing output produced by the JVM when {@code -XX:+PrintGC} is enabled.
  */
 public final class GcLogMessage extends LogMessage {
-  private static final Pattern PATTERN =
-      Pattern.compile("\\[(Full )?GC.*(\\d+\\.\\d+) secs\\]");
-
-  public static final class Parser implements TryParser<GcLogMessage> {
-    @Override
-    public Optional<GcLogMessage> tryParse(String text) {
-      Matcher matcher = PATTERN.matcher(text);
-      return matcher.matches()
-          ? Optional.of(new GcLogMessage())
-          : Optional.<GcLogMessage>absent();
-    }
+  /**
+   * The type of the garbage collection performed.
+   */
+  public static enum Type {
+    FULL,
+    INCREMENTAL,
   }
 
-  private GcLogMessage() {}
+  private final Type type;
+  private final ShortDuration duration;
+
+  GcLogMessage(Type type, ShortDuration duration) {
+    this.type = checkNotNull(type);
+    this.duration = checkNotNull(duration);
+  }
+
+  public Type type() {
+    return type;
+  }
+
+  public ShortDuration duration() {
+    return duration;
+  }
 
   @Override
   public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(type, duration);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof GcLogMessage) {
+      GcLogMessage that = (GcLogMessage) obj;
+      return this.type == that.type
+          && this.duration.equals(that.duration);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public String toString() {
+    return Objects.toStringHelper(this)
+        .addValue(type)
+        .add("duration", duration)
+        .toString();
   }
 }

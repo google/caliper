@@ -351,7 +351,7 @@ final class ParsedOptions implements CaliperOptions {
         .add("verbose", this.verbose())
         .add("printConfig", this.printConfiguration())
         .add("delimiter", this.delimiter)
-        .add("caliperRcFilename", this.caliperConfigFile)
+        .add("caliperConfigFile", this.caliperConfigFile)
         .toString();
   }
 

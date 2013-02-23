@@ -24,6 +24,7 @@ import com.google.caliper.json.GsonModule;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.OutputModule;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.inject.CreationException;
@@ -66,48 +67,51 @@ public final class CaliperMain {
    * Entry point for the caliper benchmark runner application; run with {@code --help} for details.
    */
   static void main(String[] args) {
-    PrintWriter writer = new PrintWriter(System.out);
+    PrintWriter stdout = new PrintWriter(System.out, true);
+    PrintWriter stderr = new PrintWriter(System.err, true);
     int code = 1; // pessimism!
 
     try {
-      exitlessMain(args, writer);
+      exitlessMain(args, stdout, stderr);
       code = 0;
 
     } catch (InvalidCommandException e) {
-      e.display(writer);
+      e.display(stderr);
       code = e.exitCode();
 
     } catch (InvalidBenchmarkException e) {
-      e.display(writer);
+      e.display(stderr);
 
     } catch (InvalidConfigurationException e) {
-      e.display(writer);
+      e.display(stderr);
 
     } catch (Throwable t) {
-      t.printStackTrace(writer);
-      writer.println();
-      writer.println("An unexpected exception has been thrown by the caliper runner.");
-      writer.println("Please see https://sites.google.com/site/caliperusers/issues");
+      t.printStackTrace(stderr);
+      stdout.println();
+      stdout.println("An unexpected exception has been thrown by the caliper runner.");
+      stdout.println("Please see https://sites.google.com/site/caliperusers/issues");
     }
 
-    writer.flush();
+    stdout.flush();
+    stderr.flush();
     System.exit(code);
   }
 
   private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
 
-  public static void exitlessMain(String[] args, PrintWriter writer)
+  public static void exitlessMain(String[] args, PrintWriter stdout, PrintWriter stderr)
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
     @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
     if (!Strings.isNullOrEmpty(legacyCaliperEnv)) {
       System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
     }
     try {
-      // TODO(gak): see if there's a better way to deal with options and writer. probably a module
+      // TODO(gak): see if there's a better way to deal with options. probably a module
       Injector optionsInjector = Guice.createInjector(new OptionsModule(args));
       CaliperOptions options = optionsInjector.getInstance(CaliperOptions.class);
-      Module runnerModule = new ExperimentingRunnerModule(writer);
+      Module runnerModule = new ExperimentingRunnerModule();
       Injector injector = optionsInjector.createChildInjector(
+          new OutputModule(stdout, stderr),
           new BridgeModule(),
           new GsonModule(),
           new ConfigModule(),
@@ -126,8 +130,9 @@ public final class CaliperMain {
       throw e;
     }
 
-    // TODO(kevinb): when exactly do we need to do this?
-    writer.flush();
+    // courtesy flush
+    stderr.flush();
+    stdout.flush();
   }
 
   private static void propogateIfCaliperException(Throwable throwable)

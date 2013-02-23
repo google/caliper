@@ -22,24 +22,27 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.GcLogMessage;
 import com.google.caliper.bridge.HotspotLogMessage;
-import com.google.caliper.bridge.StartTimingLogMessage;
-import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.bridge.StartMeasurementLogMessage;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.util.ShortDuration;
+import com.google.caliper.util.Stderr;
+import com.google.caliper.util.Stdout;
 import com.google.caliper.worker.MicrobenchmarkWorker;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.inject.Inject;
 
+import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
@@ -55,10 +58,15 @@ public final class MicrobenchmarkInstrument extends Instrument {
   private static final String WARMUP_OPTION = "warmup";
   private static final String TIMING_INTERVAL_OPTION = "timingInterval";
 
-  @Override public ShortDuration estimateRuntimePerTrial() {
-    return ShortDuration.valueOf(options.get(TIMING_INTERVAL_OPTION))
-        .times(Integer.valueOf(options.get(MEASUREMENTS_OPTION)))
-        .plus(ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+  private final PrintWriter stdout;
+  private final PrintWriter stderr;
+  private final ShortDuration nanoTimeGranularity;
+
+  @Inject MicrobenchmarkInstrument(@NanoTimeGranularity ShortDuration nanoTimeGranularity,
+      @Stdout PrintWriter stdout, @Stderr PrintWriter stderr) {
+    this.nanoTimeGranularity = nanoTimeGranularity;
+    this.stdout = stdout;
+    this.stderr = stderr;
   }
 
   @Override public boolean isBenchmarkMethod(Method method) {
@@ -128,7 +136,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return measurementsPerTrial;
   }
 
-  private static final class RuntimeMeasurementCollector extends AbstractLogMessageVisitor
+  private final class RuntimeMeasurementCollector extends AbstractLogMessageVisitor
       implements MeasurementCollectingVisitor {
     final int measurementsPerTrial;
     final ShortDuration warmup;
@@ -150,7 +158,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
     public void visit(GcLogMessage logMessage) {
       if (timing && !isInWarmup()) {
         invalidMeasurements = true;
-        logger.severe("GC occurred during timing.");
+        stderr.println("ERROR: GC occurred during timing.");
       }
     }
 
@@ -158,23 +166,24 @@ public final class MicrobenchmarkInstrument extends Instrument {
     public void visit(HotspotLogMessage logMessage) {
       if (!isInWarmup()) {
         if (timing) {
-          logger.severe(
-              "Hotspot compilation occurred during timing. Warmup is likely insufficent.");
+          stderr.println(
+              "ERROR: Hotspot compilation occurred during timing. Warmup is likely insufficent.");
         } else {
-          logger.log(WARNING, "Hotspot compilation occurred after warmup, but outside of timing. "
+          stdout.println(
+              "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
               + "Results may be affected. Run with --verbose to see which method was compiled.");
         }
       }
     }
 
     @Override
-    public void visit(StartTimingLogMessage logMessage) {
+    public void visit(StartMeasurementLogMessage logMessage) {
       checkState(!timing);
       timing = true;
     }
 
     @Override
-    public void visit(StopTimingLogMessage logMessage) {
+    public void visit(StopMeasurementLogMessage logMessage) {
       checkState(timing);
       ImmutableList<Measurement> newMeasurements = logMessage.measurements();
       if (isInWarmup()) {
@@ -198,6 +207,21 @@ public final class MicrobenchmarkInstrument extends Instrument {
     }
 
     @Override public ImmutableList<Measurement> getMeasurements() {
+      boolean improperGranularity = true;
+      for (Measurement measurement : measurements) {
+        checkState("ns".equals(measurement.value().unit()));
+        double nanos = measurement.value().magnitude() / measurement.weight();
+        improperGranularity &= (nanos / 1000) > nanoTimeGranularity.to(NANOSECONDS);
+      }
+      if (improperGranularity) {
+        ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
+        stderr.printf("INFO: This experiment does not require a microbenchmark. "
+            + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime.%n",
+            // TODO(gak): add this into the message when the macrobenchmark instrument is ready
+            // + "If all experiements for this benchmark have runtimes greater than %s, "
+            // + "consider the macrobenchmark instrument.%n",
+                nanoTimeGranularity /*, reasonableUpperBound*/);
+      }
       return ImmutableList.copyOf(measurements);
     }
   }

@@ -16,39 +16,26 @@
 
 package com.google.caliper.bridge;
 
+import com.google.caliper.util.Parser;
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
-import com.google.inject.TypeLiteral;
-import com.google.inject.multibindings.Multibinder;
+import com.google.inject.Provides;
 
 /**
- * Bindings for {@link TryParser parsers} and {@link Renderer renderers} for
+ * Bindings for {@link Parser parsers} and {@link Renderer renderers} for
  * {@link com.google.caliper.model model} classes.
  */
 public final class BridgeModule extends AbstractModule {
   @Override protected void configure() {
     requireBinding(Gson.class);
+  }
 
-    Multibinder<TryParser<? extends LogMessage>> parserMultibinder =
-        Multibinder.newSetBinder(binder(), new TypeLiteral<TryParser<? extends LogMessage>>() {});
-    parserMultibinder.addBinding().to(GcLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(HotspotLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(FailureLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(StartTimingLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(StopTimingLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(VmOptionLogMessage.Parser.class);
-    parserMultibinder.addBinding().to(VmPropertiesLogMessage.Parser.class);
-    // always needs to be last
-    parserMultibinder.addBinding().to(GenericLogMessage.Parser.class);
+  @Provides Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
+    return parser;
+  }
 
-
-    bind(new TypeLiteral<Renderer<FailureLogMessage>>() {})
-        .to(FailureLogMessage.Parser.class);
-    bind(new TypeLiteral<Renderer<StartTimingLogMessage>>() {})
-        .to(StartTimingLogMessage.Parser.class);
-    bind(new TypeLiteral<Renderer<StopTimingLogMessage>>() {})
-        .to(StopTimingLogMessage.Parser.class);
-    bind(new TypeLiteral<Renderer<VmPropertiesLogMessage>>() {})
-        .to(VmPropertiesLogMessage.Parser.class);
+  @Provides Renderer<CaliperControlLogMessage> provideControlLogMessageRenderer(
+      ControlLogMessageRenderer renderer) {
+    return renderer;
   }
 }

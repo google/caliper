@@ -45,7 +45,7 @@ import javax.annotation.Nullable;
 
 /**
  * Represents caliper configuration.  By default, {@code ~/.caliper/config.properties} and
- * {@code global.caliperrc}.
+ * {@code global-config.properties}.
  *
  * @author gak@google.com (Gregory Kick)
  */

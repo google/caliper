@@ -17,7 +17,6 @@ package com.google.caliper.runner;
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static java.util.logging.Level.FINE;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
@@ -29,7 +28,6 @@ import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
-import com.google.caliper.bridge.TryParser;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.bridge.WorkerSpec;
@@ -42,14 +40,19 @@ import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
+import com.google.caliper.util.Parser;
 import com.google.caliper.util.Pipes;
 import com.google.caliper.util.ShortDuration;
+import com.google.caliper.util.Stderr;
+import com.google.caliper.util.Stdout;
 import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -72,12 +75,13 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -96,11 +100,12 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private final CaliperOptions options;
   private final CaliperConfig config;
-  private final ConsoleWriter console;
+  private final PrintWriter stdout;
+  private final PrintWriter stderr;
   private final BenchmarkClass benchmarkClass;
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
-  private final ImmutableSet<TryParser<? extends LogMessage>> messageParsers;
+  private final Parser<LogMessage> logMessageParser;
   private final ExperimentSelector selector;
   private final Host host;
   private final Run run;
@@ -125,22 +130,24 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   public ExperimentingCaliperRun(
       CaliperOptions options,
       CaliperConfig config,
-      ConsoleWriter console,
+      @Stdout PrintWriter stdout,
+      @Stderr PrintWriter stderr,
       BenchmarkClass benchmarkClass,
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
-      Set<TryParser<? extends LogMessage>> messageParsers,
+      Parser<LogMessage> logMessageParser,
       ExperimentSelector selector,
       Host host,
       Run run,
       Gson gson) {
     this.options = options;
     this.config = config;
-    this.console = console;
+    this.stdout = stdout;
+    this.stderr = stderr;
     this.benchmarkClass = benchmarkClass;
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
-    this.messageParsers = ImmutableSet.copyOf(messageParsers);
+    this.logMessageParser = logMessageParser;
     this.selector = selector;
     this.host = host;
     this.run = run;
@@ -151,15 +158,31 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   public void run() throws InvalidBenchmarkException {
     // TODO(gak): this class is getting big again.  is there a better place for this?
     if (options.printConfiguration()) {
-      console.println("Configuration:");
+      stdout.println("Configuration:");
       ImmutableSortedMap<String, String> sortedProperties =
           ImmutableSortedMap.copyOf(config.properties());
       for (Entry<String, String> entry : sortedProperties.entrySet()) {
-        console.printf("  %s = %s%n", entry.getKey(), entry.getValue());
+        stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
       }
     }
 
-    console.describe(selector);
+    stdout.println("Experiment selection: ");
+    stdout.println("  Instruments:   " + FluentIterable.from(selector.instruments())
+        .transform(new Function<Instrument, String>() {
+              @Override public String apply(Instrument instrument) {
+                return instrument.name();
+              }
+            }));
+    stdout.println("  User parameters:   " + selector.userParameters());
+    stdout.println("  Virtual machines:  " + FluentIterable.from(selector.vms())
+        .transform(
+            new Function<VirtualMachine, String>() {
+              @Override public String apply(VirtualMachine vm) {
+                return vm.name;
+              }
+            }));
+    stdout.println("  Selection type:    " + selector.selectionType());
+    stdout.println();
 
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
     if (allExperiments.isEmpty()) {
@@ -168,38 +191,25 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           benchmarkClass.benchmarkClass().getSimpleName(), instruments);
     }
 
-    console.beforeDryRun(allExperiments.size());
-    console.flush();
+    stdout.format("This selection yields %s experiments.%n", allExperiments.size());
+    stdout.flush();
 
     // always dry run first.
     ImmutableSet<Experiment> experimentsToRun = dryRun(allExperiments);
     if (experimentsToRun.size() != allExperiments.size()) {
-      console.skippedExperiments(allExperiments.size() - experimentsToRun.size());
+      stdout.format("%d experiments were skipped.%n",
+          allExperiments.size() - experimentsToRun.size());
     }
 
     if (experimentsToRun.isEmpty()) {
       throw new InvalidBenchmarkException("All experiements were skipped.");
     }
 
-    ShortDuration estimate = ShortDuration.zero();
-    for (Experiment experiment : experimentsToRun) {
-      Instrument instrument = experiment.instrument();
-      try {
-        estimate = estimate.plus(
-            instrument.estimateRuntimePerTrial().times(options.trialsPerScenario()));
-      } catch (UnsupportedOperationException innocuous) {
-        // some instruments don't support estimation
-      } catch (Exception e) {
-        logger.log(FINE, String.format("Runtime estimation failed for %s", instrument), e);
-      }
-    }
-
     if (options.dryRun()) {
       return;
     }
 
-    console.beforeRun(options.trialsPerScenario(), experimentsToRun.size(), estimate);
-    console.flush();
+    stdout.flush();
 
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
     Stopwatch stopwatch = new Stopwatch().start();
@@ -210,12 +220,15 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           try {
             Trial trial = measure(experiment);
             trialsExecuted++;
-            console.print(String.format("%d of %d trials complete: %.1f%%.%n",
-                trialsExecuted, totalTrials, trialsExecuted * 100.0 / totalTrials));
-            console.flush();
+            stdout.printf("%d of %d trials complete: %.1f%%.%n",
+                trialsExecuted, totalTrials, trialsExecuted * 100.0 / totalTrials);
             for (ResultProcessor resultProcessor : resultProcessors) {
               resultProcessor.processTrial(trial);
             }
+          } catch (TrialFailureException e) {
+            stderr.println(
+                "ERROR: A trial failed to complete (its results will not be included in the run):\n"
+                    + "  " + e.getMessage());
           } catch (IOException e) {
             throw Throwables.propagate(e);
           }
@@ -225,8 +238,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       consumerExecutor.shutdown();
     }
 
-    console.print("\n");
-    console.afterRun(ShortDuration.of(stopwatch.stop().elapsed(NANOSECONDS), NANOSECONDS));
+    stdout.print("\n");
+    stdout.format("Execution complete: %s.%n",
+        ShortDuration.of(stopwatch.stop().elapsed(NANOSECONDS), NANOSECONDS));
 
     for (ResultProcessor resultProcessor : resultProcessors) {
       try {
@@ -330,9 +344,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           if (!pipeReaderFuture.isDone()) {
             // the process completed without the pipe ever being written to.  it crashed.
             // TODO(gak): get the output from the worker so we can know why it crashed
-            console.print("The worker exited without producing data. "
+            stdout.print("The worker exited without producing data. "
                 + "It has likely crashed. Run with --verbose to see any worker output.\n");
-            console.flush();
+            stdout.flush();
             System.exit(1);
           }
         }
@@ -389,8 +403,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     } catch (InterruptedException e) {
       throw new AssertionError();
     } catch (ExecutionException e) {
-      throw new RuntimeException(e.getCause());
+      Throwable cause = e.getCause();
+      Throwables.propagateIfInstanceOf(cause, TrialFailureException.class);
+      throw new RuntimeException(cause);
     } finally {
+      trialStopwatch.reset();
       producerExecutor.shutdownNow();
     }
   }
@@ -510,8 +527,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         @Nullable String line = queue.poll(getRemainingTrialNanos(), NANOSECONDS);
         if (line == null) {
           // timed out before we got through the queue
-          throw new RuntimeException(String.format("exceeded total allowable runtime (%s)",
-              options.timeLimit()));
+          throw new TrialFailureException(String.format(
+              "Trial exceeded the total allowable runtime (%s). "
+                  + "The limit may be adjusted using the --time-limit flag.",
+                      options.timeLimit()));
         } else if (line == POISON_PILL) {
           poisonPillsSeen++;
         } else {
@@ -521,30 +540,23 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
       trialStopwatch.stop();
       logger.fine("trial completed in " + trialStopwatch);
-      trialStopwatch.reset();
 
       return null;
     }
 
     void processLine(String line) {
-      LogMessage logMessage = parseLogMessage(line);
-      if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
-        console.printf("[trial-%d] %s%n", trialsExecuted, line);
-      }
-      logMessage.accept(measurementCollectingVisitor);
-      for (LogMessageVisitor visitor : otherVisitors) {
-        logMessage.accept(visitor);
-      }
-    }
-
-    LogMessage parseLogMessage(String line) {
-      for (TryParser<? extends LogMessage> parser : messageParsers) {
-        Optional<? extends LogMessage> logMessage = parser.tryParse(line);
-        if (logMessage.isPresent()) {
-          return logMessage.get();
+      try {
+        LogMessage logMessage = logMessageParser.parse(line);
+        if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
+          stdout.printf("[trial-%d] %s%n", trialsExecuted, line);
         }
+        logMessage.accept(measurementCollectingVisitor);
+        for (LogMessageVisitor visitor : otherVisitors) {
+          logMessage.accept(visitor);
+        }
+      } catch (ParseException e) {
+        throw new AssertionError();
       }
-      throw new AssertionError();
     }
   }
 }

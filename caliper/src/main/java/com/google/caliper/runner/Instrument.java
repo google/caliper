@@ -21,10 +21,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
-import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.Worker;
 import com.google.common.base.Predicates;
@@ -58,10 +57,6 @@ public abstract class Instrument {
 
   @Override public String toString() {
     return name();
-  }
-
-  public ShortDuration estimateRuntimePerTrial() {
-    throw new UnsupportedOperationException();
   }
 
   public abstract boolean isBenchmarkMethod(Method method);
@@ -194,7 +189,7 @@ public abstract class Instrument {
           ArrayListMultimap.create(requiredDescriptions.size(), requiredMeasurements);
     }
 
-    @Override public void visit(StopTimingLogMessage logMessage) {
+    @Override public void visit(StopMeasurementLogMessage logMessage) {
       for (Measurement measurement : logMessage.measurements()) {
         measurementsByDescription.put(measurement.description(), measurement);
       }

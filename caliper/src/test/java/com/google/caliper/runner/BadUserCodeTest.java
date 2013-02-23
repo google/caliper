@@ -17,11 +17,12 @@ import java.io.StringWriter;
 @RunWith(JUnit4.class)
 
 public class BadUserCodeTest {
-  private PrintWriter writer = new PrintWriter(new StringWriter());
+  private PrintWriter out = new PrintWriter(new StringWriter());
+  private PrintWriter err = new PrintWriter(new StringWriter());
 
   @Test public void testExceptionInInit() throws Exception {
     try {
-      CaliperMain.exitlessMain(new String[] {ExceptionInInitBenchmark.class.getName()}, writer);
+      CaliperMain.exitlessMain(new String[] {ExceptionInInitBenchmark.class.getName()}, out, err);
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -43,7 +44,7 @@ public class BadUserCodeTest {
   @Test public void testExceptionInConstructor() throws Exception {
     try {
       CaliperMain.exitlessMain(
-          new String[] {ExceptionInConstructorBenchmark.class.getName()}, writer);
+          new String[] {ExceptionInConstructorBenchmark.class.getName()}, out, err);
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -61,7 +62,7 @@ public class BadUserCodeTest {
   @Test public void testExceptionInMethod() throws Exception {
     try {
       CaliperMain.exitlessMain(
-          new String[] {ExceptionInConstructorBenchmark.class.getName()}, writer);
+          new String[] {ExceptionInConstructorBenchmark.class.getName()}, out, err);
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -75,7 +76,7 @@ public class BadUserCodeTest {
   @Test public void testExceptionInSetUp() throws Exception {
     try {
       CaliperMain.exitlessMain(
-          new String[] {ExceptionInSetUpBenchmark.class.getName()}, writer);
+          new String[] {ExceptionInSetUpBenchmark.class.getName()}, out, err);
       fail();
     } catch (UserCodeException expected) {}
   }
