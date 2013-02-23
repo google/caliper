@@ -29,9 +29,9 @@ public abstract class AbstractLogMessageVisitor implements LogMessageVisitor {
 
   @Override public void visit(HotspotLogMessage logMessage) {}
 
-  @Override public void visit(StartTimingLogMessage logMessage) {}
+  @Override public void visit(StartMeasurementLogMessage logMessage) {}
 
-  @Override public void visit(StopTimingLogMessage logMessage) {}
+  @Override public void visit(StopMeasurementLogMessage logMessage) {}
 
   @Override public void visit(VmOptionLogMessage logMessage) {}
 

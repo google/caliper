@@ -19,6 +19,7 @@ package com.google.caliper.runner;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.util.Stdout;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 
@@ -31,8 +32,8 @@ import java.io.PrintWriter;
  * request.
  */
 public class HttpUploader extends ResultsUploader {
-  @Inject HttpUploader(PrintWriter writer, Gson gson, CaliperConfig config)
+  @Inject HttpUploader(@Stdout PrintWriter stdout, Gson gson, CaliperConfig config)
       throws InvalidConfigurationException {
-    super(writer, gson, Client.create(), config.getResultProcessorConfig(HttpUploader.class));
+    super(stdout, gson, Client.create(), config.getResultProcessorConfig(HttpUploader.class));
   }
 }

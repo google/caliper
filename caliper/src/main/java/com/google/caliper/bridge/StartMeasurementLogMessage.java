@@ -16,32 +16,22 @@
 
 package com.google.caliper.bridge;
 
-import com.google.common.base.Optional;
 
 /**
  * A message signaling that the timing interval has started in the worker.
  */
 // TODO(gak): rename in terms of measurement
-public class StartTimingLogMessage extends CaliperControlLogMessage {
-  private static final String MESSAGE = CONTROL_PREFIX + "starting//";
+public class StartMeasurementLogMessage extends CaliperControlLogMessage {
+  @Override public void accept(LogMessageVisitor visitor) {
+    visitor.visit(this);
+  }
 
-  public static final class Parser
-      implements TryParser<StartTimingLogMessage>, Renderer<StartTimingLogMessage> {
-    @Override
-    public Optional<StartTimingLogMessage> tryParse(String text) {
-      return text.equals(MESSAGE)
-          ? Optional.of(new StartTimingLogMessage())
-          : Optional.<StartTimingLogMessage>absent();
-    }
-
-    @Override
-    public String render(StartTimingLogMessage object) {
-      return MESSAGE;
-    }
+  @Override public int hashCode() {
+    return StartMeasurementLogMessage.class.hashCode();
   }
 
   @Override
-  public void accept(LogMessageVisitor visitor) {
-    visitor.visit(this);
+  public boolean equals(Object obj) {
+    return obj instanceof StartMeasurementLogMessage;
   }
 }

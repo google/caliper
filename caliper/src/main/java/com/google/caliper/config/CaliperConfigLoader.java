@@ -45,8 +45,8 @@ public final class CaliperConfigLoader {
     File configFile = options.caliperConfigFile();
     ImmutableMap<String, String> defaults;
     try {
-      defaults =
-          Util.loadProperties(Util.resourceSupplier(CaliperConfig.class, "global.caliperrc"));
+      defaults = Util.loadProperties(
+          Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
     } catch (IOException impossible) {
       throw new AssertionError(impossible);
     }
@@ -63,7 +63,7 @@ public final class CaliperConfigLoader {
     }
 
     InputSupplier<InputStream> supplier =
-        Util.resourceSupplier(CaliperConfig.class, "default.caliperrc");
+        Util.resourceSupplier(CaliperConfig.class, "default-config.properties");
     tryCopyIfNeeded(supplier, configFile);
 
     ImmutableMap<String, String> user;

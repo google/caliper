@@ -16,30 +16,12 @@
 
 package com.google.caliper.bridge;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Optional;
-
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A message representing output produced by the JVM when {@code -XX:+PrintCompliation} is enabled.
  */
 public final class HotspotLogMessage extends LogMessage {
-  @VisibleForTesting static final Pattern PATTERN =
-      Pattern.compile(".*::.*( \\(((\\d+ bytes)|(static))\\))?");
-
-  public static final class Parser
-      implements TryParser<HotspotLogMessage> {
-    @Override
-    public Optional<HotspotLogMessage> tryParse(String text) {
-      Matcher matcher = PATTERN.matcher(text);
-      return matcher.matches() ? Optional.of(new HotspotLogMessage())
-          : Optional.<HotspotLogMessage>absent();
-    }
-  }
-
-  private HotspotLogMessage() {}
+  HotspotLogMessage() {}
 
   @Override
   public void accept(LogMessageVisitor visitor) {

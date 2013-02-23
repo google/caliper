@@ -22,8 +22,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.Closeables;
 import com.google.common.io.InputSupplier;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -114,7 +112,7 @@ public final class Util {
       Thread.currentThread().interrupt();
     }
   }
-  
+
   public static <T> ImmutableBiMap<T, String> assignNames(Set<T> items) {
     ImmutableList<T> itemList = ImmutableList.copyOf(items);
     ImmutableBiMap.Builder<T, String> itemNamesBuilder = ImmutableBiMap.builder();
@@ -123,7 +121,7 @@ public final class Util {
     }
     return itemNamesBuilder.build();
   }
-  
+
   private static String generateUniqueName(int index) {
     if (index < 26) {
       return String.valueOf((char) ('A' + index));

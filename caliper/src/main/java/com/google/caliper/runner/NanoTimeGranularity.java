@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2013 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.util.ShortDuration;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-public interface ConsoleWriter {
-  void flush();
-  void print(String s);
-  void println(String s);
-  void printf(String format, Object... args);
-  void describe(ExperimentSelector selection);
-  void beforeDryRun(int count);
-  void beforeRun(int trials, int scenarioCount, ShortDuration estimate);
-  void afterRun(ShortDuration elapsed);
-  void skippedExperiments(int nSkipped);
-}
+import com.google.inject.BindingAnnotation;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+/** Binding annotation the granularity of {@link System#nanoTime()}. */
+@Retention(RUNTIME)
+@Target({FIELD, PARAMETER, METHOD})
+@BindingAnnotation
+@interface NanoTimeGranularity {}

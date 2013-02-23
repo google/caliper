@@ -18,12 +18,9 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.google.common.reflect.TypeToken;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
 
 
 /**
@@ -31,29 +28,6 @@ import com.google.inject.Inject;
  * worker JVM.
  */
 public class VmPropertiesLogMessage extends CaliperControlLogMessage {
-  private static final String MESSAGE_PREFIX = CONTROL_PREFIX + "properties//";
-
-  public static final class Parser implements TryParser<VmPropertiesLogMessage>,
-      Renderer<VmPropertiesLogMessage> {
-    private final Gson gson;
-
-    @Inject Parser(Gson gson) {
-      this.gson = gson;
-    }
-
-    @Override public Optional<VmPropertiesLogMessage> tryParse(String text) {
-      return text.startsWith(MESSAGE_PREFIX)
-          ? Optional.of(new VmPropertiesLogMessage(
-              gson.<ImmutableMap<String, String>>fromJson(text.substring(MESSAGE_PREFIX.length()),
-                  new TypeToken<ImmutableMap<String, String>>() {}.getType())))
-          : Optional.<VmPropertiesLogMessage>absent();
-    }
-
-    @Override public String render(VmPropertiesLogMessage message) {
-      return MESSAGE_PREFIX + gson.toJson(message.properties);
-    }
-  }
-
   private final ImmutableMap<String, String> properties;
 
   public VmPropertiesLogMessage() {
@@ -70,5 +44,22 @@ public class VmPropertiesLogMessage extends CaliperControlLogMessage {
 
   @Override public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(properties);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof VmPropertiesLogMessage) {
+      VmPropertiesLogMessage that = (VmPropertiesLogMessage) obj;
+      return this.properties.equals(that.properties);
+    } else {
+      return false;
+    }
   }
 }

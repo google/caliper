@@ -65,7 +65,7 @@ final class Experiment {
   @Override public boolean equals(Object object) {
     if (object instanceof Experiment) {
       Experiment that = (Experiment) object;
-      return this.instrument.equals(instrument)
+      return this.instrument.equals(that.instrument)
           && this.benchmarkMethod.equals(that.benchmarkMethod)
           && this.vm.equals(that.vm)
           && this.userParameters.equals(that.userParameters);

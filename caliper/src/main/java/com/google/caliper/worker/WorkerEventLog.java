@@ -16,10 +16,11 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.Renderer;
-import com.google.caliper.bridge.StartTimingLogMessage;
-import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.bridge.StartMeasurementLogMessage;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
 import com.google.common.base.Strings;
@@ -30,25 +31,16 @@ import java.io.PrintWriter;
 
 public final class WorkerEventLog {
   private final PrintWriter writer;
-  private final Renderer<VmPropertiesLogMessage> vmPropertiesRenderer;
-  private final Renderer<StartTimingLogMessage> startTimingRenderer;
-  private final Renderer<StopTimingLogMessage> stopTimingRenderer;
-  private final Renderer<FailureLogMessage> failureRenderer;
+  private final Renderer<CaliperControlLogMessage> controlLogMessageRenderer;
 
   @Inject WorkerEventLog(PrintWriter writer,
-      Renderer<VmPropertiesLogMessage> vmPropertiesRenderer,
-      Renderer<StartTimingLogMessage> startTimingRenderer,
-      Renderer<StopTimingLogMessage> stopTimingRenderer,
-      Renderer<FailureLogMessage> failureRenderer) {
+      Renderer<CaliperControlLogMessage> controlLogMessageRenderer) {
     this.writer = writer;
-    this.vmPropertiesRenderer = vmPropertiesRenderer;
-    this.startTimingRenderer = startTimingRenderer;
-    this.stopTimingRenderer = stopTimingRenderer;
-    this.failureRenderer = failureRenderer;
+    this.controlLogMessageRenderer = controlLogMessageRenderer;
   }
 
   public void notifyWorkerStarted() {
-    writer.println(vmPropertiesRenderer.render(new VmPropertiesLogMessage()));
+    writer.println(controlLogMessageRenderer.render(new VmPropertiesLogMessage()));
   }
 
   public void notifyWarmupPhaseStarting() {
@@ -61,7 +53,7 @@ public final class WorkerEventLog {
 
   public void notifyMeasurementStarting() {
     writer.println("About to measure.");
-    writer.println(startTimingRenderer.render(new StartTimingLogMessage()));
+    writer.println(controlLogMessageRenderer.render(new StartMeasurementLogMessage()));
   }
 
   public void notifyMeasurementEnding(Measurement measurement) {
@@ -70,7 +62,7 @@ public final class WorkerEventLog {
   }
 
   public void notifyMeasurementEnding(Iterable<Measurement> measurements) {
-    writer.println(stopTimingRenderer.render(new StopTimingLogMessage(measurements)));
+    writer.println(controlLogMessageRenderer.render(new StopMeasurementLogMessage(measurements)));
     for (Measurement measurement : measurements) {
       writer.printf("I got a result! %s: %f%s%n", measurement.description(),
           measurement.value().magnitude() / measurement.weight(), measurement.value().unit());
@@ -83,7 +75,7 @@ public final class WorkerEventLog {
   }
 
   public void notifyFailure(Exception e) {
-    writer.println(failureRenderer.render(
+    writer.println(controlLogMessageRenderer.render(
         new FailureLogMessage(e.getClass().getName(), Strings.nullToEmpty(e.getMessage()),
             ImmutableList.copyOf(e.getStackTrace()))));
   }

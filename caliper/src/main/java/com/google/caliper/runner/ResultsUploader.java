@@ -51,7 +51,7 @@ abstract class ResultsUploader implements ResultProcessor {
   private static final String POST_PATH = "/data/trials";
   private static final String RESULTS_PATH_PATTERN = "/runs/%s";
 
-  private final PrintWriter writer;
+  private final PrintWriter stdout;
   private final Client client;
   private final Gson gson;
   private final Optional<UUID> apiKey;
@@ -59,9 +59,9 @@ abstract class ResultsUploader implements ResultProcessor {
   private Optional<UUID> runId = Optional.absent();
   private boolean failure = false;
 
-  @Inject ResultsUploader(PrintWriter writer, Gson gson, Client client,
+  @Inject ResultsUploader(PrintWriter stdout, Gson gson, Client client,
       ResultProcessorConfig resultProcessorConfig) throws InvalidConfigurationException {
-    this.writer = writer;
+    this.stdout = stdout;
     this.client = client;
     this.gson = gson;
     @Nullable String apiKeyString = resultProcessorConfig.options().get("key");
@@ -124,12 +124,12 @@ abstract class ResultsUploader implements ResultProcessor {
   @Override public final void close() {
     if (uploadUri.isPresent()) {
       if (runId.isPresent()) {
-        writer.printf("Results have been uploaded. View them at: %s%n",
+        stdout.printf("Results have been uploaded. View them at: %s%n",
             uploadUri.get().resolve(String.format(RESULTS_PATH_PATTERN, runId.get())));
       }
       if (failure) {
         // TODO(gak): implement some retry
-        writer.println("Some trials failed to upload. Consider uploading them manually.");
+        stdout.println("Some trials failed to upload. Consider uploading them manually.");
       }
     } else {
       logger.fine("No upload URL was provided, so results were not uploaded.");

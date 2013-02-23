@@ -16,20 +16,13 @@
 
 package com.google.caliper.bridge;
 
-import com.google.common.base.Optional;
 
 /**
  * A message representing generic, miscellaneous output.
  */
 public final class GenericLogMessage extends LogMessage {
-  public static final class Parser implements TryParser<GenericLogMessage> {
-    @Override
-    public Optional<GenericLogMessage> tryParse(String text) {
-      return Optional.of(new GenericLogMessage());
-    }
-  }
-
-  private GenericLogMessage() {}
+  // TODO(gak): retain the text?
+  GenericLogMessage() {}
 
   @Override
   public void accept(LogMessageVisitor visitor) {

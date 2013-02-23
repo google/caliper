@@ -22,9 +22,11 @@ import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
+import com.google.caliper.util.Stdout;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
+import java.io.PrintWriter;
 import java.util.Set;
 
 /**
@@ -32,15 +34,15 @@ import java.util.Set;
  * as that is the responsibility of the webapp.
  */
 final class ConsoleResultProcessor implements ResultProcessor {
-  private final ConsoleWriter console;
+  private final PrintWriter stdout;
 
   private Set<InstrumentSpec> instrumentSpecs = Sets.newHashSet();
   private Set<VmSpec> vmSpecs = Sets.newHashSet();
   private Set<BenchmarkSpec> benchmarkSpecs = Sets.newHashSet();
   private int numMeasurements = 0;
 
-  @Inject ConsoleResultProcessor(ConsoleWriter console) {
-    this.console = console;
+  @Inject ConsoleResultProcessor(@Stdout PrintWriter stdout) {
+    this.stdout = stdout;
   }
 
   @Override public void processTrial(Trial trial) {
@@ -52,10 +54,10 @@ final class ConsoleResultProcessor implements ResultProcessor {
   }
 
   @Override public void close() {
-    console.printf("Collected %d measurements from:%n", numMeasurements);
-    console.printf("  %d instrument(s)%n", instrumentSpecs.size());
-    console.printf("  %d virtual machine(s)%n", vmSpecs.size());
-    console.printf("  %d benchmark(s)%n", benchmarkSpecs.size());
-    console.flush();
+    stdout.printf("Collected %d measurements from:%n", numMeasurements);
+    stdout.printf("  %d instrument(s)%n", instrumentSpecs.size());
+    stdout.printf("  %d virtual machine(s)%n", vmSpecs.size());
+    stdout.printf("  %d benchmark(s)%n", benchmarkSpecs.size());
+    stdout.flush();
   }
 }

@@ -22,7 +22,7 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
-import com.google.caliper.bridge.StopTimingLogMessage;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Util;
@@ -125,7 +125,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     }
 
     @Override
-    public void visit(StopTimingLogMessage logMessage) {
+    public void visit(StopMeasurementLogMessage logMessage) {
       this.measurement = Optional.of(Iterables.getOnlyElement(logMessage.measurements()));
     }
   }

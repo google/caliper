@@ -147,9 +147,8 @@ public class MalformedBenchmarksTest {
     try {
       CaliperMain.exitlessMain(
           new String[] {"--instrument=allocation,micro", benchmarkClass.getName()},
-          new PrintWriter(new StringWriter()));
+          new PrintWriter(new StringWriter()), new PrintWriter(new StringWriter()));
       fail("no exception thrown");
-
     } catch (InvalidBenchmarkException e) {
       try {
         String expectedMessageText =

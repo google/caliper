@@ -17,41 +17,17 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.model.Measurement;
-import com.google.common.base.Optional;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
 
 /**
  * A message signaling that the timing interval has ended in the worker.
  */
 // TODO(gak): rename in terms of measurement
-public class StopTimingLogMessage extends CaliperControlLogMessage {
-  private static final String MESSAGE_PREFIX = CONTROL_PREFIX + "measurement//";
-
-  public static final class Parser implements TryParser<StopTimingLogMessage>,
-      Renderer<StopTimingLogMessage> {
-    private final Gson gson;
-
-    @Inject Parser(Gson gson) {
-      this.gson = gson;
-    }
-
-    @Override public Optional<StopTimingLogMessage> tryParse(String text) {
-      return text.startsWith(MESSAGE_PREFIX)
-          ? Optional.of(
-              gson.fromJson(text.substring(MESSAGE_PREFIX.length()), StopTimingLogMessage.class))
-          : Optional.<StopTimingLogMessage>absent();
-    }
-
-    @Override public String render(StopTimingLogMessage message) {
-      return MESSAGE_PREFIX + gson.toJson(message);
-    }
-  }
-
+public class StopMeasurementLogMessage extends CaliperControlLogMessage {
   private final ImmutableList<Measurement> measurements;
 
-  public StopTimingLogMessage(Iterable<Measurement> measurements) {
+  public StopMeasurementLogMessage(Iterable<Measurement> measurements) {
     this.measurements = ImmutableList.copyOf(measurements);
   }
 
@@ -61,5 +37,21 @@ public class StopTimingLogMessage extends CaliperControlLogMessage {
 
   @Override public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override public int hashCode() {
+    return Objects.hashCode(measurements);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof StopMeasurementLogMessage) {
+      StopMeasurementLogMessage that = (StopMeasurementLogMessage) obj;
+      return this.measurements.equals(that.measurements);
+    } else {
+      return false;
+    }
   }
 }

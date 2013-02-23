@@ -18,49 +18,30 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Optional;
+import com.google.common.base.Objects;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
+
+import java.util.Arrays;
 
 /**
  * A message containing information on a failure encountered by the worker JVM.
  */
 public class FailureLogMessage extends CaliperControlLogMessage {
-  private static final String MESSAGE_PREFIX = CONTROL_PREFIX + "failed//";
-
-  public static final class Parser
-      implements TryParser<FailureLogMessage>, Renderer<FailureLogMessage> {
-    private final Gson gson;
-
-    @Inject
-    Parser(Gson gson) {
-      this.gson = gson;
-    }
-
-    @Override
-    public Optional<FailureLogMessage> tryParse(String text) {
-      return text.startsWith(MESSAGE_PREFIX)
-          ? Optional.of(gson.fromJson(text.substring(MESSAGE_PREFIX.length()),
-              FailureLogMessage.class))
-          : Optional.<FailureLogMessage>absent();
-    }
-
-    @Override
-    public String render(FailureLogMessage message) {
-      return MESSAGE_PREFIX + gson.toJson(message);
-    }
-  }
-
   private final String exceptionClassName;
   private final String message;
   private final ImmutableList<StackTraceElement> stackTrace;
 
+  public FailureLogMessage(Exception e) {
+    this(e.getClass().getName(), Strings.nullToEmpty(e.getMessage()),
+        Arrays.asList(e.getStackTrace()));
+  }
+
   public FailureLogMessage(String exceptionClassName, String message,
-      ImmutableList<StackTraceElement> stackTrace) {
+      Iterable<StackTraceElement> stackTrace) {
     this.exceptionClassName = checkNotNull(exceptionClassName);
     this.message = checkNotNull(message);
-    this.stackTrace = checkNotNull(stackTrace);
+    this.stackTrace = ImmutableList.copyOf(stackTrace);
   }
 
   public String exceptionClassName() {
@@ -78,5 +59,24 @@ public class FailureLogMessage extends CaliperControlLogMessage {
   @Override
   public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(exceptionClassName, message, stackTrace);
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof FailureLogMessage) {
+      FailureLogMessage that = (FailureLogMessage) obj;
+      return this.exceptionClassName.equals(that.exceptionClassName)
+          && this.message.equals(that.message)
+          && this.stackTrace.equals(that.stackTrace);
+    } else {
+      return false;
+    }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2013 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
-
-import com.google.caliper.util.Parser;
-import com.google.common.base.Optional;
+package com.google.caliper.runner;
 
 /**
- * A version of {@link Parser} that doesn't throw on invalid input.
+ * An exception representing the failure of an individual trial. Throwing this exception will
+ * invalidate the trial, but allow the run to continue. Both the runner and individual instruments
+ * are free to throw this exception.
+ *
+ * <p>The exception message is used to convey the nature of the failure to the user.
  */
-public interface TryParser<T> {
-  Optional<T> tryParse(String text);
+final class TrialFailureException extends RuntimeException {
+  public TrialFailureException(String message) {
+    super(message);
+  }
 }

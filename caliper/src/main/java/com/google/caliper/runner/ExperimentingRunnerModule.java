@@ -16,8 +16,6 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InstrumentConfig;
@@ -25,6 +23,7 @@ import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -37,21 +36,14 @@ import com.google.inject.Singleton;
 
 import org.joda.time.Instant;
 
-import java.io.PrintWriter;
 import java.util.UUID;
 
 /**
  * Configures a {@link CaliperRun} that performs experiments.
  */
 final class ExperimentingRunnerModule extends AbstractModule {
-  private final PrintWriter writer;
-
-  ExperimentingRunnerModule(PrintWriter writer) {
-    this.writer = checkNotNull(writer);
-  }
-
   @Override protected void configure() {
-    install(new RunnerModule(writer));
+    install(new RunnerModule());
     bind(CaliperRun.class).to(ExperimentingCaliperRun.class);
     bind(ExperimentSelector.class).to(FullCartesianExperimentSelector.class);
   }
@@ -133,5 +125,10 @@ final class ExperimentingRunnerModule extends AbstractModule {
     BenchmarkClass benchmarkClass = new BenchmarkClass(classForName(options.benchmarkClassName()));
     benchmarkClass.validateParameters(options.userParameters());
     return benchmarkClass;
+  }
+
+  @Provides @Singleton @NanoTimeGranularity ShortDuration provideNanoTimeGranularity(
+      NanoTimeGranularityTester tester) {
+    return tester.testNanoTimeGranularity();
   }
 }

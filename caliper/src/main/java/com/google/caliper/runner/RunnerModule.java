@@ -16,8 +16,6 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.config.VmConfig;
@@ -26,8 +24,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
-import java.io.PrintWriter;
-
 /**
  * A Guice module that configures bindings common to all {@link CaliperRun} implementations. Callers
  * shouldn't install this directly.  Use either {@link PerflabInfoRunnerModule} or
@@ -35,20 +31,9 @@ import java.io.PrintWriter;
  */
 // TODO(gak): throwing providers for all of the things that throw
 final class RunnerModule extends AbstractModule {
-  private final PrintWriter writer;
-
-  RunnerModule(PrintWriter writer) {
-    this.writer = checkNotNull(writer);
-  }
-
   @Override protected void configure() {
     requireBinding(CaliperOptions.class);
     requireBinding(CaliperConfig.class);
-    bind(PrintWriter.class).toInstance(writer);
-  }
-
-  @Provides ConsoleWriter provideConsoleWriter(PrintWriter writer) {
-    return new DefaultConsoleWriter(writer);
   }
 
   @Provides ImmutableSet<VirtualMachine> provideVirtualMachines(CaliperOptions options,

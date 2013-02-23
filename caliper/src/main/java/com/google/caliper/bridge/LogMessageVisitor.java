@@ -24,8 +24,8 @@ public interface LogMessageVisitor {
   void visit(GenericLogMessage logMessage);
   void visit(FailureLogMessage logMessage);
   void visit(HotspotLogMessage logMessage);
-  void visit(StartTimingLogMessage logMessage);
-  void visit(StopTimingLogMessage logMessage);
+  void visit(StartMeasurementLogMessage logMessage);
+  void visit(StopMeasurementLogMessage logMessage);
   void visit(VmOptionLogMessage logMessage);
   void visit(VmPropertiesLogMessage logMessage);
 }
