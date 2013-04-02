@@ -31,9 +31,9 @@ enum StringMapFunnel implements Funnel<Map<String, String>> {
   @Override
   public void funnel(Map<String, String> from, PrimitiveSink into) {
     for (Entry<String, String> entry : from.entrySet()) {
-      into.putUnencodedChars(entry.getKey())
+      into.putString(entry.getKey())
           .putByte((byte) -1) // separate key and value
-          .putUnencodedChars(entry.getValue());
+          .putString(entry.getValue());
     }
   }
 }

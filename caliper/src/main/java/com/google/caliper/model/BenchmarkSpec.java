@@ -129,8 +129,8 @@ public final class BenchmarkSpec {
     INSTANCE;
 
     @Override public void funnel(BenchmarkSpec from, PrimitiveSink into) {
-      into.putUnencodedChars(from.className)
-          .putUnencodedChars(from.methodName);
+      into.putString(from.className)
+          .putString(from.methodName);
       StringMapFunnel.INSTANCE.funnel(from.parameters, into);
     }
   }

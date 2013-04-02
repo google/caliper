@@ -119,7 +119,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
               .setDaemon(true)
               .build()));
 
-  private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
+  private final Stopwatch trialStopwatch = new Stopwatch();
   /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
   private volatile int trialNumber = 1;
 
@@ -197,7 +197,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     stdout.flush();
 
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
-    Stopwatch stopwatch = Stopwatch.createStarted();
+    Stopwatch stopwatch = new Stopwatch().start();
 
     try {
       for (int i = 0; i < options.trialsPerScenario(); i++) {
