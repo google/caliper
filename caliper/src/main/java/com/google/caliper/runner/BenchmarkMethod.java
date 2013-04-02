@@ -30,6 +30,10 @@ public final class BenchmarkMethod {
   private final String shortName;
   private final Method method;
 
+  public BenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
+    this(benchmarkClass, method, method.getName());
+  }
+
   public BenchmarkMethod(BenchmarkClass benchmarkClass, Method method, String shortName) {
     this.benchmarkClass = benchmarkClass;
     this.shortName = shortName;

@@ -25,9 +25,11 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -130,5 +132,25 @@ final class ExperimentingRunnerModule extends AbstractModule {
   @Provides @Singleton @NanoTimeGranularity ShortDuration provideNanoTimeGranularity(
       NanoTimeGranularityTester tester) {
     return tester.testNanoTimeGranularity();
+  }
+
+  @Provides ImmutableSetMultimap<Instrument, BenchmarkMethod> provideBenchmarkMethodsByInstrument(
+      CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
+          throws InvalidBenchmarkException {
+    ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod> builder =
+        ImmutableSetMultimap.builder();
+    final ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
+    for (Instrument instrument : instruments) {
+      builder.putAll(instrument,
+          Iterables.filter(benchmarkClass.findAllBenchmarkMethods(instrument),
+              new Predicate<BenchmarkMethod>() {
+                @Override public boolean apply(BenchmarkMethod method) {
+                  // empty set means all methods
+                  return benchmarkMethodNames.isEmpty()
+                      || benchmarkMethodNames.contains(method.name());
+                }
+              }));
+    }
+    return builder.build();
   }
 }

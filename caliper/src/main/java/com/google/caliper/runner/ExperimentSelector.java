@@ -25,7 +25,7 @@ public interface ExperimentSelector {
   ImmutableSetMultimap<String, String> userParameters();
 
   // The important method
-  ImmutableSet<Experiment> selectExperiments() throws InvalidBenchmarkException;
+  ImmutableSet<Experiment> selectExperiments();
 
   String selectionType();
 }

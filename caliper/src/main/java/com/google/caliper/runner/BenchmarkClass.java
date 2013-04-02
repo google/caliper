@@ -24,9 +24,13 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Function;
+import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -79,13 +83,17 @@ public final class BenchmarkClass {
 
   // TODO: perhaps move this to Instrument and let instruments override it?
 
-  public ImmutableSortedMap<String, BenchmarkMethod> findAllBenchmarkMethods(
+  public ImmutableSortedSet<BenchmarkMethod> findAllBenchmarkMethods(
       Instrument instrument) throws InvalidBenchmarkException {
-    ImmutableSortedMap.Builder<String, BenchmarkMethod> result = ImmutableSortedMap.naturalOrder();
+    ImmutableSortedSet.Builder<BenchmarkMethod> result = ImmutableSortedSet.orderedBy(
+        Ordering.natural().onResultOf(new Function<BenchmarkMethod, String>() {
+          @Override public String apply(BenchmarkMethod method) {
+            return method.name();
+          }
+        }));
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
-        BenchmarkMethod benchmarkMethod = instrument.createBenchmarkMethod(this, method);
-        result.put(benchmarkMethod.name(), benchmarkMethod);
+        result.add(instrument.createBenchmarkMethod(this, method));
       }
     }
     return result.build();
@@ -121,6 +129,21 @@ public final class BenchmarkClass {
 
   public String name() {
     return theClass.getName();
+  }
+
+  @Override public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof BenchmarkClass) {
+      BenchmarkClass that = (BenchmarkClass) obj;
+      return this.theClass.equals(that.theClass);
+    } else {
+      return false;
+    }
+  }
+
+  @Override public int hashCode() {
+    return Objects.hashCode(theClass);
   }
 
   @Override public String toString() {

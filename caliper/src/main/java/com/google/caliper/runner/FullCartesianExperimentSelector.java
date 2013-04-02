@@ -16,9 +16,6 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -30,6 +27,7 @@ import com.google.inject.Inject;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -37,27 +35,21 @@ import java.util.Set;
  * instruments, benchmark methods, user parameters, VM specs and VM arguments.
  */
 public final class FullCartesianExperimentSelector implements ExperimentSelector {
-  private final ImmutableSet<Instrument> instruments;
-  private final BenchmarkClass benchmarkClass;
+  private ImmutableSetMultimap<Instrument, BenchmarkMethod> benchmarkMethodsByInstrument;
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, String> userParameters;
 
   @Inject FullCartesianExperimentSelector(
-      ImmutableSet<Instrument> instruments,
-      BenchmarkClass benchmarkClass,
+      ImmutableSetMultimap<Instrument, BenchmarkMethod> benchmarkMethodsByInstrument,
       ImmutableSet<VirtualMachine> vms,
       @BenchmarkParameters ImmutableSetMultimap<String, String> userParameters) {
-    this.instruments = instruments;
-    this.benchmarkClass = benchmarkClass;
+    this.benchmarkMethodsByInstrument = benchmarkMethodsByInstrument;
     this.vms = vms;
     this.userParameters = userParameters;
-
-    checkArgument(!instruments.isEmpty());
-    checkArgument(!vms.isEmpty());
   }
 
   @Override public ImmutableSet<Instrument> instruments() {
-    return instruments;
+    return benchmarkMethodsByInstrument.keySet();
   }
 
   @Override public ImmutableSet<VirtualMachine> vms() {
@@ -68,18 +60,14 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
     return userParameters;
   }
 
-  @Override public ImmutableSet<Experiment> selectExperiments() throws InvalidBenchmarkException {
+  @Override public ImmutableSet<Experiment> selectExperiments() {
     List<Experiment> experiments = Lists.newArrayList();
-    for (Instrument instrument : instruments) {
-      ImmutableCollection<BenchmarkMethod> benchmarkMethods =
-          benchmarkClass.findAllBenchmarkMethods(instrument).values();
-      for (BenchmarkMethod benchmarkMethod : benchmarkMethods) {
-        for (VirtualMachine vm : vms) {
-          for (List<String> userParamsChoice : cartesian(userParameters)) {
-            ImmutableMap<String, String> theseUserParams =
-                zip(userParameters.keySet(), userParamsChoice);
-            experiments.add(new Experiment(instrument, benchmarkMethod, theseUserParams, vm));
-          }
+    for (Entry<Instrument, BenchmarkMethod> entry : benchmarkMethodsByInstrument.entries()) {
+      for (VirtualMachine vm : vms) {
+        for (List<String> userParamsChoice : cartesian(userParameters)) {
+          ImmutableMap<String, String> theseUserParams =
+              zip(userParameters.keySet(), userParamsChoice);
+          experiments.add(new Experiment(entry.getKey(), entry.getValue(), theseUserParams, vm));
         }
       }
     }
