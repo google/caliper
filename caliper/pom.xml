@@ -61,7 +61,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>14.0-rc2</version>
+      <version>14.0.1</version>
     </dependency>
     <dependency>
       <groupId>com.google.inject</groupId>
@@ -102,7 +102,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
+        <version>3.0</version>
         <configuration>
           <source>1.6</source>
           <target>1.6</target>
