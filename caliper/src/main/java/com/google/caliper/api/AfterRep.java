@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2009 Google Inc.
+ * Copyright (C) 2013 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 
 package com.google.caliper.api;
 
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import com.google.common.annotations.Beta;
 
-import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An annotation applied to a benchmark that specifies flags to be applied to the VM. These flags
- * are applied before those specified on the command-line and thus are not guaranteed to be applied.
- *
- * <p>This API is likely to change.
+ * Apply this annotation to any method without parameters to have it run after each rep of a
+ * {@link Macrobenchmark}.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
+@Retention(RUNTIME)
+@Target(METHOD)
 @Beta
-public @interface VmOptions {
-  String[] value() default {};
-}
+public @interface AfterRep {}
