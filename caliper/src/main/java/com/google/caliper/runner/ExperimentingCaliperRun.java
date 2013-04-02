@@ -123,7 +123,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
               .setDaemon(true)
               .build()));
 
-  private final Stopwatch trialStopwatch = new Stopwatch();
+  private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
   /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
   private volatile int trialNumber = 1;
 
