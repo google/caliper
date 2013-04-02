@@ -78,11 +78,11 @@ final class Experiment {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
-        .add("instrument", instrument)
-        .add("benchmarkMethod", benchmarkMethod)
-        .add("vm", vm)
-        .add("userParameters", userParameters)
+    return Objects.toStringHelper("")
+        .add("instrument", instrument.name())
+        .add("method", benchmarkMethod)
+        .add("vm", vm.name)
+        .add("parameters", userParameters)
         .toString();
   }
 }

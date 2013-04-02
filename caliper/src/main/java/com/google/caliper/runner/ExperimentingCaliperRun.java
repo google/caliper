@@ -124,7 +124,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
               .build()));
 
   private final Stopwatch trialStopwatch = new Stopwatch();
-  private volatile int trialsExecuted = 0;
+  /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
+  private volatile int trialNumber = 1;
 
   @Inject @VisibleForTesting
   public ExperimentingCaliperRun(
@@ -217,20 +218,21 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     try {
       for (int i = 0; i < options.trialsPerScenario(); i++) {
         for (Experiment experiment : experimentsToRun) {
+          stdout.printf("Starting experiment %d of %d: %s%n", trialNumber, totalTrials, experiment);
           try {
             Trial trial = measure(experiment);
-            trialsExecuted++;
-            stdout.printf("%d of %d trials complete: %.1f%%.%n",
-                trialsExecuted, totalTrials, trialsExecuted * 100.0 / totalTrials);
+            stdout.println("Complete!");
             for (ResultProcessor resultProcessor : resultProcessors) {
               resultProcessor.processTrial(trial);
             }
           } catch (TrialFailureException e) {
             stderr.println(
-                "ERROR: A trial failed to complete (its results will not be included in the run):\n"
+                "ERROR: Trial failed to complete (its results will not be included in the run):\n"
                     + "  " + e.getMessage());
           } catch (IOException e) {
             throw Throwables.propagate(e);
+          } finally {
+            trialNumber++;
           }
         }
       }
@@ -548,7 +550,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       try {
         LogMessage logMessage = logMessageParser.parse(line);
         if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
-          stdout.printf("[trial-%d] %s%n", trialsExecuted, line);
+          stdout.printf("[trial-%d] %s%n", trialNumber, line);
         }
         logMessage.accept(measurementCollectingVisitor);
         for (LogMessageVisitor visitor : otherVisitors) {
