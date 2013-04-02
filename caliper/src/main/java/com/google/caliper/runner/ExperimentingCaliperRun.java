@@ -213,7 +213,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     stdout.flush();
 
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
-    Stopwatch stopwatch = new Stopwatch().start();
+    Stopwatch stopwatch = Stopwatch.createStarted();
 
     try {
       for (int i = 0; i < options.trialsPerScenario(); i++) {
