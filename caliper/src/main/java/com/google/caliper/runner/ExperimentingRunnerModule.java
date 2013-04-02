@@ -76,10 +76,16 @@ final class ExperimentingRunnerModule extends AbstractModule {
     return new Run.Builder(id).label(options.runName()).startTime(startTime).build();
   }
 
-  @Provides ImmutableSet<Instrument> provideInstrument(Injector injector,
+  @Provides ImmutableSet<Instrument> provideInstruments(Injector injector,
       CaliperOptions options, final CaliperConfig config) throws InvalidCommandException {
     ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
+    ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
     for (final String instrumentName : options.instrumentNames()) {
+      if (!configuredInstruments.contains(instrumentName)) {
+        throw new InvalidCommandException("%s is not a configured instrument (%s). "
+            + "use --print-config to see the configured instruments.",
+                instrumentName, configuredInstruments);
+      }
       final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
       Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
         @Override protected void configure() {

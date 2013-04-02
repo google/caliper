@@ -16,6 +16,7 @@
 
 package com.google.caliper.config;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
@@ -125,12 +126,27 @@ public final class CaliperConfig {
         .build();
   }
 
+  private static final Pattern INSTRUMENT_CLASS_PATTERN = Pattern.compile("([^\\.]+)\\.class");
+
+  public ImmutableSet<String> getConfiguredInstruments() {
+    ImmutableSet.Builder<String> resultBuilder = ImmutableSet.builder();
+    for (String key : subgroupMap(properties, "instrument").keySet()) {
+      Matcher matcher = INSTRUMENT_CLASS_PATTERN.matcher(key);
+      if (matcher.matches()) {
+        resultBuilder.add(matcher.group(1));
+      }
+    }
+    return resultBuilder.build();
+  }
+
   public InstrumentConfig getInstrumentConfig(String name) {
     checkNotNull(name);
     ImmutableMap<String, String> instrumentGroupMap = subgroupMap(properties, "instrument");
     ImmutableMap<String, String> insrumentMap = subgroupMap(instrumentGroupMap, name);
+    @Nullable String className = insrumentMap.get("class");
+    checkArgument(className != null, "no instrument configured named %s", name);
     return new InstrumentConfig.Builder()
-        .className(insrumentMap.get("class"))
+        .className(className)
         .addAllOptions(subgroupMap(insrumentMap, "options"))
         .build();
   }
