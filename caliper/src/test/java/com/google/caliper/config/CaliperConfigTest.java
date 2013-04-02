@@ -16,7 +16,6 @@
 
 package com.google.caliper.config;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -25,14 +24,14 @@ import com.google.caliper.model.Trial;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.Files;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.File;
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 
 /**
@@ -42,6 +41,8 @@ import java.lang.management.ManagementFactory;
  */
 @RunWith(JUnit4.class)
 public class CaliperConfigTest {
+  @Rule public TemporaryFolder folder = new TemporaryFolder();
+
   @Test public void getDefaultVmConfig() throws Exception {
     CaliperConfig configuration = new CaliperConfig(
         ImmutableMap.of("vm.args", "-very -special=args"));
@@ -56,18 +57,17 @@ public class CaliperConfigTest {
   }
 
   @Test public void getVmConfig_baseDirectoryAndName() throws Exception {
-    File tempBaseDir = Files.createTempDir();
+    File tempBaseDir = folder.newFolder();
     File jdkHome = new File(tempBaseDir, "test");
     jdkHome.mkdir();
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
         "vm.baseDirectory", tempBaseDir.getAbsolutePath()));
     assertEquals(new VmConfig.Builder(jdkHome).build(),
         configuration.getVmConfig("test"));
-    deleteRecursively(tempBaseDir);
   }
 
   @Test public void getVmConfig_baseDirectoryAndHome() throws Exception {
-    File tempBaseDir = Files.createTempDir();
+    File tempBaseDir = folder.newFolder();
     File jdkHome = new File(tempBaseDir, "test-home");
     jdkHome.mkdir();
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
@@ -75,11 +75,10 @@ public class CaliperConfigTest {
         "vm.test.home", "test-home"));
     assertEquals(new VmConfig.Builder(jdkHome).build(),
         configuration.getVmConfig("test"));
-    deleteRecursively(tempBaseDir);
   }
 
   @Test public void getVmConfig() throws Exception {
-    File jdkHome = Files.createTempDir();
+    File jdkHome = folder.newFolder();
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
         "vm.args", "-a -b   -c",
         "vm.test.home", jdkHome.getAbsolutePath(),
@@ -93,7 +92,6 @@ public class CaliperConfigTest {
             .addOption("-e")
             .build(),
         configuration.getVmConfig("test"));
-    deleteRecursively(jdkHome);
   }
 
   @Test public void getInstrumentConfig() throws Exception {
@@ -158,35 +156,5 @@ public class CaliperConfigTest {
     @Override public void close() {}
 
     @Override public void processTrial(Trial trial) {}
-  }
-
-  /*
-   * The following two methods are unsafe in the general case, but OK since we know that we're not
-   * dealing with race conditions or symlinks.
-   */
-
-  private static void deleteDirectoryContents(File directory)
-      throws IOException {
-    checkArgument(directory.isDirectory(), "Not a directory: %s", directory);
-    // Symbolic links will have different canonical and absolute paths
-    if (!directory.getCanonicalPath().equals(directory.getAbsolutePath())) {
-      return;
-    }
-    File[] files = directory.listFiles();
-    if (files == null) {
-      throw new IOException("Error listing files for " + directory);
-    }
-    for (File file : files) {
-      deleteRecursively(file);
-    }
-  }
-
-  private static void deleteRecursively(File file) throws IOException {
-    if (file.isDirectory()) {
-      deleteDirectoryContents(file);
-    }
-    if (!file.delete()) {
-      throw new IOException("Failed to delete " + file);
-    }
   }
 }
