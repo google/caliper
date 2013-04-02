@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
+import static com.google.caliper.runner.CommonInstrumentOptions.WARMUP_OPTION;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
@@ -55,7 +56,6 @@ import javax.annotation.Nullable;
 public final class MicrobenchmarkInstrument extends Instrument {
   private static final Logger logger = Logger.getLogger(MicrobenchmarkInstrument.class.getName());
 
-  private static final String WARMUP_OPTION = "warmup";
   private static final String TIMING_INTERVAL_OPTION = "timingInterval";
 
   private final PrintWriter stdout;
@@ -216,11 +216,10 @@ public final class MicrobenchmarkInstrument extends Instrument {
       if (improperGranularity) {
         ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
         stderr.printf("INFO: This experiment does not require a microbenchmark. "
-            + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime.%n",
-            // TODO(gak): add this into the message when the macrobenchmark instrument is ready
-            // + "If all experiements for this benchmark have runtimes greater than %s, "
-            // + "consider the macrobenchmark instrument.%n",
-                nanoTimeGranularity /*, reasonableUpperBound*/);
+            + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime. "
+            + "If all experiments for this benchmark have runtimes greater than %s, "
+            + "consider the macrobenchmark instrument.%n",
+                nanoTimeGranularity, reasonableUpperBound);
       }
       return ImmutableList.copyOf(measurements);
     }

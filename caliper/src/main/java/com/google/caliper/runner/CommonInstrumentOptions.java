@@ -24,4 +24,5 @@ final class CommonInstrumentOptions {
 
   static final String MEASUREMENTS_OPTION = "measurements";
   static final String GC_BEFORE_EACH_OPTION = "gcBeforeEach";
+  static final String WARMUP_OPTION = "warmup";
 }
