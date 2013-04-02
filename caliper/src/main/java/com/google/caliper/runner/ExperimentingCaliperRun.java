@@ -31,7 +31,6 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.bridge.WorkerSpec;
-import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
@@ -56,7 +55,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
@@ -81,7 +79,6 @@ import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -99,7 +96,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private static final Logger logger = Logger.getLogger(ExperimentingCaliperRun.class.getName());
 
   private final CaliperOptions options;
-  private final CaliperConfig config;
   private final PrintWriter stdout;
   private final PrintWriter stderr;
   private final BenchmarkClass benchmarkClass;
@@ -130,7 +126,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   @Inject @VisibleForTesting
   public ExperimentingCaliperRun(
       CaliperOptions options,
-      CaliperConfig config,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
       BenchmarkClass benchmarkClass,
@@ -142,7 +137,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       Run run,
       Gson gson) {
     this.options = options;
-    this.config = config;
     this.stdout = stdout;
     this.stderr = stderr;
     this.benchmarkClass = benchmarkClass;
@@ -157,16 +151,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   @Override
   public void run() throws InvalidBenchmarkException {
-    // TODO(gak): this class is getting big again.  is there a better place for this?
-    if (options.printConfiguration()) {
-      stdout.println("Configuration:");
-      ImmutableSortedMap<String, String> sortedProperties =
-          ImmutableSortedMap.copyOf(config.properties());
-      for (Entry<String, String> entry : sortedProperties.entrySet()) {
-        stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
-      }
-    }
-
     stdout.println("Experiment selection: ");
     stdout.println("  Instruments:   " + FluentIterable.from(selector.instruments())
         .transform(new Function<Instrument, String>() {

@@ -18,6 +18,7 @@ package com.google.caliper.config;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
@@ -107,6 +108,27 @@ public class CaliperConfigTest {
             .addOption("b", "excited b b excited")
             .build(),
         configuration.getInstrumentConfig("test"));
+  }
+
+  @Test public void getInstrumentConfig_notConfigured() throws Exception {
+    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
+        "instrument.test.options.a", "1",
+        "instrument.test.options.b", "excited b b excited"));
+    try {
+      configuration.getInstrumentConfig("test");
+      fail();
+    } catch (IllegalArgumentException expected) {}
+  }
+
+  @Test public void getConfiguredInstruments() throws Exception {
+    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
+        "instrument.test.class", "test.ClassName",
+        "instrument.test2.class", "test.ClassName",
+        "instrument.test3.options.a", "1",
+        "instrument.test4.class", "test.ClassName",
+        "instrument.test4.options.b", "excited b b excited"));
+    assertEquals(ImmutableSet.of("test", "test2", "test4"),
+        configuration.getConfiguredInstruments());
   }
 
   @Test public void getConfiguredResultProcessors() throws Exception {

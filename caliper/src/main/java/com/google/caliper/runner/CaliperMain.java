@@ -18,6 +18,7 @@ import static com.google.common.collect.ObjectArrays.concat;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.ConfigModule;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.json.GsonModule;
@@ -27,6 +28,7 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -35,6 +37,7 @@ import com.google.inject.ProvisionException;
 import com.google.inject.spi.Message;
 
 import java.io.PrintWriter;
+import java.util.Map.Entry;
 
 import javax.annotation.Nullable;
 
@@ -116,6 +119,14 @@ public final class CaliperMain {
           new GsonModule(),
           new ConfigModule(),
           runnerModule);
+      if (options.printConfiguration()) {
+        stdout.println("Configuration:");
+        ImmutableSortedMap<String, String> sortedProperties =
+            ImmutableSortedMap.copyOf(injector.getInstance(CaliperConfig.class).properties());
+        for (Entry<String, String> entry : sortedProperties.entrySet()) {
+          stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
+        }
+      }
       CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
       run.run(); // throws IBE
     } catch (CreationException e) {
