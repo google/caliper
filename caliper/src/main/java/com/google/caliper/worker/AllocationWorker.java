@@ -28,6 +28,7 @@ import com.google.monitoring.runtime.instrumentation.AllocationRecorder;
 import com.google.monitoring.runtime.instrumentation.Sampler;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -111,9 +112,23 @@ public final class AllocationWorker implements Worker {
     }
   }
 
+  static Method findMethod(Class<? extends Benchmark> benchmarkClass, String name) {
+    for (Method method : benchmarkClass.getDeclaredMethods()) {
+      Class<?>[] parameterTypes = method.getParameterTypes();
+      if (method.getName().equals(name)
+          && (Arrays.equals(parameterTypes, new Class<?>[] {int.class})
+                || Arrays.equals(parameterTypes, new Class<?>[] {long.class}))) {
+        return method;
+      }
+    }
+    throw new IllegalArgumentException(
+        String.format("no method named %s on %s that takes either an int or a long",
+            name, benchmarkClass));
+  }
+
   private synchronized AllocationStats measureAllocations(
       Benchmark benchmark, String methodName, int reps) throws Exception {
-    Method method = benchmark.getClass().getDeclaredMethod("time" + methodName, int.class);
+    Method method = findMethod(benchmark.getClass(), "time" + methodName);
     clearAccumulatedStats();
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that
     // our internal allocations aren't counted in the benchmark's allocations.
