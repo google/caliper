@@ -64,6 +64,7 @@ public class MalformedBenchmarksTest {
   private static final String CONVERT_FAILED = // granted this one's a little weird (and brittle)
       "Cannot convert value 'oops' to type 'int': For input string: \"oops\"";
 
+  @Test
   public void testDoesntExtendBenchmark() throws Exception {
     String expected = String.format(DOESNT_EXTEND, Benchmark.class.getName());
     expectException(expected, NotABenchmark.class);
