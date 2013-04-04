@@ -87,7 +87,7 @@ public final class AllocationInstrument extends Instrument {
         Manifest manifest = jarFile.getManifest();
         if ((manifest != null)
             && AllocationInstrumenter.class.getName().equals(
-                manifest.getAttributes("Premain-Class"))) {
+                manifest.getMainAttributes().getValue("Premain-Class"))) {
           return Optional.of(file);
         }
       } finally {
