@@ -17,16 +17,24 @@
 package com.google.caliper.runner;
 
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.worker.AllocationWorker;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.Optional;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
+import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
+import java.util.logging.Logger;
 
 /**
  * {@link Instrument} that watches the memory allocations in an invocation of the
@@ -36,6 +44,7 @@ import java.lang.reflect.Method;
  */
 public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
+  private static final Logger logger = Logger.getLogger(AllocationInstrumenter.class.getName());
 
   @Override public boolean isBenchmarkMethod(Method method) {
     return Instrument.isTimeMethod(method);
@@ -70,15 +79,47 @@ public final class AllocationInstrument extends Instrument {
     return ImmutableSet.of(ALLOCATION_AGENT_JAR_OPTION);
   }
 
+  private static Optional<File> findAllocationInstrumentJarOnClasspath() throws IOException {
+    for (File file : JarFinder.findJarFiles(ClassLoader.getSystemClassLoader())) {
+      JarFile jarFile = null;
+      try {
+        jarFile = new JarFile(file);
+        Manifest manifest = jarFile.getManifest();
+        if ((manifest != null)
+            && AllocationInstrumenter.class.getName().equals(
+                manifest.getAttributes("Premain-Class"))) {
+          return Optional.of(file);
+        }
+      } finally {
+        if (jarFile != null) {
+          jarFile.close();
+        }
+      }
+    }
+    return Optional.absent();
+  }
+
   /**
    * This instrument's worker requires the allocationinstrumenter agent jar, specified
    * on the worker VM's command line with "-javaagent:[jarfile]".
    */
   @Override ImmutableSet<String> getExtraCommandLineArgs() {
     String agentJar = options.get("allocationAgentJar");
+    if (Strings.isNullOrEmpty(agentJar)) {
+      try {
+        Optional<File> instrumentJar = findAllocationInstrumentJarOnClasspath();
+        // TODO(gak): bundle up the allocation jar and unpack it if it's not on the classpath
+        if (instrumentJar.isPresent()) {
+          agentJar = instrumentJar.get().getAbsolutePath();
+        }
+      } catch (IOException e) {
+        logger.log(SEVERE,
+            "An exception occurred trying to locate the allocation agent jar on the classpath", e);
+      }
+    }
     // TODO(schmoe): what can we do to verify that agentJar is correct? Or to get a nicer
     // error message when it's not?
-    if (agentJar == null || !new File(agentJar).exists()) {
+    if (Strings.isNullOrEmpty(agentJar) || !new File(agentJar).exists()) {
       throw new IllegalStateException("Can't find required allocationinstrumenter agent jar");
     }
     // Add microbenchmark args to minimize differences in the output
