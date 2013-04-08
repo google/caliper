@@ -62,20 +62,6 @@ public class ObjectGraphMeasurerTest extends TestCase {
     assertEquals(new ObjectGraphMeasurer.Footprint(2, 1, 0, NO_PRIMITIVES), footprint);
   }
 
-  static final Object oneStringField = new Object() {
-    @SuppressWarnings("unused") String stringField = "test";
-  };
-
-  @Test public void testString() {
-    ObjectGraphMeasurer.Footprint footprint = ObjectGraphMeasurer.measure(oneStringField);
-    // three objects: ours, the String, and the char[]
-    assertEquals(new ObjectGraphMeasurer.Footprint(3, 2, 0,
-        ImmutableMultiset.<Class<?>>builder()
-        .addCopies(char.class, 4)
-        .addCopies(int.class, 3)
-        .build()), footprint);
-  }
-
   static final Object withCycle = new Object() {
     Object[] array = new Object[1];
     {
