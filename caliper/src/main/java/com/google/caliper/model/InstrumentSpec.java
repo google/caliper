@@ -81,7 +81,7 @@ public final class InstrumentSpec {
   private InstrumentSpec(Builder builder) {
     this.className = builder.className;
     this.options = Maps.newTreeMap(builder.options);
-    int hash = getPersistentHashFunction()
+    this.hash = getPersistentHashFunction()
         .newHasher()
         .putString(className)
         .putObject(options, StringMapFunnel.INSTANCE)
