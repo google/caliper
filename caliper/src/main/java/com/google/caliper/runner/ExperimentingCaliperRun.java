@@ -49,6 +49,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
+import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
@@ -265,7 +266,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     logger.fine(String.format("Benchmark(%s) Java args: %s", benchmarkClass.name(),
         benchmarkJvmOptions));
 
-    String classPath = System.getProperty("java.class.path");
+    String classPath = getClassPath();
     Collections.addAll(args, "-cp", classPath);
     logger.finer(String.format("Class path: %s", classPath));
 
@@ -285,6 +286,12 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     logger.finest(String.format("Full JVM (%s) args: %s", jvmName, args));
     return processBuilder;
   }
+
+  private static String getClassPath() {
+    String classpath = StandardSystemProperty.JAVA_CLASS_PATH.value();
+    return classpath;
+  }
+
 
   private Trial measure(Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
