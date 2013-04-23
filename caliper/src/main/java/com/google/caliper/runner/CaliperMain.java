@@ -69,7 +69,7 @@ public final class CaliperMain {
   /**
    * Entry point for the caliper benchmark runner application; run with {@code --help} for details.
    */
-  static void main(String[] args) {
+  public static void main(String[] args) {
     PrintWriter stdout = new PrintWriter(System.out, true);
     PrintWriter stderr = new PrintWriter(System.err, true);
     int code = 1; // pessimism!

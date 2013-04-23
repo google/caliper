@@ -165,9 +165,8 @@ final class CommandLineParser<T> {
       } else if (arg.startsWith("-")) {
         parseShortOptions(arg, argsIter);
       } else {
-        // The first non-option marks the end of options.
         builder.add(arg);
-        break;
+        // allow positional arguments to mix with options since many linux commands do
       }
     }
 
