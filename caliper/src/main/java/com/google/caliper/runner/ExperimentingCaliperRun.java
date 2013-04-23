@@ -49,7 +49,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
-import com.google.common.base.StandardSystemProperty;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
@@ -288,7 +287,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   }
 
   private static String getClassPath() {
-    String classpath = StandardSystemProperty.JAVA_CLASS_PATH.value();
+    String classpath = System.getProperty("java.class.path");
     return classpath;
   }
 
