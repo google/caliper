@@ -29,12 +29,6 @@ import java.lang.annotation.Target;
  * <ul>
  * <li>The command line, if specified using {@code -Dname=value1,value2,value3}
  * <li>Otherwise, the {@link #value()} list given in the annotation
- * <li>Otherwise, Caliper looks for a static method named {@code paramName + "Values"} (for
- *     example, if the parameter field is {@code size}, it looks for {@code sizeValues()}). The
- *     method can return any subtype of {@link Iterable}. The contents of that iterable are used as
- *     the parameter values.
- * <li>Otherwise, Caliper repeats the previous check looking for a static <em>field</em> instead
- *     of a method.
  * <li>Otherwise, if the parameter type is either {@code boolean} or an {@code enum} type, Caliper
  *     assumes you want all possible values.
  * <li>Finally, if none of the above match, Caliper will display an error and exit.
@@ -47,7 +41,7 @@ import java.lang.annotation.Target;
  *
  * <p>Caliper will test every possible combination of parameter values for your benchmark. For
  * example, if you have two parameters, {@code -Dletter=a,b,c -Dnumber=1,2}, Caliper will construct
- * six independent "scenarios" and perform measurement for each one. 
+ * six independent "scenarios" and perform measurement for each one.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
