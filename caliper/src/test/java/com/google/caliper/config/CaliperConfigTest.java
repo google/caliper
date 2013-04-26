@@ -94,6 +94,20 @@ public class CaliperConfigTest {
         configuration.getVmConfig("test"));
   }
 
+  @Test public void getVmConfig_escapedSpacesInArgs() throws Exception {
+    File jdkHome = folder.newFolder();
+    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
+        "vm.args", "-a=string\\ with\\ spa\\ces -b -c",
+        "vm.test.home", jdkHome.getAbsolutePath()));
+    assertEquals(
+        new VmConfig.Builder(jdkHome)
+        .addOption("-a=string with spaces")
+        .addOption("-b")
+        .addOption("-c")
+        .build(),
+        configuration.getVmConfig("test"));
+  }
+
   @Test public void getInstrumentConfig() throws Exception {
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
         "instrument.test.class", "test.ClassName",

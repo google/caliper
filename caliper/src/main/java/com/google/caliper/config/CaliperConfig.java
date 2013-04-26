@@ -25,7 +25,6 @@ import com.google.caliper.config.VmConfig.Builder;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
-import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -180,10 +179,31 @@ public final class CaliperConfig {
     return Util.prefixedSubmap(map, groupName + ".");
   }
 
-  private static final Splitter ARGS_SPLITTER = Splitter.on(' ').omitEmptyStrings();
-
   private static List<String> getArgs(Map<String, String> properties) {
-    return ImmutableList.copyOf(ARGS_SPLITTER.split(Strings.nullToEmpty(properties.get("args"))));
+    String argsString = Strings.nullToEmpty(properties.get("args"));
+    ImmutableList.Builder<String> args = ImmutableList.builder();
+    StringBuilder arg = new StringBuilder();
+    for (int i = 0; i < argsString.length(); i++) {
+      char c = argsString.charAt(i);
+      switch (c) {
+        case '\\':
+          arg.append(argsString.charAt(++i));
+          break;
+        case ' ':
+          if (arg.length() > 0) {
+            args.add(arg.toString());
+          }
+          arg = new StringBuilder();
+          break;
+        default:
+          arg.append(c);
+          break;
+      }
+    }
+    if (arg.length() > 0) {
+      args.add(arg.toString());
+    }
+    return args.build();
   }
 
   // TODO(gak): check that the directory seems to be a jdk home (with a java binary and all of that)
