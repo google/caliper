@@ -397,7 +397,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     } catch (ExecutionException e) {
       Throwable cause = e.getCause();
       Throwables.propagateIfInstanceOf(cause, TrialFailureException.class);
-      throw new RuntimeException(cause);
+      throw Throwables.propagate(cause);
     } finally {
       trialStopwatch.reset();
       producerExecutor.shutdownNow();
@@ -440,8 +440,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
     @Override
     public void visit(FailureLogMessage logMessage) {
-      throw new ProxyWorkerException(logMessage.exceptionClassName(), logMessage.message(),
-          logMessage.stackTrace());
+      throw new ProxyWorkerException(logMessage.stackTrace());
     }
 
     @Override

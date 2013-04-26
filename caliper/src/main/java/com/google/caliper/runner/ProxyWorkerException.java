@@ -16,16 +16,23 @@
 
 package com.google.caliper.runner;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+
 
 /**
  * An exception created on the runner with the same stack trace as one thrown on the worker that
  * reports the actual exception class and message in its message.
  */
 final class ProxyWorkerException extends RuntimeException {
-  ProxyWorkerException(String exceptionClassName, String message,
-      ImmutableList<StackTraceElement> stackTrace) {
-    super(String.format("%s: %s", exceptionClassName, message));
-    setStackTrace(stackTrace.toArray(new StackTraceElement[stackTrace.size()]));
+  ProxyWorkerException(String stackTrace) {
+    super(formatMesssage(stackTrace));
+  }
+
+  private static String formatMesssage(String stackTrace) {
+    StringBuilder builder = new StringBuilder(stackTrace.length() + 512)
+        .append("An exception occurred in a worker process.  The stack trace is as follows:\n\t");
+    Joiner.on("\n\t").appendTo(builder, Splitter.on('\n').split(stackTrace));
+    return builder.toString();
   }
 }

@@ -23,7 +23,6 @@ import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
-import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
@@ -75,8 +74,6 @@ public final class WorkerEventLog {
   }
 
   public void notifyFailure(Exception e) {
-    writer.println(controlLogMessageRenderer.render(
-        new FailureLogMessage(e.getClass().getName(), Strings.nullToEmpty(e.getMessage()),
-            ImmutableList.copyOf(e.getStackTrace()))));
+    writer.println(controlLogMessageRenderer.render(new FailureLogMessage(e)));
   }
 }

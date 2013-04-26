@@ -62,7 +62,7 @@ public class BadUserCodeTest {
   @Test public void testExceptionInMethod() throws Exception {
     try {
       CaliperMain.exitlessMain(
-          new String[] {ExceptionInConstructorBenchmark.class.getName()}, out, err);
+          new String[] {ExceptionInMethodBenchmark.class.getName()}, out, err);
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -70,6 +70,24 @@ public class BadUserCodeTest {
   static class ExceptionInMethodBenchmark extends Benchmark {
     public void timeSomething(int reps) {
       throw new RuntimeException();
+    }
+  }
+
+  @Test public void testExceptionInMethod_notInDryRun() throws Exception {
+    try {
+      CaliperMain.exitlessMain(
+          new String[] {ExceptionLateInMethodBenchmark.class.getName()}, out, err);
+      fail();
+    } catch (ProxyWorkerException expected) {
+      expected.getMessage().contains(ExceptionLateInMethodBenchmark.class.getName());
+    }
+  }
+
+  static class ExceptionLateInMethodBenchmark extends Benchmark {
+    public void timeSomething(int reps) {
+      if (reps > 1) {
+        throw new RuntimeException();
+      }
     }
   }
 

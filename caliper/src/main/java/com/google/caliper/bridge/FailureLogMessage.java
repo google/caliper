@@ -18,41 +18,23 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.common.base.Objects;
-import com.google.common.base.Strings;
-import com.google.common.collect.ImmutableList;
-
-import java.util.Arrays;
+import com.google.common.base.Throwables;
 
 /**
  * A message containing information on a failure encountered by the worker JVM.
  */
 public class FailureLogMessage extends CaliperControlLogMessage {
-  private final String exceptionClassName;
-  private final String message;
-  private final ImmutableList<StackTraceElement> stackTrace;
+  private final String stackTrace;
 
-  public FailureLogMessage(Exception e) {
-    this(e.getClass().getName(), Strings.nullToEmpty(e.getMessage()),
-        Arrays.asList(e.getStackTrace()));
+  public FailureLogMessage(Throwable e) {
+    this(Throwables.getStackTraceAsString(e));
   }
 
-  public FailureLogMessage(String exceptionClassName, String message,
-      Iterable<StackTraceElement> stackTrace) {
-    this.exceptionClassName = checkNotNull(exceptionClassName);
-    this.message = checkNotNull(message);
-    this.stackTrace = ImmutableList.copyOf(stackTrace);
+  public FailureLogMessage(String stackTrace) {
+    this.stackTrace = checkNotNull(stackTrace);
   }
 
-  public String exceptionClassName() {
-    return exceptionClassName;
-  }
-
-  public String message() {
-    return message;
-  }
-
-  public ImmutableList<StackTraceElement> stackTrace() {
+  public String stackTrace() {
     return stackTrace;
   }
 
@@ -63,7 +45,7 @@ public class FailureLogMessage extends CaliperControlLogMessage {
 
   @Override
   public int hashCode() {
-    return Objects.hashCode(exceptionClassName, message, stackTrace);
+    return stackTrace.hashCode();
   }
 
   @Override
@@ -72,9 +54,7 @@ public class FailureLogMessage extends CaliperControlLogMessage {
       return true;
     } else if (obj instanceof FailureLogMessage) {
       FailureLogMessage that = (FailureLogMessage) obj;
-      return this.exceptionClassName.equals(that.exceptionClassName)
-          && this.message.equals(that.message)
-          && this.stackTrace.equals(that.stackTrace);
+      return this.stackTrace.equals(that.stackTrace);
     } else {
       return false;
     }
