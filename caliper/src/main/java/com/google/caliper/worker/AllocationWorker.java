@@ -31,6 +31,8 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method
@@ -43,9 +45,9 @@ public final class AllocationWorker implements Worker {
 
   private final Random random;
 
-  private int allocationCount;
-  private long allocationSize;
-  private boolean recordAllocations = false;
+  private final AtomicInteger allocationCount = new AtomicInteger();
+  private final AtomicLong allocationSize = new AtomicLong();
+  private volatile boolean recordAllocations = false;
 
   @Inject AllocationWorker(Random random) {
     this.random = random;
@@ -54,14 +56,14 @@ public final class AllocationWorker implements Worker {
           @Override
           public void sampleAllocation(int arrayCount, String desc, Object newObj, long size) {
             if (recordAllocations) {
-              allocationCount++;
-              allocationSize += size;
+              allocationCount.getAndIncrement();
+              allocationSize.getAndAdd(size);
             }
           }
         });
   }
 
-  @Override public synchronized void measure(Benchmark benchmark, String methodName,
+  @Override public void measure(Benchmark benchmark, String methodName,
       Map<String, String> options, WorkerEventLog log) throws Exception {
     // do one initial measurement and throw away its results
     log.notifyWarmupPhaseStarting();
@@ -126,7 +128,7 @@ public final class AllocationWorker implements Worker {
             name, benchmarkClass));
   }
 
-  private synchronized AllocationStats measureAllocations(
+  private AllocationStats measureAllocations(
       Benchmark benchmark, String methodName, int reps) throws Exception {
     Method method = findMethod(benchmark.getClass(), "time" + methodName);
     clearAccumulatedStats();
@@ -137,13 +139,13 @@ public final class AllocationWorker implements Worker {
     method.invoke(benchmark, args);
     recordAllocations = false;
 
-    return new AllocationStats(allocationCount, allocationSize, reps);
+    return new AllocationStats(allocationCount.get(), allocationSize.get(), reps);
   }
 
-  private synchronized void clearAccumulatedStats() {
+  private void clearAccumulatedStats() {
     recordAllocations = false;
-    allocationCount = 0;
-    allocationSize = 0;
+    allocationCount.set(0);
+    allocationSize.set(0);
   }
 
   static class AllocationStats {
