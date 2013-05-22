@@ -19,7 +19,6 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.Random;
 
@@ -232,9 +231,5 @@ public final class VarargsBenchmark extends Benchmark {
           data[(i + 5) % dataLength]);
     }
     return dummy;
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(VarargsBenchmark.class, args);
   }
 }

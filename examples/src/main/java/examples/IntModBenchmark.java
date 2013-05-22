@@ -17,7 +17,6 @@
 package examples;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.runner.CaliperMain;
 
 /**
  * Measures several candidate implementations for mod().
@@ -85,10 +84,5 @@ public class IntModBenchmark extends Benchmark {
       dummy += Integer.MAX_VALUE + dummy % M;
     }
     return dummy;
-  }
-
-  // TODO: remove this from all examples when IDE plugins are ready
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(IntModBenchmark.class, args);
   }
 }

@@ -19,7 +19,6 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.model.ArbitraryMeasurement;
-import com.google.caliper.runner.CaliperMain;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -82,9 +81,5 @@ public class CompressionSizeBenchmark extends Benchmark {
     } catch (IOException e) {
     }
     return bos.toByteArray();
-  }
-
-  public static void main(String[] args) {
-    CaliperMain.main(CompressionSizeBenchmark.class, args);
   }
 }

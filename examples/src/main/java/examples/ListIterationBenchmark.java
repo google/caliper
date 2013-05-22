@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.AbstractList;
 import java.util.List;
@@ -65,10 +64,5 @@ public class ListIterationBenchmark extends Benchmark {
       for (Object value : array) {
       }
     }
-  }
-
-  // TODO: remove this from all examples when IDE plugins are ready
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(ListIterationBenchmark.class, args);
   }
 }

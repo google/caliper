@@ -20,7 +20,6 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
-import com.google.caliper.runner.CaliperMain;
 import com.google.caliper.util.ShortDuration;
 
 import java.math.BigDecimal;
@@ -66,9 +65,5 @@ public class DemoBenchmark extends Benchmark {
 
   @Override protected void tearDown() throws Exception {
 //    System.out.println("Hey, I'm tearing up the joint.");
-  }
-
-  public static void main(String[] args) {
-    CaliperMain.main(DemoBenchmark.class, args);
   }
 }

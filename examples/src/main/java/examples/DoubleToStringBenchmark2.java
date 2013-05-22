@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 /**
  * Measures the various ways the JDK converts doubles to strings.
@@ -103,9 +102,5 @@ public class DoubleToStringBenchmark2 extends Benchmark {
       }
     }
     return dummy;
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(DoubleToStringBenchmark2.class, args);
   }
 }

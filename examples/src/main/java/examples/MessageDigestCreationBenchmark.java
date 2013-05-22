@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 import java.security.MessageDigest;
 
@@ -36,9 +35,5 @@ public class MessageDigestCreationBenchmark extends Benchmark {
     for (int i = 0; i < reps; i++) {
       MessageDigest.getInstance(algorithm);
     }
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(MessageDigestCreationBenchmark.class, args);
   }
 }

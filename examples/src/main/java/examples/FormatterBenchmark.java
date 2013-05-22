@@ -17,7 +17,6 @@
 package examples;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.Formatter;
 
@@ -72,9 +71,5 @@ public class FormatterBenchmark extends Benchmark {
       sb.append("hello");
       sb.append(" in it");
     }
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(FormatterBenchmark.class, args);
   }
 }

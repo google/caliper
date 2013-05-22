@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,9 +55,5 @@ public class ContainsBenchmark extends Benchmark {
         set.contains(query);
       }
     }
-  }
-
-  public static void main(String[] args) {
-    CaliperMain.main(ContainsBenchmark.class, args);
   }
 }

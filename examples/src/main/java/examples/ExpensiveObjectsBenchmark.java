@@ -17,7 +17,6 @@
 package examples;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.runner.CaliperMain;
 
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -66,11 +65,5 @@ public class ExpensiveObjectsBenchmark extends Benchmark {
     for (int i = 0; i < reps; ++i) {
       sdf.clone();
     }
-  }
-
-  // TODO: remove this from all examples when IDE plugins are ready
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(ExpensiveObjectsBenchmark.class, args);
-//    Runner.main(ExpensiveObjectsBenchmark.class, args);
   }
 }

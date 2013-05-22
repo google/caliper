@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -348,9 +347,5 @@ public class CopyArrayBenchmark extends Benchmark {
       dummy += strategy.copy(shortArray).hashCode();
     }
     return dummy;
-  }
-
-  public static void main(String[] args) {
-    CaliperMain.main(CopyArrayBenchmark.class, args);
   }
 }

@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -95,9 +94,5 @@ public class ArraySortBenchmark extends Benchmark {
     };
 
     abstract int[] create(int length);
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(ArraySortBenchmark.class, args);
   }
 }

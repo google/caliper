@@ -18,7 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.runner.CaliperMain;
 
 /**
  * Testing the old canard that looping backwards is faster.
@@ -44,9 +43,5 @@ public class LoopingBackwardsBenchmark extends Benchmark {
       }
     }
     return dummy;
-  }
-
-  public static void main(String[] args) throws Exception {
-    CaliperMain.main(LoopingBackwardsBenchmark.class, args);
   }
 }

@@ -17,7 +17,6 @@
 package examples;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.runner.CaliperMain;
 
 import java.util.BitSet;
 import java.util.Random;
@@ -178,10 +177,5 @@ public class BitSetBenchmark extends Benchmark {
       }
     }
     return badHash;
-  }
-
-  // TODO: remove this from all examples when IDE plugins are ready
-  public static void main(String[] args) throws Exception {
-      CaliperMain.main(BitSetBenchmark.class, args);
   }
 }
