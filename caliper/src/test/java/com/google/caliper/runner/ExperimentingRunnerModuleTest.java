@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableSet;

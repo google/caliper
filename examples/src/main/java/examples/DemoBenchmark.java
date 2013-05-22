@@ -16,10 +16,10 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.ShortDuration;
 
 import java.math.BigDecimal;

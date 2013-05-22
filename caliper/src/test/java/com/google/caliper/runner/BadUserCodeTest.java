@@ -2,7 +2,7 @@ package com.google.caliper.runner;
 
 import static org.junit.Assert.fail;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.legacy.Benchmark;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

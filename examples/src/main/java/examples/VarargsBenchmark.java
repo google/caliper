@@ -16,10 +16,10 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 
+import com.google.caliper.legacy.Benchmark;
 import java.util.Random;
 
 /**

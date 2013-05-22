@@ -16,8 +16,8 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
 
+import com.google.caliper.legacy.Benchmark;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;

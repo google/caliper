@@ -16,8 +16,8 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
+import com.google.caliper.legacy.Benchmark;
 
 /**
  * Measures the various ways the JDK converts doubles to strings.

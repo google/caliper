@@ -16,7 +16,8 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.legacy.Benchmark;
+
 
 /**
  * Measures several candidate implementations for mod().

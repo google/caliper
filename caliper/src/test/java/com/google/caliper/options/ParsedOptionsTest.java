@@ -16,7 +16,7 @@ package com.google.caliper.options;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;

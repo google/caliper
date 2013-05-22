@@ -22,6 +22,7 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;

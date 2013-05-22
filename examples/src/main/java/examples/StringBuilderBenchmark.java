@@ -18,8 +18,8 @@ package examples;
 
 import static java.lang.Character.MIN_SURROGATE;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
+import com.google.caliper.legacy.Benchmark;
 
 /**
  * Tests the performance of various StringBuilder methods.

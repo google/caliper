@@ -19,9 +19,9 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 
 import junit.framework.AssertionFailedError;

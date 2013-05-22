@@ -16,8 +16,8 @@
 
 package tutorial;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
+import com.google.caliper.legacy.Benchmark;
 
 /**
  * Caliper tutorial. To run the example benchmarks in this file:

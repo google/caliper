@@ -1,6 +1,7 @@
 package examples;
 
-import com.google.caliper.Benchmark;
+import com.google.caliper.legacy.Benchmark;
+
 
 /**
  * This is the absolute minimal benchmark. It does nothing but time the rep loop.

@@ -16,8 +16,8 @@
 
 package examples;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
+import com.google.caliper.legacy.Benchmark;
 
 /**
  * Testing the old canard that looping backwards is faster.
