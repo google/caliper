@@ -44,23 +44,20 @@ public class ExperimentingRunnerModuleTest {
 
   @Mock CaliperOptions options;
 
-  private BenchmarkMethod methodA;
-  private BenchmarkMethod methodB;
-  private BenchmarkMethod methodC;
+  private Method methodA;
+  private Method methodB;
+  private Method methodC;
 
   @Before public void setUp() throws Exception {
-    methodA = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
-        TestBenchmark.class.getDeclaredMethod("a"));
-    methodB = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
-        TestBenchmark.class.getDeclaredMethod("b"));
-    methodC = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
-        TestBenchmark.class.getDeclaredMethod("c"));
+    methodA = TestBenchmark.class.getDeclaredMethod("a");
+    methodB = TestBenchmark.class.getDeclaredMethod("b");
+    methodC = TestBenchmark.class.getDeclaredMethod("c");
   }
 
   @Test public void provideBenchmarkMethodsByInstrument_noNames() throws Exception {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.<String>of());
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod>()
+        new ImmutableSetMultimap.Builder<Instrument, Method>()
             .putAll(instrumentA, methodA, methodB, methodC)
             .putAll(instrumentB, methodA, methodB, methodC)
             .build(),
@@ -74,7 +71,7 @@ public class ExperimentingRunnerModuleTest {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("b"),
         ImmutableSet.of("a", "c"));
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod>()
+        new ImmutableSetMultimap.Builder<Instrument, Method>()
             .putAll(instrumentA, methodB)
             .putAll(instrumentB, methodB)
             .build(),
@@ -82,7 +79,7 @@ public class ExperimentingRunnerModuleTest {
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod>()
+        new ImmutableSetMultimap.Builder<Instrument, Method>()
             .putAll(instrumentA, methodA, methodC)
             .putAll(instrumentB, methodA, methodC)
             .build(),
@@ -102,13 +99,11 @@ public class ExperimentingRunnerModuleTest {
       return true;
     }
 
-    @Override
-    public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
-      return new BenchmarkMethod(benchmarkClass, method);
+    @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
+      return method;
     }
 
-    @Override
-    public void dryRun(Object benchmark, BenchmarkMethod method) {}
+    @Override public void dryRun(Object benchmark, Method method) {}
 
     @Override public Class<? extends Worker> workerClass() {
       throw new UnsupportedOperationException();

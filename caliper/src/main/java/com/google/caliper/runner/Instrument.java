@@ -64,10 +64,10 @@ public abstract class Instrument {
   // though the presence of a particular method is what probably triggers its recognition/creation
   // in the first place?), and give it an invoke() method.
 
-  public abstract BenchmarkMethod createBenchmarkMethod(
-      BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
+  public abstract Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+      throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Object benchmark, BenchmarkMethod method)
+  public abstract void dryRun(Object benchmark, Method method)
       throws InvalidBenchmarkException;
 
   public final ImmutableMap<String, String> options() {
@@ -131,12 +131,11 @@ public abstract class Instrument {
   }
 
   /**
-   * For instruments that use {@link #isTimeMethod} to identify their methods, this method builds a
-   * {@link BenchmarkMethod} appropriately.
+   * For instruments that use {@link #isTimeMethod} to identify their methods, this method checks
+   * the {@link Method} appropriately.
    */
-  public static BenchmarkMethod createBenchmarkMethodFromTimeMethod(
+  public static Method checkTimeMethod(
       BenchmarkClass benchmarkClass, Method timeMethod) throws InvalidBenchmarkException {
-
     checkArgument(isTimeMethod(timeMethod));
     Class<?>[] parameterTypes = timeMethod.getParameterTypes();
     if (!Arrays.equals(parameterTypes, new Class<?>[] {int.class})
@@ -144,15 +143,13 @@ public abstract class Instrument {
       throw new InvalidBenchmarkException(
           "Microbenchmark methods must accept a single int parameter: " + timeMethod.getName());
     }
-
+    
     // Static technically doesn't hurt anything, but it's just the completely wrong idea
     if (Util.isStatic(timeMethod)) {
       throw new InvalidBenchmarkException(
           "Microbenchmark methods must not be static: " + timeMethod.getName());
     }
-
-    String methodName = timeMethod.getName();
-    return new BenchmarkMethod(benchmarkClass, timeMethod);
+    return timeMethod;
   }
 
   abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();

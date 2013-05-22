@@ -38,6 +38,7 @@ import com.google.inject.Singleton;
 
 import org.joda.time.Instant;
 
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 /**
@@ -141,20 +142,20 @@ final class ExperimentingRunnerModule extends AbstractModule {
     return tester.testNanoTimeGranularity();
   }
 
-  @Provides ImmutableSetMultimap<Instrument, BenchmarkMethod> provideBenchmarkMethodsByInstrument(
+  @Provides ImmutableSetMultimap<Instrument, Method> provideBenchmarkMethodsByInstrument(
       CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
           throws InvalidBenchmarkException {
-    ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod> builder =
+    ImmutableSetMultimap.Builder<Instrument, Method> builder =
         ImmutableSetMultimap.builder();
     final ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
     for (Instrument instrument : instruments) {
       builder.putAll(instrument,
           Iterables.filter(benchmarkClass.findAllBenchmarkMethods(instrument),
-              new Predicate<BenchmarkMethod>() {
-                @Override public boolean apply(BenchmarkMethod method) {
+              new Predicate<Method>() {
+                @Override public boolean apply(Method method) {
                   // empty set means all methods
                   return benchmarkMethodNames.isEmpty()
-                      || benchmarkMethodNames.contains(method.method().getName());
+                      || benchmarkMethodNames.contains(method.getName());
                 }
               }));
     }

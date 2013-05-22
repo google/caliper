@@ -24,6 +24,7 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -35,12 +36,12 @@ import java.util.Set;
  * instruments, benchmark methods, user parameters, VM specs and VM arguments.
  */
 public final class FullCartesianExperimentSelector implements ExperimentSelector {
-  private ImmutableSetMultimap<Instrument, BenchmarkMethod> benchmarkMethodsByInstrument;
+  private ImmutableSetMultimap<Instrument, Method> benchmarkMethodsByInstrument;
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, String> userParameters;
 
   @Inject FullCartesianExperimentSelector(
-      ImmutableSetMultimap<Instrument, BenchmarkMethod> benchmarkMethodsByInstrument,
+      ImmutableSetMultimap<Instrument, Method> benchmarkMethodsByInstrument,
       ImmutableSet<VirtualMachine> vms,
       @BenchmarkParameters ImmutableSetMultimap<String, String> userParameters) {
     this.benchmarkMethodsByInstrument = benchmarkMethodsByInstrument;
@@ -62,12 +63,13 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
 
   @Override public ImmutableSet<Experiment> selectExperiments() {
     List<Experiment> experiments = Lists.newArrayList();
-    for (Entry<Instrument, BenchmarkMethod> entry : benchmarkMethodsByInstrument.entries()) {
+    for (Entry<Instrument, Method> entry : benchmarkMethodsByInstrument.entries()) {
       for (VirtualMachine vm : vms) {
         for (List<String> userParamsChoice : cartesian(userParameters)) {
           ImmutableMap<String, String> theseUserParams =
               zip(userParameters.keySet(), userParamsChoice);
-          experiments.add(new Experiment(entry.getKey(), entry.getValue(), theseUserParams, vm));
+          experiments.add(
+              new Experiment(entry.getKey(), entry.getValue(), theseUserParams, vm));
         }
       }
     }

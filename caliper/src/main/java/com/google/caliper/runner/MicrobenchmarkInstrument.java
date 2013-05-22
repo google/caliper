@@ -72,17 +72,14 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return Instrument.isTimeMethod(method);
   }
 
-  @Override public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass,
+  @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass,
       Method method) throws InvalidBenchmarkException {
-
-    return Instrument.createBenchmarkMethodFromTimeMethod(benchmarkClass, method);
+    return Instrument.checkTimeMethod(benchmarkClass, method);
   }
 
-  @Override public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
-      throws UserCodeException {
-    Method m = benchmarkMethod.method();
+  @Override public void dryRun(Object benchmark, Method benchmarkMethod) throws UserCodeException {
     try {
-      m.invoke(benchmark, 1);
+      benchmarkMethod.invoke(benchmark, 1);
     } catch (IllegalAccessException impossible) {
       throw new AssertionError(impossible);
     } catch (InvocationTargetException e) {

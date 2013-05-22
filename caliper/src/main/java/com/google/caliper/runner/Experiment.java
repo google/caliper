@@ -19,6 +19,7 @@ package com.google.caliper.runner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSortedMap;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -31,13 +32,13 @@ final class Experiment {
   private final Instrument instrument;
 
   // the following (with the Host) create a Scenario
-  private final BenchmarkMethod benchmarkMethod;
+  private final Method benchmarkMethod;
   private final VirtualMachine vm;
   private final ImmutableSortedMap<String, String> userParameters;
 
   Experiment(
       Instrument instrument,
-      BenchmarkMethod benchmarkMethod,
+      Method benchmarkMethod,
       Map<String, String> userParameters,
       VirtualMachine vm) {
     this.instrument = instrument;
@@ -50,7 +51,7 @@ final class Experiment {
     return instrument;
   }
 
-  BenchmarkMethod benchmarkMethod() {
+  Method benchmarkMethod() {
     return benchmarkMethod;
   }
 

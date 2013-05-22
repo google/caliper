@@ -49,21 +49,17 @@ public final class AllocationInstrument extends Instrument {
     return Instrument.isTimeMethod(method);
   }
 
-  @Override public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass,
-      Method method) throws InvalidBenchmarkException {
-
-    return Instrument.createBenchmarkMethodFromTimeMethod(benchmarkClass, method);
+  @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+      throws InvalidBenchmarkException {
+    return Instrument.checkTimeMethod(benchmarkClass, method);
   }
 
   @Override
-  public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
-      throws UserCodeException {
-
+  public void dryRun(Object benchmark, Method benchmarkMethod) throws UserCodeException {
     // execute the benchmark method, but don't try to take any measurements, because this JVM
     // may not have the allocation instrumenter agent.
-    Method m = benchmarkMethod.method();
     try {
-      m.invoke(benchmark, 1);
+      benchmarkMethod.invoke(benchmark, 1);
     } catch (IllegalAccessException impossible) {
       throw new AssertionError(impossible);
     } catch (InvocationTargetException e) {

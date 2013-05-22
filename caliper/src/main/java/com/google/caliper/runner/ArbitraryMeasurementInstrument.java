@@ -46,7 +46,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
   }
 
   @Override
-  public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
       throws InvalidBenchmarkException {
 
     if (method.getParameterTypes().length != 0) {
@@ -70,16 +70,14 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
           "Arbitrary measurement methods must be public: " + method.getName());
     }
 
-    return new BenchmarkMethod(benchmarkClass, method);
+    return method;
   }
 
   @Override
-  public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
+  public void dryRun(Object benchmark, Method benchmarkMethod)
       throws UserCodeException {
-
-    Method m = benchmarkMethod.method();
     try {
-      m.invoke(benchmark);
+      benchmarkMethod.invoke(benchmark);
     } catch (IllegalAccessException impossible) {
       throw new AssertionError(impossible);
     } catch (InvocationTargetException e) {

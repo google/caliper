@@ -293,8 +293,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private Trial measure(Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
-        .className(experiment.benchmarkMethod().benchmarkClass().name())
-        .methodName(experiment.benchmarkMethod().method().getName())
+        .className(experiment.benchmarkMethod().getDeclaringClass().getName())
+        .methodName(experiment.benchmarkMethod().getName())
         .addAllParameters(experiment.userParameters())
         .build();
 

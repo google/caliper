@@ -77,7 +77,7 @@ public final class MacrobenchmarkInstrument extends Instrument {
   }
 
   @Override
-  public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
       throws InvalidBenchmarkException {
     checkArgument(isBenchmarkMethod(method));
     Class<?>[] parameterTypes = method.getParameterTypes();
@@ -92,7 +92,7 @@ public final class MacrobenchmarkInstrument extends Instrument {
           "Macrobenchmark methods must not be static: " + method.getName());
     }
 
-    return new BenchmarkMethod(benchmarkClass, method);
+    return method;
   }
 
   private static ImmutableSet<Method> getAnnotatedMethods(Class<?> clazz,
@@ -108,17 +108,17 @@ public final class MacrobenchmarkInstrument extends Instrument {
   }
 
   @Override
-  public void dryRun(Object benchmark, BenchmarkMethod method) throws UserCodeException {
+  public void dryRun(Object benchmark, Method method) throws UserCodeException {
     ImmutableSet<Method> beforeRepMethods =
-        getAnnotatedMethods(method.benchmarkClass().benchmarkClass(), BeforeRep.class);
+        getAnnotatedMethods(method.getDeclaringClass(), BeforeRep.class);
     ImmutableSet<Method> afterRepMethods =
-        getAnnotatedMethods(method.benchmarkClass().benchmarkClass(), AfterRep.class);
+        getAnnotatedMethods(method.getDeclaringClass(), AfterRep.class);
     try {
       for (Method beforeRepMethod : beforeRepMethods) {
         beforeRepMethod.invoke(benchmark);
       }
       try {
-        method.method().invoke(benchmark);
+        method.invoke(benchmark);
       } finally {
         for (Method afterRepMethod : afterRepMethods) {
           afterRepMethod.invoke(benchmark);

@@ -93,17 +93,17 @@ abstract class BenchmarkClass {
 
   // TODO: perhaps move this to Instrument and let instruments override it?
 
-  public ImmutableSortedSet<BenchmarkMethod> findAllBenchmarkMethods(
+  public ImmutableSortedSet<Method> findAllBenchmarkMethods(
       Instrument instrument) throws InvalidBenchmarkException {
-    ImmutableSortedSet.Builder<BenchmarkMethod> result = ImmutableSortedSet.orderedBy(
-        Ordering.natural().onResultOf(new Function<BenchmarkMethod, String>() {
-          @Override public String apply(BenchmarkMethod method) {
-            return method.method().getName();
+    ImmutableSortedSet.Builder<Method> result = ImmutableSortedSet.orderedBy(
+        Ordering.natural().onResultOf(new Function<Method, String>() {
+          @Override public String apply(Method method) {
+            return method.getName();
           }
         }));
     for (Method method : theClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
-        result.add(instrument.createBenchmarkMethod(this, method));
+        result.add(instrument.checkBenchmarkMethod(this, method));
       }
     }
     return result.build();
