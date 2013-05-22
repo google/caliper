@@ -27,16 +27,16 @@ public final class WorkerSpec {
   public final String workerClassName;
   public final ImmutableMap<String, String> workerOptions;
   public final BenchmarkSpec benchmarkSpec;
-  public final String pipePath;
+  public final int port;
 
   public WorkerSpec(
       String workerClassName,
       ImmutableMap<String, String> workerOptions,
       BenchmarkSpec benchmarkSpec,
-      String pipePath) {
+      int port) {
     this.workerClassName = workerClassName;
     this.workerOptions = workerOptions;
     this.benchmarkSpec = benchmarkSpec;
-    this.pipePath = pipePath;
+    this.port = port;
   }
 }

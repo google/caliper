@@ -40,7 +40,6 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 import com.google.caliper.util.Parser;
-import com.google.caliper.util.Pipes;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
@@ -74,12 +73,11 @@ import com.google.inject.Key;
 import com.google.inject.ProvisionException;
 import com.google.inject.spi.Message;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.net.ServerSocket;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collections;
@@ -248,14 +246,14 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private static final int NUM_WORKER_STREAMS = 3;
 
   private ProcessBuilder createWorkerProcessBuilder(Experiment experiment,
-      BenchmarkSpec benchmarkSpec, File pipeFile) {
+      BenchmarkSpec benchmarkSpec, int port) {
     Instrumentation instrumentation = experiment.instrumentation();
     Instrument instrument = instrumentation.instrument();
 
     WorkerSpec request = new WorkerSpec(
         instrumentation.workerClass().getName(),
         instrumentation.workerOptions(),
-        benchmarkSpec, pipeFile.getAbsolutePath());
+        benchmarkSpec, port);
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
 
@@ -310,10 +308,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         .addAllParameters(experiment.userParameters())
         .build();
 
-    final File pipeFile = Pipes.createPipe();
+    final ServerSocket serverSocket = new ServerSocket(0);
 
     final WorkerProcess process =
-        new WorkerProcess(createWorkerProcessBuilder(experiment, benchmarkSpec, pipeFile));
+        new WorkerProcess(createWorkerProcessBuilder(experiment, benchmarkSpec,
+            serverSocket.getLocalPort()));
     ListenableFuture<Integer> processFuture = processExecutor.submit(new Callable<Integer>() {
       @Override public Integer call() throws Exception {
         return process.waitFor();
@@ -339,7 +338,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       final ListenableFuture<Reader> pipeReaderFuture =
           producerExecutor.submit(new Callable<Reader>() {
         @Override public Reader call() throws IOException {
-          return new InputStreamReader(new FileInputStream(pipeFile), UTF_8);
+          return new InputStreamReader(serverSocket.accept().getInputStream(), UTF_8);
         }
       });
       processFuture.addListener(new Runnable() {
@@ -412,6 +411,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     } finally {
       trialStopwatch.reset();
       producerExecutor.shutdownNow();
+      serverSocket.close();
     }
   }
 

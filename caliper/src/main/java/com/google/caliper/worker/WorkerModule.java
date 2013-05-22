@@ -21,15 +21,15 @@ import static com.google.common.base.Charsets.UTF_8;
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.common.base.Ticker;
+import com.google.common.net.InetAddresses;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.Random;
 
 /**
@@ -38,7 +38,7 @@ import java.util.Random;
  */
 final class WorkerModule extends AbstractModule {
   private final Class<? extends Worker> workerClass;
-  private final String pipePath;
+  private final int port;
 
   @SuppressWarnings("unchecked")
   WorkerModule(WorkerSpec workerSpec) {
@@ -47,7 +47,7 @@ final class WorkerModule extends AbstractModule {
     } catch (ClassNotFoundException e) {
       throw new AssertionError("classes referenced in the runner are always present");
     }
-    this.pipePath = workerSpec.pipePath;
+    this.port = workerSpec.port;
   }
 
   @Override protected void configure() {
@@ -57,11 +57,19 @@ final class WorkerModule extends AbstractModule {
     bind(Random.class);
   }
 
-  @Provides @Singleton PrintWriter providePrintWriter() throws FileNotFoundException {
-    PrintWriter printWriter = new PrintWriter(
-        new OutputStreamWriter(new FileOutputStream(new File(pipePath)), UTF_8), true);
-    printWriter.println();  // prime the pipe
-    printWriter.flush();
-    return printWriter;
+  @Provides @Singleton PrintWriter providePrintWriter() throws IOException {
+    final Socket socket = new Socket(InetAddresses.forString("127.0.0.1"), port);
+    // close the socket when the worker exits
+    Runtime.getRuntime().addShutdownHook(new Thread() {
+      @Override
+      public void run() {
+        try {
+          socket.close();
+        } catch (IOException e) {
+          // nothing we can do
+        }
+      }
+    });
+    return new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8), true);
   }
 }
