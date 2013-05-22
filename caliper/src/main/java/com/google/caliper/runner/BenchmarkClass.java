@@ -43,7 +43,7 @@ import java.lang.reflect.Modifier;
  * An instance of this type represents a user-provided class that extends Benchmark. It manages
  * creating, setting up and destroying instances of that class.
  */
-public final class BenchmarkClass {
+final class BenchmarkClass {
   private final Class<?> theClass;
   private final Constructor<?> constructor;
   private final ParameterSet userParameters;
@@ -85,7 +85,7 @@ public final class BenchmarkClass {
     ImmutableSortedSet.Builder<BenchmarkMethod> result = ImmutableSortedSet.orderedBy(
         Ordering.natural().onResultOf(new Function<BenchmarkMethod, String>() {
           @Override public String apply(BenchmarkMethod method) {
-            return method.name();
+            return method.method().getName();
           }
         }));
     for (Method method : theClass.getDeclaredMethods()) {

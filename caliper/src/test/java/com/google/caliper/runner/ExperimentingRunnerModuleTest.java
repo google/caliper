@@ -101,7 +101,7 @@ public class ExperimentingRunnerModuleTest {
 
     @Override
     public BenchmarkMethod createBenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
-      return new BenchmarkMethod(benchmarkClass, method, method.getName());
+      return new BenchmarkMethod(benchmarkClass, method);
     }
 
     @Override

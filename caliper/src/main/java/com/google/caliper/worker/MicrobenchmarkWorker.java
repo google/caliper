@@ -57,29 +57,27 @@ public class MicrobenchmarkWorker implements Worker {
     trial.run(INITIAL_REPS, warmupNanos);
   }
 
-  private Trial createTrial(Object benchmark, String methodName,
+  private Trial createTrial(Object benchmark, final String methodName,
       Options options, WorkerEventLog log) {
-    final String timeMethodName = "time" + methodName;
-    // where's the right place for 'time' to be prepended again?
     Iterable<Method> timeMethods =
         Iterables.filter(Arrays.asList(benchmark.getClass().getDeclaredMethods()),
             new Predicate<Method>() {
               @Override public boolean apply(@Nullable Method input) {
-                return timeMethodName.equals(input.getName());
+                return methodName.equals(input.getName());
               }
             });
 
-    Method timeMethod = Iterables.getOnlyElement(timeMethods);
-    timeMethod.setAccessible(true);
+    Method method = Iterables.getOnlyElement(timeMethods);
+    method.setAccessible(true);
 
-    Class<?> repsType = Iterables.getOnlyElement(Arrays.asList(timeMethod.getParameterTypes()));
+    Class<?> repsType = Iterables.getOnlyElement(Arrays.asList(method.getParameterTypes()));
     if (int.class.equals(repsType)) {
-      return new IntTrial(benchmark, timeMethod, options, log);
+      return new IntTrial(benchmark, method, options, log);
     } else if (long.class.equals(repsType)) {
-      return new LongTrial(benchmark, timeMethod, options, log);
+      return new LongTrial(benchmark, method, options, log);
     } else {
       throw new IllegalStateException(String.format(
-          "Got a benchmark method (%s) with an invalid reps parameter.", timeMethod));
+          "Got a benchmark method (%s) with an invalid reps parameter.", method));
     }
   }
 

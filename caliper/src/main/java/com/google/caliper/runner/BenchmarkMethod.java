@@ -16,6 +16,8 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import com.google.common.base.Objects;
 
 import java.lang.reflect.Method;
@@ -25,23 +27,13 @@ import java.lang.reflect.Method;
  * that should undergo benchmark testing; for example, for the default instrument ("time"), methods
  * that begin with the string "time" are recognized.
  */
-public final class BenchmarkMethod {
+final class BenchmarkMethod {
   private final BenchmarkClass benchmarkClass;
-  private final String shortName;
   private final Method method;
 
-  public BenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
-    this(benchmarkClass, method, method.getName());
-  }
-
-  public BenchmarkMethod(BenchmarkClass benchmarkClass, Method method, String shortName) {
-    this.benchmarkClass = benchmarkClass;
-    this.shortName = shortName;
-    this.method = method;
-  }
-
-  public String name() {
-    return shortName;
+  BenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
+    this.benchmarkClass = checkNotNull(benchmarkClass);
+    this.method = checkNotNull(method);
   }
 
   public BenchmarkClass benchmarkClass() {
@@ -55,19 +47,16 @@ public final class BenchmarkMethod {
   @Override public boolean equals(Object object) {
     if (object instanceof BenchmarkMethod) {
       BenchmarkMethod that = (BenchmarkMethod) object;
-
-      // Who ensures that two can't have the same short name?
-      return this.benchmarkClass.equals(that.benchmarkClass)
-          && this.shortName.equals(that.shortName);
+      return this.method.equals(that.method);
     }
     return false;
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(benchmarkClass, shortName);
+    return Objects.hashCode(benchmarkClass, method);
   }
 
   @Override public String toString() {
-    return name();
+    return method.getName();
   }
 }

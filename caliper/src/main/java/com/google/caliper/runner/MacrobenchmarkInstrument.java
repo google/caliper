@@ -92,8 +92,7 @@ public final class MacrobenchmarkInstrument extends Instrument {
           "Macrobenchmark methods must not be static: " + method.getName());
     }
 
-    String methodName = method.getName();
-    return new BenchmarkMethod(benchmarkClass, method, methodName);
+    return new BenchmarkMethod(benchmarkClass, method);
   }
 
   private static ImmutableSet<Method> getAnnotatedMethods(Class<?> clazz,

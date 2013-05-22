@@ -153,7 +153,7 @@ final class ExperimentingRunnerModule extends AbstractModule {
                 @Override public boolean apply(BenchmarkMethod method) {
                   // empty set means all methods
                   return benchmarkMethodNames.isEmpty()
-                      || benchmarkMethodNames.contains(method.name());
+                      || benchmarkMethodNames.contains(method.method().getName());
                 }
               }));
     }

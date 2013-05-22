@@ -152,8 +152,7 @@ public abstract class Instrument {
     }
 
     String methodName = timeMethod.getName();
-    String shortName = methodName.substring("time".length());
-    return new BenchmarkMethod(benchmarkClass, timeMethod, shortName);
+    return new BenchmarkMethod(benchmarkClass, timeMethod);
   }
 
   abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();

@@ -129,7 +129,7 @@ public final class AllocationWorker implements Worker {
 
   private AllocationStats measureAllocations(
       Object benchmark, String methodName, int reps) throws Exception {
-    Method method = findMethod(benchmark.getClass(), "time" + methodName);
+    Method method = findMethod(benchmark.getClass(), methodName);
     clearAccumulatedStats();
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that
     // our internal allocations aren't counted in the benchmark's allocations.

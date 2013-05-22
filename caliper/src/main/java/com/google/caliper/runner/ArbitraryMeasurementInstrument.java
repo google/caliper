@@ -70,7 +70,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
           "Arbitrary measurement methods must be public: " + method.getName());
     }
 
-    return new BenchmarkMethod(benchmarkClass, method, method.getName());
+    return new BenchmarkMethod(benchmarkClass, method);
   }
 
   @Override
