@@ -19,7 +19,6 @@ package com.google.caliper.worker;
 import static com.google.caliper.util.Reflection.getAnnotatedMethods;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.AfterRep;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.model.Measurement;
@@ -44,7 +43,7 @@ public class MacrobenchmarkWorker implements Worker {
     this.stopwatch = new Stopwatch(ticker);
   }
 
-  @Override public void measure(Benchmark benchmark, String methodName,
+  @Override public void measure(Object benchmark, String methodName,
       Map<String, String> optionMap, WorkerEventLog log) throws Exception {
     Method method = benchmark.getClass().getDeclaredMethod(methodName);
     method.setAccessible(true);

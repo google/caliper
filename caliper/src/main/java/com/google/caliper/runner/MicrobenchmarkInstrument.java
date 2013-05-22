@@ -24,7 +24,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.GcLogMessage;
@@ -79,7 +78,7 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return Instrument.createBenchmarkMethodFromTimeMethod(benchmarkClass, method);
   }
 
-  @Override public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
+  @Override public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
       throws UserCodeException {
     Method m = benchmarkMethod.method();
     try {

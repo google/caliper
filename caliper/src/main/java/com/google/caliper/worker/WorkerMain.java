@@ -18,13 +18,13 @@ package com.google.caliper.worker;
 
 import static com.google.inject.Stage.PRODUCTION;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+import com.google.inject.Key;
 
 import java.lang.reflect.Method;
 
@@ -44,7 +44,7 @@ public final class WorkerMain {
         new BridgeModule());
 
     Worker worker = workerInjector.getInstance(Worker.class);
-    Benchmark benchmark = workerInjector.getInstance(Benchmark.class);
+    Object benchmark = workerInjector.getInstance(Key.get(Object.class, Benchmark.class));
     WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
 
     log.notifyWorkerStarted();
@@ -61,18 +61,22 @@ public final class WorkerMain {
     }
   }
 
-  private static void runSetUp(Benchmark benchmark) throws Exception {
+  private static void runSetUp(Object benchmark) throws Exception {
     runBenchmarkMethod(benchmark, "setUp");
   }
 
-  private static void runTearDown(Benchmark benchmark) throws Exception {
+  private static void runTearDown(Object benchmark) throws Exception {
     runBenchmarkMethod(benchmark, "tearDown");
   }
 
-  private static void runBenchmarkMethod(Benchmark benchmark, String methodName) throws Exception {
+  private static void runBenchmarkMethod(Object benchmark, String methodName) throws Exception {
     // benchmark.setUp() or .tearDown() -- but they're protected
-    Method method = Benchmark.class.getDeclaredMethod(methodName);
-    method.setAccessible(true);
-    method.invoke(benchmark);
+    try {
+      Method method = benchmark.getClass().getDeclaredMethod(methodName);
+      method.setAccessible(true);
+      method.invoke(benchmark);
+    } catch (NoSuchMethodException e) {
+      // no method, don't invoke
+    }
   }
 }

@@ -18,7 +18,6 @@ package com.google.caliper.worker;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
 import com.google.common.base.Objects;
@@ -63,7 +62,7 @@ public final class AllocationWorker implements Worker {
         });
   }
 
-  @Override public void measure(Benchmark benchmark, String methodName,
+  @Override public void measure(Object benchmark, String methodName,
       Map<String, String> options, WorkerEventLog log) throws Exception {
     // do one initial measurement and throw away its results
     log.notifyWarmupPhaseStarting();
@@ -114,7 +113,7 @@ public final class AllocationWorker implements Worker {
     }
   }
 
-  static Method findMethod(Class<? extends Benchmark> benchmarkClass, String name) {
+  static Method findMethod(Class<?> benchmarkClass, String name) {
     for (Method method : benchmarkClass.getDeclaredMethods()) {
       Class<?>[] parameterTypes = method.getParameterTypes();
       if (method.getName().equals(name)
@@ -129,7 +128,7 @@ public final class AllocationWorker implements Worker {
   }
 
   private AllocationStats measureAllocations(
-      Benchmark benchmark, String methodName, int reps) throws Exception {
+      Object benchmark, String methodName, int reps) throws Exception {
     Method method = findMethod(benchmark.getClass(), "time" + methodName);
     clearAccumulatedStats();
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that

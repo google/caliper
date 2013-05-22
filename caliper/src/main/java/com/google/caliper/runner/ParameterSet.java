@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.Benchmark;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -35,9 +34,8 @@ import java.util.Set;
  * (except that it knows how to find the <i>default</i> values).
  */
 public final class ParameterSet {
-  public static ParameterSet create(
-      Class<? extends Benchmark> theClass, Class<? extends Annotation> annotationClass)
-          throws InvalidBenchmarkException {
+  public static ParameterSet create(Class<?> theClass, Class<? extends Annotation> annotationClass)
+      throws InvalidBenchmarkException {
     // deterministic order, not reflection order
     ImmutableMap.Builder<String, Parameter> parametersBuilder =
         ImmutableSortedMap.naturalOrder();
@@ -85,7 +83,7 @@ public final class ParameterSet {
     return combined.orderKeysBy(Ordering.natural()).build();
   }
 
-  public void injectAll(Benchmark benchmark, Map<String, String> actualValues) {
+  public void injectAll(Object benchmark, Map<String, String> actualValues) {
     for (Parameter parameter : map.values()) {
       String value = actualValues.get(parameter.name());
       parameter.inject(benchmark, value);

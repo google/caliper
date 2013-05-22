@@ -18,7 +18,6 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
@@ -68,7 +67,7 @@ public abstract class Instrument {
   public abstract BenchmarkMethod createBenchmarkMethod(
       BenchmarkClass benchmarkClass, Method method) throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Benchmark benchmark, BenchmarkMethod method)
+  public abstract void dryRun(Object benchmark, BenchmarkMethod method)
       throws InvalidBenchmarkException;
 
   public final ImmutableMap<String, String> options() {

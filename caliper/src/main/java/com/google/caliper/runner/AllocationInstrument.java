@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.logging.Level.SEVERE;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.worker.AllocationWorker;
 import com.google.caliper.worker.Worker;
@@ -57,7 +56,7 @@ public final class AllocationInstrument extends Instrument {
   }
 
   @Override
-  public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
+  public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
       throws UserCodeException {
 
     // execute the benchmark method, but don't try to take any measurements, because this JVM

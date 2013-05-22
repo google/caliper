@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.AfterRep;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
@@ -110,7 +109,7 @@ public final class MacrobenchmarkInstrument extends Instrument {
   }
 
   @Override
-  public void dryRun(Benchmark benchmark, BenchmarkMethod method) throws UserCodeException {
+  public void dryRun(Object benchmark, BenchmarkMethod method) throws UserCodeException {
     ImmutableSet<Method> beforeRepMethods =
         getAnnotatedMethods(method.benchmarkClass().benchmarkClass(), BeforeRep.class);
     ImmutableSet<Method> afterRepMethods =

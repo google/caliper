@@ -20,7 +20,6 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
@@ -421,7 +420,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     ImmutableSet.Builder<Experiment> builder = ImmutableSet.builder();
     for (Experiment experiment : experiments) {
       try {
-        Benchmark benchmark = benchmarkClass.createAndStage(experiment.userParameters());
+        Object benchmark = benchmarkClass.createAndStage(experiment.userParameters());
         try {
           experiment.instrument().dryRun(benchmark, experiment.benchmarkMethod());
           builder.add(experiment);

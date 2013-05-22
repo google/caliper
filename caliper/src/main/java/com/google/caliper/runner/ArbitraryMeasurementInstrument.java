@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
@@ -75,7 +74,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
   }
 
   @Override
-  public void dryRun(Benchmark benchmark, BenchmarkMethod benchmarkMethod)
+  public void dryRun(Object benchmark, BenchmarkMethod benchmarkMethod)
       throws UserCodeException {
 
     Method m = benchmarkMethod.method();

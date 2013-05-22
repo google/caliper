@@ -16,7 +16,6 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
@@ -30,7 +29,7 @@ import java.util.Map;
  */
 public final class ArbitraryMeasurementWorker implements Worker {
   @Override
-  public void measure(Benchmark benchmark, String methodName,
+  public void measure(Object benchmark, String methodName,
       Map<String, String> optionsMap, WorkerEventLog log) throws Exception {
 
     Options options = new Options(optionsMap);

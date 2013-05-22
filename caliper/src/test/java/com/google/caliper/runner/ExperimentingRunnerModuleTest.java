@@ -105,7 +105,7 @@ public class ExperimentingRunnerModuleTest {
     }
 
     @Override
-    public void dryRun(Benchmark benchmark, BenchmarkMethod method) {}
+    public void dryRun(Object benchmark, BenchmarkMethod method) {}
 
     @Override public Class<? extends Worker> workerClass() {
       throw new UnsupportedOperationException();

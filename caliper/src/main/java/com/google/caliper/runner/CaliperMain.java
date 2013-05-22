@@ -16,7 +16,6 @@ package com.google.caliper.runner;
 
 import static com.google.common.collect.ObjectArrays.concat;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.ConfigModule;
@@ -62,7 +61,7 @@ public final class CaliperMain {
    * the class is provided here only as a shortcut for specifying the full class <i>name</i>. The
    * class that gets loaded later could be completely different.
    */
-  public static void main(Class<? extends Benchmark> benchmarkClass, String[] args) {
+  public static void main(Class<?> benchmarkClass, String[] args) {
     main(concat(args, benchmarkClass.getName()));
   }
 

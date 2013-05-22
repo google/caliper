@@ -18,7 +18,6 @@ package com.google.caliper.worker;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Measurement.Builder;
 import com.google.caliper.model.Value;
@@ -50,7 +49,7 @@ public class MicrobenchmarkWorker implements Worker {
     this.ticker = ticker;
   }
 
-  @Override public void measure(Benchmark benchmark, String methodName,
+  @Override public void measure(Object benchmark, String methodName,
       Map<String, String> optionMap, WorkerEventLog log) throws Exception {
     Options options = new Options(optionMap);
     Trial trial = createTrial(benchmark, methodName, options, log);
@@ -58,7 +57,7 @@ public class MicrobenchmarkWorker implements Worker {
     trial.run(INITIAL_REPS, warmupNanos);
   }
 
-  private Trial createTrial(Benchmark benchmark, String methodName,
+  private Trial createTrial(Object benchmark, String methodName,
       Options options, WorkerEventLog log) {
     final String timeMethodName = "time" + methodName;
     // where's the right place for 'time' to be prepended again?
@@ -96,12 +95,12 @@ public class MicrobenchmarkWorker implements Worker {
   }
 
   private abstract class Trial {
-    final Benchmark benchmark;
+    final Object benchmark;
     final Method timeMethod;
     final Options options;
     final WorkerEventLog log;
 
-    Trial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
+    Trial(Object benchmark, Method timeMethod, Options options, WorkerEventLog log) {
       this.benchmark = benchmark;
       this.timeMethod = timeMethod;
       this.options = options;
@@ -147,7 +146,7 @@ public class MicrobenchmarkWorker implements Worker {
   }
 
   private final class IntTrial extends Trial {
-    IntTrial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
+    IntTrial(Object benchmark, Method timeMethod, Options options, WorkerEventLog log) {
       super(benchmark, timeMethod, options, log);
     }
 
@@ -168,7 +167,7 @@ public class MicrobenchmarkWorker implements Worker {
   }
 
   private final class LongTrial extends Trial {
-    LongTrial(Benchmark benchmark, Method timeMethod, Options options, WorkerEventLog log) {
+    LongTrial(Object benchmark, Method timeMethod, Options options, WorkerEventLog log) {
       super(benchmark, timeMethod, options, log);
     }
 

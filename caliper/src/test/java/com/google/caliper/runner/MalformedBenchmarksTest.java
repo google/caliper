@@ -42,8 +42,6 @@ public class MalformedBenchmarksTest {
   // Put the expected messages together here, which may promote some kind of
   // consistency in their wording. :)
 
-  private static final String DOESNT_EXTEND =
-      "Class '%%s' does not extend %s";
   private static final String ABSTRACT =
       "Class '%s' is abstract";
   private static final String NO_CONSTRUCTOR =
@@ -63,13 +61,6 @@ public class MalformedBenchmarksTest {
       + "has no recognized String-converting method; see <TODO> for details";
   private static final String CONVERT_FAILED = // granted this one's a little weird (and brittle)
       "Cannot convert value 'oops' to type 'int': For input string: \"oops\"";
-
-  @Test
-  public void testDoesntExtendBenchmark() throws Exception {
-    String expected = String.format(DOESNT_EXTEND, Benchmark.class.getName());
-    expectException(expected, NotABenchmark.class);
-  }
-  static class NotABenchmark {}
 
   @Test public void abstractBenchmark() throws Exception {
     expectException(ABSTRACT, AbstractBenchmark.class);

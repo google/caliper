@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
 import com.google.caliper.Benchmark;
@@ -26,6 +27,7 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -42,26 +44,21 @@ import java.lang.reflect.Modifier;
  * creating, setting up and destroying instances of that class.
  */
 public final class BenchmarkClass {
-  private final Class<? extends Benchmark> theClass;
-  private final Constructor<? extends Benchmark> constructor;
+  private final Class<?> theClass;
+  private final Constructor<?> constructor;
   private final ParameterSet userParameters;
   private final ImmutableSet<String> benchmarkFlags;
 
-  public BenchmarkClass(Class<?> aClass) throws InvalidBenchmarkException {
-    if (Modifier.isAbstract(aClass.getModifiers())) {
-      throw new InvalidBenchmarkException("Class '%s' is abstract", aClass);
+  public BenchmarkClass(Class<?> theClass) throws InvalidBenchmarkException {
+    this.theClass = checkNotNull(theClass);
+
+    if (Modifier.isAbstract(theClass.getModifiers())) {
+      throw new InvalidBenchmarkException("Class '%s' is abstract", theClass);
     }
 
     // TODO: check for nested, non-static classes (non-abstract, but no constructor?)
     // this will fail later anyway (no way to declare parameterless nested constr., but
     // maybe signal this better?
-
-    try {
-      this.theClass = aClass.asSubclass(Benchmark.class);
-    } catch (ClassCastException e) {
-      throw new InvalidBenchmarkException(
-          "Class '%s' does not extend %s", aClass, Benchmark.class.getName());
-    }
 
     // TODO(kevinb): check that it's a *direct* subclass, because semantics of @Params and such
     // are too much of a pain to specify otherwise.
@@ -99,9 +96,9 @@ public final class BenchmarkClass {
     return result.build();
   }
 
-  public Benchmark createAndStage(ImmutableSortedMap<String, String> userParameterValues)
+  public Object createAndStage(ImmutableSortedMap<String, String> userParameterValues)
       throws UserCodeException {
-    Benchmark benchmark = createBenchmarkInstance(constructor);
+    Object benchmark = createBenchmarkInstance(constructor);
     userParameters.injectAll(benchmark, userParameterValues);
 
     boolean setupSuccess = false;
@@ -119,11 +116,11 @@ public final class BenchmarkClass {
     return benchmark;
   }
 
-  public void cleanup(Benchmark benchmark) throws UserCodeException {
+  public void cleanup(Object benchmark) throws UserCodeException {
     callTearDown(benchmark);
   }
 
-  @VisibleForTesting Class<? extends Benchmark> benchmarkClass() {
+  @VisibleForTesting Class<?> benchmarkClass() {
     return theClass;
   }
 
@@ -150,14 +147,13 @@ public final class BenchmarkClass {
     return name();
   }
 
-  private static final Method SETUP_METHOD = findBenchmarkMethod("setUp");
-
-  private static final Method TEARDOWN_METHOD = findBenchmarkMethod("tearDown");
-
   // We have to do this reflectively because it'd be too much of a pain to make setUp public
-  private void callSetUp(Benchmark benchmark) throws UserCodeException {
+  private void callSetUp(Object benchmark) throws UserCodeException {
     try {
-      SETUP_METHOD.invoke(benchmark);
+      Optional<Method> method = findBenchmarkMethod("setUp");
+      if (method.isPresent()) {
+        method.get().invoke(benchmark);
+      }
     } catch (IllegalAccessException e) {
       throw new AssertionError(e);
     } catch (InvocationTargetException e) {
@@ -166,9 +162,12 @@ public final class BenchmarkClass {
     }
   }
 
-  private void callTearDown(Benchmark benchmark) throws UserCodeException {
+  private void callTearDown(Object benchmark) throws UserCodeException {
     try {
-      TEARDOWN_METHOD.invoke(benchmark);
+      Optional<Method> method = findBenchmarkMethod("tearDown");
+      if (method.isPresent()) {
+        method.get().invoke(benchmark);
+      }
     } catch (IllegalAccessException e) {
       throw new AssertionError(e);
     } catch (InvocationTargetException e) {
@@ -176,19 +175,19 @@ public final class BenchmarkClass {
     }
   }
 
-  private static Method findBenchmarkMethod(String methodName) {
+  private static Optional<Method> findBenchmarkMethod(String methodName) {
     try {
       Method method = Benchmark.class.getDeclaredMethod(methodName);
       method.setAccessible(true);
-      return method;
+      return Optional.of(method);
     } catch (NoSuchMethodException e) {
-      throw new AssertionError(e);
+      return Optional.absent();
     }
   }
 
-  private static Constructor<? extends Benchmark> findConstructor(
-      Class<? extends Benchmark> theClass) throws InvalidBenchmarkException {
-    Constructor<? extends Benchmark> constructor;
+  private static Constructor<?> findConstructor(Class<?> theClass)
+      throws InvalidBenchmarkException {
+    Constructor<?> constructor;
     try {
       constructor = theClass.getDeclaredConstructor();
     } catch (NoSuchMethodException e) {
@@ -199,15 +198,14 @@ public final class BenchmarkClass {
     return constructor;
   }
 
-  private static ImmutableSet<String> getVmOptions(Class<? extends Benchmark> benchmarkClass) {
+  private static ImmutableSet<String> getVmOptions(Class<?> benchmarkClass) {
     VmOptions annotation = benchmarkClass.getAnnotation(VmOptions.class);
     return (annotation == null)
         ? ImmutableSet.<String>of()
         : ImmutableSet.copyOf(annotation.value());
   }
 
-  private static Benchmark createBenchmarkInstance(Constructor<? extends Benchmark> c)
-      throws UserCodeException {
+  private static Object createBenchmarkInstance(Constructor<?> c) throws UserCodeException {
     try {
       return c.newInstance();
     } catch (IllegalAccessException impossible) {

@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
@@ -97,7 +96,7 @@ public final class Parameter {
     return defaults;
   }
 
-  void inject(Benchmark benchmark, String value) {
+  void inject(Object benchmark, String value) {
     try {
       Object o = parser.parse(value);
       field.set(benchmark, o);

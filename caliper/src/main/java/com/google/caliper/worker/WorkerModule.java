@@ -18,7 +18,6 @@ package com.google.caliper.worker;
 
 import static com.google.common.base.Charsets.UTF_8;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
@@ -44,10 +43,10 @@ import java.text.ParseException;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link Param parameters}
- * from the {@link WorkerSpec} into the {@link Benchmark}.
+ * from the {@link WorkerSpec} into the benchmark.
  */
 final class WorkerModule extends AbstractModule {
-  private final Class<? extends Benchmark> benchmarkClass;
+  private final Class<?> benchmarkClass;
   private final Class<? extends Worker> workerClass;
   private final ImmutableMap<String, String> parameters;
   private final String pipePath;
@@ -55,9 +54,8 @@ final class WorkerModule extends AbstractModule {
   @SuppressWarnings("unchecked")
   WorkerModule(WorkerSpec workerSpec) {
     try {
-      this.workerClass = (Class<? extends Worker>) Class.forName(workerSpec.workerClassName);
-      this.benchmarkClass =
-          (Class<? extends Benchmark>) Class.forName(workerSpec.benchmarkSpec.className());
+      this.workerClass = Class.forName(workerSpec.workerClassName).asSubclass(Worker.class);
+      this.benchmarkClass = Class.forName(workerSpec.benchmarkSpec.className());
     } catch (ClassNotFoundException e) {
       throw new AssertionError("classes referenced in the runner are always present");
     }
@@ -67,7 +65,7 @@ final class WorkerModule extends AbstractModule {
 
   @Override protected void configure() {
     bind(benchmarkClass);  // TypeListener doesn't fire without this
-    bind(Benchmark.class).to(benchmarkClass);
+    bind(Object.class).annotatedWith(Benchmark.class).to(benchmarkClass);
     bind(Worker.class).to(workerClass);
     bind(Ticker.class).toInstance(Ticker.systemTicker());
 
@@ -82,10 +80,10 @@ final class WorkerModule extends AbstractModule {
     return printWriter;
   }
 
-  private static final class BenchmarkTypeMatcher extends AbstractMatcher<TypeLiteral<?>> {
+  private final class BenchmarkTypeMatcher extends AbstractMatcher<TypeLiteral<?>> {
     @Override
     public boolean matches(TypeLiteral<?> t) {
-      return Benchmark.class.isAssignableFrom(t.getRawType());
+      return t.getType().equals(benchmarkClass);
     }
   }
 
