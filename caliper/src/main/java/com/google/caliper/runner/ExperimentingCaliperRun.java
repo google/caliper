@@ -178,7 +178,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
     if (allExperiments.isEmpty()) {
       throw new InvalidBenchmarkException(
-          "There were no experiments to be peformed for the class %s using the instruments %s",
+          "There were no experiments to be performed for the class %s using the instruments %s",
           benchmarkClass.benchmarkClass().getSimpleName(), instruments);
     }
 
@@ -193,7 +193,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     }
 
     if (experimentsToRun.isEmpty()) {
-      throw new InvalidBenchmarkException("All experiements were skipped.");
+      throw new InvalidBenchmarkException("All experiments were skipped.");
     }
 
     if (options.dryRun()) {

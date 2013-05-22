@@ -50,7 +50,7 @@ public class MalformedBenchmarksTest {
       + "Classes must have either one (and only one) constructor annotated with @Inject "
       + "or a zero-argument constructor that is not private.";
   private static final String NO_METHODS =
-      "There were no experiments to be peformed for the class %s using the instruments " +
+      "There were no experiments to be performed for the class %s using the instruments " +
       "[allocation, micro]";
   private static final String STATIC_BENCHMARK =
       "Microbenchmark methods must not be static: timeIt";
