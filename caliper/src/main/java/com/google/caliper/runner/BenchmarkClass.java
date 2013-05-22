@@ -22,6 +22,7 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
+import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -43,6 +44,11 @@ import java.lang.reflect.Modifier;
  */
 abstract class BenchmarkClass {
   static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
+    Class<com.google.caliper.Benchmark> benchmarkClass = com.google.caliper.Benchmark.class;
+    if (benchmarkClass.isAssignableFrom(theClass)) {
+      return new BenchmarkSubclass<com.google.caliper.Benchmark>(benchmarkClass,
+          theClass.asSubclass(benchmarkClass));
+    }
     Class<com.google.caliper.legacy.Benchmark> legacyBenchmarkClass =
         com.google.caliper.legacy.Benchmark.class;
     if (legacyBenchmarkClass.isAssignableFrom(theClass)) {

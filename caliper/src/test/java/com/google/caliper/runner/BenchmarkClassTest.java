@@ -29,10 +29,22 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class BenchmarkClassTest {
+  @Test public void beforeMeasurementMethods_Benchmark() throws Exception {
+    assertEquals(
+        ImmutableSet.of(com.google.caliper.Benchmark.class.getDeclaredMethod("setUp")),
+        BenchmarkClass.forClass(MyBenchmark.class).beforeMeasurementMethods());
+  }
+
   @Test public void beforeMeasurementMethods_LegacyBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("setUp")),
         BenchmarkClass.forClass(MyLegacyBenchmark.class).beforeMeasurementMethods());
+  }
+
+  @Test public void afterMeasurementMethods_Benchmark() throws Exception {
+    assertEquals(
+        ImmutableSet.of(com.google.caliper.Benchmark.class.getDeclaredMethod("tearDown")),
+        BenchmarkClass.forClass(MyBenchmark.class).afterMeasurementMethods());
   }
 
   @Test public void afterMeasurementMethods_LegacyBenchmark() throws Exception {
@@ -40,6 +52,8 @@ public class BenchmarkClassTest {
         ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("tearDown")),
         BenchmarkClass.forClass(MyLegacyBenchmark.class).afterMeasurementMethods());
   }
+
+  static class MyBenchmark extends com.google.caliper.Benchmark {}
 
   static class MyLegacyBenchmark extends com.google.caliper.legacy.Benchmark {}
 }
