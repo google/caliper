@@ -15,7 +15,7 @@
 package com.google.caliper.options;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.google.caliper.options.CommandLineParser.Leftovers;
 import com.google.caliper.options.CommandLineParser.Option;
@@ -143,7 +143,7 @@ final class ParsedOptions implements CaliperOptions {
   // Time limit
   // --------------------------------------------------------------------------
 
-  private ShortDuration runTime = ShortDuration.of(30, SECONDS);
+  private ShortDuration runTime = ShortDuration.of(5, MINUTES);
 
   @Option({"-l", "--time-limit"})
   private void setTimeLimit(String timeLimitString) throws InvalidCommandException {
