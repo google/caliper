@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package com.google.caliper.legacy;
+
+import java.lang.annotation.Annotation;
 
 /**
  * Superclass for user benchmark classes to extend. To write a benchmark:
@@ -62,6 +64,9 @@ package com.google.caliper;
  * {@code timeBar}) and two {@link Param Params}. For each experiment performed by caliper (e.g.
  * {@code timeFoo} with {@code feature==FeatureEnum.A} and {@code size == 100}), {@link #setUp} will
  * be called exactly once, but {@code timeFoo} may be called many times.
+ *
+ * <p>Note that while this class is in the legacy package, the {@link Annotation}-based replacement
+ * cannot be introduced due to a naming collision. While it is the legacy API, it is the only API.
  */
 public abstract class Benchmark {
   protected Benchmark() {}

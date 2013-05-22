@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
-import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
@@ -27,7 +26,6 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
@@ -40,16 +38,32 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 /**
- * An instance of this type represents a user-provided class that extends Benchmark. It manages
- * creating, setting up and destroying instances of that class.
+ * An instance of this type represents a user-provided class. It manages creating, setting up and
+ * destroying instances of that class.
  */
-final class BenchmarkClass {
+abstract class BenchmarkClass {
+  static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
+    Class<com.google.caliper.Benchmark> benchmarkClass = com.google.caliper.Benchmark.class;
+    if (benchmarkClass.isAssignableFrom(theClass)) {
+      return new BenchmarkSubclass<com.google.caliper.Benchmark>(benchmarkClass,
+          theClass.asSubclass(benchmarkClass));
+    }
+    Class<com.google.caliper.legacy.Benchmark> legacyBenchmarkClass =
+        com.google.caliper.legacy.Benchmark.class;
+    if (legacyBenchmarkClass.isAssignableFrom(theClass)) {
+      return new BenchmarkSubclass<com.google.caliper.legacy.Benchmark>(legacyBenchmarkClass,
+          theClass.asSubclass(legacyBenchmarkClass));
+    }
+    // TODO(gak): add the implementation that looks for annotations
+    throw new InvalidBenchmarkException("%s is not a supported benchmark", theClass);
+  }
+
   private final Class<?> theClass;
   private final Constructor<?> constructor;
   private final ParameterSet userParameters;
   private final ImmutableSet<String> benchmarkFlags;
 
-  public BenchmarkClass(Class<?> theClass) throws InvalidBenchmarkException {
+  private BenchmarkClass(Class<?> theClass) throws InvalidBenchmarkException {
     this.theClass = checkNotNull(theClass);
 
     if (Modifier.isAbstract(theClass.getModifiers())) {
@@ -69,6 +83,10 @@ final class BenchmarkClass {
 
     this.benchmarkFlags = getVmOptions(theClass);
   }
+
+  abstract ImmutableSet<Method> beforeMeasurementMethods();
+
+  abstract ImmutableSet<Method> afterMeasurementMethods();
 
   public ParameterSet userParameters() {
     return userParameters;
@@ -149,39 +167,28 @@ final class BenchmarkClass {
 
   // We have to do this reflectively because it'd be too much of a pain to make setUp public
   private void callSetUp(Object benchmark) throws UserCodeException {
-    try {
-      Optional<Method> method = findBenchmarkMethod("setUp");
-      if (method.isPresent()) {
-        method.get().invoke(benchmark);
+    for (Method method : beforeMeasurementMethods()) {
+      try {
+        method.invoke(benchmark);
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
+      } catch (InvocationTargetException e) {
+        propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
+        throw new UserCodeException("Exception thrown during setUp", e.getCause());
       }
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
-      throw new UserCodeException("Exception thrown during setUp", e.getCause());
     }
   }
 
   private void callTearDown(Object benchmark) throws UserCodeException {
-    try {
-      Optional<Method> method = findBenchmarkMethod("tearDown");
-      if (method.isPresent()) {
-        method.get().invoke(benchmark);
+    for (Method method : afterMeasurementMethods()) {
+      try {
+        method.invoke(benchmark);
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
+      } catch (InvocationTargetException e) {
+        propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
+        throw new UserCodeException("Exception thrown during tearDown", e.getCause());
       }
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      throw new UserCodeException("Exception thrown during tearDown", e.getCause());
-    }
-  }
-
-  private static Optional<Method> findBenchmarkMethod(String methodName) {
-    try {
-      Method method = Benchmark.class.getDeclaredMethod(methodName);
-      method.setAccessible(true);
-      return Optional.of(method);
-    } catch (NoSuchMethodException e) {
-      return Optional.absent();
     }
   }
 
@@ -229,6 +236,42 @@ final class BenchmarkClass {
       } catch (InvalidBenchmarkException e) {
         // TODO(kevinb): this is weird.
         throw new InvalidCommandException(e.getMessage());
+      }
+    }
+  }
+
+  /**
+   * A benchmark class implementation that relies on an abstract class that declares {@code setUp}
+   * and {@code tearDown}.
+   */
+  private static final class BenchmarkSubclass<T> extends BenchmarkClass {
+    final Class<?> superclass;
+
+    BenchmarkSubclass(Class<T> superclass, Class<? extends T> theClass)
+        throws InvalidBenchmarkException {
+      super(theClass);
+      this.superclass = superclass;
+    }
+
+    @Override
+    ImmutableSet<Method> beforeMeasurementMethods() {
+      try {
+        Method method = superclass.getDeclaredMethod("setUp");
+        method.setAccessible(true);
+        return ImmutableSet.of(method);
+      } catch (NoSuchMethodException e) {
+        throw new AssertionError("Malformed superclass");
+      }
+    }
+
+    @Override
+    ImmutableSet<Method> afterMeasurementMethods() {
+      try {
+        Method method = superclass.getDeclaredMethod("tearDown");
+        method.setAccessible(true);
+        return ImmutableSet.of(method);
+      } catch (NoSuchMethodException e) {
+        throw new AssertionError("Malformed superclass");
       }
     }
   }

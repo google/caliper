@@ -49,11 +49,11 @@ public class ExperimentingRunnerModuleTest {
   private BenchmarkMethod methodC;
 
   @Before public void setUp() throws Exception {
-    methodA = new BenchmarkMethod(new BenchmarkClass(TestBenchmark.class),
+    methodA = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
         TestBenchmark.class.getDeclaredMethod("a"));
-    methodB = new BenchmarkMethod(new BenchmarkClass(TestBenchmark.class),
+    methodB = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
         TestBenchmark.class.getDeclaredMethod("b"));
-    methodC = new BenchmarkMethod(new BenchmarkClass(TestBenchmark.class),
+    methodC = new BenchmarkMethod(BenchmarkClass.forClass(TestBenchmark.class),
         TestBenchmark.class.getDeclaredMethod("c"));
   }
 
@@ -64,7 +64,8 @@ public class ExperimentingRunnerModuleTest {
             .putAll(instrumentA, methodA, methodB, methodC)
             .putAll(instrumentB, methodA, methodB, methodC)
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options, new BenchmarkClass(TestBenchmark.class),
+        module.provideBenchmarkMethodsByInstrument(options,
+            BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
@@ -77,14 +78,16 @@ public class ExperimentingRunnerModuleTest {
             .putAll(instrumentA, methodB)
             .putAll(instrumentB, methodB)
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options, new BenchmarkClass(TestBenchmark.class),
+        module.provideBenchmarkMethodsByInstrument(options,
+            BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
         new ImmutableSetMultimap.Builder<Instrument, BenchmarkMethod>()
             .putAll(instrumentA, methodA, methodC)
             .putAll(instrumentB, methodA, methodC)
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options, new BenchmarkClass(TestBenchmark.class),
+        module.provideBenchmarkMethodsByInstrument(options,
+            BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 

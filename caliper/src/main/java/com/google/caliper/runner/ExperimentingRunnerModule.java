@@ -130,7 +130,8 @@ final class ExperimentingRunnerModule extends AbstractModule {
 
   @Provides BenchmarkClass provideBenchmarkClass(CaliperOptions options)
       throws InvalidBenchmarkException, InvalidCommandException {
-    BenchmarkClass benchmarkClass = new BenchmarkClass(classForName(options.benchmarkClassName()));
+    BenchmarkClass benchmarkClass =
+        BenchmarkClass.forClass(classForName(options.benchmarkClassName()));
     benchmarkClass.validateParameters(options.userParameters());
     return benchmarkClass;
   }
