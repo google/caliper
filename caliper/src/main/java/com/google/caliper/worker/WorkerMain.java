@@ -21,6 +21,8 @@ import static com.google.inject.Stage.PRODUCTION;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;
+import com.google.caliper.runner.ExperimentModule;
+import com.google.caliper.runner.Running;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -40,11 +42,13 @@ public final class WorkerMain {
     WorkerSpec request =
         gsonInjector.getInstance(Gson.class).fromJson(args[0], WorkerSpec.class);
 
-    Injector workerInjector = gsonInjector.createChildInjector(new WorkerModule(request),
-        new BridgeModule());
+    Injector workerInjector = gsonInjector.createChildInjector(
+        ExperimentModule.forBenchmarkSpec(request.benchmarkSpec),
+        new BridgeModule(),
+        new WorkerModule(request));
 
     Worker worker = workerInjector.getInstance(Worker.class);
-    Object benchmark = workerInjector.getInstance(Key.get(Object.class, Benchmark.class));
+    Object benchmark = workerInjector.getInstance(Key.get(Object.class, Running.Benchmark.class));
     WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
 
     log.notifyWorkerStarted();

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.runner;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -26,8 +26,14 @@ import com.google.inject.BindingAnnotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/** Binding annotation for a benchmark. */
-@Retention(RUNTIME)
-@Target({FIELD, PARAMETER, METHOD})
-@BindingAnnotation
-@interface Benchmark {}
+/**
+ * A collection of annotations for bindings pertaining to the currently running experiment.
+ */
+public class Running {
+  private Running() {}
+
+  @Retention(RUNTIME)
+  @Target({FIELD, PARAMETER, METHOD})
+  @BindingAnnotation
+  public @interface Benchmark {}
+}

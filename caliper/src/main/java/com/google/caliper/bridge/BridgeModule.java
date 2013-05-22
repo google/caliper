@@ -28,6 +28,8 @@ import com.google.inject.Provides;
 public final class BridgeModule extends AbstractModule {
   @Override protected void configure() {
     requireBinding(Gson.class);
+    bind(LogMessageParser.class);
+    bind(ControlLogMessageRenderer.class);
   }
 
   @Provides Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {

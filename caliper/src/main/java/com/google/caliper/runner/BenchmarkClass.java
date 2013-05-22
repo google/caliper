@@ -28,11 +28,9 @@ import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -54,7 +52,6 @@ abstract class BenchmarkClass {
   }
 
   private final Class<?> theClass;
-  private final Constructor<?> constructor;
   private final ParameterSet userParameters;
   private final ImmutableSet<String> benchmarkFlags;
 
@@ -71,8 +68,6 @@ abstract class BenchmarkClass {
 
     // TODO(kevinb): check that it's a *direct* subclass, because semantics of @Params and such
     // are too much of a pain to specify otherwise.
-
-    this.constructor = findConstructor(theClass);
 
     this.userParameters = ParameterSet.create(theClass, Param.class);
 
@@ -109,24 +104,19 @@ abstract class BenchmarkClass {
     return result.build();
   }
 
-  public Object createAndStage(ImmutableSortedMap<String, String> userParameterValues)
-      throws UserCodeException {
-    Object benchmark = createBenchmarkInstance(constructor);
-    userParameters.injectAll(benchmark, userParameterValues);
-
+  public void setUpBenchmark(Object benchmarkInstance) throws UserCodeException {
     boolean setupSuccess = false;
     try {
-      callSetUp(benchmark);
+      callSetUp(benchmarkInstance);
       setupSuccess = true;
     } finally {
       // If setUp fails, we should call tearDown. If this method throws an exception, we
       // need to call tearDown from here, because no one else has the reference to the
       // Benchmark.
       if (!setupSuccess) {
-        callTearDown(benchmark);
+        callTearDown(benchmarkInstance);
       }
     }
-    return benchmark;
   }
 
   public void cleanup(Object benchmark) throws UserCodeException {
@@ -187,36 +177,11 @@ abstract class BenchmarkClass {
     }
   }
 
-  private static Constructor<?> findConstructor(Class<?> theClass)
-      throws InvalidBenchmarkException {
-    Constructor<?> constructor;
-    try {
-      constructor = theClass.getDeclaredConstructor();
-    } catch (NoSuchMethodException e) {
-      throw new InvalidBenchmarkException(
-          "Class '%s' has no parameterless constructor", theClass);
-    }
-    constructor.setAccessible(true);
-    return constructor;
-  }
-
   private static ImmutableSet<String> getVmOptions(Class<?> benchmarkClass) {
     VmOptions annotation = benchmarkClass.getAnnotation(VmOptions.class);
     return (annotation == null)
         ? ImmutableSet.<String>of()
         : ImmutableSet.copyOf(annotation.value());
-  }
-
-  private static Object createBenchmarkInstance(Constructor<?> c) throws UserCodeException {
-    try {
-      return c.newInstance();
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible);
-    } catch (InstantiationException impossible) {
-      throw new AssertionError(impossible);
-    } catch (InvocationTargetException e) {
-      throw new UserCodeException("Exception thrown from benchmark constructor", e.getCause());
-    }
   }
 
   void validateParameters(ImmutableSetMultimap<String, String> parameters)

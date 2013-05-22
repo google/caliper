@@ -45,7 +45,10 @@ public class MalformedBenchmarksTest {
   private static final String ABSTRACT =
       "Class '%s' is abstract";
   private static final String NO_CONSTRUCTOR =
-      "Class '%s' has no parameterless constructor";
+      "Could not create an instance of the benchmark class following reasons:\n"
+      + "  1) Could not find a suitable constructor in %s. "
+      + "Classes must have either one (and only one) constructor annotated with @Inject "
+      + "or a zero-argument constructor that is not private.";
   private static final String NO_METHODS =
       "There were no experiments to be peformed for the class %s using the instruments " +
       "[allocation, micro]";
@@ -68,10 +71,12 @@ public class MalformedBenchmarksTest {
   abstract static class AbstractBenchmark extends Benchmark {}
 
   @Test public void noSuitableConstructor() throws Exception {
-    expectException(NO_CONSTRUCTOR, BadConstructorBenchmark.class);
+    expectException(String.format(NO_CONSTRUCTOR, BadConstructorBenchmark.class.getName()),
+        BadConstructorBenchmark.class);
   }
   static class BadConstructorBenchmark extends Benchmark {
     BadConstructorBenchmark(String damnParam) {}
+    public void timeIt(int reps) {}
   }
 
   @Test public void noBenchmarkMethods() throws Exception {

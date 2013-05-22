@@ -20,56 +20,41 @@ import static com.google.common.base.Charsets.UTF_8;
 
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
-import com.google.caliper.util.Parser;
-import com.google.caliper.util.Parsers;
 import com.google.common.base.Ticker;
-import com.google.common.collect.ImmutableMap;
 import com.google.inject.AbstractModule;
-import com.google.inject.MembersInjector;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.TypeLiteral;
-import com.google.inject.matcher.AbstractMatcher;
-import com.google.inject.spi.TypeEncounter;
-import com.google.inject.spi.TypeListener;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.lang.reflect.Field;
-import java.text.ParseException;
+import java.util.Random;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link Param parameters}
  * from the {@link WorkerSpec} into the benchmark.
  */
 final class WorkerModule extends AbstractModule {
-  private final Class<?> benchmarkClass;
   private final Class<? extends Worker> workerClass;
-  private final ImmutableMap<String, String> parameters;
   private final String pipePath;
 
   @SuppressWarnings("unchecked")
   WorkerModule(WorkerSpec workerSpec) {
     try {
       this.workerClass = Class.forName(workerSpec.workerClassName).asSubclass(Worker.class);
-      this.benchmarkClass = Class.forName(workerSpec.benchmarkSpec.className());
     } catch (ClassNotFoundException e) {
       throw new AssertionError("classes referenced in the runner are always present");
     }
-    this.parameters = ImmutableMap.copyOf(workerSpec.benchmarkSpec.parameters());
     this.pipePath = workerSpec.pipePath;
   }
 
   @Override protected void configure() {
-    bind(benchmarkClass);  // TypeListener doesn't fire without this
-    bind(Object.class).annotatedWith(Benchmark.class).to(benchmarkClass);
     bind(Worker.class).to(workerClass);
     bind(Ticker.class).toInstance(Ticker.systemTicker());
-
-    bindListener(new BenchmarkTypeMatcher(), new BenchmarkParameterInjector());
+    bind(WorkerEventLog.class);
+    bind(Random.class);
   }
 
   @Provides @Singleton PrintWriter providePrintWriter() throws FileNotFoundException {
@@ -78,39 +63,5 @@ final class WorkerModule extends AbstractModule {
     printWriter.println();  // prime the pipe
     printWriter.flush();
     return printWriter;
-  }
-
-  private final class BenchmarkTypeMatcher extends AbstractMatcher<TypeLiteral<?>> {
-    @Override
-    public boolean matches(TypeLiteral<?> t) {
-      return t.getType().equals(benchmarkClass);
-    }
-  }
-
-  private final class BenchmarkParameterInjector implements TypeListener {
-    @Override
-    public <I> void hear(TypeLiteral<I> type, final TypeEncounter<I> encounter) {
-      for (final Field field : type.getRawType().getDeclaredFields()) {
-        if (field.isAnnotationPresent(Param.class)) {
-          encounter.register(new MembersInjector<I>() {
-            @Override public void injectMembers(I instance) {
-              try {
-                field.setAccessible(true);
-                Parser<?> parser = Parsers.conventionalParser(field.getType());
-                field.set(instance, parser.parse(parameters.get(field.getName())));
-              } catch (NoSuchMethodException e) {
-                encounter.addError(e);
-              } catch (ParseException e) {
-                encounter.addError(e);
-              } catch (IllegalArgumentException e) {
-                throw new AssertionError("types have been checked");
-              } catch (IllegalAccessException e) {
-                throw new AssertionError("already set access");
-              }
-            }
-          });
-        }
-      }
-    }
   }
 }

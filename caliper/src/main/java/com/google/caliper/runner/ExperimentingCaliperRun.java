@@ -66,7 +66,12 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
+import com.google.inject.CreationException;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Key;
+import com.google.inject.ProvisionException;
+import com.google.inject.spi.Message;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,6 +99,7 @@ import javax.annotation.Nullable;
 public final class ExperimentingCaliperRun implements CaliperRun {
   private static final Logger logger = Logger.getLogger(ExperimentingCaliperRun.class.getName());
 
+  private final Injector injector;
   private final CaliperOptions options;
   private final PrintWriter stdout;
   private final PrintWriter stderr;
@@ -124,6 +130,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   @Inject @VisibleForTesting
   public ExperimentingCaliperRun(
+      Injector injector,
       CaliperOptions options,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
@@ -135,6 +142,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       Host host,
       Run run,
       Gson gson) {
+    this.injector = injector;
     this.options = options;
     this.stdout = stdout;
     this.stderr = stderr;
@@ -419,8 +427,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       throws InvalidBenchmarkException {
     ImmutableSet.Builder<Experiment> builder = ImmutableSet.builder();
     for (Experiment experiment : experiments) {
+      Class<?> clazz = benchmarkClass.benchmarkClass();
       try {
-        Object benchmark = benchmarkClass.createAndStage(experiment.userParameters());
+        Object benchmark = injector.createChildInjector(ExperimentModule.forExperiment(experiment))
+            .getInstance(Key.get(clazz));
+        benchmarkClass.setUpBenchmark(benchmark);
         try {
           experiment.instrument().dryRun(benchmark, experiment.benchmarkMethod());
           builder.add(experiment);
@@ -428,6 +439,22 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           // discard 'benchmark' now; the worker will have to instantiate its own anyway
           benchmarkClass.cleanup(benchmark);
         }
+      } catch (ProvisionException e) {
+        Throwable cause = e.getCause();
+        if (cause != null) {
+          throw new UserCodeException(cause);
+        }
+        throw e;
+      } catch (CreationException e) {
+        // Guice formatting is a little ugly
+        StringBuilder message = new StringBuilder(
+            "Could not create an instance of the benchmark class following reasons:");
+        int errorNum = 0;
+        for (Message guiceMessage : e.getErrorMessages()) {
+          message.append("\n  ").append(++errorNum).append(") ")
+              .append(guiceMessage.getMessage());;
+        }
+        throw new InvalidBenchmarkException(message.toString(), e);
       } catch (SkipThisScenarioException innocuous) {}
     }
     return builder.build();
