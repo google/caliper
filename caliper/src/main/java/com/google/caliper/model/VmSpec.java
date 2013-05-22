@@ -73,11 +73,7 @@ public final class VmSpec {
   private VmSpec(Builder builder) {
     this.properties = Maps.newTreeMap(builder.properties);
     this.options = Maps.newTreeMap(builder.options);
-    this.hash = getPersistentHashFunction()
-        .newHasher()
-        .putObject(this, VmSpecFunnel.INSTANCE)
-        .hash()
-        .asInt();
+    this.hash = getPersistentHashFunction().hashObject(this, VmSpecFunnel.INSTANCE).asInt();
   }
 
   public ImmutableSortedMap<String, String> options() {

@@ -75,10 +75,7 @@ public final class Host {
 
   private Host(Builder builder) {
     this.properties = Maps.newTreeMap(builder.properties);
-    this.hash = builder.hashFunction.newHasher()
-        .putObject(this, HostFunnel.INSTANCE)
-        .hash()
-        .asInt();
+    this.hash = builder.hashFunction.hashObject(this, HostFunnel.INSTANCE).asInt();
   }
 
   public ImmutableSortedMap<String, String> properties() {

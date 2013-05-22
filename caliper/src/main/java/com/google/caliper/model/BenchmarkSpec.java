@@ -80,11 +80,7 @@ public final class BenchmarkSpec {
     this.className = builder.className;
     this.methodName = builder.methodName;
     this.parameters = Maps.newTreeMap(builder.parameters);
-    this.hash = getPersistentHashFunction()
-        .newHasher()
-        .putObject(this, BenchmarkSpecFunnel.INSTANCE)
-        .hash()
-        .asInt();
+    this.hash = getPersistentHashFunction().hashObject(this, BenchmarkSpecFunnel.INSTANCE).asInt();
   }
 
   public String className() {
