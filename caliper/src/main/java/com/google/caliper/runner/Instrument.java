@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
@@ -25,6 +26,7 @@ import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -60,29 +62,69 @@ public abstract class Instrument {
 
   public abstract boolean isBenchmarkMethod(Method method);
 
-  // TODO: make BenchmarkMethod more abstract, not necessarily tied persistently to a Method (even
-  // though the presence of a particular method is what probably triggers its recognition/creation
-  // in the first place?), and give it an invoke() method.
-
-  public abstract Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  public abstract Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException;
 
-  public abstract void dryRun(Object benchmark, Method method)
-      throws InvalidBenchmarkException;
+  /**
+   * The application of an instrument to a particular benchmark method.
+   */
+  // TODO(gak): consider passing in Instrument explicitly for DI
+  public abstract class Instrumentation {
+    protected Method benchmarkMethod;
+
+    protected Instrumentation(Method benchmarkMethod) {
+      this.benchmarkMethod = checkNotNull(benchmarkMethod);
+    }
+
+    Instrument instrument() {
+      return Instrument.this;
+    }
+
+    Method benchmarkMethod() {
+      return benchmarkMethod;
+    }
+
+    @Override
+    public final boolean equals(Object obj) {
+      if (obj == this) {
+        return true;
+      } else if (obj instanceof Instrumentation) {
+        Instrumentation that = (Instrumentation) obj;
+        return Instrument.this.equals(that.instrument())
+            && this.benchmarkMethod.equals(that.benchmarkMethod);
+      }
+      return super.equals(obj);
+    }
+
+    @Override
+    public final int hashCode() {
+      return Objects.hashCode(Instrument.this, benchmarkMethod);
+    }
+
+    @Override
+    public String toString() {
+      return Objects.toStringHelper(Instrumentation.class)
+          .add("instrument", Instrument.this)
+          .add("benchmarkMethod", benchmarkMethod)
+          .toString();
+    }
+
+    public abstract void dryRun(Object benchmark) throws InvalidBenchmarkException;
+
+    public abstract Class<? extends Worker> workerClass();
+
+    /**
+     * Return the subset of options (and possibly a transformation thereof) to be used in the
+     * worker. Returns all instrument options by default.
+     */
+    public ImmutableMap<String, String> workerOptions() {
+      return options;
+    }
+  }
 
   public final ImmutableMap<String, String> options() {
     return options;
   }
-
-  /**
-   * Return the subset of options (and possibly a transformation thereof) to be used in the worker.
-   * Returns all instrument options by default.
-   */
-  public ImmutableMap<String, String> workerOptions() {
-    return options;
-  }
-
-  public abstract Class<? extends Worker> workerClass();
 
   final InstrumentSpec getSpec() {
     return new InstrumentSpec.Builder()
@@ -126,7 +168,7 @@ public abstract class Instrument {
    *
    * <p>This method does not check the correctness of the argument types.
    */
-  public static boolean isTimeMethod(Method method) {
+  static boolean isTimeMethod(Method method) {
     return method.getName().startsWith("time") && Util.isPublic(method);
   }
 
@@ -134,8 +176,7 @@ public abstract class Instrument {
    * For instruments that use {@link #isTimeMethod} to identify their methods, this method checks
    * the {@link Method} appropriately.
    */
-  public static Method checkTimeMethod(
-      BenchmarkClass benchmarkClass, Method timeMethod) throws InvalidBenchmarkException {
+  static Method checkTimeMethod(Method timeMethod) throws InvalidBenchmarkException {
     checkArgument(isTimeMethod(timeMethod));
     Class<?>[] parameterTypes = timeMethod.getParameterTypes();
     if (!Arrays.equals(parameterTypes, new Class<?>[] {int.class})
@@ -143,7 +184,7 @@ public abstract class Instrument {
       throw new InvalidBenchmarkException(
           "Microbenchmark methods must accept a single int parameter: " + timeMethod.getName());
     }
-    
+
     // Static technically doesn't hurt anything, but it's just the completely wrong idea
     if (Util.isStatic(timeMethod)) {
       throw new InvalidBenchmarkException(

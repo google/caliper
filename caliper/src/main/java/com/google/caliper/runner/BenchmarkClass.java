@@ -24,12 +24,9 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Ordering;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -84,24 +81,6 @@ abstract class BenchmarkClass {
 
   public ImmutableSet<String> vmOptions() {
     return benchmarkFlags;
-  }
-
-  // TODO: perhaps move this to Instrument and let instruments override it?
-
-  public ImmutableSortedSet<Method> findAllBenchmarkMethods(
-      Instrument instrument) throws InvalidBenchmarkException {
-    ImmutableSortedSet.Builder<Method> result = ImmutableSortedSet.orderedBy(
-        Ordering.natural().onResultOf(new Function<Method, String>() {
-          @Override public String apply(Method method) {
-            return method.getName();
-          }
-        }));
-    for (Method method : theClass.getDeclaredMethods()) {
-      if (instrument.isBenchmarkMethod(method)) {
-        result.add(instrument.checkBenchmarkMethod(this, method));
-      }
-    }
-    return result.build();
   }
 
   public void setUpBenchmark(Object benchmarkInstance) throws UserCodeException {

@@ -46,7 +46,7 @@ public final class ExperimentModule extends AbstractModule {
   }
 
   public static ExperimentModule forExperiment(Experiment experiment) {
-    return new ExperimentModule(experiment.benchmarkMethod().getDeclaringClass(),
+    return new ExperimentModule(experiment.instrumentation().benchmarkMethod().getDeclaringClass(),
         experiment.userParameters());
   }
 

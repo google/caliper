@@ -72,37 +72,46 @@ public final class MicrobenchmarkInstrument extends Instrument {
     return Instrument.isTimeMethod(method);
   }
 
-  @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass,
-      Method method) throws InvalidBenchmarkException {
-    return Instrument.checkTimeMethod(benchmarkClass, method);
+  @Override
+  public Instrumentation createInstrumentation(Method benchmarkMethod)
+      throws InvalidBenchmarkException {
+    Instrument.checkTimeMethod(benchmarkMethod);
+    return new MicrobenchmarkInstrumentation(benchmarkMethod);
   }
 
-  @Override public void dryRun(Object benchmark, Method benchmarkMethod) throws UserCodeException {
-    try {
-      benchmarkMethod.invoke(benchmark, 1);
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible);
-    } catch (InvocationTargetException e) {
-      Throwable userException = e.getCause();
-      propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-      throw new UserCodeException(userException);
+  private final class MicrobenchmarkInstrumentation extends Instrumentation {
+    MicrobenchmarkInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
+    }
+
+    @Override
+    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
+      try {
+        benchmarkMethod.invoke(benchmark, 1);
+      } catch (IllegalAccessException impossible) {
+        throw new AssertionError(impossible);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause();
+        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+        throw new UserCodeException(userException);
+      }
+    }
+
+    @Override
+    public Class<? extends Worker> workerClass() {
+      return MicrobenchmarkWorker.class;
+    }
+
+    @Override public ImmutableMap<String, String> workerOptions() {
+      return ImmutableMap.of(
+          TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION),
+          GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
   }
 
   @Override public ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(
         WARMUP_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION, GC_BEFORE_EACH_OPTION);
-  }
-
-  @Override public ImmutableMap<String, String> workerOptions() {
-    return new ImmutableMap.Builder<String, String>()
-        .put(TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION))
-        .put(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION))
-        .build();
-  }
-
-  @Override public Class<? extends Worker> workerClass() {
-    return MicrobenchmarkWorker.class;
   }
 
   private String toNanosString(String optionName) {

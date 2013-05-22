@@ -37,6 +37,7 @@ import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Pipes;
@@ -248,10 +249,13 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private ProcessBuilder createWorkerProcessBuilder(Experiment experiment,
       BenchmarkSpec benchmarkSpec, File pipeFile) {
-    Instrument instrument = experiment.instrument();
+    Instrumentation instrumentation = experiment.instrumentation();
+    Instrument instrument = instrumentation.instrument();
 
-    WorkerSpec request = new WorkerSpec(instrument.workerClass().getName(),
-        instrument.workerOptions(), benchmarkSpec, pipeFile.getAbsolutePath());
+    WorkerSpec request = new WorkerSpec(
+        instrumentation.workerClass().getName(),
+        instrumentation.workerOptions(),
+        benchmarkSpec, pipeFile.getAbsolutePath());
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
 
@@ -301,8 +305,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private Trial measure(Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
-        .className(experiment.benchmarkMethod().getDeclaringClass().getName())
-        .methodName(experiment.benchmarkMethod().getName())
+        .className(experiment.instrumentation().benchmarkMethod().getDeclaringClass().getName())
+        .methodName(experiment.instrumentation().benchmarkMethod().getName())
         .addAllParameters(experiment.userParameters())
         .build();
 
@@ -363,7 +367,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       });
 
       MeasurementCollectingVisitor measurementCollectingVisitor =
-          experiment.instrument().getMeasurementCollectingVisitor();
+          experiment.instrumentation().instrument().getMeasurementCollectingVisitor();
       DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
 
       /*
@@ -392,7 +396,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           .build();
       return new Trial.Builder(UUID.randomUUID())
           .run(run)
-          .instrumentSpec(experiment.instrument().getSpec())
+          .instrumentSpec(experiment.instrumentation().instrument().getSpec())
           .scenario(new Scenario.Builder()
               .host(host)
               .vmSpec(vmSpec)
@@ -433,7 +437,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
             .getInstance(Key.get(clazz));
         benchmarkClass.setUpBenchmark(benchmark);
         try {
-          experiment.instrument().dryRun(benchmark, experiment.benchmarkMethod());
+          experiment.instrumentation().dryRun(benchmark);
           builder.add(experiment);
         } finally {
           // discard 'benchmark' now; the worker will have to instantiate its own anyway

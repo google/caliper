@@ -16,6 +16,9 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.common.base.Function;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
@@ -24,11 +27,9 @@ import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.Set;
 
 /**
@@ -36,21 +37,28 @@ import java.util.Set;
  * instruments, benchmark methods, user parameters, VM specs and VM arguments.
  */
 public final class FullCartesianExperimentSelector implements ExperimentSelector {
-  private ImmutableSetMultimap<Instrument, Method> benchmarkMethodsByInstrument;
+  private ImmutableSet<Instrumentation> instrumentations;
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, String> userParameters;
 
   @Inject FullCartesianExperimentSelector(
-      ImmutableSetMultimap<Instrument, Method> benchmarkMethodsByInstrument,
+      ImmutableSet<Instrumentation> instrumentations,
       ImmutableSet<VirtualMachine> vms,
       @BenchmarkParameters ImmutableSetMultimap<String, String> userParameters) {
-    this.benchmarkMethodsByInstrument = benchmarkMethodsByInstrument;
+    this.instrumentations = instrumentations;
     this.vms = vms;
     this.userParameters = userParameters;
   }
 
+  // TODO(gak): put this someplace more sensible
   @Override public ImmutableSet<Instrument> instruments() {
-    return benchmarkMethodsByInstrument.keySet();
+    return FluentIterable.from(instrumentations)
+        .transform(new Function<Instrumentation, Instrument>() {
+          @Override public Instrument apply(Instrumentation input) {
+            return input.instrument();
+          }
+        })
+        .toSet();
   }
 
   @Override public ImmutableSet<VirtualMachine> vms() {
@@ -63,13 +71,12 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
 
   @Override public ImmutableSet<Experiment> selectExperiments() {
     List<Experiment> experiments = Lists.newArrayList();
-    for (Entry<Instrument, Method> entry : benchmarkMethodsByInstrument.entries()) {
+    for (Instrumentation instrumentation : instrumentations) {
       for (VirtualMachine vm : vms) {
         for (List<String> userParamsChoice : cartesian(userParameters)) {
           ImmutableMap<String, String> theseUserParams =
               zip(userParameters.keySet(), userParamsChoice);
-          experiments.add(
-              new Experiment(entry.getKey(), entry.getValue(), theseUserParams, vm));
+          experiments.add(new Experiment(instrumentation, theseUserParams, vm));
         }
       }
     }

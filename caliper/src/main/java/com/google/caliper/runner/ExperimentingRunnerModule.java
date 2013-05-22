@@ -22,14 +22,16 @@ import com.google.caliper.config.InstrumentConfig;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
-import com.google.common.base.Predicate;
+import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Iterables;
+import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Ordering;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
@@ -142,23 +144,34 @@ final class ExperimentingRunnerModule extends AbstractModule {
     return tester.testNanoTimeGranularity();
   }
 
-  @Provides ImmutableSetMultimap<Instrument, Method> provideBenchmarkMethodsByInstrument(
-      CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
+  @Provides ImmutableSet<Instrumentation> provideInstrumentations(CaliperOptions options,
+      BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
           throws InvalidBenchmarkException {
-    ImmutableSetMultimap.Builder<Instrument, Method> builder =
-        ImmutableSetMultimap.builder();
-    final ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
+    ImmutableSet.Builder<Instrumentation> builder = ImmutableSet.builder();
+    ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
     for (Instrument instrument : instruments) {
-      builder.putAll(instrument,
-          Iterables.filter(benchmarkClass.findAllBenchmarkMethods(instrument),
-              new Predicate<Method>() {
-                @Override public boolean apply(Method method) {
-                  // empty set means all methods
-                  return benchmarkMethodNames.isEmpty()
-                      || benchmarkMethodNames.contains(method.getName());
-                }
-              }));
+      for (Method method : findAllBenchmarkMethods(benchmarkClass.benchmarkClass(), instrument)) {
+        if (benchmarkMethodNames.isEmpty() || benchmarkMethodNames.contains(method.getName())) {
+          builder.add(instrument.createInstrumentation(method));
+        }
+      }
     }
     return builder.build();
+  }
+
+  private static ImmutableSortedSet<Method> findAllBenchmarkMethods(Class<?> benchmarkClass,
+      Instrument instrument) {
+    ImmutableSortedSet.Builder<Method> result = ImmutableSortedSet.orderedBy(
+        Ordering.natural().onResultOf(new Function<Method, String>() {
+          @Override public String apply(Method method) {
+            return method.getName();
+          }
+        }));
+    for (Method method : benchmarkClass.getDeclaredMethods()) {
+      if (instrument.isBenchmarkMethod(method)) {
+        result.add(method);
+      }
+    }
+    return result.build();
   }
 }

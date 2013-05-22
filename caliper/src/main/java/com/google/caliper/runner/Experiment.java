@@ -16,10 +16,12 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSortedMap;
 
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -29,30 +31,21 @@ import java.util.Map;
  * {@link FullCartesianExperimentSelector}, and will run one or more trials of each.
  */
 final class Experiment {
-  private final Instrument instrument;
-
-  // the following (with the Host) create a Scenario
-  private final Method benchmarkMethod;
+  private final Instrumentation instrumentation;
   private final VirtualMachine vm;
   private final ImmutableSortedMap<String, String> userParameters;
 
   Experiment(
-      Instrument instrument,
-      Method benchmarkMethod,
+      Instrumentation instrumentation,
       Map<String, String> userParameters,
       VirtualMachine vm) {
-    this.instrument = instrument;
-    this.benchmarkMethod = benchmarkMethod;
+    this.instrumentation = checkNotNull(instrumentation);
     this.userParameters = ImmutableSortedMap.copyOf(userParameters);
-    this.vm = vm;
+    this.vm = checkNotNull(vm);
   }
 
-  Instrument instrument() {
-    return instrument;
-  }
-
-  Method benchmarkMethod() {
-    return benchmarkMethod;
+  Instrumentation instrumentation() {
+    return instrumentation;
   }
 
   ImmutableSortedMap<String, String> userParameters() {
@@ -66,8 +59,7 @@ final class Experiment {
   @Override public boolean equals(Object object) {
     if (object instanceof Experiment) {
       Experiment that = (Experiment) object;
-      return this.instrument.equals(that.instrument)
-          && this.benchmarkMethod.equals(that.benchmarkMethod)
+      return this.instrumentation.equals(that.instrumentation)
           && this.vm.equals(that.vm)
           && this.userParameters.equals(that.userParameters);
     }
@@ -75,13 +67,12 @@ final class Experiment {
   }
 
   @Override public int hashCode() {
-    return Objects.hashCode(instrument, benchmarkMethod, vm, userParameters);
+    return Objects.hashCode(instrumentation, vm, userParameters);
   }
 
   @Override public String toString() {
     return Objects.toStringHelper("")
-        .add("instrument", instrument.name())
-        .add("method", benchmarkMethod)
+        .add("instrumentation", instrumentation)
         .add("vm", vm.name)
         .add("parameters", userParameters)
         .toString();

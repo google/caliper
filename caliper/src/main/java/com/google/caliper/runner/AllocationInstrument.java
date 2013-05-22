@@ -45,27 +45,41 @@ public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
   private static final Logger logger = Logger.getLogger(AllocationInstrumenter.class.getName());
 
-  @Override public boolean isBenchmarkMethod(Method method) {
+  @Override
+  public boolean isBenchmarkMethod(Method method) {
     return Instrument.isTimeMethod(method);
   }
 
-  @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  @Override
+  public Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException {
-    return Instrument.checkTimeMethod(benchmarkClass, method);
+    Instrument.checkTimeMethod(benchmarkMethod);
+    return new AllocationInstrumentation(benchmarkMethod);
   }
 
-  @Override
-  public void dryRun(Object benchmark, Method benchmarkMethod) throws UserCodeException {
-    // execute the benchmark method, but don't try to take any measurements, because this JVM
-    // may not have the allocation instrumenter agent.
-    try {
-      benchmarkMethod.invoke(benchmark, 1);
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible);
-    } catch (InvocationTargetException e) {
-      Throwable userException = e.getCause();
-      propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-      throw new UserCodeException(userException);
+  private final class AllocationInstrumentation extends Instrumentation {
+    AllocationInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
+    }
+
+    @Override
+    public void dryRun(Object benchmark) throws UserCodeException {
+      // execute the benchmark method, but don't try to take any measurements, because this JVM
+      // may not have the allocation instrumenter agent.
+      try {
+        benchmarkMethod.invoke(benchmark, 1);
+      } catch (IllegalAccessException impossible) {
+        throw new AssertionError(impossible);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause();
+        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+        throw new UserCodeException(userException);
+      }
+    }
+
+    @Override
+    public Class<? extends Worker> workerClass() {
+      return AllocationWorker.class;
     }
   }
 
@@ -122,11 +136,6 @@ public final class AllocationInstrument extends Instrument {
         .addAll(super.getExtraCommandLineArgs())
         .add("-javaagent:" + agentJar)
         .build();
-  }
-
-  @Override
-  public Class<? extends Worker> workerClass() {
-    return AllocationWorker.class;
   }
 
   @Override

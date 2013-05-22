@@ -77,22 +77,58 @@ public final class MacrobenchmarkInstrument extends Instrument {
   }
 
   @Override
-  public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  public Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException {
-    checkArgument(isBenchmarkMethod(method));
-    Class<?>[] parameterTypes = method.getParameterTypes();
+    checkArgument(isBenchmarkMethod(benchmarkMethod));
+    Class<?>[] parameterTypes = benchmarkMethod.getParameterTypes();
     if (!Arrays.equals(parameterTypes, new Class<?>[] {})) {
       throw new InvalidBenchmarkException(
-          "Macrobenchmark methods must not have parameters: " + method.getName());
+          "Macrobenchmark methods must not have parameters: " + benchmarkMethod.getName());
     }
 
     // Static technically doesn't hurt anything, but it's just the completely wrong idea
-    if (Util.isStatic(method)) {
+    if (Util.isStatic(benchmarkMethod)) {
       throw new InvalidBenchmarkException(
-          "Macrobenchmark methods must not be static: " + method.getName());
+          "Macrobenchmark methods must not be static: " + benchmarkMethod.getName());
+    }
+    return new MacrobenchmarkInstrumentation(benchmarkMethod);
+  }
+
+  private final class MacrobenchmarkInstrumentation extends Instrumentation {
+    MacrobenchmarkInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
     }
 
-    return method;
+    @Override
+    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
+      ImmutableSet<Method> beforeRepMethods =
+          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), BeforeRep.class);
+      ImmutableSet<Method> afterRepMethods =
+          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), AfterRep.class);
+      try {
+        for (Method beforeRepMethod : beforeRepMethods) {
+          beforeRepMethod.invoke(benchmark);
+        }
+        try {
+          benchmarkMethod.invoke(benchmark);
+        } finally {
+          for (Method afterRepMethod : afterRepMethods) {
+            afterRepMethod.invoke(benchmark);
+          }
+        }
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause();
+        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+        throw new UserCodeException(userException);
+      }
+    }
+
+    @Override
+    public Class<? extends Worker> workerClass() {
+      return MacrobenchmarkWorker.class;
+    }
   }
 
   private static ImmutableSet<Method> getAnnotatedMethods(Class<?> clazz,
@@ -105,37 +141,6 @@ public final class MacrobenchmarkInstrument extends Instrument {
       }
     }
     return builder.build();
-  }
-
-  @Override
-  public void dryRun(Object benchmark, Method method) throws UserCodeException {
-    ImmutableSet<Method> beforeRepMethods =
-        getAnnotatedMethods(method.getDeclaringClass(), BeforeRep.class);
-    ImmutableSet<Method> afterRepMethods =
-        getAnnotatedMethods(method.getDeclaringClass(), AfterRep.class);
-    try {
-      for (Method beforeRepMethod : beforeRepMethods) {
-        beforeRepMethod.invoke(benchmark);
-      }
-      try {
-        method.invoke(benchmark);
-      } finally {
-        for (Method afterRepMethod : afterRepMethods) {
-          afterRepMethod.invoke(benchmark);
-        }
-      }
-    } catch (IllegalAccessException e) {
-      throw new AssertionError(e);
-    } catch (InvocationTargetException e) {
-      Throwable userException = e.getCause();
-      propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-      throw new UserCodeException(userException);
-    }
-  }
-
-  @Override
-  public Class<? extends Worker> workerClass() {
-    return MacrobenchmarkWorker.class;
   }
 
   @Override

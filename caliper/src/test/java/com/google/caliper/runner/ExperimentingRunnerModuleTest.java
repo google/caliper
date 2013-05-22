@@ -21,9 +21,9 @@ import static org.mockito.Mockito.when;
 
 import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -54,36 +54,42 @@ public class ExperimentingRunnerModuleTest {
     methodC = TestBenchmark.class.getDeclaredMethod("c");
   }
 
-  @Test public void provideBenchmarkMethodsByInstrument_noNames() throws Exception {
+  @Test public void provideInstrumentations_noNames() throws Exception {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.<String>of());
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, Method>()
-            .putAll(instrumentA, methodA, methodB, methodC)
-            .putAll(instrumentB, methodA, methodB, methodC)
+        new ImmutableSet.Builder<Instrumentation>()
+            .add(instrumentA.createInstrumentation(methodA))
+            .add(instrumentA.createInstrumentation(methodB))
+            .add(instrumentA.createInstrumentation(methodC))
+            .add(instrumentB.createInstrumentation(methodA))
+            .add(instrumentB.createInstrumentation(methodB))
+            .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options,
+        module.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
   @SuppressWarnings("unchecked")
-  @Test public void provideBenchmarkMethodsByInstrument_withNames() throws Exception {
+  @Test public void provideInstrumentations_withNames() throws Exception {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("b"),
         ImmutableSet.of("a", "c"));
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, Method>()
-            .putAll(instrumentA, methodB)
-            .putAll(instrumentB, methodB)
+        new ImmutableSet.Builder<Instrumentation>()
+            .add(instrumentA.createInstrumentation(methodB))
+            .add(instrumentB.createInstrumentation(methodB))
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options,
+        module.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
-        new ImmutableSetMultimap.Builder<Instrument, Method>()
-            .putAll(instrumentA, methodA, methodC)
-            .putAll(instrumentB, methodA, methodC)
+        new ImmutableSet.Builder<Instrumentation>()
+            .add(instrumentA.createInstrumentation(methodA))
+            .add(instrumentA.createInstrumentation(methodC))
+            .add(instrumentB.createInstrumentation(methodA))
+            .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        module.provideBenchmarkMethodsByInstrument(options,
+        module.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
@@ -99,14 +105,18 @@ public class ExperimentingRunnerModuleTest {
       return true;
     }
 
-    @Override public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method) {
-      return method;
-    }
+    @Override
+    public Instrumentation createInstrumentation(Method benchmarkMethod)
+        throws InvalidBenchmarkException {
+      return new Instrumentation(benchmarkMethod) {
+        @Override
+        public Class<? extends Worker> workerClass() {
+          throw new UnsupportedOperationException();
+        }
 
-    @Override public void dryRun(Object benchmark, Method method) {}
-
-    @Override public Class<? extends Worker> workerClass() {
-      throw new UnsupportedOperationException();
+        @Override
+        public void dryRun(Object benchmark) throws InvalidBenchmarkException {}
+      };
     }
 
     @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {

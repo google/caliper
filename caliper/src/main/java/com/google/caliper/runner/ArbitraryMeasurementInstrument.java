@@ -46,60 +46,64 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
   }
 
   @Override
-  public Method checkBenchmarkMethod(BenchmarkClass benchmarkClass, Method method)
+  public Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException {
-
-    if (method.getParameterTypes().length != 0) {
+    if (benchmarkMethod.getParameterTypes().length != 0) {
       throw new InvalidBenchmarkException(
-          "Arbitrary measurement methods should take no parameters: " + method.getName());
+          "Arbitrary measurement methods should take no parameters: " + benchmarkMethod.getName());
     }
 
-    if (method.getReturnType() != double.class) {
+    if (benchmarkMethod.getReturnType() != double.class) {
       throw new InvalidBenchmarkException(
-          "Arbitrary measurement methods must have a return type of double: " + method.getName());
+          "Arbitrary measurement methods must have a return type of double: "
+              + benchmarkMethod.getName());
     }
 
     // Static technically doesn't hurt anything, but it's just the completely wrong idea
-    if (Util.isStatic(method)) {
+    if (Util.isStatic(benchmarkMethod)) {
       throw new InvalidBenchmarkException(
-          "Arbitrary measurement methods must not be static: " + method.getName());
+          "Arbitrary measurement methods must not be static: " + benchmarkMethod.getName());
     }
 
-    if (!Util.isPublic(method)) {
+    if (!Util.isPublic(benchmarkMethod)) {
       throw new InvalidBenchmarkException(
-          "Arbitrary measurement methods must be public: " + method.getName());
+          "Arbitrary measurement methods must be public: " + benchmarkMethod.getName());
     }
 
-    return method;
+    return new ArbitraryMeasurementInstrumentation(benchmarkMethod);
   }
 
-  @Override
-  public void dryRun(Object benchmark, Method benchmarkMethod)
-      throws UserCodeException {
-    try {
-      benchmarkMethod.invoke(benchmark);
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible);
-    } catch (InvocationTargetException e) {
-      Throwable userException = e.getCause();
-      propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-      throw new UserCodeException(userException);
+  private final class ArbitraryMeasurementInstrumentation extends Instrumentation {
+    protected ArbitraryMeasurementInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
+    }
+
+    @Override
+    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
+      try {
+        benchmarkMethod.invoke(benchmark);
+      } catch (IllegalAccessException impossible) {
+        throw new AssertionError(impossible);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause();
+        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+        throw new UserCodeException(userException);
+      }
+    }
+
+    @Override
+    public Class<? extends Worker> workerClass() {
+      return ArbitraryMeasurementWorker.class;
+    }
+
+    @Override public ImmutableMap<String, String> workerOptions() {
+      return ImmutableMap.of(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
   }
 
   @Override
   public ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(GC_BEFORE_EACH_OPTION);
-  }
-
-  @Override public ImmutableMap<String, String> workerOptions() {
-    return new ImmutableMap.Builder<String, String>()
-        .put(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION))
-        .build();
-  }
-
-  @Override public Class<? extends Worker> workerClass() {
-    return ArbitraryMeasurementWorker.class;
   }
 
   @Override
