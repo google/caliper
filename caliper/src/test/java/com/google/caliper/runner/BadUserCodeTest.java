@@ -15,17 +15,12 @@ import org.junit.runners.JUnit4;
 
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Integration tests for misbehaving benchmarks.
  */
 @RunWith(JUnit4.class)
 public class BadUserCodeTest {
-  static {
-    Logger.getLogger(ExperimentingCaliperRun.class.getName()).setLevel(Level.FINEST);
-  }
   private PrintWriter out = new PrintWriter(System.out, true);
   private PrintWriter err = new PrintWriter(System.err, true);
 
