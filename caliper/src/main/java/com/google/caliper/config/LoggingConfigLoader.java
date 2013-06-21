@@ -83,8 +83,8 @@ final class LoggingConfigLoader {
     logManager.reset();
     File logDirectory = new File(caliperDirectory, "log");
     logDirectory.mkdirs();
-    FileHandler fileHandler = new FileHandler(String.format("%s/%s.%s.log",
-        logDirectory.getAbsolutePath(), run.startTime(), run.id()));
+    FileHandler fileHandler = new FileHandler(String.format("%s%c%s.%s.log",
+        logDirectory.getAbsolutePath(), File.separatorChar, run.startTime(), run.id()));
     fileHandler.setEncoding(Charsets.UTF_8.name());
     fileHandler.setFormatter(new SimpleFormatter());
     Logger globalLogger = logManager.getLogger("");
