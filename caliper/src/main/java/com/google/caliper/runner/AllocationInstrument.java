@@ -159,7 +159,7 @@ public final class AllocationInstrument extends Instrument {
   }
 
   private static Optional<File> findAllocationInstrumentJarOnClasspath() throws IOException {
-    for (File file : JarFinder.findJarFiles(ClassLoader.getSystemClassLoader())) {
+    for (File file : JarFinder.findJarFiles(Thread.currentThread().getContextClassLoader())) {
       JarFile jarFile = null;
       try {
         jarFile = new JarFile(file);
