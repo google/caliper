@@ -196,8 +196,6 @@ public final class AllocationInstrument extends Instrument {
             "An exception occurred trying to locate the allocation agent jar on the classpath", e);
       }
     }
-    // TODO(schmoe): what can we do to verify that agentJar is correct? Or to get a nicer
-    // error message when it's not?
     if (Strings.isNullOrEmpty(agentJar) || !new File(agentJar).exists()) {
       throw new IllegalStateException("Can't find required allocationinstrumenter agent jar");
     }
@@ -205,6 +203,10 @@ public final class AllocationInstrument extends Instrument {
     return new ImmutableSet.Builder<String>()
         .addAll(super.getExtraCommandLineArgs())
         .add("-javaagent:" + agentJar)
+        // Some environments rename files and use symlinks to improve resource caching,
+        // if the agent jar path is actually a symlink it will prevent the agent from finding itself
+        // and adding itself to the bootclasspath, so we do it manually here.
+        .add("-Xbootclasspath/a:" + agentJar)
         .build();
   }
 }

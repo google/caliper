@@ -28,7 +28,7 @@ import com.google.monitoring.runtime.instrumentation.Sampler;
  * 
  * <p>This recorder is enabled via the {@code trackAllocations} worker option.
  */
-final class AllAllocationsRecorder implements AllocationRecorder {
+final class AllAllocationsRecorder extends AllocationRecorder {
   private final Class<?> benchmarkClass;
   private final String benchmarkMethodName;
   private volatile boolean recording = false;
@@ -75,7 +75,7 @@ final class AllAllocationsRecorder implements AllocationRecorder {
     com.google.monitoring.runtime.instrumentation.AllocationRecorder.addSampler(sampler);
   }
   
-  @Override public void startRecording() {
+  @Override protected void doStartRecording() {
     checkState(!recording, "startRecording called, but we were already recording.");
     allocations.clear();
     recording = true;

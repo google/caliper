@@ -66,6 +66,14 @@ class AllocationStats {
     this.allocations = Multisets.copyHighestCountFirst(allocations);
   }
   
+  int getAllocationCount() {
+    return allocationCount;
+  }
+  
+  long getAllocationSize() {
+    return allocationSize;
+  }
+  
   /**
    * Computes and returns the difference between this measurement and the given 
    * {@code baseline} measurement. The {@code baseline} measurement must have a lower weight 

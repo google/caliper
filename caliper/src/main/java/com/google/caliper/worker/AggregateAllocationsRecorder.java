@@ -26,7 +26,7 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * An {@link AllocationRecorder} that records the number and cumulative size of allocation.
  */
-final class AggregateAllocationsRecorder implements AllocationRecorder {
+final class AggregateAllocationsRecorder extends AllocationRecorder {
   private final AtomicInteger allocationCount = new AtomicInteger();
   private final AtomicLong allocationSize = new AtomicLong();
   private volatile boolean recording = false;
@@ -45,8 +45,7 @@ final class AggregateAllocationsRecorder implements AllocationRecorder {
     com.google.monitoring.runtime.instrumentation.AllocationRecorder.addSampler(sampler);
   }
   
-  /** Clears the prior state and starts a new recording. */
-  @Override public void startRecording() {
+  @Override protected void doStartRecording() {
     checkState(!recording, "startRecording called, but we were already recording.");
     allocationCount.set(0);
     allocationSize.set(0);

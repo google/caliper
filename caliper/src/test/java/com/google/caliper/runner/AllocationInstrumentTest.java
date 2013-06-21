@@ -22,6 +22,7 @@ public class AllocationInstrumentTest {
     ImmutableSet<String> expected = new ImmutableSet.Builder<String>()
         .addAll(Instrument.JVM_ARGS)
         .add("-javaagent:" + fakeJar.getAbsolutePath())
+        .add("-Xbootclasspath/a:" + fakeJar.getAbsolutePath())
         .add("-Dsun.reflect.inflationThreshold=0")
         .build();
     assertEquals(expected, instrument.getExtraCommandLineArgs());

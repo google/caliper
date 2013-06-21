@@ -8,7 +8,6 @@ import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.Lists;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -123,7 +122,6 @@ public class BadUserCodeTest {
     }
   }
 
-  @Ignore("The allocation agent is not being loaded correctly by the child process in forge.")
   @Test
 
   public void testNonDeterministicAllocation_noTrackAllocations() throws Exception {
@@ -137,7 +135,6 @@ public class BadUserCodeTest {
     }
   }
 
-  @Ignore("The allocation agent is not being loaded correctly by the child process in forge.")
   @Test
 
   public void testNonDeterministicAllocation_trackAllocations() throws Exception {
@@ -166,7 +163,6 @@ public class BadUserCodeTest {
     }
   }
 
-  @Ignore("The allocation agent is not being loaded correctly by the child process in forge.")
   @Test
 
   public void testComplexNonDeterministicAllocation_noTrackAllocations() throws Exception {
@@ -174,7 +170,6 @@ public class BadUserCodeTest {
     runAllocationWorker(ComplexNonDeterministicAllocationBenchmark.class, false);
   }
 
-  @Ignore("The allocation agent is not being loaded correctly by the child process in forge.")
   @Test
 
   public void testComplexNonDeterministicAllocation_trackAllocations() throws Exception {

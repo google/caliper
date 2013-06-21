@@ -23,10 +23,33 @@ package com.google.caliper.worker;
  * expected to have {@link #startRecording()} and {@link #stopRecording(int)} called by a single 
  * thread.
  */
-interface AllocationRecorder {
-
+abstract class AllocationRecorder {
+  private boolean firstTime = true;
+  
+  /** 
+   * Clears the prior state and starts a new recording.
+   * 
+   * @throws IllegalStateException if the recording infrastructure is misconfigured.
+   */
+  final void startRecording() {
+    if (firstTime) {
+      Object obj;
+      doStartRecording();
+      obj = new Object();
+      AllocationStats stats = stopRecording(1);
+      if (stats.getAllocationCount() != 1 || stats.getAllocationSize() < 1) {
+        throw new IllegalStateException(
+            String.format("The allocation recording infrastructure appears to be broken. "
+                + "Expected to find exactly one allocation of a java/lang/Object instead found %s",
+                stats));
+      }
+      firstTime = false;
+    }
+    doStartRecording();
+  }
+  
   /** Clears the prior state and starts a new recording. */
-  void startRecording();
+  protected abstract void doStartRecording();
   
   /**
    * Stops recording allocations and saves all the allocation data recorded since the previous call
@@ -34,5 +57,5 @@ interface AllocationRecorder {
    * 
    * @param reps The number of reps that the previous set of allocation represents.
    */
-  AllocationStats stopRecording(int reps);
+  abstract AllocationStats stopRecording(int reps);
 }
