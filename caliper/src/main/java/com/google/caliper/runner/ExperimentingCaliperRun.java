@@ -366,7 +366,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       });
 
       MeasurementCollectingVisitor measurementCollectingVisitor =
-          experiment.instrumentation().instrument().getMeasurementCollectingVisitor();
+          experiment.instrumentation().getMeasurementCollectingVisitor();
       DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
 
       /*

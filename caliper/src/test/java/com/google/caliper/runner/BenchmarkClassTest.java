@@ -18,6 +18,8 @@ package com.google.caliper.runner;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
 import com.google.common.collect.ImmutableSet;
 
 import org.junit.Test;
@@ -29,16 +31,39 @@ import org.junit.runners.JUnit4;
  */
 @RunWith(JUnit4.class)
 public class BenchmarkClassTest {
+  @Test public void beforeMeasurementMethods_AnnotatedBenchmark() throws Exception {
+    assertEquals(
+        ImmutableSet.of(
+            MyBenchmark.class.getDeclaredMethod("before1"),
+            MyBenchmark.class.getDeclaredMethod("before2")),
+        BenchmarkClass.forClass(MyBenchmark.class).beforeExperimentMethods());
+  }
+
   @Test public void beforeMeasurementMethods_LegacyBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("setUp")),
-        BenchmarkClass.forClass(MyLegacyBenchmark.class).beforeMeasurementMethods());
+        BenchmarkClass.forClass(MyLegacyBenchmark.class).beforeExperimentMethods());
   }
 
   @Test public void afterMeasurementMethods_LegacyBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("tearDown")),
-        BenchmarkClass.forClass(MyLegacyBenchmark.class).afterMeasurementMethods());
+        BenchmarkClass.forClass(MyLegacyBenchmark.class).afterExperimentMethods());
+  }
+
+  @Test public void afterMeasurementMethods_AnnotatedBenchmark() throws Exception {
+    assertEquals(
+        ImmutableSet.of(
+            MyBenchmark.class.getDeclaredMethod("after1"),
+            MyBenchmark.class.getDeclaredMethod("after2")),
+        BenchmarkClass.forClass(MyBenchmark.class).afterExperimentMethods());
+  }
+
+  static class MyBenchmark {
+    @BeforeExperiment void before1() {}
+    @BeforeExperiment void before2() {}
+    @AfterExperiment void after1() {}
+    @AfterExperiment void after2() {}
   }
 
   static class MyLegacyBenchmark extends com.google.caliper.legacy.Benchmark {}

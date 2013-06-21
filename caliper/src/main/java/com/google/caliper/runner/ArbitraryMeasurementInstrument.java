@@ -99,16 +99,16 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     @Override public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
+
+    @Override
+    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+      return new SingleMeasurementCollectingVisitor();
+    }
   }
 
   @Override
   public ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(GC_BEFORE_EACH_OPTION);
-  }
-
-  @Override
-  MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
-    return new SingleMeasurementCollectingVisitor();
   }
 
   private static final class SingleMeasurementCollectingVisitor extends AbstractLogMessageVisitor

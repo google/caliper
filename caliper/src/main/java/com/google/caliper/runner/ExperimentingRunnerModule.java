@@ -169,6 +169,7 @@ final class ExperimentingRunnerModule extends AbstractModule {
         }));
     for (Method method : benchmarkClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
+        method.setAccessible(true);
         result.add(method);
       }
     }

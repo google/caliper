@@ -51,11 +51,11 @@ public class MalformedBenchmarksTest {
       + "or a zero-argument constructor that is not private.";
   private static final String NO_METHODS =
       "There were no experiments to be performed for the class %s using the instruments " +
-      "[allocation, micro]";
+      "[allocation, runtime]";
   private static final String STATIC_BENCHMARK =
-      "Microbenchmark methods must not be static: timeIt";
+      "Benchmark methods must not be static: timeIt";
   private static final String WRONG_ARGUMENTS =
-      "Microbenchmark methods must accept a single int parameter: timeIt";
+      "Benchmark methods must have no arguments or accept a single int or long parameter: timeIt";
   private static final String STATIC_PARAM =
       "Parameter field 'oops' must not be static";
   private static final String RESERVED_PARAM =
@@ -95,17 +95,13 @@ public class MalformedBenchmarksTest {
   }
 
   @Test public void wrongSignature() throws Exception {
-    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark1.class);
-    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark2.class);
-    expectException(WRONG_ARGUMENTS, WrongSignatureBenchmark3.class);
+    expectException(WRONG_ARGUMENTS, BoxedParamBenchmark.class);
+    expectException(WRONG_ARGUMENTS, ExtraParamBenchmark.class);
   }
-  static class WrongSignatureBenchmark1 extends Benchmark {
-    public void timeIt() {}
-  }
-  static class WrongSignatureBenchmark2 extends Benchmark {
+  static class BoxedParamBenchmark extends Benchmark {
     public void timeIt(Integer reps) {}
   }
-  static class WrongSignatureBenchmark3 extends Benchmark {
+  static class ExtraParamBenchmark extends Benchmark {
     public void timeIt(int reps, int what) {}
   }
 
@@ -143,7 +139,7 @@ public class MalformedBenchmarksTest {
       throws InvalidCommandException, InvalidConfigurationException {
     try {
       CaliperMain.exitlessMain(
-          new String[] {"--instrument=allocation,micro", benchmarkClass.getName()},
+          new String[] {"--instrument=allocation,runtime", "--dry-run", benchmarkClass.getName()},
           new PrintWriter(new StringWriter()), new PrintWriter(new StringWriter()));
       fail("no exception thrown");
     } catch (InvalidBenchmarkException e) {

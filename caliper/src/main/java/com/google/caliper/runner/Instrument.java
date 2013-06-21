@@ -24,7 +24,6 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.util.Util;
 import com.google.caliper.worker.Worker;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
@@ -37,7 +36,6 @@ import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 public abstract class Instrument {
   protected ImmutableMap<String, String> options;
@@ -120,6 +118,8 @@ public abstract class Instrument {
     public ImmutableMap<String, String> workerOptions() {
       return options;
     }
+
+    abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
   }
 
   public final ImmutableMap<String, String> options() {
@@ -161,39 +161,6 @@ public abstract class Instrument {
   ImmutableSet<String> getExtraCommandLineArgs() {
     return JVM_ARGS;
   }
-
-  /**
-   * Several instruments look for benchmark methods like {@code timeBlah(int reps)}; this is the
-   * centralized code that identifies such methods.
-   *
-   * <p>This method does not check the correctness of the argument types.
-   */
-  static boolean isTimeMethod(Method method) {
-    return method.getName().startsWith("time") && Util.isPublic(method);
-  }
-
-  /**
-   * For instruments that use {@link #isTimeMethod} to identify their methods, this method checks
-   * the {@link Method} appropriately.
-   */
-  static Method checkTimeMethod(Method timeMethod) throws InvalidBenchmarkException {
-    checkArgument(isTimeMethod(timeMethod));
-    Class<?>[] parameterTypes = timeMethod.getParameterTypes();
-    if (!Arrays.equals(parameterTypes, new Class<?>[] {int.class})
-        && !Arrays.equals(parameterTypes, new Class<?>[] {long.class})) {
-      throw new InvalidBenchmarkException(
-          "Microbenchmark methods must accept a single int parameter: " + timeMethod.getName());
-    }
-
-    // Static technically doesn't hurt anything, but it's just the completely wrong idea
-    if (Util.isStatic(timeMethod)) {
-      throw new InvalidBenchmarkException(
-          "Microbenchmark methods must not be static: " + timeMethod.getName());
-    }
-    return timeMethod;
-  }
-
-  abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
 
   interface MeasurementCollectingVisitor extends LogMessageVisitor {
     boolean isDoneCollecting();

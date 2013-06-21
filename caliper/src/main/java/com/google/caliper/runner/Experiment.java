@@ -72,7 +72,8 @@ final class Experiment {
 
   @Override public String toString() {
     return Objects.toStringHelper("")
-        .add("instrumentation", instrumentation)
+        .add("instrument", instrumentation.instrument())
+        .add("benchmarkMethod", instrumentation.benchmarkMethod.getName())
         .add("vm", vm.name)
         .add("parameters", userParameters)
         .toString();

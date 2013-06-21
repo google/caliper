@@ -38,7 +38,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * a few times, with varying numbers of reps, and computes the number of object allocations and the
  * total size of those allocations.
  */
-public final class AllocationWorker implements Worker {
+public final class MicrobenchmarkAllocationWorker implements Worker {
   private static final int MAX_BASELINE_REPS = 5;
   private static final int MAX_REPS_ABOVE_BASELINE = 100;
 
@@ -48,7 +48,7 @@ public final class AllocationWorker implements Worker {
   private final AtomicLong allocationSize = new AtomicLong();
   private volatile boolean recordAllocations = false;
 
-  @Inject AllocationWorker(Random random) {
+  @Inject MicrobenchmarkAllocationWorker(Random random) {
     this.random = random;
     AllocationRecorder.addSampler(
         new Sampler() {
@@ -117,8 +117,10 @@ public final class AllocationWorker implements Worker {
     for (Method method : benchmarkClass.getDeclaredMethods()) {
       Class<?>[] parameterTypes = method.getParameterTypes();
       if (method.getName().equals(name)
-          && (Arrays.equals(parameterTypes, new Class<?>[] {int.class})
-                || Arrays.equals(parameterTypes, new Class<?>[] {long.class}))) {
+          && ((parameterTypes.length == 0)
+              || Arrays.equals(parameterTypes, new Class<?>[] {int.class})
+              || Arrays.equals(parameterTypes, new Class<?>[] {long.class}))) {
+        method.setAccessible(true);
         return method;
       }
     }

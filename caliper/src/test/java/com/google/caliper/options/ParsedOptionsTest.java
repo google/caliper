@@ -83,7 +83,7 @@ public class ParsedOptionsTest extends TestCase {
     assertFalse(options.dryRun());
     ImmutableSet<String> expectedInstruments = new ImmutableSet.Builder<String>()
         .add("allocation")
-        .add("micro")
+        .add("runtime")
         .build();
     assertEquals(expectedInstruments, options.instrumentNames());
     assertEquals(1, options.trialsPerScenario());

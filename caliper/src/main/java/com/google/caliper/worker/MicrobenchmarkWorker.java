@@ -37,6 +37,7 @@ import java.util.Random;
 
 import javax.annotation.Nullable;
 
+// TODO(gak): split this into separate workers for microbenchmarks and picobenchmarks
 public class MicrobenchmarkWorker implements Worker {
   @VisibleForTesting static final int INITIAL_REPS = 100;
 

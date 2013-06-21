@@ -116,11 +116,12 @@ public class ExperimentingRunnerModuleTest {
 
         @Override
         public void dryRun(Object benchmark) throws InvalidBenchmarkException {}
-      };
-    }
 
-    @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
-      throw new UnsupportedOperationException();
+        @Override
+        MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+          throw new UnsupportedOperationException();
+        }
+      };
     }
   }
 }

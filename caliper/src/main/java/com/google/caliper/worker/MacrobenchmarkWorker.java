@@ -23,7 +23,6 @@ import com.google.caliper.api.AfterRep;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
-import com.google.caliper.runner.MacrobenchmarkInstrument;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
@@ -34,7 +33,7 @@ import java.util.Map;
 import java.util.Random;
 
 /**
- * The {@link Worker} implmentation for the {@link MacrobenchmarkInstrument}.
+ * The {@link Worker} implementation for macrobenchmarks.
  */
 public class MacrobenchmarkWorker implements Worker {
   private final Stopwatch stopwatch;

@@ -16,11 +16,15 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.logging.Level.SEVERE;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.worker.AllocationWorker;
+import com.google.caliper.worker.MacrobenchmarkAllocationWorker;
+import com.google.caliper.worker.MicrobenchmarkAllocationWorker;
 import com.google.caliper.worker.Worker;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
@@ -47,18 +51,32 @@ public final class AllocationInstrument extends Instrument {
 
   @Override
   public boolean isBenchmarkMethod(Method method) {
-    return Instrument.isTimeMethod(method);
+    return method.isAnnotationPresent(Benchmark.class) || BenchmarkMethods.isTimeMethod(method);
   }
 
   @Override
   public Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException {
-    Instrument.checkTimeMethod(benchmarkMethod);
-    return new AllocationInstrumentation(benchmarkMethod);
+    checkNotNull(benchmarkMethod);
+    checkArgument(isBenchmarkMethod(benchmarkMethod));
+    try {
+      switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
+        case MACRO:
+          return new MacroAllocationInstrumentation(benchmarkMethod);
+        case MICRO:
+        case PICO:
+          return new MicroAllocationInstrumentation(benchmarkMethod);
+        default:
+          throw new AssertionError("unknown type");
+      }
+    } catch (IllegalArgumentException e) {
+      throw new InvalidBenchmarkException("Benchmark methods must have no arguments or accept "
+          + "a single int or long parameter: %s", benchmarkMethod.getName());
+    }
   }
 
-  private final class AllocationInstrumentation extends Instrumentation {
-    AllocationInstrumentation(Method benchmarkMethod) {
+  private final class MicroAllocationInstrumentation extends Instrumentation {
+    MicroAllocationInstrumentation(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -79,7 +97,45 @@ public final class AllocationInstrument extends Instrument {
 
     @Override
     public Class<? extends Worker> workerClass() {
-      return AllocationWorker.class;
+      return MicrobenchmarkAllocationWorker.class;
+    }
+
+    @Override
+    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+      return new Instrument.DefaultMeasurementCollectingVisitor(
+          ImmutableSet.of("bytes", "objects"));
+    }
+  }
+
+  private final class MacroAllocationInstrumentation extends Instrumentation {
+    MacroAllocationInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
+    }
+
+    @Override
+    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
+      // execute the benchmark method, but don't try to take any measurements, because this JVM
+      // may not have the allocation instrumenter agent.
+      try {
+        benchmarkMethod.invoke(benchmark);
+      } catch (IllegalAccessException impossible) {
+        throw new AssertionError(impossible);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause();
+        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
+        throw new UserCodeException(userException);
+      }
+    }
+
+    @Override
+    public Class<? extends Worker> workerClass() {
+      return MacrobenchmarkAllocationWorker.class;
+    }
+
+    @Override
+    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+      return new Instrument.DefaultMeasurementCollectingVisitor(
+          ImmutableSet.of("bytes", "objects"));
     }
   }
 
@@ -136,10 +192,5 @@ public final class AllocationInstrument extends Instrument {
         .addAll(super.getExtraCommandLineArgs())
         .add("-javaagent:" + agentJar)
         .build();
-  }
-
-  @Override
-  MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
-    return new Instrument.DefaultMeasurementCollectingVisitor(ImmutableSet.of("bytes", "objects"));
   }
 }

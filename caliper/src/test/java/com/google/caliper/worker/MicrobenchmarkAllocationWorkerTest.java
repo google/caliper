@@ -25,15 +25,15 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /**
- * Tests {@link AllocationWorker}.
+ * Tests {@link MicrobenchmarkAllocationWorker}.
  */
 @RunWith(JUnit4.class)
-public class AllocationWorkerTest {
+public class MicrobenchmarkAllocationWorkerTest {
   @Test public void findMethod() throws Exception {
     assertEquals(TestBenchmark.class.getMethod("timeLongArg", long.class),
-        AllocationWorker.findMethod(TestBenchmark.class, "timeLongArg"));
+        MicrobenchmarkAllocationWorker.findMethod(TestBenchmark.class, "timeLongArg"));
     assertEquals(TestBenchmark.class.getMethod("timeIntArg", int.class),
-        AllocationWorker.findMethod(TestBenchmark.class, "timeIntArg"));
+        MicrobenchmarkAllocationWorker.findMethod(TestBenchmark.class, "timeIntArg"));
   }
 
   public static final class TestBenchmark extends Benchmark {

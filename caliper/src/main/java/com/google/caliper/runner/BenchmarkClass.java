@@ -19,10 +19,13 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.Reflection;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -43,12 +46,12 @@ abstract class BenchmarkClass {
     if (legacyBenchmarkClass.isAssignableFrom(theClass)) {
       return new BenchmarkSubclass<com.google.caliper.legacy.Benchmark>(legacyBenchmarkClass,
           theClass.asSubclass(legacyBenchmarkClass));
+    } else {
+      return new AnnotatedBenchmark(theClass);
     }
-    // TODO(gak): add the implementation that looks for annotations
-    throw new InvalidBenchmarkException("%s is not a supported benchmark", theClass);
   }
 
-  private final Class<?> theClass;
+  final Class<?> theClass;
   private final ParameterSet userParameters;
   private final ImmutableSet<String> benchmarkFlags;
 
@@ -71,9 +74,9 @@ abstract class BenchmarkClass {
     this.benchmarkFlags = getVmOptions(theClass);
   }
 
-  abstract ImmutableSet<Method> beforeMeasurementMethods();
+  abstract ImmutableSet<Method> beforeExperimentMethods();
 
-  abstract ImmutableSet<Method> afterMeasurementMethods();
+  abstract ImmutableSet<Method> afterExperimentMethods();
 
   public ParameterSet userParameters() {
     return userParameters;
@@ -131,7 +134,7 @@ abstract class BenchmarkClass {
 
   // We have to do this reflectively because it'd be too much of a pain to make setUp public
   private void callSetUp(Object benchmark) throws UserCodeException {
-    for (Method method : beforeMeasurementMethods()) {
+    for (Method method : beforeExperimentMethods()) {
       try {
         method.invoke(benchmark);
       } catch (IllegalAccessException e) {
@@ -144,7 +147,7 @@ abstract class BenchmarkClass {
   }
 
   private void callTearDown(Object benchmark) throws UserCodeException {
-    for (Method method : afterMeasurementMethods()) {
+    for (Method method : afterExperimentMethods()) {
       try {
         method.invoke(benchmark);
       } catch (IllegalAccessException e) {
@@ -193,7 +196,7 @@ abstract class BenchmarkClass {
     }
 
     @Override
-    ImmutableSet<Method> beforeMeasurementMethods() {
+    ImmutableSet<Method> beforeExperimentMethods() {
       try {
         Method method = superclass.getDeclaredMethod("setUp");
         method.setAccessible(true);
@@ -204,7 +207,7 @@ abstract class BenchmarkClass {
     }
 
     @Override
-    ImmutableSet<Method> afterMeasurementMethods() {
+    ImmutableSet<Method> afterExperimentMethods() {
       try {
         Method method = superclass.getDeclaredMethod("tearDown");
         method.setAccessible(true);
@@ -212,6 +215,22 @@ abstract class BenchmarkClass {
       } catch (NoSuchMethodException e) {
         throw new AssertionError("Malformed superclass");
       }
+    }
+  }
+
+  private static final class AnnotatedBenchmark extends BenchmarkClass {
+    public AnnotatedBenchmark(Class<?> theClass) throws InvalidBenchmarkException {
+      super(theClass);
+    }
+
+    @Override
+    ImmutableSet<Method> beforeExperimentMethods() {
+      return Reflection.getAnnotatedMethods(theClass, BeforeExperiment.class);
+    }
+
+    @Override
+    ImmutableSet<Method> afterExperimentMethods() {
+      return Reflection.getAnnotatedMethods(theClass, AfterExperiment.class);
     }
   }
 }
