@@ -192,6 +192,11 @@ abstract class BenchmarkClass {
     BenchmarkSubclass(Class<T> superclass, Class<? extends T> theClass)
         throws InvalidBenchmarkException {
       super(theClass);
+      if (!theClass.getSuperclass().equals(superclass)) {
+        throw new InvalidBenchmarkException(
+            "%s must be a direct subclass of %s. Hierarchies are not allowed. Prefer composition.",
+            theClass, superclass);
+      }
       this.superclass = superclass;
     }
 
@@ -221,6 +226,11 @@ abstract class BenchmarkClass {
   private static final class AnnotatedBenchmark extends BenchmarkClass {
     public AnnotatedBenchmark(Class<?> theClass) throws InvalidBenchmarkException {
       super(theClass);
+      if (!theClass.getSuperclass().equals(Object.class)) {
+        throw new InvalidBenchmarkException(
+            "%s must not extend any class other than %s. Prefer composition.",
+            theClass, Object.class);
+      }
     }
 
     @Override

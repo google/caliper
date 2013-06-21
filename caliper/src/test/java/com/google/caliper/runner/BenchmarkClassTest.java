@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import com.google.caliper.AfterExperiment;
 import com.google.caliper.BeforeExperiment;
@@ -58,6 +59,17 @@ public class BenchmarkClassTest {
             MyBenchmark.class.getDeclaredMethod("after2")),
         BenchmarkClass.forClass(MyBenchmark.class).afterExperimentMethods());
   }
+  
+  @Test public void forClass_inheritenceThrows() throws Exception {
+    try {
+      BenchmarkClass.forClass(MalformedBenhcmark.class);
+      fail();
+    } catch (InvalidBenchmarkException expected) {}
+    try {
+      BenchmarkClass.forClass(MalformedLegacyBenchmark.class);
+      fail();
+    } catch (InvalidBenchmarkException expected) {}
+  }
 
   static class MyBenchmark {
     @BeforeExperiment void before1() {}
@@ -65,6 +77,10 @@ public class BenchmarkClassTest {
     @AfterExperiment void after1() {}
     @AfterExperiment void after2() {}
   }
+  
+  static class MalformedBenhcmark extends MyBenchmark {}
 
   static class MyLegacyBenchmark extends com.google.caliper.legacy.Benchmark {}
+  
+  static class MalformedLegacyBenchmark extends MyLegacyBenchmark {}
 }
