@@ -42,10 +42,8 @@ public class MacrobenchmarkWorker implements Worker {
     this.stopwatch = new Stopwatch(ticker);
   }
 
-  @Override public void measure(Object benchmark, String methodName,
+  @Override public void measure(Object benchmark, Method method,
       Map<String, String> optionMap, WorkerEventLog log) throws Exception {
-    Method method = benchmark.getClass().getDeclaredMethod(methodName);
-    method.setAccessible(true);
     ImmutableSet<Method> beforeRepMethods =
         getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
     ImmutableSet<Method> afterRepMethods =

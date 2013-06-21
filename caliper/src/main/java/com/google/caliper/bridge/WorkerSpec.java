@@ -17,26 +17,36 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.model.BenchmarkSpec;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 
 /**
  * This object is sent from the parent process to the child to tell it what to do. If the child
  * does not do it, it will not get its allowance this week.
+ * 
+ * <p>TODO(gak): Use actual Class instances instead of class names in this class.
  */
 public final class WorkerSpec {
   public final String workerClassName;
   public final ImmutableMap<String, String> workerOptions;
   public final BenchmarkSpec benchmarkSpec;
+  
+  /** 
+   * The names of the benchmark method parameters so that the method can be uniquely identified.
+   */
+  public final ImmutableList<String> methodParameterClassNames;
   public final int port;
 
   public WorkerSpec(
       String workerClassName,
       ImmutableMap<String, String> workerOptions,
       BenchmarkSpec benchmarkSpec,
+      ImmutableList<String> methodParameterClassNames,
       int port) {
     this.workerClassName = workerClassName;
     this.workerOptions = workerOptions;
     this.benchmarkSpec = benchmarkSpec;
+    this.methodParameterClassNames = methodParameterClassNames;
     this.port = port;
   }
 }

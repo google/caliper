@@ -64,7 +64,6 @@ public final class BenchmarkSpec {
 
   @Id @GeneratedValue @ExcludeFromJson private int id;
   @Basic(optional = false) private String className;
-  // TODO(gak): possibly worry about overloads
   @Basic(optional = false) private String methodName;
   @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> parameters;
   @ExcludeFromJson private int hash;

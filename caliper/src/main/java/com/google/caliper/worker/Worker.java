@@ -16,9 +16,10 @@
 
 package com.google.caliper.worker;
 
+import java.lang.reflect.Method;
 import java.util.Map;
 
 public interface Worker {
-  void measure(Object benchmark, String methodName, Map<String, String> options,
+  void measure(Object benchmark, Method method, Map<String, String> options,
       WorkerEventLog log) throws Exception;
 }

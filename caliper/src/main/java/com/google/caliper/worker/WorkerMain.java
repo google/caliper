@@ -23,6 +23,7 @@ import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;
 import com.google.caliper.runner.ExperimentModule;
 import com.google.caliper.runner.Running;
+import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -53,16 +54,58 @@ public final class WorkerMain {
 
     log.notifyWorkerStarted();
 
+    Method benchmarkMethod = findBenchmarkMethod(benchmark.getClass(), 
+        request.benchmarkSpec.methodName(), 
+        request.methodParameterClassNames);
+    benchmarkMethod.setAccessible(true);
     try {
       runSetUp(benchmark);
 
-      worker.measure(benchmark, request.benchmarkSpec.methodName(), request.workerOptions, log);
+      worker.measure(benchmark, benchmarkMethod, request.workerOptions, log);
     } catch (Exception e) {
       log.notifyFailure(e);
     } finally {
       System.out.flush(); // ?
       runTearDown(benchmark);
     }
+  }
+
+  private static Method findBenchmarkMethod(Class<?> benchmark, String methodName, 
+      ImmutableList<String> methodParameterClassNames) {
+    // Annoyingly Class.forName doesn't work for primitives so we can't convert these classnames
+    // back into Class objects in order to call getDeclaredMethod(String, Class<?>...classes).
+    // Instead we just match on names which should be just as unique.
+    Method found = null;
+    for (Method method : benchmark.getDeclaredMethods()) {
+      if (method.getName().equals(methodName)) {
+        if (methodParameterClassNames.equals(toClassNames(method.getParameterTypes()))) {
+          if (found == null) {
+            found = method;
+          } else {
+            throw new AssertionError(String.format(
+                "Found two methods named %s with the same list of parameters: %s", 
+                methodName, 
+                methodParameterClassNames));
+          }
+        }
+      }
+    }
+    if (found == null) {
+      throw new AssertionError(String.format(
+          "Could not find method %s in class %s with these parameters %s", 
+          methodName,
+          benchmark,
+          methodParameterClassNames));
+    }
+    return found;
+  }
+  
+  private static ImmutableList<String> toClassNames(Class<?>[] classes) {
+    ImmutableList.Builder<String> classNames = ImmutableList.builder();
+    for (Class<?> parameterType : classes) {
+      classNames.add(parameterType.getName());
+    }
+    return classNames.build();
   }
 
   private static void runSetUp(Object benchmark) throws Exception {

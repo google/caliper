@@ -105,6 +105,40 @@ public class MalformedBenchmarksTest {
     public void timeIt(int reps, int what) {}
   }
 
+  @Test public void hasBenchmarkOverloadsTimeMethods() throws Exception {
+    expectException(
+        "Overloads are disallowed for benchmark methods, found overloads of "
+        + "[timeBar, timeBaz, timeFoo] in benchmark OverloadsBenchmark",
+        OverloadsBenchmark.class);
+  }
+
+  static class OverloadsBenchmark extends Benchmark {
+    public void timeFoo(long reps) {}
+    public void timeFoo(int reps) {}
+    public void timeBar(int reps) {}
+    public void timeBar(long reps) {}
+    public void timeBaz(long reps) {}
+    public void timeBaz(long reps, boolean thing) {}
+  }
+
+  @Test public void hasBenchmarkOverloadsAnnotatedMethods() throws Exception {
+    // N.B. baz is fine since although it has an overload, its overload is not a benchmark method.
+    expectException(
+        "Overloads are disallowed for benchmark methods, found overloads of [bar, foo] in "
+        + "benchmark OverloadsAnnotatedBenchmark",
+        OverloadsAnnotatedBenchmark.class);
+  }
+
+  static class OverloadsAnnotatedBenchmark extends Benchmark {
+    @com.google.caliper.Benchmark public void foo(long reps) {}
+    @com.google.caliper.Benchmark public void foo(int reps) {}
+    @com.google.caliper.Benchmark public void bar(long reps) {}
+    @com.google.caliper.Benchmark public void bar(int reps) {}
+    @com.google.caliper.Benchmark public void baz(int reps) {}
+    public void baz(long reps, boolean thing) {}
+    public void baz(long reps) {}
+  }
+
   @Test public void staticParam() throws Exception {
     expectException(STATIC_PARAM, StaticParamBenchmark.class);
   }

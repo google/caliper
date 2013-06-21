@@ -25,7 +25,6 @@ import com.google.caliper.runner.InvalidBenchmarkException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Predicate;
 import com.google.common.base.Ticker;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
@@ -34,8 +33,6 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
-
-import javax.annotation.Nullable;
 
 // TODO(gak): split this into separate workers for microbenchmarks and picobenchmarks
 public class MicrobenchmarkWorker implements Worker {
@@ -50,27 +47,16 @@ public class MicrobenchmarkWorker implements Worker {
     this.ticker = ticker;
   }
 
-  @Override public void measure(Object benchmark, String methodName,
+  @Override public void measure(Object benchmark, Method method,
       Map<String, String> optionMap, WorkerEventLog log) throws Exception {
     Options options = new Options(optionMap);
-    Trial trial = createTrial(benchmark, methodName, options, log);
+    Trial trial = createTrial(benchmark, method, options, log);
     long warmupNanos = trial.warmUp(INITIAL_REPS);
     trial.run(INITIAL_REPS, warmupNanos);
   }
 
-  private Trial createTrial(Object benchmark, final String methodName,
+  private Trial createTrial(Object benchmark, final Method method,
       Options options, WorkerEventLog log) {
-    Iterable<Method> timeMethods =
-        Iterables.filter(Arrays.asList(benchmark.getClass().getDeclaredMethods()),
-            new Predicate<Method>() {
-              @Override public boolean apply(@Nullable Method input) {
-                return methodName.equals(input.getName());
-              }
-            });
-
-    Method method = Iterables.getOnlyElement(timeMethods);
-    method.setAccessible(true);
-
     Class<?> repsType = Iterables.getOnlyElement(Arrays.asList(method.getParameterTypes()));
     if (int.class.equals(repsType)) {
       return new IntTrial(benchmark, method, options, log);

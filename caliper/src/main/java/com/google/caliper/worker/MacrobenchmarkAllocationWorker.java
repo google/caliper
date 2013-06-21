@@ -33,24 +33,20 @@ public final class MacrobenchmarkAllocationWorker implements Worker {
     this.recorder = recorder;
   }
 
-  @Override public void measure(Object benchmark, String methodName,
+  @Override public void measure(Object benchmark, Method method,
       Map<String, String> options, WorkerEventLog log) throws Exception {
     // do one initial measurement and throw away its results
     log.notifyWarmupPhaseStarting();
-    measureAllocations(benchmark, methodName);
+    measureAllocations(benchmark, method);
     log.notifyMeasurementPhaseStarting();
     while (true) {
       log.notifyMeasurementStarting();
-      AllocationStats measurement = measureAllocations(benchmark, methodName);
+      AllocationStats measurement = measureAllocations(benchmark, method);
       log.notifyMeasurementEnding(measurement.toMeasurements());
     }
   }
 
-  private AllocationStats measureAllocations(Object benchmark, String methodName) throws Exception {
-    Method method = benchmark.getClass().getDeclaredMethod(methodName);
-    method.setAccessible(true);
-    // do the Integer boxing and the creation of the Object[] outside of the record block, so that
-    // our internal allocations aren't counted in the benchmark's allocations.
+  private AllocationStats measureAllocations(Object benchmark, Method method) throws Exception {
     recorder.startRecording();
     method.invoke(benchmark);
     return recorder.stopRecording(1);

@@ -249,11 +249,16 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       BenchmarkSpec benchmarkSpec, int port) {
     Instrumentation instrumentation = experiment.instrumentation();
     Instrument instrument = instrumentation.instrument();
-
+    ImmutableList.Builder<String> parameterClassNames = ImmutableList.builder();
+    for (Class<?> parameterType : instrumentation.benchmarkMethod.getParameterTypes()) {
+      parameterClassNames.add(parameterType.getName());
+    }
     WorkerSpec request = new WorkerSpec(
         instrumentation.workerClass().getName(),
         instrumentation.workerOptions(),
-        benchmarkSpec, port);
+        benchmarkSpec,
+        parameterClassNames.build(),
+        port);
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
 

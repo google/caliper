@@ -29,11 +29,10 @@ import java.util.Map;
  */
 public final class ArbitraryMeasurementWorker implements Worker {
   @Override
-  public void measure(Object benchmark, String methodName,
+  public void measure(Object benchmark, Method method,
       Map<String, String> optionsMap, WorkerEventLog log) throws Exception {
 
     Options options = new Options(optionsMap);
-    Method method = benchmark.getClass().getDeclaredMethod(methodName);
     ArbitraryMeasurement annotation = method.getAnnotation(ArbitraryMeasurement.class);
     String unit = annotation.units();
     String description = annotation.description();

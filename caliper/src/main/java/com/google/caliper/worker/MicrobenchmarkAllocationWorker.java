@@ -19,7 +19,6 @@ package com.google.caliper.worker;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
 
@@ -40,21 +39,21 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
     this.recorder = recorder;
   }
 
-  @Override public void measure(Object benchmark, String methodName,
+  @Override public void measure(Object benchmark, Method method,
       Map<String, String> options, WorkerEventLog log) throws Exception {
     // do one initial measurement and throw away its results
     log.notifyWarmupPhaseStarting();
-    measureAllocations(benchmark, methodName, 1);
+    measureAllocations(benchmark, method, 1);
 
     log.notifyMeasurementPhaseStarting();
     while (true) {
       log.notifyMeasurementStarting();
       // [1, 5]
       int baselineReps = random.nextInt(MAX_BASELINE_REPS) + 1;
-      AllocationStats baseline = measureAllocations(benchmark, methodName, baselineReps);
+      AllocationStats baseline = measureAllocations(benchmark, method, baselineReps);
       // (baseline, baseline + MAX_REPS_ABOVE_BASELINE]
       int measurementReps = baselineReps + random.nextInt(MAX_REPS_ABOVE_BASELINE) + 1;
-      AllocationStats measurement = measureAllocations(benchmark, methodName, measurementReps);
+      AllocationStats measurement = measureAllocations(benchmark, method, measurementReps);
       try {
         AllocationStats diff = measurement.minus(baseline);
         log.notifyMeasurementEnding(diff.toMeasurements());
@@ -65,25 +64,8 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
     }
   }
 
-  static Method findMethod(Class<?> benchmarkClass, String name) {
-    for (Method method : benchmarkClass.getDeclaredMethods()) {
-      Class<?>[] parameterTypes = method.getParameterTypes();
-      if (method.getName().equals(name)
-          && ((parameterTypes.length == 0)
-              || Arrays.equals(parameterTypes, new Class<?>[] {int.class})
-              || Arrays.equals(parameterTypes, new Class<?>[] {long.class}))) {
-        method.setAccessible(true);
-        return method;
-      }
-    }
-    throw new IllegalArgumentException(
-        String.format("no method named %s on %s that takes either an int or a long",
-            name, benchmarkClass));
-  }
-
   private AllocationStats measureAllocations(
-      Object benchmark, String methodName, int reps) throws Exception {
-    Method method = findMethod(benchmark.getClass(), methodName);
+      Object benchmark, Method method, int reps) throws Exception {
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that
     // our internal allocations aren't counted in the benchmark's allocations.
     Object[] args = {reps};
