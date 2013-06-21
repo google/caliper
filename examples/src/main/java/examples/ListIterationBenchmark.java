@@ -16,16 +16,17 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.AbstractList;
 import java.util.List;
 
 /**
  * Measures iterating through list elements.
  */
-public class ListIterationBenchmark extends Benchmark {
+public class ListIterationBenchmark {
 
   @Param({"0", "10", "100", "1000"})
   private int length;
@@ -33,7 +34,7 @@ public class ListIterationBenchmark extends Benchmark {
   private List<Object> list;
   private Object[] array;
 
-  @Override protected void setUp() {
+  @BeforeExperiment void setUp() {
     array = new Object[length];
     for (int i = 0; i < length; i++) {
       array[i] = new Object();
@@ -51,7 +52,7 @@ public class ListIterationBenchmark extends Benchmark {
   }
 
   @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
-  public void timeListIteration(int reps) {
+  @Benchmark void listIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : list) {
       }
@@ -59,7 +60,7 @@ public class ListIterationBenchmark extends Benchmark {
   }
 
   @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
-  public void timeArrayIteration(int reps) {
+  @Benchmark void arrayIteration(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object value : array) {
       }

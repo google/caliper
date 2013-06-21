@@ -16,10 +16,11 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.Random;
 
 /**
@@ -27,7 +28,7 @@ import java.util.Random;
  *
  * @author gak@google.com (Gregory Kick)
  */
-public final class VarargsBenchmark extends Benchmark {
+public final class VarargsBenchmark {
   enum Strategy {
     VARARGS {
       @Override long one(long a) {
@@ -129,14 +130,14 @@ public final class VarargsBenchmark extends Benchmark {
 
   private long[] data = new long[2048];
 
-  @Override protected void setUp() {
+  @BeforeExperiment void setUp() {
     Random random = new Random();
     for (int i = 0; i < data.length; i++) {
       data[i] = random.nextLong();
     }
   }
 
-  public long timeInvocation(int reps) {
+  @Benchmark long invocation(int reps) {
     switch (arguments) {
       case 1:
         return oneArgument(reps);

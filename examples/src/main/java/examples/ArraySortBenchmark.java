@@ -16,16 +16,17 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.Arrays;
 import java.util.Random;
 
 /**
  * Measures sorting on different distributions of integers.
  */
-public class ArraySortBenchmark extends Benchmark {
+public class ArraySortBenchmark {
 
   @Param({"10", "100", "1000", "10000"}) private int length;
 
@@ -34,12 +35,12 @@ public class ArraySortBenchmark extends Benchmark {
   private int[] values;
   private int[] copy;
 
-  @Override protected void setUp() throws Exception {
+  @BeforeExperiment void setUp() throws Exception {
     values = distribution.create(length);
     copy = new int[length];
   }
 
-  public void timeSort(int reps) {
+  @Benchmark void sort(int reps) {
     for (int i = 0; i < reps; i++) {
       System.arraycopy(values, 0, copy, 0, values.length);
       Arrays.sort(copy);

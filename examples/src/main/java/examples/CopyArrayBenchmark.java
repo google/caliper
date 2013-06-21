@@ -16,9 +16,10 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -43,7 +44,7 @@ import java.util.Random;
  *     memory (boolean arrays count as byte arrays!).
  * </ul>
  */
-public class CopyArrayBenchmark extends Benchmark {
+public class CopyArrayBenchmark {
   public enum Strategy {
     CLONE {
       @Override Object[] copy(Object[] array) {
@@ -251,7 +252,7 @@ public class CopyArrayBenchmark extends Benchmark {
   long[] longArray;
   short[] shortArray;
 
-  @Override protected void setUp() {
+  @BeforeExperiment void setUp() {
     objectArray = new Object[size];
     booleanArray = new boolean[size];
     byteArray = new byte[size];
@@ -277,7 +278,7 @@ public class CopyArrayBenchmark extends Benchmark {
     }
   }
 
-  public int timeObjects(int reps) {
+  @Benchmark int objects(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(objectArray).hashCode();
@@ -285,7 +286,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeBooleans(int reps) {
+  @Benchmark int booleans(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(booleanArray).hashCode();
@@ -293,7 +294,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeBytes(int reps) {
+  @Benchmark int bytes(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(byteArray).hashCode();
@@ -301,7 +302,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeChars(int reps) {
+  @Benchmark int chars(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(charArray).hashCode();
@@ -309,7 +310,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeDoubles(int reps) {
+  @Benchmark int doubles(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(doubleArray).hashCode();
@@ -317,7 +318,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeFloats(int reps) {
+  @Benchmark int floats(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(floatArray).hashCode();
@@ -325,7 +326,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeInts(int reps) {
+  @Benchmark int ints(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(intArray).hashCode();
@@ -333,7 +334,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeLongs(int reps) {
+  @Benchmark int longs(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(longArray).hashCode();
@@ -341,7 +342,7 @@ public class CopyArrayBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeShorts(int reps) {
+  @Benchmark int shorts(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += strategy.copy(shortArray).hashCode();

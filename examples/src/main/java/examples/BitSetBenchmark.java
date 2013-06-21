@@ -17,7 +17,9 @@
 package examples;
 
 
-import com.google.caliper.legacy.Benchmark;
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
+
 import java.util.BitSet;
 import java.util.Random;
 
@@ -44,17 +46,17 @@ import java.util.Random;
  * BaselineIteration   68 XX|||||||||||||||||
  * </pre>
  *
- * <p>Initially things look simple. The {@link #timeSetBitSetX64(int)} benchmark
- * takes approximately twice as long as {@link #timeSetMaskX64(int)}. However
+ * <p>Initially things look simple. The {@link #setBitSetX64(int)} benchmark
+ * takes approximately twice as long as {@link #setMaskX64(int)}. However
  * the inner loops in these benchmarks have almost no content, so a more
  * 'real world' benchmark was devised in an attempt to back up these results.
  *
- * <p>The {@link #timeCharsToMask(int)} and {@link #timeCharsToBitSet(int)}
+ * <p>The {@link #charsToMask(int)} and {@link #charsToBitSet(int)}
  * benchmarks convert a simple char[] of '1's and '0's to a corresponding BitSet
  * or bit mask. These also processes 64 bits per iteration and so appears to be
  * doing the same amount of work as the first benchmarks.
  *
- * <p>Additionally the {@link BitSetBenchmark#timeBaselineIteration(int)}
+ * <p>Additionally the {@link BitSetBenchmark#baselineIteration(int)}
  * benchmark attempts to measure the raw cost of looping through and reading the
  * source data.
  *
@@ -83,11 +85,11 @@ import java.util.Random;
  * <p><b>2:</b>Overly simplistic benchmarks can give a very false impression of
  * performance.
  */
-public class BitSetBenchmark extends Benchmark {
+public class BitSetBenchmark {
   private BitSet bitSet;
   private char[] bitString;
 
-  @Override protected void setUp() throws Exception {
+  @BeforeExperiment void setUp() throws Exception {
     bitSet = new BitSet(64);
     bitString = new char[64];
     Random r = new Random();
@@ -99,7 +101,7 @@ public class BitSetBenchmark extends Benchmark {
   /**
    * This benchmark attempts to measure performance of {@link BitSet#set}.
    */
-  public int timeSetBitSetX64(int reps) {
+  @Benchmark int setBitSetX64(int reps) {
     long count = 64L * reps;
     for (int i = 0; i < count; i++) {
       bitSet.set(i & 0x3F, true);
@@ -110,7 +112,7 @@ public class BitSetBenchmark extends Benchmark {
   /**
    * This benchmark attempts to measure performance of direct bit-manipulation.
    */
-  public long timeSetMaskX64(int reps) {
+  @Benchmark long setMaskX64(int reps) {
     long count = 64L * reps;
     long bitMask = 0L;
     for (int i = 0; i < count; i++) {
@@ -122,9 +124,9 @@ public class BitSetBenchmark extends Benchmark {
   /**
    * This benchmark parses a char[] of 1's and 0's into a BitSet. Results from
    * this benchmark should be comparable with those from
-   * {@link #timeCharsToMask(int)}.
+   * {@link #charsToMask(int)}.
    */
-  public String timeCharsToBitSet(int reps) {
+  @Benchmark String charsToBitSet(int reps) {
     /*
      * This benchmark now measures the complete parsing of a char[] rather than
      * a single invocation of {@link BitSet#set}. However this fine because
@@ -141,9 +143,9 @@ public class BitSetBenchmark extends Benchmark {
   /**
    * This benchmark parses a char[] of 1's and 0's into a bit mask. Results from
    * this benchmark should be comparable with those from
-   * {@link #timeCharsToBitSet(int)}.
+   * {@link #charsToBitSet(int)}.
    */
-  public long timeCharsToMask(int reps) {
+  @Benchmark long charsToMask(int reps) {
     /*
      * Comparing results we see a far more realistic sounding result whereby
      * using a bit mask is a little over 4x faster than using BitSet.
@@ -164,12 +166,12 @@ public class BitSetBenchmark extends Benchmark {
 
   /**
    * This benchmark attempts to measure the baseline cost of both
-   * {@link #timeCharsToBitSet(int)} and {@link #timeCharsToMask(int)}.
+   * {@link #charsToBitSet(int)} and {@link #charsToMask(int)}.
    * It does this by unconditionally summing the character values of the char[].
    * This is as close to a no-op case as we can expect to get without unwanted
    * over-optimization.
    */
-  public long timeBaselineIteration(int reps) {
+  @Benchmark long baselineIteration(int reps) {
     int badHash = 0;
     for (int i = 0; i < reps; i++) {
       for (int n = 0; n < bitString.length; n++) {

@@ -16,13 +16,13 @@
 
 package examples;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.legacy.Benchmark;
 
 /**
  * Measures the various ways the JDK converts doubles to strings.
  */
-public class DoubleToStringBenchmark extends Benchmark {
+public class DoubleToStringBenchmark {
   @Param Method method;
 
   public enum Method {
@@ -79,7 +79,7 @@ public class DoubleToStringBenchmark extends Benchmark {
 
   @Param Value value;
 
-  public int timePrimitive(int reps) {
+  @Benchmark int primitive(int reps) {
     double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
@@ -88,7 +88,7 @@ public class DoubleToStringBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeWrapper(int reps) {
+  @Benchmark int wrapper(int reps) {
     Double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {

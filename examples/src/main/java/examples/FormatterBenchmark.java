@@ -17,14 +17,14 @@
 package examples;
 
 
-import com.google.caliper.legacy.Benchmark;
+import com.google.caliper.Benchmark;
 import java.util.Formatter;
 
 /**
  * Compares Formatter against hand-written StringBuilder code.
  */
-public class FormatterBenchmark extends Benchmark {
-  public void timeFormatter_NoFormatting(int reps) {
+public class FormatterBenchmark {
+  @Benchmark void formatter_NoFormatting(int reps) {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that doesn't actually need any formatting");
@@ -32,14 +32,14 @@ public class FormatterBenchmark extends Benchmark {
     }
   }
 
-  public void timeStringBuilder_NoFormatting(int reps) {
+  @Benchmark void stringBuilder_NoFormatting(int reps) {
     for (int i = 0; i < reps; i++) {
       StringBuilder sb = new StringBuilder();
       sb.append("this is a reasonably short string that doesn't actually need any formatting");
     }
   }
 
-  public void timeFormatter_OneInt(int reps) {
+  @Benchmark void formatter_OneInt(int reps) {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that has an int %d in it", i);
@@ -47,7 +47,7 @@ public class FormatterBenchmark extends Benchmark {
     }
   }
 
-  public void timeStringBuilder_OneInt(int reps) {
+  @Benchmark void stringBuilder_OneInt(int reps) {
     for (int i = 0; i < reps; i++) {
       StringBuilder sb = new StringBuilder();
       sb.append("this is a reasonably short string that has an int ");
@@ -56,7 +56,7 @@ public class FormatterBenchmark extends Benchmark {
     }
   }
 
-  public void timeFormatter_OneString(int reps) {
+  @Benchmark void formatter_OneString(int reps) {
     for (int i = 0; i < reps; i++) {
       Formatter f = new Formatter();
       f.format("this is a reasonably short string that has a string %s in it", "hello");
@@ -64,7 +64,7 @@ public class FormatterBenchmark extends Benchmark {
     }
   }
 
-  public void timeStringBuilder_OneString(int reps) {
+  @Benchmark void stringBuilder_OneString(int reps) {
     for (int i = 0; i < reps; i++) {
       StringBuilder sb = new StringBuilder();
       sb.append("this is a reasonably short string that has a string ");

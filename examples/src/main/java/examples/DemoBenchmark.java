@@ -16,16 +16,18 @@
 
 package examples;
 
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
-import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.ShortDuration;
 
 import java.math.BigDecimal;
 
 @VmOptions("-server")
-public class DemoBenchmark extends Benchmark {
+public class DemoBenchmark {
   @Param({"abc", "def", "xyz"}) String string;
   @Param({"1", "2"}) int number;
   @Param Foo foo;
@@ -41,13 +43,13 @@ public class DemoBenchmark extends Benchmark {
 //    System.out.println("I should not do this.");
   }
 
-  @Override protected void setUp() throws Exception {
+  @BeforeExperiment void setUp() throws Exception {
     if (string.equals("abc") && number == 1) {
       throw new SkipThisScenarioException();
     }
   }
 
-  public int timeSomething(int reps) {
+  @Benchmark int something(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += i;
@@ -55,7 +57,7 @@ public class DemoBenchmark extends Benchmark {
     return dummy;
   }
 
-  public int timeSomethingElse(int reps) {
+  @Benchmark int somethingElse(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy -= i;
@@ -63,7 +65,7 @@ public class DemoBenchmark extends Benchmark {
     return dummy;
   }
 
-  @Override protected void tearDown() throws Exception {
+  @AfterExperiment void tearDown() throws Exception {
 //    System.out.println("Hey, I'm tearing up the joint.");
   }
 }

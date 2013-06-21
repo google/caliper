@@ -16,9 +16,10 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,7 +28,7 @@ import java.util.List;
 /**
  * Measures performance of list operations.
  */
-public class ListModificationBenchmark extends Benchmark {
+public class ListModificationBenchmark {
 
   private enum Element {
     INSTANCE,
@@ -55,14 +56,14 @@ public class ListModificationBenchmark extends Benchmark {
 
   private List<Element> list;
 
-  @Override protected void setUp() throws Exception {
+  @BeforeExperiment void setUp() throws Exception {
     list = implementation.create();
     for (int i = 0; i < size; i++) {
       list.add(Element.INSTANCE);
     }
   }
 
-  public void timePopulate(int reps) throws Exception {
+  @Benchmark void populate(int reps) throws Exception {
     for (int rep = 0; rep < reps; rep++) {
       List<Element> list = implementation.create();
       for (int i = 0; i < size; i++) {
@@ -71,7 +72,7 @@ public class ListModificationBenchmark extends Benchmark {
     }
   }
 
-  public void timeIteration(int reps) {
+  @Benchmark void iteration(int reps) {
     for (int rep = 0; rep < reps; rep++) {
       Iterator<Element> iterator = list.iterator();
       while (iterator.hasNext()) {
@@ -80,14 +81,14 @@ public class ListModificationBenchmark extends Benchmark {
     }
   }
 
-  public void timeHeadAddRemove(int reps) {
+  @Benchmark void headAddRemove(int reps) {
     for (int rep = 0; rep < reps; rep++) {
       list.add(0, Element.INSTANCE);
       list.remove(0);
     }
   }
 
-  public void timeMiddleAddRemove(int reps) {
+  @Benchmark void middleAddRemove(int reps) {
     int index = size / 2;
     for (int rep = 0; rep < reps; rep++) {
       list.add(index, Element.INSTANCE);
@@ -95,7 +96,7 @@ public class ListModificationBenchmark extends Benchmark {
     }
   }
 
-  public void timeTailAddRemove(int reps) {
+  @Benchmark void tailAddRemove(int reps) {
     int index = size - 1;
     for (int rep = 0; rep < reps; rep++) {
       list.add(Element.INSTANCE);

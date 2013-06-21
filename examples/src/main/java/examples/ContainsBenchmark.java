@@ -16,9 +16,10 @@
 
 package examples;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-import com.google.caliper.legacy.Benchmark;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,7 +28,7 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-public class ContainsBenchmark extends Benchmark {
+public class ContainsBenchmark {
   @Param({"0", "25", "50", "75", "100"}) private int percentNulls;
   @Param({"100", "1000", "10000"}) private int containsPerRep;
 
@@ -37,7 +38,7 @@ public class ContainsBenchmark extends Benchmark {
   /** twenty-five percent nulls */
   private final List<Object> queries = new ArrayList<Object>();
 
-  @Override protected void setUp() {
+  @BeforeExperiment void setUp() {
     set.addAll(Arrays.asList("str1", "str2", "str3", "str4"));
     int nullThreshold = percentNulls * containsPerRep / 100;
     for (int i = 0; i < nullThreshold; i++) {
@@ -49,7 +50,7 @@ public class ContainsBenchmark extends Benchmark {
     Collections.shuffle(queries, new Random(0));
   }
 
-  public void timeContains(int reps) {
+  @Benchmark void contains(int reps) {
     for (int i = 0; i < reps; i++) {
       for (Object query : queries) {
         set.contains(query);
