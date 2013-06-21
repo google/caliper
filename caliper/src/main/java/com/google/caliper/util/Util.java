@@ -20,8 +20,9 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Closeables;
-import com.google.common.io.InputSupplier;
+import com.google.common.io.Resources;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,10 +53,9 @@ public final class Util {
     }
   }
 
-  public static ImmutableMap<String, String> loadProperties(
-      InputSupplier<? extends InputStream> is) throws IOException {
+  public static ImmutableMap<String, String> loadProperties(ByteSource is) throws IOException {
     Properties props = new Properties();
-    InputStream in = is.getInput();
+    InputStream in = is.openStream();
     try {
       props.load(in);
     } finally {
@@ -64,13 +64,8 @@ public final class Util {
     return Maps.fromProperties(props);
   }
 
-  // TODO: this is similar to Resources.getResource
-  public static InputSupplier<InputStream> resourceSupplier(final Class<?> c, final String name) {
-    return new InputSupplier<InputStream>() {
-      @Override public InputStream getInput() {
-        return c.getResourceAsStream(name);
-      }
-    };
+  public static ByteSource resourceSupplier(final Class<?> c, final String name) {
+    return Resources.asByteSource(c.getResource(name));
   }
 
   public static <T> ImmutableMap<String, T> prefixedSubmap(

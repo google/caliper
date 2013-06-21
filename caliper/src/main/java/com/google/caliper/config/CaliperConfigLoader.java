@@ -22,13 +22,12 @@ import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.common.io.InputSupplier;
 import com.google.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -56,14 +55,13 @@ public final class CaliperConfigLoader {
     if (configFile.exists()) {
       try {
         ImmutableMap<String, String> user =
-            Util.loadProperties(Files.newInputStreamSupplier(configFile));
+            Util.loadProperties(Files.asByteSource(configFile));
         return new CaliperConfig(mergeProperties(options.configProperties(), user, defaults));
       } catch (IOException keepGoing) {
       }
     }
 
-    InputSupplier<InputStream> supplier =
-        Util.resourceSupplier(CaliperConfig.class, "default-config.properties");
+    ByteSource supplier = Util.resourceSupplier(CaliperConfig.class, "default-config.properties");
     tryCopyIfNeeded(supplier, configFile);
 
     ImmutableMap<String, String> user;
@@ -85,10 +83,10 @@ public final class CaliperConfigLoader {
     return ImmutableMap.copyOf(map);
   }
 
-  private static void tryCopyIfNeeded(InputSupplier<? extends InputStream> supplier, File rcFile) {
+  private static void tryCopyIfNeeded(ByteSource supplier, File rcFile) {
     if (!rcFile.exists()) {
       try {
-        Files.copy(supplier, rcFile);
+        supplier.copyTo(Files.asByteSink(rcFile));
       } catch (IOException e) {
         rcFile.delete();
       }
