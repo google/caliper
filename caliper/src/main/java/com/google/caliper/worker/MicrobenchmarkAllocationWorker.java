@@ -16,22 +16,12 @@
 
 package com.google.caliper.worker;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
-import com.google.caliper.model.Measurement;
-import com.google.caliper.model.Value;
-import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
-import com.google.monitoring.runtime.instrumentation.AllocationRecorder;
-import com.google.monitoring.runtime.instrumentation.Sampler;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method
@@ -43,23 +33,11 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
   private static final int MAX_REPS_ABOVE_BASELINE = 100;
 
   private final Random random;
+  private final RecordingAllocationSampler recorder;
 
-  private final AtomicInteger allocationCount = new AtomicInteger();
-  private final AtomicLong allocationSize = new AtomicLong();
-  private volatile boolean recordAllocations = false;
-
-  @Inject MicrobenchmarkAllocationWorker(Random random) {
+  @Inject MicrobenchmarkAllocationWorker(RecordingAllocationSampler recorder, Random random) {
     this.random = random;
-    AllocationRecorder.addSampler(
-        new Sampler() {
-          @Override
-          public void sampleAllocation(int arrayCount, String desc, Object newObj, long size) {
-            if (recordAllocations) {
-              allocationCount.getAndIncrement();
-              allocationSize.getAndAdd(size);
-            }
-          }
-        });
+    this.recorder = recorder;
   }
 
   @Override public void measure(Object benchmark, String methodName,
@@ -78,38 +56,12 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
       int measurementReps = baselineReps + random.nextInt(MAX_REPS_ABOVE_BASELINE) + 1;
       AllocationStats measurement = measureAllocations(benchmark, methodName, measurementReps);
       try {
-        AllocationStats diff = diffMeasurements(baseline, measurement);
-        log.notifyMeasurementEnding(ImmutableList.of(
-            new Measurement.Builder()
-                .value(Value.create(diff.allocationCount, ""))
-                .description("objects")
-                .weight(diff.reps)
-                .build(),
-            new Measurement.Builder()
-                .value(Value.create(diff.allocationSize, "B"))
-                .weight(diff.reps)
-                .description("bytes")
-                .build()));
+        AllocationStats diff = measurement.minus(baseline);
+        log.notifyMeasurementEnding(diff.toMeasurements());
       } catch (IllegalStateException e) {
         // log the failure, but just keep trying to measure
         log.notifyMeasurementFailure(e);
       }
-    }
-  }
-
-  /**
-   * Computes and returns the difference between these two measurements. The {@code initial}
-   * measurement must have a lower weight (fewer reps) than the {@code second} measurement.
-   */
-  private AllocationStats diffMeasurements(AllocationStats baseline, AllocationStats measurement) {
-    try {
-      return new AllocationStats(measurement.allocationCount - baseline.allocationCount,
-          measurement.allocationSize - baseline.allocationSize,
-          measurement.reps - baseline.reps);
-    } catch (IllegalArgumentException e) {
-      throw new IllegalStateException(String.format(
-          "The difference between the baseline (%s) and the measurement (%s) is invalid",
-              baseline, measurement), e);
     }
   }
 
@@ -132,43 +84,11 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
   private AllocationStats measureAllocations(
       Object benchmark, String methodName, int reps) throws Exception {
     Method method = findMethod(benchmark.getClass(), methodName);
-    clearAccumulatedStats();
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that
     // our internal allocations aren't counted in the benchmark's allocations.
     Object[] args = {reps};
-    recordAllocations = true;
+    recorder.startRecording();
     method.invoke(benchmark, args);
-    recordAllocations = false;
-
-    return new AllocationStats(allocationCount.get(), allocationSize.get(), reps);
-  }
-
-  private void clearAccumulatedStats() {
-    recordAllocations = false;
-    allocationCount.set(0);
-    allocationSize.set(0);
-  }
-
-  static class AllocationStats {
-    final int allocationCount;
-    final long allocationSize;
-    final int reps;
-
-    AllocationStats(int allocationCount, long allocationSize, int reps) {
-      checkArgument(allocationCount >= 0, "allocationCount (%s) was negative", allocationCount);
-      this.allocationCount = allocationCount;
-      checkArgument(allocationSize >= 0, "allocationSize (%s) was negative", allocationSize);
-      this.allocationSize = allocationSize;
-      checkArgument(reps >= 0, "reps (%s) was negative", reps);
-      this.reps = reps;
-    }
-
-    @Override public String toString() {
-      return Objects.toStringHelper(this)
-          .add("allocationCount", allocationCount)
-          .add("allocationSize", allocationSize)
-          .add("reps", reps)
-          .toString();
-    }
+    return recorder.stopRecording(reps);
   }
 }

@@ -54,6 +54,7 @@ final class WorkerModule extends AbstractModule {
     bind(Worker.class).to(workerClass);
     bind(Ticker.class).toInstance(Ticker.systemTicker());
     bind(WorkerEventLog.class);
+    bind(RecordingAllocationSampler.class);
     bind(Random.class);
   }
 
