@@ -13,6 +13,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.List;
 
 /**
@@ -20,8 +21,9 @@ import java.util.List;
  */
 @RunWith(JUnit4.class)
 public class BadUserCodeTest {
-  private PrintWriter out = new PrintWriter(System.out, true);
-  private PrintWriter err = new PrintWriter(System.err, true);
+  // TODO(gak): do something with this output so that test failures are useful
+  private PrintWriter out = new PrintWriter(new StringWriter());
+  private PrintWriter err = new PrintWriter(new StringWriter());
 
   @Test
 
@@ -209,7 +211,6 @@ public class BadUserCodeTest {
             "-i",
             "allocation",
             "-Cinstrument.allocation.options.trackAllocations=" + trackAllocations,
-            "-v",
             },
         out,
         err);
