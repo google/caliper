@@ -36,4 +36,14 @@ public class Running {
   @Target({FIELD, PARAMETER, METHOD})
   @BindingAnnotation
   public @interface Benchmark {}
+
+  @Retention(RUNTIME)
+  @Target({FIELD, PARAMETER, METHOD})
+  @BindingAnnotation
+  public @interface BenchmarkMethod {}
+
+  @Retention(RUNTIME)
+  @Target({FIELD, PARAMETER, METHOD})
+  @BindingAnnotation
+  public @interface BenchmarkClass {}
 }

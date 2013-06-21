@@ -19,11 +19,13 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.Param;
-import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
 import com.google.inject.MembersInjector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
@@ -31,6 +33,7 @@ import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.text.ParseException;
 
 /**
@@ -39,26 +42,38 @@ import java.text.ParseException;
 public final class ExperimentModule extends AbstractModule {
   private final Class<?> benchmarkClass;
   private final ImmutableSortedMap<String, String> parameters;
+  private final Method benchmarkMethod;
 
-  private ExperimentModule(Class<?> benchmarkClass, ImmutableSortedMap<String, String> parameters) {
+  private ExperimentModule(Class<?> benchmarkClass, Method benchmarkMethod, 
+      ImmutableSortedMap<String, String> parameters) {
     this.benchmarkClass = checkNotNull(benchmarkClass);
     this.parameters = checkNotNull(parameters);
+    this.benchmarkMethod = benchmarkMethod;
   }
 
   public static ExperimentModule forExperiment(Experiment experiment) {
-    return new ExperimentModule(experiment.instrumentation().benchmarkMethod().getDeclaringClass(),
+    Method benchmarkMethod = experiment.instrumentation().benchmarkMethod();
+    return new ExperimentModule(benchmarkMethod.getDeclaringClass(), 
+        benchmarkMethod,
         experiment.userParameters());
   }
 
-  public static ExperimentModule forBenchmarkSpec(BenchmarkSpec spec)
+  public static ExperimentModule forWorkerSpec(WorkerSpec spec) 
       throws ClassNotFoundException {
-    return new ExperimentModule(Class.forName(spec.className()), spec.parameters());
+    Class<?> benchmarkClass = Class.forName(spec.benchmarkSpec.className());
+    Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(), 
+        spec.methodParameterClassNames);
+    benchmarkMethod.setAccessible(true);
+    return new ExperimentModule(benchmarkClass, benchmarkMethod, spec.benchmarkSpec.parameters());
   }
 
   @Override protected void configure() {
     binder().requireExplicitBindings();
     bind(benchmarkClass);  // TypeListener doesn't fire without this
     bind(Object.class).annotatedWith(Running.Benchmark.class).to(benchmarkClass);
+    bind(new Key<Class<?>>(Running.BenchmarkClass.class) {}).toInstance(benchmarkClass);
+    bindConstant().annotatedWith(Running.BenchmarkMethod.class).to(benchmarkMethod.getName());
+    bind(Method.class).annotatedWith(Running.BenchmarkMethod.class).toInstance(benchmarkMethod);
     bindListener(new BenchmarkTypeMatcher(), new BenchmarkParameterInjector());
   }
 
@@ -94,5 +109,43 @@ public final class ExperimentModule extends AbstractModule {
         }
       }
     }
+  }
+  
+  private static Method findBenchmarkMethod(Class<?> benchmark, String methodName, 
+      ImmutableList<String> methodParameterClassNames) {
+    // Annoyingly Class.forName doesn't work for primitives so we can't convert these classnames
+    // back into Class objects in order to call getDeclaredMethod(String, Class<?>...classes).
+    // Instead we just match on names which should be just as unique.
+    Method found = null;
+    for (Method method : benchmark.getDeclaredMethods()) {
+      if (method.getName().equals(methodName)) {
+        if (methodParameterClassNames.equals(toClassNames(method.getParameterTypes()))) {
+          if (found == null) {
+            found = method;
+          } else {
+            throw new AssertionError(String.format(
+                "Found two methods named %s with the same list of parameters: %s", 
+                methodName, 
+                methodParameterClassNames));
+          }
+        }
+      }
+    }
+    if (found == null) {
+      throw new AssertionError(String.format(
+          "Could not find method %s in class %s with these parameters %s", 
+          methodName,
+          benchmark,
+          methodParameterClassNames));
+    }
+    return found;
+  }
+  
+  private static ImmutableList<String> toClassNames(Class<?>[] classes) {
+    ImmutableList.Builder<String> classNames = ImmutableList.builder();
+    for (Class<?> parameterType : classes) {
+      classNames.add(parameterType.getName());
+    }
+    return classNames.build();
   }
 }

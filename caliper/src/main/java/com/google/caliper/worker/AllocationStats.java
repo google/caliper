@@ -21,8 +21,12 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMultiset;
+import com.google.common.collect.Multiset;
+import com.google.common.collect.Multiset.Entry;
+import com.google.common.collect.Multisets;
 
-import java.util.List;
+import java.util.Collection;
 
 /**
  * A set of statistics about the allocations performed by a benchmark method.
@@ -31,19 +35,35 @@ class AllocationStats {
   private final int allocationCount;
   private final long allocationSize;
   private final int reps;
-
+  private final ImmutableMultiset<Allocation> allocations;
+  
   /**
    * Constructs a new {@link AllocationStats} with the given number of allocations 
    * ({@code allocationCount}), cumulative size of the allocations ({@code allocationSize}) and the
-   * number of {@code reps} passed to the bencmark method.
+   * number of {@code reps} passed to the benchmark method.
    */
   AllocationStats(int allocationCount, long allocationSize, int reps) {
+    this(allocationCount, allocationSize, reps, ImmutableMultiset.<Allocation>of());
+  }
+  
+  /**
+   * Constructs a new {@link AllocationStats} with the given allocations and the number of 
+   * {@code reps} passed to the benchmark method.
+   */
+  AllocationStats(Collection<Allocation> allocations, int reps) {
+    this(allocations.size(), Allocation.getTotalSize(allocations), reps, 
+        ImmutableMultiset.copyOf(allocations));
+  }
+
+  private AllocationStats(int allocationCount, long allocationSize, int reps, 
+      Multiset<Allocation> allocations) {
     checkArgument(allocationCount >= 0, "allocationCount (%s) was negative", allocationCount);
     this.allocationCount = allocationCount;
     checkArgument(allocationSize >= 0, "allocationSize (%s) was negative", allocationSize);
     this.allocationSize = allocationSize;
     checkArgument(reps >= 0, "reps (%s) was negative", reps);
     this.reps = reps;
+    this.allocations = Multisets.copyHighestCountFirst(allocations);
   }
   
   /**
@@ -52,14 +72,29 @@ class AllocationStats {
    * (fewer reps) than this measurement.
    */
   AllocationStats minus(AllocationStats baseline) {
+    for (Entry<Allocation> entry : baseline.allocations.entrySet()) {
+      int superCount = allocations.count(entry.getElement());
+      if (superCount < entry.getCount()) {
+        throw new IllegalStateException(
+            String.format("Your benchmark appears to have non-deterministic allocation behavior. "
+                + "Observed %d instance(s) of %s in the baseline but only %d in the actual "
+                + "measurement", 
+                entry.getCount(),
+                entry.getElement(), 
+                superCount));
+      }
+    }
     try {
       return new AllocationStats(allocationCount - baseline.allocationCount,
             allocationSize - baseline.allocationSize,
-            reps - baseline.reps);
+            reps - baseline.reps,
+            Multisets.difference(allocations, baseline.allocations));
     } catch (IllegalArgumentException e) {
       throw new IllegalStateException(String.format(
-          "The difference between the baseline (%s) and the measurement (%s) is invalid",
-              baseline, this), e);
+          "Your benchmark appears to have non-deterministic allocation behavior. The difference "
+          + "between the baseline %s and the measurement %s is invalid. Consider enabling "
+          + "instrument.allocation.options.trackAllocations to get a more specific error message.", 
+          baseline, this), e);
     }
   }
   
@@ -67,6 +102,10 @@ class AllocationStats {
    * Returns a list of {@link Measurement measurements} based on this collection of stats.
    */
   ImmutableList<Measurement> toMeasurements() {
+    for (Entry<Allocation> entry : allocations.entrySet()) {
+      double allocsPerRep = ((double) entry.getCount()) / reps;
+      System.out.printf("Allocated %f allocs per rep of %s", allocsPerRep, entry.getElement());
+    }
     return ImmutableList.of(
         new Measurement.Builder()
             .value(Value.create(allocationCount, ""))

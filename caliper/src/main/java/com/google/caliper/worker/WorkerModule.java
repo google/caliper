@@ -21,8 +21,10 @@ import static com.google.common.base.Charsets.UTF_8;
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.common.base.Ticker;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.net.InetAddresses;
 import com.google.inject.AbstractModule;
+import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
@@ -30,15 +32,21 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Random;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link Param parameters}
  * from the {@link WorkerSpec} into the benchmark.
+ * 
+ * <p>TODO(gak): Ensure that each worker only has bindings for the objects it needs and not the
+ * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
+ * worker).
  */
 final class WorkerModule extends AbstractModule {
   private final Class<? extends Worker> workerClass;
   private final int port;
+  private final ImmutableMap<String, String> workerOptions;
 
   @SuppressWarnings("unchecked")
   WorkerModule(WorkerSpec workerSpec) {
@@ -48,14 +56,20 @@ final class WorkerModule extends AbstractModule {
       throw new AssertionError("classes referenced in the runner are always present");
     }
     this.port = workerSpec.port;
+    this.workerOptions = workerSpec.workerOptions;
   }
 
   @Override protected void configure() {
     bind(Worker.class).to(workerClass);
     bind(Ticker.class).toInstance(Ticker.systemTicker());
     bind(WorkerEventLog.class);
-    bind(RecordingAllocationSampler.class);
+    if (Boolean.valueOf(workerOptions.get("trackAllocations"))) {
+      bind(AllocationRecorder.class).to(AllAllocationsRecorder.class);
+    } else {
+      bind(AllocationRecorder.class).to(AggregateAllocationsRecorder.class);
+    }
     bind(Random.class);
+    bind(new Key<Map<String, String>>(WorkerOptions.class) {}).toInstance(workerOptions);
   }
 
   @Provides @Singleton PrintWriter providePrintWriter() throws IOException {

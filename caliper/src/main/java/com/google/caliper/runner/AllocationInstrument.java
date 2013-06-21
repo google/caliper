@@ -28,6 +28,7 @@ import com.google.caliper.worker.MicrobenchmarkAllocationWorker;
 import com.google.caliper.worker.Worker;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
 
@@ -47,6 +48,11 @@ import java.util.logging.Logger;
  */
 public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
+  /**
+   * If this option is set to {@code true} then every individual allocation will be tracked and
+   * logged.  This will also increase the detail of certain error messages.
+   */
+  private static final String TRACK_ALLOCATIONS_OPTION = "trackAllocations";
   private static final Logger logger = Logger.getLogger(AllocationInstrumenter.class.getName());
 
   @Override
@@ -95,6 +101,10 @@ public final class AllocationInstrument extends Instrument {
       }
     }
 
+    @Override public ImmutableMap<String, String> workerOptions() {
+      return ImmutableMap.of(TRACK_ALLOCATIONS_OPTION, options.get(TRACK_ALLOCATIONS_OPTION));
+    }
+
     @Override
     public Class<? extends Worker> workerClass() {
       return MicrobenchmarkAllocationWorker.class;
@@ -127,6 +137,10 @@ public final class AllocationInstrument extends Instrument {
       }
     }
 
+    @Override public ImmutableMap<String, String> workerOptions() {
+      return ImmutableMap.of(TRACK_ALLOCATIONS_OPTION, options.get(TRACK_ALLOCATIONS_OPTION));
+    }
+
     @Override
     public Class<? extends Worker> workerClass() {
       return MacrobenchmarkAllocationWorker.class;
@@ -141,7 +155,7 @@ public final class AllocationInstrument extends Instrument {
 
   @Override
   public ImmutableSet<String> instrumentOptions() {
-    return ImmutableSet.of(ALLOCATION_AGENT_JAR_OPTION);
+    return ImmutableSet.of(ALLOCATION_AGENT_JAR_OPTION, TRACK_ALLOCATIONS_OPTION);
   }
 
   private static Optional<File> findAllocationInstrumentJarOnClasspath() throws IOException {
@@ -169,7 +183,7 @@ public final class AllocationInstrument extends Instrument {
    * on the worker VM's command line with "-javaagent:[jarfile]".
    */
   @Override ImmutableSet<String> getExtraCommandLineArgs() {
-    String agentJar = options.get("allocationAgentJar");
+    String agentJar = options.get(ALLOCATION_AGENT_JAR_OPTION);
     if (Strings.isNullOrEmpty(agentJar)) {
       try {
         Optional<File> instrumentJar = findAllocationInstrumentJarOnClasspath();

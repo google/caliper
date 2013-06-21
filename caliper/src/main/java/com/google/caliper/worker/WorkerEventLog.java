@@ -57,7 +57,6 @@ public final class WorkerEventLog {
 
   public void notifyMeasurementEnding(Measurement measurement) {
     notifyMeasurementEnding(ImmutableList.of(measurement));
-
   }
 
   public void notifyMeasurementEnding(Iterable<Measurement> measurements) {
@@ -66,11 +65,6 @@ public final class WorkerEventLog {
       writer.printf("I got a result! %s: %f%s%n", measurement.description(),
           measurement.value().magnitude() / measurement.weight(), measurement.value().unit());
     }
-  }
-
-  public void notifyMeasurementFailure(Exception e) {
-    writer.println("MEASUREMENT FAILURE!");
-    e.printStackTrace(writer);
   }
 
   public void notifyFailure(Exception e) {

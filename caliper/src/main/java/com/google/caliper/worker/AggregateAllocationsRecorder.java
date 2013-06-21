@@ -18,21 +18,15 @@ package com.google.caliper.worker;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.inject.Inject;
-import com.google.monitoring.runtime.instrumentation.AllocationRecorder;
 import com.google.monitoring.runtime.instrumentation.Sampler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * An object that records all allocations that occur between {@link #startRecording()} 
- * and {@link #stopRecording(int)}.
- * 
- * <p>This object can accurately track allocations made from multiple threads but is only 
- * expected to have {@link #startRecording()} and {@link #stopRecording(int)} called by a single 
- * thread.
+ * An {@link AllocationRecorder} that records the number and cumulative size of allocation.
  */
-final class RecordingAllocationSampler {
+final class AggregateAllocationsRecorder implements AllocationRecorder {
   private final AtomicInteger allocationCount = new AtomicInteger();
   private final AtomicLong allocationSize = new AtomicLong();
   private volatile boolean recording = false;
@@ -47,25 +41,19 @@ final class RecordingAllocationSampler {
     }
   };
   
-  @Inject RecordingAllocationSampler() {
-    AllocationRecorder.addSampler(sampler);
+  @Inject AggregateAllocationsRecorder() {
+    com.google.monitoring.runtime.instrumentation.AllocationRecorder.addSampler(sampler);
   }
   
   /** Clears the prior state and starts a new recording. */
-  void startRecording() {
+  @Override public void startRecording() {
     checkState(!recording, "startRecording called, but we were already recording.");
     allocationCount.set(0);
     allocationSize.set(0);
     recording = true;
   }
   
-  /**
-   * Stops recording allocations and saves all the allocation data recorded since the previous call
-   * to {@link #startRecording()} to an {@link AllocationStats} object.
-   * 
-   * @param reps The number of reps that the previous set of allocation represents.
-   */
-  AllocationStats stopRecording(int reps) {
+  @Override public AllocationStats stopRecording(int reps) {
     checkState(recording, "stopRecording called, but we were not recording.");
     recording = false;
     return new AllocationStats(allocationCount.get(), allocationSize.get(), reps);

@@ -32,9 +32,9 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
   private static final int MAX_REPS_ABOVE_BASELINE = 100;
 
   private final Random random;
-  private final RecordingAllocationSampler recorder;
+  private final AllocationRecorder recorder;
 
-  @Inject MicrobenchmarkAllocationWorker(RecordingAllocationSampler recorder, Random random) {
+  @Inject MicrobenchmarkAllocationWorker(AllocationRecorder recorder, Random random) {
     this.random = random;
     this.recorder = recorder;
   }
@@ -59,7 +59,7 @@ public final class MicrobenchmarkAllocationWorker implements Worker {
         log.notifyMeasurementEnding(diff.toMeasurements());
       } catch (IllegalStateException e) {
         // log the failure, but just keep trying to measure
-        log.notifyMeasurementFailure(e);
+        log.notifyFailure(e);
       }
     }
   }

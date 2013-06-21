@@ -27,9 +27,9 @@ import java.util.Map;
  * total size of those allocations.
  */
 public final class MacrobenchmarkAllocationWorker implements Worker {
-  private final RecordingAllocationSampler recorder;
+  private final AllocationRecorder recorder;
 
-  @Inject MacrobenchmarkAllocationWorker(RecordingAllocationSampler recorder) {
+  @Inject MacrobenchmarkAllocationWorker(AllocationRecorder recorder) {
     this.recorder = recorder;
   }
 
