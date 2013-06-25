@@ -121,28 +121,6 @@ final class ExperimentingRunnerModule extends AbstractModule {
     return builder.build();
   }
 
-  private static Class<?> classForName(String className)
-      throws InvalidCommandException, UserCodeException {
-    try {
-      return Util.lenientClassForName(className);
-    } catch (ClassNotFoundException e) {
-      throw new InvalidCommandException("Benchmark class not found: " + className);
-    } catch (ExceptionInInitializerError e) {
-      throw new UserCodeException(
-          "Exception thrown while initializing class '" + className + "'", e.getCause());
-    } catch (NoClassDefFoundError e) {
-      throw new UserCodeException("Unable to load " + className, e);
-    }
-  }
-
-  @Provides BenchmarkClass provideBenchmarkClass(CaliperOptions options)
-      throws InvalidBenchmarkException, InvalidCommandException {
-    BenchmarkClass benchmarkClass =
-        BenchmarkClass.forClass(classForName(options.benchmarkClassName()));
-    benchmarkClass.validateParameters(options.userParameters());
-    return benchmarkClass;
-  }
-
   @Provides @Singleton @NanoTimeGranularity ShortDuration provideNanoTimeGranularity(
       NanoTimeGranularityTester tester) {
     return tester.testNanoTimeGranularity();

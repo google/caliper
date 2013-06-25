@@ -25,6 +25,7 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
+import com.google.caliper.util.Util;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
@@ -112,7 +113,9 @@ public final class CaliperMain {
       Injector optionsInjector = Guice.createInjector(new OptionsModule(args));
       CaliperOptions options = optionsInjector.getInstance(CaliperOptions.class);
       Module runnerModule = new ExperimentingRunnerModule();
+      Class<?> benchmarkClass = benchmarkClassForName(options.benchmarkClassName());
       Injector injector = optionsInjector.createChildInjector(
+          new BenchmarkClassModule(benchmarkClass),
           new OutputModule(stdout, stderr),
           new BridgeModule(),
           new GsonModule(),
@@ -126,6 +129,8 @@ public final class CaliperMain {
           stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
         }
       }
+      // check that the parameters are valid
+      injector.getInstance(BenchmarkClass.class).validateParameters(options.userParameters());
       CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
       run.run(); // throws IBE
     } catch (CreationException e) {
@@ -143,6 +148,20 @@ public final class CaliperMain {
     // courtesy flush
     stderr.flush();
     stdout.flush();
+  }
+
+  private static Class<?> benchmarkClassForName(String className)
+      throws InvalidCommandException, UserCodeException {
+    try {
+      return Util.lenientClassForName(className);
+    } catch (ClassNotFoundException e) {
+      throw new InvalidCommandException("Benchmark class not found: " + className);
+    } catch (ExceptionInInitializerError e) {
+      throw new UserCodeException(
+          "Exception thrown while initializing class '" + className + "'", e.getCause());
+    } catch (NoClassDefFoundError e) {
+      throw new UserCodeException("Unable to load " + className, e);
+    }
   }
 
   private static void propogateIfCaliperException(Throwable throwable)

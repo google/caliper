@@ -44,8 +44,7 @@ abstract class BenchmarkClass {
     Class<com.google.caliper.legacy.Benchmark> legacyBenchmarkClass =
         com.google.caliper.legacy.Benchmark.class;
     if (legacyBenchmarkClass.isAssignableFrom(theClass)) {
-      return new BenchmarkSubclass<com.google.caliper.legacy.Benchmark>(legacyBenchmarkClass,
-          theClass.asSubclass(legacyBenchmarkClass));
+      return new BenchmarkSubclass(legacyBenchmarkClass, theClass.asSubclass(legacyBenchmarkClass));
     } else {
       return new AnnotatedBenchmark(theClass);
     }
@@ -66,9 +65,6 @@ abstract class BenchmarkClass {
     // this will fail later anyway (no way to declare parameterless nested constr., but
     // maybe signal this better?
 
-    // TODO(kevinb): check that it's a *direct* subclass, because semantics of @Params and such
-    // are too much of a pain to specify otherwise.
-
     this.userParameters = ParameterSet.create(theClass, Param.class);
 
     this.benchmarkFlags = getVmOptions(theClass);
@@ -86,6 +82,7 @@ abstract class BenchmarkClass {
     return benchmarkFlags;
   }
 
+  // TODO(gak): use these methods in the worker as well
   public void setUpBenchmark(Object benchmarkInstance) throws UserCodeException {
     boolean setupSuccess = false;
     try {
@@ -132,7 +129,6 @@ abstract class BenchmarkClass {
     return name();
   }
 
-  // We have to do this reflectively because it'd be too much of a pain to make setUp public
   private void callSetUp(Object benchmark) throws UserCodeException {
     for (Method method : beforeExperimentMethods()) {
       try {
@@ -186,10 +182,10 @@ abstract class BenchmarkClass {
    * A benchmark class implementation that relies on an abstract class that declares {@code setUp}
    * and {@code tearDown}.
    */
-  private static final class BenchmarkSubclass<T> extends BenchmarkClass {
+  private static final class BenchmarkSubclass extends BenchmarkClass {
     final Class<?> superclass;
 
-    BenchmarkSubclass(Class<T> superclass, Class<? extends T> theClass)
+    <T> BenchmarkSubclass(Class<T> superclass, Class<? extends T> theClass)
         throws InvalidBenchmarkException {
       super(theClass);
       if (!theClass.getSuperclass().equals(superclass)) {

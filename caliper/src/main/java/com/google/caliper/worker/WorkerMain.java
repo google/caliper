@@ -21,8 +21,12 @@ import static com.google.inject.Stage.PRODUCTION;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;
+import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
 import com.google.caliper.runner.Running;
+import com.google.caliper.runner.Running.AfterExperimentMethods;
+import com.google.caliper.runner.Running.BeforeExperimentMethods;
+import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -43,6 +47,7 @@ public final class WorkerMain {
         gsonInjector.getInstance(Gson.class).fromJson(args[0], WorkerSpec.class);
 
     Injector workerInjector = gsonInjector.createChildInjector(
+        new BenchmarkClassModule(Class.forName(request.benchmarkSpec.className())),
         ExperimentModule.forWorkerSpec(request),
         new BridgeModule(),
         new WorkerModule(request));
@@ -53,36 +58,29 @@ public final class WorkerMain {
         Key.get(Method.class, Running.BenchmarkMethod.class));
     WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
 
+    ImmutableSet<Method> beforeExperimentMethods =
+        workerInjector.getInstance(new Key<ImmutableSet<Method>>(BeforeExperimentMethods.class) {});
+    ImmutableSet<Method> afterExperimentMethods =
+        workerInjector.getInstance(new Key<ImmutableSet<Method>>(AfterExperimentMethods.class) {});
+
     log.notifyWorkerStarted();
 
     try {
-      runSetUp(benchmark);
+      invokeMethods(beforeExperimentMethods, benchmark);
 
       worker.measure(benchmark, benchmarkMethod, request.workerOptions, log);
     } catch (Exception e) {
       log.notifyFailure(e);
     } finally {
       System.out.flush(); // ?
-      runTearDown(benchmark);
+      invokeMethods(afterExperimentMethods, benchmark);
     }
   }
 
-  private static void runSetUp(Object benchmark) throws Exception {
-    runBenchmarkMethod(benchmark, "setUp");
-  }
-
-  private static void runTearDown(Object benchmark) throws Exception {
-    runBenchmarkMethod(benchmark, "tearDown");
-  }
-
-  private static void runBenchmarkMethod(Object benchmark, String methodName) throws Exception {
-    // benchmark.setUp() or .tearDown() -- but they're protected
-    try {
-      Method method = benchmark.getClass().getDeclaredMethod(methodName);
-      method.setAccessible(true);
+  private static void invokeMethods(ImmutableSet<Method> methods, Object benchmark)
+      throws Exception {
+    for (Method method : methods) {
       method.invoke(benchmark);
-    } catch (NoSuchMethodException e) {
-      // no method, don't invoke
     }
   }
 }

@@ -25,7 +25,6 @@ import com.google.caliper.util.Parsers;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.AbstractModule;
-import com.google.inject.Key;
 import com.google.inject.MembersInjector;
 import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
@@ -44,7 +43,7 @@ public final class ExperimentModule extends AbstractModule {
   private final ImmutableSortedMap<String, String> parameters;
   private final Method benchmarkMethod;
 
-  private ExperimentModule(Class<?> benchmarkClass, Method benchmarkMethod, 
+  private ExperimentModule(Class<?> benchmarkClass, Method benchmarkMethod,
       ImmutableSortedMap<String, String> parameters) {
     this.benchmarkClass = checkNotNull(benchmarkClass);
     this.parameters = checkNotNull(parameters);
@@ -53,15 +52,15 @@ public final class ExperimentModule extends AbstractModule {
 
   public static ExperimentModule forExperiment(Experiment experiment) {
     Method benchmarkMethod = experiment.instrumentation().benchmarkMethod();
-    return new ExperimentModule(benchmarkMethod.getDeclaringClass(), 
+    return new ExperimentModule(benchmarkMethod.getDeclaringClass(),
         benchmarkMethod,
         experiment.userParameters());
   }
 
-  public static ExperimentModule forWorkerSpec(WorkerSpec spec) 
+  public static ExperimentModule forWorkerSpec(WorkerSpec spec)
       throws ClassNotFoundException {
     Class<?> benchmarkClass = Class.forName(spec.benchmarkSpec.className());
-    Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(), 
+    Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(),
         spec.methodParameterClassNames);
     benchmarkMethod.setAccessible(true);
     return new ExperimentModule(benchmarkClass, benchmarkMethod, spec.benchmarkSpec.parameters());
@@ -71,7 +70,6 @@ public final class ExperimentModule extends AbstractModule {
     binder().requireExplicitBindings();
     bind(benchmarkClass);  // TypeListener doesn't fire without this
     bind(Object.class).annotatedWith(Running.Benchmark.class).to(benchmarkClass);
-    bind(new Key<Class<?>>(Running.BenchmarkClass.class) {}).toInstance(benchmarkClass);
     bindConstant().annotatedWith(Running.BenchmarkMethod.class).to(benchmarkMethod.getName());
     bind(Method.class).annotatedWith(Running.BenchmarkMethod.class).toInstance(benchmarkMethod);
     bindListener(new BenchmarkTypeMatcher(), new BenchmarkParameterInjector());
@@ -110,8 +108,8 @@ public final class ExperimentModule extends AbstractModule {
       }
     }
   }
-  
-  private static Method findBenchmarkMethod(Class<?> benchmark, String methodName, 
+
+  private static Method findBenchmarkMethod(Class<?> benchmark, String methodName,
       ImmutableList<String> methodParameterClassNames) {
     // Annoyingly Class.forName doesn't work for primitives so we can't convert these classnames
     // back into Class objects in order to call getDeclaredMethod(String, Class<?>...classes).
@@ -124,8 +122,8 @@ public final class ExperimentModule extends AbstractModule {
             found = method;
           } else {
             throw new AssertionError(String.format(
-                "Found two methods named %s with the same list of parameters: %s", 
-                methodName, 
+                "Found two methods named %s with the same list of parameters: %s",
+                methodName,
                 methodParameterClassNames));
           }
         }
@@ -133,14 +131,14 @@ public final class ExperimentModule extends AbstractModule {
     }
     if (found == null) {
       throw new AssertionError(String.format(
-          "Could not find method %s in class %s with these parameters %s", 
+          "Could not find method %s in class %s with these parameters %s",
           methodName,
           benchmark,
           methodParameterClassNames));
     }
     return found;
   }
-  
+
   private static ImmutableList<String> toClassNames(Class<?>[] classes) {
     ImmutableList.Builder<String> classNames = ImmutableList.builder();
     for (Class<?> parameterType : classes) {
