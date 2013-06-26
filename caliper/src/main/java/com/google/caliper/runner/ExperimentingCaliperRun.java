@@ -301,7 +301,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   }
 
   private static String getClassPath() {
-    String classpath = System.getProperty("java.class.path");
+    String classpath;
+    // Use the effective class path in case this is being invoked in an isolated class loader
+    classpath =
+        EffectiveClassPath.getClassPathForClassLoader(Thread.currentThread().getContextClassLoader());
     return classpath;
   }
 

@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.reflect.ClassPath;
@@ -51,17 +52,21 @@ final class JarFinder {
       Splitter.on(' ').omitEmptyStrings();
 
   /**
-   * Returns a {@code ClassPath} representing all classes and resources loadable from {@code
-   * classloader} and its parent class loaders.
+   * Returns a list of jar files reachable from the given class loaders.
    *
    * <p>Currently only {@link URLClassLoader} and only {@code file://} urls are supported.
    *
    * @throws IOException if the attempt to read class path resources (jar files or directories)
    *         failed.
    */
-  public static ImmutableSet<File> findJarFiles(ClassLoader classloader) throws IOException {
+  public static ImmutableSet<File> findJarFiles(ClassLoader first, ClassLoader... rest)
+      throws IOException {
     Scanner scanner = new Scanner();
-    for (Map.Entry<URI, ClassLoader> entry : getClassPathEntries(classloader).entrySet()) {
+    Map<URI, ClassLoader> map = Maps.newLinkedHashMap();
+    for (ClassLoader classLoader : Lists.asList(first, rest)) {
+      map.putAll(getClassPathEntries(classLoader));
+    }
+    for (Map.Entry<URI, ClassLoader> entry : map.entrySet()) {
       scanner.scan(entry.getKey(), entry.getValue());
     }
     return scanner.jarFiles();
