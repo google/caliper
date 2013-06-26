@@ -24,7 +24,7 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.MacrobenchmarkWorker;
-import com.google.caliper.worker.MicrobenchmarkWorker;
+import com.google.caliper.worker.RuntimeWorker;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -82,7 +82,7 @@ public class RuntimeInstrumentTest {
     Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
     assertEquals(instrument, instrumentation.instrument());
-    assertEquals(MicrobenchmarkWorker.class, instrumentation.workerClass());
+    assertEquals(RuntimeWorker.Micro.class, instrumentation.workerClass());
   }
 
   @Test public void createInstrumentation_picobenchmark() throws Exception {
@@ -90,7 +90,7 @@ public class RuntimeInstrumentTest {
     Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
     assertEquals(instrument, instrumentation.instrument());
-    assertEquals(MicrobenchmarkWorker.class, instrumentation.workerClass());
+    assertEquals(RuntimeWorker.Pico.class, instrumentation.workerClass());
   }
 
   @Test public void createInstrumentation_badParam() throws Exception {

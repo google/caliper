@@ -16,34 +16,35 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.model.Measurement;
+import com.google.caliper.runner.Running.Benchmark;
+import com.google.caliper.runner.Running.BenchmarkMethod;
+import com.google.common.collect.ImmutableList;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 
 /**
  * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method
  * a few times, with varying numbers of reps, and computes the number of object allocations and the
  * total size of those allocations.
  */
-public final class MacrobenchmarkAllocationWorker implements Worker {
+public final class MacrobenchmarkAllocationWorker extends Worker {
   private final AllocationRecorder recorder;
 
-  @Inject MacrobenchmarkAllocationWorker(AllocationRecorder recorder) {
+  @Inject MacrobenchmarkAllocationWorker(@Benchmark Object benchmark, 
+      @BenchmarkMethod Method method, AllocationRecorder recorder) {
+    super(benchmark, method);
     this.recorder = recorder;
   }
 
-  @Override public void measure(Object benchmark, Method method,
-      Map<String, String> options, WorkerEventLog log) throws Exception {
+  @Override public void bootstrap() throws Exception {
     // do one initial measurement and throw away its results
-    log.notifyWarmupPhaseStarting();
-    measureAllocations(benchmark, method);
-    log.notifyMeasurementPhaseStarting();
-    while (true) {
-      log.notifyMeasurementStarting();
-      AllocationStats measurement = measureAllocations(benchmark, method);
-      log.notifyMeasurementEnding(measurement.toMeasurements());
-    }
+    measureAllocations(benchmark, benchmarkMethod);
+  }
+  
+  @Override public ImmutableList<Measurement> measure() throws Exception {
+    return measureAllocations(benchmark, benchmarkMethod).toMeasurements();
   }
 
   private AllocationStats measureAllocations(Object benchmark, Method method) throws Exception {

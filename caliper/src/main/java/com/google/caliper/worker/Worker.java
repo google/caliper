@@ -13,13 +13,59 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.google.caliper.worker;
 
-import java.lang.reflect.Method;
-import java.util.Map;
+import com.google.caliper.model.Measurement;
+import com.google.caliper.runner.Running.AfterExperimentMethods;
+import com.google.caliper.runner.Running.BeforeExperimentMethods;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
 
-public interface Worker {
-  void measure(Object benchmark, Method method, Map<String, String> options,
-      WorkerEventLog log) throws Exception;
+import java.lang.reflect.Method;
+
+/**
+ * A {@link Worker} collects measurements on behalf of a particular Instrument.
+ */
+public abstract class Worker {
+  @Inject
+  @BeforeExperimentMethods
+  private ImmutableSet<Method> beforeExperimentMethods;
+  
+  @Inject
+  @AfterExperimentMethods
+  private ImmutableSet<Method> afterExperimentMethods;
+  
+  protected final Method benchmarkMethod;
+  protected final Object benchmark;
+  
+  protected Worker(Object benchmark, Method method) {
+    this.benchmark = benchmark;
+    this.benchmarkMethod = method;
+  }
+
+  /** Initializes the benchmark object. */
+  final void setUpBenchmark() throws Exception {
+    for (Method method : beforeExperimentMethods) {
+      method.invoke(benchmark);
+    }
+  }
+
+  /** Called once before all measurements but after benchmark setup. */
+  public void bootstrap() throws Exception {}
+
+  /** Called immediately before {@link #measure()}. */
+  public void preMeasure() throws Exception {}
+
+  /** Called immediately after {@link #measure()}. */
+  public void postMeasure() throws Exception {}
+
+  /** Template method for workers that produce multiple measurements. */
+  public abstract Iterable<Measurement> measure() throws Exception;
+
+  /** Tears down the benchmark object. */
+  final void tearDownBenchmark() throws Exception {
+    for (Method method : afterExperimentMethods) {
+      method.invoke(benchmark);
+    }
+  }
 }

@@ -1,7 +1,7 @@
 package com.google.caliper.worker;
 
-import static com.google.caliper.worker.MicrobenchmarkWorker.INITIAL_REPS;
-import static com.google.caliper.worker.MicrobenchmarkWorker.calculateTargetReps;
+import static com.google.caliper.worker.RuntimeWorker.INITIAL_REPS;
+import static com.google.caliper.worker.RuntimeWorker.calculateTargetReps;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -15,9 +15,9 @@ import org.junit.Test;
 import java.math.BigDecimal;
 
 /**
- * Tests {@link MicrobenchmarkWorker}.
+ * Tests {@link RuntimeWorker}.
  */
-public class MicrobenchmarkWorkerTest {
+public class RuntimeWorkerTest {
   private static final ShortDuration TIMING_INTERVAL = ShortDuration.of(100, MILLISECONDS);
 
   @Test public void testCalculateTargetReps_tinyBenchmark() {

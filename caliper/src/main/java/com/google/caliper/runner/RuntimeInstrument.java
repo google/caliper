@@ -40,7 +40,7 @@ import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
 import com.google.caliper.worker.MacrobenchmarkWorker;
-import com.google.caliper.worker.MicrobenchmarkWorker;
+import com.google.caliper.worker.RuntimeWorker;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -160,14 +160,13 @@ class RuntimeInstrument extends Instrument {
           ShortDuration.valueOf(options.get(WARMUP_OPTION)));
     }
   }
-
-  private class MicrobenchmarkInstrumentation extends Instrumentation {
-    MicrobenchmarkInstrumentation(Method benchmarkMethod) {
-      super(benchmarkMethod);
+  
+  private abstract class RuntimeInstrumentation extends Instrumentation {
+    RuntimeInstrumentation(Method method) {
+      super(method);
     }
 
-    @Override
-    public void dryRun(Object benchmark) throws UserCodeException {
+    @Override public void dryRun(Object benchmark) throws UserCodeException {
       try {
         benchmarkMethod.invoke(benchmark, DRY_RUN_REPS);
       } catch (IllegalAccessException impossible) {
@@ -179,13 +178,7 @@ class RuntimeInstrument extends Instrument {
       }
     }
 
-    @Override
-    public Class<? extends Worker> workerClass() {
-      return MicrobenchmarkWorker.class;
-    }
-
-    @Override
-    public ImmutableMap<String, String> workerOptions() {
+    @Override public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of("timingInterval" + "Nanos", toNanosString("timingInterval"),
           GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
@@ -194,11 +187,20 @@ class RuntimeInstrument extends Instrument {
       return String.valueOf(
           ShortDuration.valueOf(options.get(optionName)).to(TimeUnit.NANOSECONDS));
     }
-
-    @Override
-    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+    
+    @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
       return new RepBasedMeasurementCollector(
           getMeasurementsPerTrial(), ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+    }
+  }
+
+  private class MicrobenchmarkInstrumentation extends RuntimeInstrumentation {
+    MicrobenchmarkInstrumentation(Method benchmarkMethod) {
+      super(benchmarkMethod);
+    }
+
+    @Override public Class<? extends Worker> workerClass() {
+      return RuntimeWorker.Micro.class;
     }
   }
 
@@ -212,33 +214,13 @@ class RuntimeInstrument extends Instrument {
     return measurementsPerTrial;
   }
 
-  private class PicobenchmarkInstrumentation extends Instrumentation {
+  private class PicobenchmarkInstrumentation extends RuntimeInstrumentation {
     PicobenchmarkInstrumentation(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 
-    @Override
-    public void dryRun(Object benchmark) throws UserCodeException {
-      try {
-        benchmarkMethod.invoke(benchmark, DRY_RUN_REPS);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
-    }
-
-    @Override
-    public Class<? extends Worker> workerClass() {
-      return MicrobenchmarkWorker.class;
-    }
-
-    @Override
-    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
-      return new RepBasedMeasurementCollector(
-          getMeasurementsPerTrial(), ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+    @Override public Class<? extends Worker> workerClass() {
+      return RuntimeWorker.Pico.class;
     }
   }
 

@@ -23,52 +23,55 @@ import com.google.caliper.api.AfterRep;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
+import com.google.caliper.runner.Running.Benchmark;
+import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Random;
 
 /**
  * The {@link Worker} implementation for macrobenchmarks.
  */
-public class MacrobenchmarkWorker implements Worker {
+public class MacrobenchmarkWorker extends Worker {
   private final Stopwatch stopwatch;
+  private final ImmutableSet<Method> beforeRepMethods;
+  private final ImmutableSet<Method> afterRepMethods;
 
-  @Inject MacrobenchmarkWorker(Random random, Ticker ticker) {
+  @Inject MacrobenchmarkWorker(@Benchmark Object benchmark, 
+      @BenchmarkMethod Method method, Random random, Ticker ticker) {
+    super(benchmark, method);
     this.stopwatch = new Stopwatch(ticker);
+    this.beforeRepMethods =
+        getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
+    this.afterRepMethods =
+        getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
   }
 
-  @Override public void measure(Object benchmark, Method method,
-      Map<String, String> optionMap, WorkerEventLog log) throws Exception {
-    ImmutableSet<Method> beforeRepMethods =
-        getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
-    ImmutableSet<Method> afterRepMethods =
-        getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
-    log.notifyMeasurementPhaseStarting();
-    while (true) {
-      for (Method beforeRepMethod : beforeRepMethods) {
-        beforeRepMethod.invoke(benchmark);
-      }
-      log.notifyMeasurementStarting();
-      try {
-        stopwatch.start();
-        method.invoke(benchmark);
-        long nanos = stopwatch.stop().elapsed(NANOSECONDS);
-        stopwatch.reset();
-        log.notifyMeasurementEnding(new Measurement.Builder()
-            .description("runtime")
-            .weight(1)
-            .value(Value.create(nanos, "ns"))
-            .build());
-      } finally {
-        for (Method afterRepMethod : afterRepMethods) {
-          afterRepMethod.invoke(benchmark);
-        }
-      }
+  @Override public void preMeasure() throws Exception {
+    for (Method beforeRepMethod : beforeRepMethods) {
+      beforeRepMethod.invoke(benchmark);
+    }
+  }
+
+  @Override public Iterable<Measurement> measure() throws Exception {
+    stopwatch.start();
+    benchmarkMethod.invoke(benchmark);
+    long nanos = stopwatch.stop().elapsed(NANOSECONDS);
+    stopwatch.reset();
+    return ImmutableSet.of(new Measurement.Builder()
+        .description("runtime")
+        .weight(1)
+        .value(Value.create(nanos, "ns"))
+        .build());
+  }
+  
+  @Override public void postMeasure() throws Exception {
+    for (Method afterRepMethod : afterRepMethods) {
+      afterRepMethod.invoke(benchmark);
     }
   }
 }

@@ -23,16 +23,9 @@ import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.json.GsonModule;
 import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
-import com.google.caliper.runner.Running;
-import com.google.caliper.runner.Running.AfterExperimentMethods;
-import com.google.caliper.runner.Running.BeforeExperimentMethods;
-import com.google.common.collect.ImmutableSet;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-import com.google.inject.Key;
-
-import java.lang.reflect.Method;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
@@ -53,34 +46,30 @@ public final class WorkerMain {
         new WorkerModule(request));
 
     Worker worker = workerInjector.getInstance(Worker.class);
-    Object benchmark = workerInjector.getInstance(Key.get(Object.class, Running.Benchmark.class));
-    Method benchmarkMethod = workerInjector.getInstance(
-        Key.get(Method.class, Running.BenchmarkMethod.class));
     WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
 
-    ImmutableSet<Method> beforeExperimentMethods =
-        workerInjector.getInstance(new Key<ImmutableSet<Method>>(BeforeExperimentMethods.class) {});
-    ImmutableSet<Method> afterExperimentMethods =
-        workerInjector.getInstance(new Key<ImmutableSet<Method>>(AfterExperimentMethods.class) {});
-
     log.notifyWorkerStarted();
-
     try {
-      invokeMethods(beforeExperimentMethods, benchmark);
-
-      worker.measure(benchmark, benchmarkMethod, request.workerOptions, log);
+      worker.setUpBenchmark();
+      log.notifyWarmupPhaseStarting();
+      worker.bootstrap();
+      log.notifyMeasurementPhaseStarting();
+      // TODO(lukes): add a cooperative shutdown mechanism to ensure that we at least try to 
+      // shutdown cleanly.  Currently we loop forever and the runner eventually sends a KILL signal.
+      while (true) {
+        worker.preMeasure();
+        log.notifyMeasurementStarting();
+        try {
+          log.notifyMeasurementEnding(worker.measure());
+        } finally {
+          worker.postMeasure();
+        }
+      }
     } catch (Exception e) {
       log.notifyFailure(e);
     } finally {
       System.out.flush(); // ?
-      invokeMethods(afterExperimentMethods, benchmark);
-    }
-  }
-
-  private static void invokeMethods(ImmutableSet<Method> methods, Object benchmark)
-      throws Exception {
-    for (Method method : methods) {
-      method.invoke(benchmark);
+      worker.tearDownBenchmark();
     }
   }
 }

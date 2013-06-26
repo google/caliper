@@ -16,10 +16,12 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.model.Measurement;
+import com.google.caliper.runner.Running.Benchmark;
+import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Random;
 
 /**
@@ -27,41 +29,33 @@ import java.util.Random;
  * a few times, with varying numbers of reps, and computes the number of object allocations and the
  * total size of those allocations.
  */
-public final class MicrobenchmarkAllocationWorker implements Worker {
+public final class MicrobenchmarkAllocationWorker extends Worker {
   private static final int MAX_BASELINE_REPS = 5;
   private static final int MAX_REPS_ABOVE_BASELINE = 100;
 
   private final Random random;
   private final AllocationRecorder recorder;
 
-  @Inject MicrobenchmarkAllocationWorker(AllocationRecorder recorder, Random random) {
+  @Inject MicrobenchmarkAllocationWorker(@Benchmark Object benchmark, 
+      @BenchmarkMethod Method method, AllocationRecorder recorder, Random random) {
+    super(benchmark, method);
     this.random = random;
     this.recorder = recorder;
   }
-
-  @Override public void measure(Object benchmark, Method method,
-      Map<String, String> options, WorkerEventLog log) throws Exception {
+  
+  @Override public void bootstrap() throws Exception {
     // do one initial measurement and throw away its results
-    log.notifyWarmupPhaseStarting();
-    measureAllocations(benchmark, method, 1);
+    measureAllocations(benchmark, benchmarkMethod, 1);
+  }
 
-    log.notifyMeasurementPhaseStarting();
-    while (true) {
-      log.notifyMeasurementStarting();
-      // [1, 5]
-      int baselineReps = random.nextInt(MAX_BASELINE_REPS) + 1;
-      AllocationStats baseline = measureAllocations(benchmark, method, baselineReps);
-      // (baseline, baseline + MAX_REPS_ABOVE_BASELINE]
-      int measurementReps = baselineReps + random.nextInt(MAX_REPS_ABOVE_BASELINE) + 1;
-      AllocationStats measurement = measureAllocations(benchmark, method, measurementReps);
-      try {
-        AllocationStats diff = measurement.minus(baseline);
-        log.notifyMeasurementEnding(diff.toMeasurements());
-      } catch (IllegalStateException e) {
-        // log the failure, but just keep trying to measure
-        log.notifyFailure(e);
-      }
-    }
+  @Override public Iterable<Measurement> measure() throws Exception {
+    // [1, 5]
+    int baselineReps = random.nextInt(MAX_BASELINE_REPS) + 1;
+    AllocationStats baseline = measureAllocations(benchmark, benchmarkMethod, baselineReps);
+    // (baseline, baseline + MAX_REPS_ABOVE_BASELINE]
+    int measurementReps = baselineReps + random.nextInt(MAX_REPS_ABOVE_BASELINE) + 1;
+    AllocationStats measurement = measureAllocations(benchmark, benchmarkMethod, measurementReps);
+    return measurement.minus(baseline).toMeasurements();
   }
 
   private AllocationStats measureAllocations(

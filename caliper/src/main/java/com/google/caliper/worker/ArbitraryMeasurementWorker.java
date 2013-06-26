@@ -19,7 +19,11 @@ package com.google.caliper.worker;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
+import com.google.caliper.runner.Running.Benchmark;
+import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.caliper.util.Util;
+import com.google.common.collect.ImmutableSet;
+import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
@@ -27,26 +31,31 @@ import java.util.Map;
 /**
  * Worker for arbitrary measurements.
  */
-public final class ArbitraryMeasurementWorker implements Worker {
-  @Override
-  public void measure(Object benchmark, Method method,
-      Map<String, String> optionsMap, WorkerEventLog log) throws Exception {
+public final class ArbitraryMeasurementWorker extends Worker {
+  private final Options options;
+  private final String unit;
+  private final String description;
 
-    Options options = new Options(optionsMap);
+  @Inject ArbitraryMeasurementWorker(
+      @Benchmark Object benchmark, 
+      @BenchmarkMethod Method method,
+      @WorkerOptions Map<String, String> workerOptions) {
+    super(benchmark, method);
+    this.options = new Options(workerOptions);
     ArbitraryMeasurement annotation = method.getAnnotation(ArbitraryMeasurement.class);
-    String unit = annotation.units();
-    String description = annotation.description();
+    this.unit = annotation.units();
+    this.description = annotation.description();
+  }
 
-    // measure
-    log.notifyMeasurementPhaseStarting();
-
+  @Override public void preMeasure() throws Exception {
     if (options.gcBeforeEach) {
       Util.forceGc();
     }
-
-    log.notifyMeasurementStarting();
-    double measured = (Double) method.invoke(benchmark);
-    log.notifyMeasurementEnding(new Measurement.Builder()
+  }
+  
+  @Override public Iterable<Measurement> measure() throws Exception {
+    double measured = (Double) benchmarkMethod.invoke(benchmark);
+    return ImmutableSet.of(new Measurement.Builder()
         .value(Value.create(measured, unit))
         .weight(1)
         .description(description)
