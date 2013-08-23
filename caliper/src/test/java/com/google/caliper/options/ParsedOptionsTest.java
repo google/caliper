@@ -16,7 +16,6 @@ package com.google.caliper.options;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
-import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
@@ -134,7 +133,7 @@ public class ParsedOptionsTest extends TestCase {
     assertEquals("testVm", vmName);
   }
 
-  public static class FakeBenchmark extends Benchmark {}
+  public static class FakeBenchmark {}
 
   private static final String CLASS_NAME = FakeBenchmark.class.getName();
 }

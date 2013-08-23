@@ -3,7 +3,8 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.google.caliper.legacy.Benchmark;
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.common.collect.Lists;
 
 import org.junit.Rule;
@@ -33,12 +34,12 @@ public class BadUserCodeTest {
     throw new RuntimeException();
   }
 
-  static class ExceptionInInitBenchmark extends Benchmark {
+  static class ExceptionInInitBenchmark {
     static {
       throwSomeUserException();
     }
 
-    public void timeSomething(int reps) {
+    @Benchmark void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -52,12 +53,12 @@ public class BadUserCodeTest {
     } catch (UserCodeException expected) {}
   }
 
-  static class ExceptionInConstructorBenchmark extends Benchmark {
+  static class ExceptionInConstructorBenchmark {
     ExceptionInConstructorBenchmark() {
       throw new RuntimeException();
     }
 
-    public void timeSomething(int reps) {
+    @Benchmark void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -71,8 +72,8 @@ public class BadUserCodeTest {
     } catch (UserCodeException expected) {}
   }
 
-  static class ExceptionInMethodBenchmark extends Benchmark {
-    public void timeSomething(int reps) {
+  static class ExceptionInMethodBenchmark {
+    @Benchmark void timeSomething(int reps) {
       throw new RuntimeException();
     }
   }
@@ -88,8 +89,8 @@ public class BadUserCodeTest {
     }
   }
 
-  static class ExceptionLateInMethodBenchmark extends Benchmark {
-    public void timeSomething(int reps) {
+  static class ExceptionLateInMethodBenchmark {
+    @Benchmark void timeSomething(int reps) {
       if (reps > 1) {
         throw new RuntimeException();
       }
@@ -105,12 +106,12 @@ public class BadUserCodeTest {
     } catch (UserCodeException expected) {}
   }
 
-  static class ExceptionInSetUpBenchmark extends Benchmark {
-    @Override protected void setUp() {
+  static class ExceptionInSetUpBenchmark {
+    @BeforeExperiment void setUp() {
       throw new RuntimeException();
     }
 
-    public void timeSomething(int reps) {
+    @Benchmark void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -148,11 +149,11 @@ public class BadUserCodeTest {
   }
 
   /** The number of allocations is non deterministic because it depends on static state. */
-  static class NonDeterministicAllocationBenchmark extends Benchmark {
+  static class NonDeterministicAllocationBenchmark {
     static int timeCount = 0;
     // We dump items into this list so the jit cannot remove the allocations
     static List<Object> list = Lists.newArrayList();
-    public int timeSomethingFBZ(int reps) {
+    @Benchmark int timeSomethingFBZ(int reps) {
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());
@@ -188,11 +189,11 @@ public class BadUserCodeTest {
   }
 
   /** Benchmark allocates the same number of things each time but in a different way. */
-  static class ComplexNonDeterministicAllocationBenchmark extends Benchmark {
+  static class ComplexNonDeterministicAllocationBenchmark {
     static int timeCount = 0;
     // We dump items into this list so the jit cannot remove the allocations
     static List<Object> list = Lists.newArrayList();
-    public int timeSomethingFBZ(int reps) {
+    @Benchmark int timeSomethingFBZ(int reps) {
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());

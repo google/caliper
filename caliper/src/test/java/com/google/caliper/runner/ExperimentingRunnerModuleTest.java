@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
-import com.google.caliper.legacy.Benchmark;
+import com.google.caliper.Benchmark;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.worker.Worker;
@@ -94,10 +94,10 @@ public class ExperimentingRunnerModuleTest {
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
-  static final class TestBenchmark extends Benchmark {
-    void a() {}
-    void b() {}
-    void c() {}
+  static final class TestBenchmark {
+    @Benchmark void a() {}
+    @Benchmark void b() {}
+    @Benchmark void c() {}
   }
 
   static final class FakeInstrument extends Instrument {

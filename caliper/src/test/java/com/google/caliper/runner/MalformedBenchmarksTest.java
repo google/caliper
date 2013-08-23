@@ -19,9 +19,9 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.config.InvalidConfigurationException;
-import com.google.caliper.legacy.Benchmark;
 import com.google.caliper.util.InvalidCommandException;
 
 import junit.framework.AssertionFailedError;
@@ -68,41 +68,40 @@ public class MalformedBenchmarksTest {
   @Test public void abstractBenchmark() throws Exception {
     expectException(ABSTRACT, AbstractBenchmark.class);
   }
-  abstract static class AbstractBenchmark extends Benchmark {}
+  abstract static class AbstractBenchmark {}
 
   @Test public void noSuitableConstructor() throws Exception {
     expectException(String.format(NO_CONSTRUCTOR, BadConstructorBenchmark.class.getName()),
         BadConstructorBenchmark.class);
   }
-  static class BadConstructorBenchmark extends Benchmark {
+  static class BadConstructorBenchmark {
     BadConstructorBenchmark(String damnParam) {}
-    public void timeIt(int reps) {}
+    @Benchmark void timeIt(int reps) {}
   }
 
   @Test public void noBenchmarkMethods() throws Exception {
     expectException(NO_METHODS, NoMethodsBenchmark.class);
   }
-  static class NoMethodsBenchmark extends Benchmark {
-    void timeIt(int reps) {} // not public
-    public void timIt(int reps) {} // wrong name
+  static class NoMethodsBenchmark {
+    void timeIt(int reps) {} // not annotated
   }
 
   @Test public void staticBenchmarkMethod() throws Exception {
     expectException(STATIC_BENCHMARK, StaticBenchmarkMethodBenchmark.class);
   }
-  static class StaticBenchmarkMethodBenchmark extends Benchmark {
-    public static void timeIt(int reps) {}
+  static class StaticBenchmarkMethodBenchmark {
+    @Benchmark public static void timeIt(int reps) {}
   }
 
   @Test public void wrongSignature() throws Exception {
     expectException(WRONG_ARGUMENTS, BoxedParamBenchmark.class);
     expectException(WRONG_ARGUMENTS, ExtraParamBenchmark.class);
   }
-  static class BoxedParamBenchmark extends Benchmark {
-    public void timeIt(Integer reps) {}
+  static class BoxedParamBenchmark {
+    @Benchmark void timeIt(Integer reps) {}
   }
-  static class ExtraParamBenchmark extends Benchmark {
-    public void timeIt(int reps, int what) {}
+  static class ExtraParamBenchmark {
+    @Benchmark void timeIt(int reps, int what) {}
   }
 
   @Test public void hasBenchmarkOverloadsTimeMethods() throws Exception {
@@ -112,7 +111,8 @@ public class MalformedBenchmarksTest {
         OverloadsBenchmark.class);
   }
 
-  static class OverloadsBenchmark extends Benchmark {
+  @SuppressWarnings("deprecation") // testing legacy code
+  static class OverloadsBenchmark extends com.google.caliper.legacy.Benchmark {
     public void timeFoo(long reps) {}
     public void timeFoo(int reps) {}
     public void timeBar(int reps) {}
@@ -129,12 +129,12 @@ public class MalformedBenchmarksTest {
         OverloadsAnnotatedBenchmark.class);
   }
 
-  static class OverloadsAnnotatedBenchmark extends Benchmark {
-    @com.google.caliper.Benchmark public void foo(long reps) {}
-    @com.google.caliper.Benchmark public void foo(int reps) {}
-    @com.google.caliper.Benchmark public void bar(long reps) {}
-    @com.google.caliper.Benchmark public void bar(int reps) {}
-    @com.google.caliper.Benchmark public void baz(int reps) {}
+  static class OverloadsAnnotatedBenchmark {
+    @Benchmark public void foo(long reps) {}
+    @Benchmark public void foo(int reps) {}
+    @Benchmark public void bar(long reps) {}
+    @Benchmark public void bar(int reps) {}
+    @Benchmark public void baz(int reps) {}
     public void baz(long reps, boolean thing) {}
     public void baz(long reps) {}
   }
@@ -142,28 +142,28 @@ public class MalformedBenchmarksTest {
   @Test public void staticParam() throws Exception {
     expectException(STATIC_PARAM, StaticParamBenchmark.class);
   }
-  static class StaticParamBenchmark extends Benchmark {
+  static class StaticParamBenchmark {
     @Param static String oops;
   }
 
   @Test public void reservedParameterName() throws Exception {
     expectException(RESERVED_PARAM, ReservedParamBenchmark.class);
   }
-  static class ReservedParamBenchmark extends Benchmark {
+  static class ReservedParamBenchmark {
     @Param String vm;
   }
 
   @Test public void unparsableParamType() throws Exception {
     expectException(NO_CONVERSION, UnparsableParamTypeBenchmark.class);
   }
-  static class UnparsableParamTypeBenchmark extends Benchmark {
+  static class UnparsableParamTypeBenchmark {
     @Param Object oops;
   }
 
   @Test public void unparsableParamDefault() throws Exception {
     expectException(CONVERT_FAILED, UnparsableParamDefaultBenchmark.class);
   }
-  static class UnparsableParamDefaultBenchmark extends Benchmark {
+  static class UnparsableParamDefaultBenchmark {
     @Param({"1", "2", "oops"}) int number;
   }
 

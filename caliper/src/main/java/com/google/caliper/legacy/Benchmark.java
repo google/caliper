@@ -16,6 +16,9 @@
 
 package com.google.caliper.legacy;
 
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
+
 import java.lang.annotation.Annotation;
 
 /**
@@ -67,7 +70,11 @@ import java.lang.annotation.Annotation;
  *
  * <p>Note that while this class is in the legacy package, the {@link Annotation}-based replacement
  * cannot be introduced due to a naming collision. While it is the legacy API, it is the only API.
+ *
+ * @deprecated Use {@link com.google.caliper.Benchmark}, {@link BeforeExperiment} and
+ * {@link AfterExperiment}.
  */
+@Deprecated
 public abstract class Benchmark {
   protected Benchmark() {}
 

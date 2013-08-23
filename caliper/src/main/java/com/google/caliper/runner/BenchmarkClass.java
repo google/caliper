@@ -41,6 +41,7 @@ import java.lang.reflect.Modifier;
  */
 abstract class BenchmarkClass {
   static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
+    @SuppressWarnings("deprecation") // remove this support when we remove the legacy class
     Class<com.google.caliper.legacy.Benchmark> legacyBenchmarkClass =
         com.google.caliper.legacy.Benchmark.class;
     if (legacyBenchmarkClass.isAssignableFrom(theClass)) {

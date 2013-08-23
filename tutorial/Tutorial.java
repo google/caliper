@@ -16,8 +16,9 @@
 
 package tutorial;
 
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-import com.google.caliper.legacy.Benchmark;
 
 /**
  * Caliper tutorial. To run the example benchmarks in this file:
@@ -48,8 +49,8 @@ public class Tutorial {
    *    ---------  ---
    *    NanoTime   233
    */
-  public static class Benchmark1 extends Benchmark {
-    public void timeNanoTime(int reps) {
+  public static class Benchmark1 {
+    @Benchmark void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
       }
@@ -69,13 +70,13 @@ public class Tutorial {
    *   NanoTime           248
    *   CurrentTimeMillis  118
    */
-  public static class Benchmark2 extends Benchmark {
-    public void timeNanoTime(int reps) {
+  public static class Benchmark2 {
+    @Benchmark void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
       }
     }
-    public void timeCurrentTimeMillis(int reps) {
+    @Benchmark void timeCurrentTimeMillis(int reps) {
       for (int i = 0; i < reps; i++) {
         System.currentTimeMillis();
       }
@@ -86,11 +87,11 @@ public class Tutorial {
    * Let's try iterating over a large array. This seems simple enough, but
    * there is a problem!
    */
-  public static class Benchmark3 extends Benchmark {
+  public static class Benchmark3 {
     private final int[] array = new int[1000000];
 
     @SuppressWarnings("UnusedDeclaration") // IDEA tries to warn us!
-    public void timeArrayIteration_BAD(int reps) {
+    @Benchmark void timeArrayIteration_BAD(int reps) {
       for (int i = 0; i < reps; i++) {
         for (int ignoreMe : array) {}
       }
@@ -123,10 +124,10 @@ public class Tutorial {
    * With this change, Caliper should report a much more realistic value, more
    * on the order of an entire millisecond.
    */
-  public static class Benchmark4 extends Benchmark {
+  public static class Benchmark4 {
     private final int[] array = new int[1000000];
 
-    public int timeArrayIteration_fixed(int reps) {
+    @Benchmark int timeArrayIteration_fixed(int reps) {
       int dummy = 0;
       for (int i = 0; i < reps; i++) {
         for (int doNotIgnoreMe : array) {
@@ -164,17 +165,17 @@ public class Tutorial {
    *   ArrayIteration  1000  477 ||||||||||||||||||||||||||||||
    *
    */
-  public static class Benchmark5 extends Benchmark {
+  public static class Benchmark5 {
     @Param int size; // set automatically by framework
 
     private int[] array; // set by us, in setUp()
 
-    @Override protected void setUp() {
+    @BeforeExperiment void setUp() {
       // @Param values are guaranteed to have been injected by now
       array = new int[size];
     }
 
-    public int timeArrayIteration(int reps) {
+    @Benchmark int timeArrayIteration(int reps) {
       int dummy = 0;
       for (int i = 0; i < reps; i++) {
         for (int doNotIgnoreMe : array) {
