@@ -16,6 +16,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
@@ -27,6 +28,8 @@ import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
+import com.google.caliper.bridge.ShouldContinueMessage;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.bridge.WorkerSpec;
@@ -59,6 +62,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Queues;
 import com.google.common.io.Closeables;
 import com.google.common.io.LineReader;
+import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -73,10 +77,15 @@ import com.google.inject.Key;
 import com.google.inject.ProvisionException;
 import com.google.inject.spi.Message;
 
+import org.joda.time.Duration;
+
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.Charset;
@@ -88,6 +97,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
@@ -97,6 +107,9 @@ import javax.annotation.Nullable;
  */
 @VisibleForTesting
 public final class ExperimentingCaliperRun implements CaliperRun {
+  /** The time that the worker has to clean up after an experiment. */
+  private static final Duration WORKER_CLEANUP_DURATION = Duration.standardSeconds(2);
+
   private static final Logger logger = Logger.getLogger(ExperimentingCaliperRun.class.getName());
 
   private final Injector injector;
@@ -310,7 +323,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   }
 
 
-  private Trial measure(Experiment experiment) throws IOException {
+  private Trial measure(final Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
         .className(experiment.instrumentation().benchmarkMethod().getDeclaringClass().getName())
         .methodName(experiment.instrumentation().benchmarkMethod().getName())
@@ -322,12 +335,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     final WorkerProcess process =
         new WorkerProcess(createWorkerProcessBuilder(experiment, benchmarkSpec,
             serverSocket.getLocalPort()));
-    ListenableFuture<Integer> processFuture = processExecutor.submit(new Callable<Integer>() {
+    final ListenableFuture<Integer> processFuture = processExecutor.submit(new Callable<Integer>() {
       @Override public Integer call() throws Exception {
         return process.waitFor();
       }
     });
-
     trialStopwatch.start();
 
     final ListeningExecutorService producerExecutor = MoreExecutors.listeningDecorator(
@@ -337,22 +349,37 @@ public final class ExperimentingCaliperRun implements CaliperRun {
             .build()));
     try {
       final BlockingQueue<String> queue = Queues.newLinkedBlockingQueue();
-
+      // TODO(gak,lukes): rewrite to encapsulate the worker in a service that exposes stderr and
+      // stdout as Pipes so that they can be select()'ed on along with the socket.
       // use the default charset because worker streams will use the default for output
       Charset processCharset = Charset.defaultCharset();
-      ListenableFuture<Void> inputFuture = producerExecutor.submit(
+      producerExecutor.submit(
           new LineProducer(new InputStreamReader(process.getInputStream(), processCharset), queue));
-      ListenableFuture<Void> errorFuture = producerExecutor.submit(
+      producerExecutor.submit(
           new LineProducer(new InputStreamReader(process.getErrorStream(), processCharset), queue));
-      final ListenableFuture<Reader> pipeReaderFuture =
-          producerExecutor.submit(new Callable<Reader>() {
-        @Override public Reader call() throws IOException {
-          Socket socket = serverSocket.accept();
-          // See comment in WorkerModule for why this is necessary.
-          socket.setTcpNoDelay(true);
-          return new InputStreamReader(socket.getInputStream(), UTF_8);
-        }
-      });
+      final ListenableFuture<Socket> pipeFuture =
+          producerExecutor.submit(new Callable<Socket>() {
+            @Override public Socket call() throws IOException {
+              Socket socket = serverSocket.accept();
+              // See comment in WorkerModule for why this is necessary.
+              socket.setTcpNoDelay(true);
+              return socket;
+            }
+          });
+      final ListenableFuture<Reader> pipeReaderFuture = Futures.transform(pipeFuture,
+          new AsyncFunction<Socket, Reader>() {
+            @Override public ListenableFuture<Reader> apply(Socket pipe) throws IOException {
+              return Futures.<Reader>immediateFuture(
+                  new InputStreamReader(pipe.getInputStream(), UTF_8));
+            }
+          });
+      final ListenableFuture<Writer> pipeWriterFuture = Futures.transform(pipeFuture,
+          new AsyncFunction<Socket, Writer>() {
+            @Override public ListenableFuture<Writer> apply(Socket pipe) throws IOException {
+              return Futures.<Writer>immediateFuture(
+                  new OutputStreamWriter(pipe.getOutputStream(), UTF_8));
+            }
+          });
       processFuture.addListener(new Runnable() {
         @Override public void run() {
           if (!pipeReaderFuture.isDone()) {
@@ -377,27 +404,52 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       });
 
-      MeasurementCollectingVisitor measurementCollectingVisitor =
-          experiment.instrumentation().getMeasurementCollectingVisitor();
-      DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
-
+      final DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
+      ListenableFuture<MeasurementCollectingVisitor> consumerFuture =
+          Futures.transform(pipeWriterFuture,
+              new AsyncFunction<Writer, MeasurementCollectingVisitor>() {
+                @Override public ListenableFuture<MeasurementCollectingVisitor> apply(Writer input)
+                    throws Exception {
+                  return consumerExecutor.submit(
+                      new LineConsumer(queue,
+                          new BufferedWriter(input),
+                          experiment.instrumentation().getMeasurementCollectingVisitor(),
+                          ImmutableSet.of(dataCollectingVisitor)));
+                }
+              });
       /*
        * Start watching the queue before we wait on the pipe so that we can see output from failed
        * workers.
        */
-      ListenableFuture<Void> consumerFuture = consumerExecutor.submit(
-          new LineConsumer(queue, measurementCollectingVisitor,
-              ImmutableSet.of(dataCollectingVisitor)));
       consumerFuture.addListener(new Runnable() {
         @Override public void run() {
           // kill the process because we're all done
-          // TODO(gak): send SIGINT instead of SIGTERM for clean exit
-          process.destroy();
+          try {
+            // by closing the pipe, the worker should notice and have a chance shut itself down
+            // cleanly.
+            Futures.getUnchecked(pipeFuture).close();
+            // wait for no more than 2 seconds before killing the worker.
+            processFuture.get(WORKER_CLEANUP_DURATION.getMillis(), MILLISECONDS);
+          } catch (Exception e) {
+            // Ignore, this is a best effort only attempt to quietly shutdown the worker.
+            logger.log(Level.FINE, "Exception while waiting for the worker to stop.", e);
+          } finally {
+            try {
+              process.exitValue();
+              // process has already exited
+            } catch (IllegalThreadStateException e) {
+              logger.warning("The worker did not exit within " + WORKER_CLEANUP_DURATION.getMillis()
+                  + " milliseconds.  Forcefully killing worker.");
+              process.destroy();
+            }
+          }
         }
       }, MoreExecutors.sameThreadExecutor());
 
       process.waitFor();
-      consumerFuture.get();
+      // We call get() here so that dataCollectingVisitor is definitely visible since all writes to
+      // it occur in the consumer thread.
+      MeasurementCollectingVisitor measurementCollectingVisitor = consumerFuture.get();
 
       ImmutableMap<String, String> vmOptions = dataCollectingVisitor.vmOptionsBuilder.build();
       checkState(!vmOptions.isEmpty());
@@ -468,7 +520,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         int errorNum = 0;
         for (Message guiceMessage : e.getErrorMessages()) {
           message.append("\n  ").append(++errorNum).append(") ")
-              .append(guiceMessage.getMessage());;
+              .append(guiceMessage.getMessage());
         }
         throw new InvalidBenchmarkException(message.toString(), e);
       } catch (SkipThisScenarioException innocuous) {}
@@ -539,20 +591,22 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     }
   }
 
-  private final class LineConsumer implements Callable<Void> {
+  private final class LineConsumer implements Callable<MeasurementCollectingVisitor> {
     final BlockingQueue<String> queue;
     final MeasurementCollectingVisitor measurementCollectingVisitor;
     final ImmutableSet<? extends LogMessageVisitor> otherVisitors;
+    final Writer workerWriter;
 
     LineConsumer(BlockingQueue<String> queue,
-        MeasurementCollectingVisitor measurementCollectingVisitor,
+        Writer workerWriter, MeasurementCollectingVisitor measurementCollectingVisitor,
         ImmutableSet<? extends LogMessageVisitor> otherVisitors) {
       this.queue = queue;
       this.measurementCollectingVisitor = measurementCollectingVisitor;
       this.otherVisitors = otherVisitors;
+      this.workerWriter = workerWriter;
     }
 
-    @Override public Void call() throws InterruptedException {
+    @Override public MeasurementCollectingVisitor call() throws InterruptedException, IOException {
       int poisonPillsSeen = 0;
 
       while ((poisonPillsSeen < NUM_WORKER_STREAMS)
@@ -574,10 +628,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       trialStopwatch.stop();
       logger.fine("trial completed in " + trialStopwatch);
 
-      return null;
+      return measurementCollectingVisitor;
     }
 
-    void processLine(String line) {
+    void processLine(String line) throws IOException {
       try {
         LogMessage logMessage = logMessageParser.parse(line);
         if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
@@ -586,6 +640,16 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         logMessage.accept(measurementCollectingVisitor);
         for (LogMessageVisitor visitor : otherVisitors) {
           logMessage.accept(visitor);
+        }
+        // If it is a stop measurement message we need to tell the worker to either stop or keep
+        // going with a WorkerContinueMessage.  This needs to be done after the
+        // measurementCollecting visitor sees the message so that isDoneCollection will be up to
+        // date.
+        if (logMessage instanceof StopMeasurementLogMessage) {
+          workerWriter.write(gson.toJson(
+              new ShouldContinueMessage(!measurementCollectingVisitor.isDoneCollecting())));
+          workerWriter.write('\n');
+          workerWriter.flush();
         }
       } catch (ParseException e) {
         throw new AssertionError();

@@ -28,9 +28,11 @@ import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Map;
 import java.util.Random;
@@ -71,8 +73,16 @@ final class WorkerModule extends AbstractModule {
     bind(Random.class);
     bind(new Key<Map<String, String>>(WorkerOptions.class) {}).toInstance(workerOptions);
   }
+  
+  @Provides @Singleton BufferedWriter provideSocketWriter(Socket socket) throws IOException {
+    return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8));
+  }
+  
+  @Provides @Singleton BufferedReader provideSocketReader(Socket socket) throws IOException {
+    return new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF_8));
+  }
 
-  @Provides @Singleton PrintWriter providePrintWriter() throws IOException {
+  @Provides @Singleton Socket provideSocket() throws IOException {
     final Socket socket = new Socket(InetAddresses.forString("127.0.0.1"), port);
     // Setting this to true disables Nagle's algorithm (RFC 896) which seeks to decrease packet
     // overhead by buffering writes while there are packets outstanding (i.e. haven't been ack'd).
@@ -93,6 +103,6 @@ final class WorkerModule extends AbstractModule {
         }
       }
     });
-    return new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8), true);
+    return socket;
   }
 }

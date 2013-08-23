@@ -19,55 +19,88 @@ package com.google.caliper.worker;
 import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.Renderer;
+import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
 import com.google.common.collect.ImmutableList;
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 
-import java.io.PrintWriter;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.IOException;
 
 public final class WorkerEventLog {
-  private final PrintWriter writer;
+  private final BufferedWriter writer;
+  private final BufferedReader reader;
   private final Renderer<CaliperControlLogMessage> controlLogMessageRenderer;
+  private final Gson parser;
 
-  @Inject WorkerEventLog(PrintWriter writer,
-      Renderer<CaliperControlLogMessage> controlLogMessageRenderer) {
+  @Inject WorkerEventLog(BufferedWriter writer, BufferedReader reader,
+      Renderer<CaliperControlLogMessage> controlLogMessageRenderer, Gson parser) {
     this.writer = writer;
+    this.reader = reader;
     this.controlLogMessageRenderer = controlLogMessageRenderer;
+    this.parser = parser;
   }
 
-  public void notifyWorkerStarted() {
-    writer.println(controlLogMessageRenderer.render(new VmPropertiesLogMessage()));
+  public void notifyWorkerStarted() throws IOException {
+    printlnAndFlush(controlLogMessageRenderer.render(new VmPropertiesLogMessage()));
   }
 
-  public void notifyWarmupPhaseStarting() {
-    writer.println("Warmup starting.");
+  public void notifyWarmupPhaseStarting() throws IOException {
+    printlnAndFlush("Warmup starting.");
   }
 
-  public void notifyMeasurementPhaseStarting() {
-    writer.println("Measurement phase starting.");
+  public void notifyMeasurementPhaseStarting() throws IOException {
+    printlnAndFlush("Measurement phase starting.");
   }
 
-  public void notifyMeasurementStarting() {
-    writer.println("About to measure.");
-    writer.println(controlLogMessageRenderer.render(new StartMeasurementLogMessage()));
+  public void notifyMeasurementStarting() throws IOException {
+    println("About to measure.");
+    println(controlLogMessageRenderer.render(new StartMeasurementLogMessage()));
+    writer.flush();
   }
 
-  public void notifyMeasurementEnding(Measurement measurement) {
-    notifyMeasurementEnding(ImmutableList.of(measurement));
+  /**
+   * Report the measurement and wait for it to be ack'd by the runner.  Returns true if we should
+   * keep measuring, false otherwise.
+   */
+  public boolean notifyMeasurementEnding(Measurement measurement) throws IOException {
+    return notifyMeasurementEnding(ImmutableList.of(measurement));
   }
 
-  public void notifyMeasurementEnding(Iterable<Measurement> measurements) {
-    writer.println(controlLogMessageRenderer.render(new StopMeasurementLogMessage(measurements)));
+  /**
+   * Report the measurements and wait for it to be ack'd by the runner.  Returns true if we should
+   * keep measuring, false otherwise.
+   */
+  public boolean notifyMeasurementEnding(Iterable<Measurement> measurements) throws IOException {
+    println(controlLogMessageRenderer.render(new StopMeasurementLogMessage(measurements)));
     for (Measurement measurement : measurements) {
-      writer.printf("I got a result! %s: %f%s%n", measurement.description(),
-          measurement.value().magnitude() / measurement.weight(), measurement.value().unit());
+      println(String.format("I got a result! %s: %f%s%n", measurement.description(),
+          measurement.value().magnitude() / measurement.weight(), measurement.value().unit()));
     }
+    writer.flush();
+    return shouldKeepMeasuring();
   }
 
-  public void notifyFailure(Exception e) {
-    writer.println(controlLogMessageRenderer.render(new FailureLogMessage(e)));
+  public void notifyFailure(Exception e) throws IOException {
+    printlnAndFlush(controlLogMessageRenderer.render(new FailureLogMessage(e)));
+  }
+  
+  private boolean shouldKeepMeasuring() throws IOException {
+    return parser.fromJson(reader.readLine(), ShouldContinueMessage.class).shouldContinue();
+  }
+  
+  private void println(String str) throws IOException {
+    writer.write(str);
+    writer.write('\n');
+  }
+  
+  private void printlnAndFlush(String str) throws IOException {
+    println(str);
+    writer.flush();
   }
 }

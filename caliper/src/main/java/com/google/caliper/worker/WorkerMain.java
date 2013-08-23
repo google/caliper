@@ -54,13 +54,12 @@ public final class WorkerMain {
       log.notifyWarmupPhaseStarting();
       worker.bootstrap();
       log.notifyMeasurementPhaseStarting();
-      // TODO(lukes): add a cooperative shutdown mechanism to ensure that we at least try to 
-      // shutdown cleanly.  Currently we loop forever and the runner eventually sends a KILL signal.
-      while (true) {
+      boolean keepMeasuring = true;
+      while (keepMeasuring) {
         worker.preMeasure();
         log.notifyMeasurementStarting();
         try {
-          log.notifyMeasurementEnding(worker.measure());
+          keepMeasuring = log.notifyMeasurementEnding(worker.measure());
         } finally {
           worker.postMeasure();
         }
