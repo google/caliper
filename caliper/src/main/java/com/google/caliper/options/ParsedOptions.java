@@ -363,7 +363,7 @@ final class ParsedOptions implements CaliperOptions {
   // TODO(kevinb): a test could actually check that we don't exceed 79 columns.
   private static final ImmutableList<String> USAGE = ImmutableList.of(
       "Usage:",
-      " java <benchmark_class_name> [options...]",
+      " java com.google.caliper.runner.CaliperMain <benchmark_class_name> [options...]",
       "",
       "Options:",
       " -h, --help         print this message",
