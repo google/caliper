@@ -104,24 +104,7 @@ public class MalformedBenchmarksTest {
     @Benchmark void timeIt(int reps, int what) {}
   }
 
-  @Test public void hasBenchmarkOverloadsTimeMethods() throws Exception {
-    expectException(
-        "Overloads are disallowed for benchmark methods, found overloads of "
-        + "[timeBar, timeBaz, timeFoo] in benchmark OverloadsBenchmark",
-        OverloadsBenchmark.class);
-  }
-
-  @SuppressWarnings("deprecation") // testing legacy code
-  static class OverloadsBenchmark extends com.google.caliper.legacy.Benchmark {
-    public void timeFoo(long reps) {}
-    public void timeFoo(int reps) {}
-    public void timeBar(int reps) {}
-    public void timeBar(long reps) {}
-    public void timeBaz(long reps) {}
-    public void timeBaz(long reps, boolean thing) {}
-  }
-
-  @Test public void hasBenchmarkOverloadsAnnotatedMethods() throws Exception {
+  @Test public void hasBenchmarkOverloads() throws Exception {
     // N.B. baz is fine since although it has an overload, its overload is not a benchmark method.
     expectException(
         "Overloads are disallowed for benchmark methods, found overloads of [bar, foo] in "

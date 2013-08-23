@@ -39,16 +39,9 @@ import java.lang.reflect.Modifier;
  * An instance of this type represents a user-provided class. It manages creating, setting up and
  * destroying instances of that class.
  */
-abstract class BenchmarkClass {
+final class BenchmarkClass {
   static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
-    @SuppressWarnings("deprecation") // remove this support when we remove the legacy class
-    Class<com.google.caliper.legacy.Benchmark> legacyBenchmarkClass =
-        com.google.caliper.legacy.Benchmark.class;
-    if (legacyBenchmarkClass.isAssignableFrom(theClass)) {
-      return new BenchmarkSubclass(legacyBenchmarkClass, theClass.asSubclass(legacyBenchmarkClass));
-    } else {
-      return new AnnotatedBenchmark(theClass);
-    }
+    return new BenchmarkClass(theClass);
   }
 
   final Class<?> theClass;
@@ -57,6 +50,12 @@ abstract class BenchmarkClass {
 
   private BenchmarkClass(Class<?> theClass) throws InvalidBenchmarkException {
     this.theClass = checkNotNull(theClass);
+
+    if (!theClass.getSuperclass().equals(Object.class)) {
+      throw new InvalidBenchmarkException(
+          "%s must not extend any class other than %s. Prefer composition.",
+          theClass, Object.class);
+    }
 
     if (Modifier.isAbstract(theClass.getModifiers())) {
       throw new InvalidBenchmarkException("Class '%s' is abstract", theClass);
@@ -71,9 +70,13 @@ abstract class BenchmarkClass {
     this.benchmarkFlags = getVmOptions(theClass);
   }
 
-  abstract ImmutableSet<Method> beforeExperimentMethods();
+  ImmutableSet<Method> beforeExperimentMethods() {
+    return Reflection.getAnnotatedMethods(theClass, BeforeExperiment.class);
+  }
 
-  abstract ImmutableSet<Method> afterExperimentMethods();
+  ImmutableSet<Method> afterExperimentMethods() {
+    return Reflection.getAnnotatedMethods(theClass, AfterExperiment.class);
+  }
 
   public ParameterSet userParameters() {
     return userParameters;
@@ -176,68 +179,6 @@ abstract class BenchmarkClass {
         // TODO(kevinb): this is weird.
         throw new InvalidCommandException(e.getMessage());
       }
-    }
-  }
-
-  /**
-   * A benchmark class implementation that relies on an abstract class that declares {@code setUp}
-   * and {@code tearDown}.
-   */
-  private static final class BenchmarkSubclass extends BenchmarkClass {
-    final Class<?> superclass;
-
-    <T> BenchmarkSubclass(Class<T> superclass, Class<? extends T> theClass)
-        throws InvalidBenchmarkException {
-      super(theClass);
-      if (!theClass.getSuperclass().equals(superclass)) {
-        throw new InvalidBenchmarkException(
-            "%s must be a direct subclass of %s. Hierarchies are not allowed. Prefer composition.",
-            theClass, superclass);
-      }
-      this.superclass = superclass;
-    }
-
-    @Override
-    ImmutableSet<Method> beforeExperimentMethods() {
-      try {
-        Method method = superclass.getDeclaredMethod("setUp");
-        method.setAccessible(true);
-        return ImmutableSet.of(method);
-      } catch (NoSuchMethodException e) {
-        throw new AssertionError("Malformed superclass");
-      }
-    }
-
-    @Override
-    ImmutableSet<Method> afterExperimentMethods() {
-      try {
-        Method method = superclass.getDeclaredMethod("tearDown");
-        method.setAccessible(true);
-        return ImmutableSet.of(method);
-      } catch (NoSuchMethodException e) {
-        throw new AssertionError("Malformed superclass");
-      }
-    }
-  }
-
-  private static final class AnnotatedBenchmark extends BenchmarkClass {
-    public AnnotatedBenchmark(Class<?> theClass) throws InvalidBenchmarkException {
-      super(theClass);
-      if (!theClass.getSuperclass().equals(Object.class)) {
-        throw new InvalidBenchmarkException(
-            "%s must not extend any class other than %s. Prefer composition.",
-            theClass, Object.class);
-      }
-    }
-
-    @Override
-    ImmutableSet<Method> beforeExperimentMethods() {
-      return Reflection.getAnnotatedMethods(theClass, BeforeExperiment.class);
-    }
-
-    @Override
-    ImmutableSet<Method> afterExperimentMethods() {
-      return Reflection.getAnnotatedMethods(theClass, AfterExperiment.class);
     }
   }
 }

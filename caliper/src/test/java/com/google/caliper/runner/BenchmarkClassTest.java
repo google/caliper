@@ -40,20 +40,6 @@ public class BenchmarkClassTest {
         BenchmarkClass.forClass(MyBenchmark.class).beforeExperimentMethods());
   }
 
-  @SuppressWarnings("deprecation") // tests for deprecated code
-  @Test public void beforeMeasurementMethods_LegacyBenchmark() throws Exception {
-    assertEquals(
-        ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("setUp")),
-        BenchmarkClass.forClass(MyLegacyBenchmark.class).beforeExperimentMethods());
-  }
-
-  @SuppressWarnings("deprecation") // tests for deprecated code
-  @Test public void afterMeasurementMethods_LegacyBenchmark() throws Exception {
-    assertEquals(
-        ImmutableSet.of(com.google.caliper.legacy.Benchmark.class.getDeclaredMethod("tearDown")),
-        BenchmarkClass.forClass(MyLegacyBenchmark.class).afterExperimentMethods());
-  }
-
   @Test public void afterMeasurementMethods_AnnotatedBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(
@@ -67,10 +53,6 @@ public class BenchmarkClassTest {
       BenchmarkClass.forClass(MalformedBenhcmark.class);
       fail();
     } catch (InvalidBenchmarkException expected) {}
-    try {
-      BenchmarkClass.forClass(MalformedLegacyBenchmark.class);
-      fail();
-    } catch (InvalidBenchmarkException expected) {}
   }
 
   static class MyBenchmark {
@@ -81,9 +63,4 @@ public class BenchmarkClassTest {
   }
 
   static class MalformedBenhcmark extends MyBenchmark {}
-
-  @SuppressWarnings("deprecation") // tests for deprecated code
-  static class MyLegacyBenchmark extends com.google.caliper.legacy.Benchmark {}
-
-  static class MalformedLegacyBenchmark extends MyLegacyBenchmark {}
 }
