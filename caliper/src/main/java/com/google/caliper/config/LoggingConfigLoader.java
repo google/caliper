@@ -26,6 +26,8 @@ import com.google.common.io.Closeables;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
+import org.joda.time.format.ISODateTimeFormat;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -84,7 +86,8 @@ final class LoggingConfigLoader {
     File logDirectory = new File(caliperDirectory, "log");
     logDirectory.mkdirs();
     FileHandler fileHandler = new FileHandler(String.format("%s%c%s.%s.log",
-        logDirectory.getAbsolutePath(), File.separatorChar, run.startTime(), run.id()));
+        logDirectory.getAbsolutePath(), File.separatorChar,
+        ISODateTimeFormat.basicDateTimeNoMillis().print(run.startTime()), run.id()));
     fileHandler.setEncoding(Charsets.UTF_8.name());
     fileHandler.setFormatter(new SimpleFormatter());
     Logger globalLogger = logManager.getLogger("");

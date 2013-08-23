@@ -11,6 +11,7 @@ import com.google.caliper.model.Run;
 import com.google.common.io.Files;
 
 import org.joda.time.Instant;
+import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -67,7 +68,7 @@ public class LoggingConfigLoaderTest {
     assertTrue(fileHandler.getFormatter() instanceof SimpleFormatter);
     fileHandler.publish(new LogRecord(INFO, "some message"));
     File logFile = new File(new File(caliperDirectory, "log"),
-        startTime.toString() + "." + runId + ".log");
+        ISODateTimeFormat.basicDateTimeNoMillis().print(startTime) + "." + runId + ".log");
     assertTrue(logFile.isFile());
     assertTrue(Files.toString(logFile, UTF_8).contains("some message"));
   }
