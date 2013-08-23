@@ -21,6 +21,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.MacrobenchmarkWorker;
@@ -31,6 +32,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
 
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -39,12 +41,15 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests {@link RuntimeInstrument}.
  */
 @RunWith(JUnit4.class)
 public class RuntimeInstrumentTest {
+  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
+
   private RuntimeInstrument instrument;
 
   @Before public void createInstrument() {
@@ -139,5 +144,41 @@ public class RuntimeInstrumentTest {
     void notAMacrobenchmark() {}
     void notAMicrobenchmark(int reps) {}
     void notAPicobenchmark(long reps) {}
+  }
+
+  private double relativeDifference(double a, double b) {
+    return Math.abs(a - b) / ((a + b) / 2.0);
+  }
+
+  static final class TestBenchmark {
+    @Benchmark long pico(long reps) {
+      long dummy = 0;
+      for (long i = 0; i < reps; i++) {
+        dummy += spin();
+      }
+      return dummy;
+    }
+
+    @Benchmark long micro(int reps) {
+      long dummy = 0;
+      for (int i = 0; i < reps; i++) {
+        dummy += spin();
+      }
+      return dummy;
+    }
+
+    @Macrobenchmark long macro() {
+      return spin();
+    }
+
+    // busy spin for 10ms and return the ellapsed time.  N.B. we busy spin instead of sleeping so
+    // that we aren't put at the mercy (and variance) of the thread scheduler.
+    private final long spin() {
+      long remainingNanos = TimeUnit.MILLISECONDS.toNanos(10);
+      long start = System.nanoTime();
+      long ellapsed;
+      while ((ellapsed = System.nanoTime() - start) < remainingNanos) {}
+      return ellapsed;
+    }
   }
 }

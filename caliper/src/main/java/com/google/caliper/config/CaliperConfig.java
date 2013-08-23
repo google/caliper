@@ -25,8 +25,10 @@ import com.google.caliper.config.VmConfig.Builder;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
@@ -108,7 +110,16 @@ public final class CaliperConfig {
    */
   public VmConfig getDefaultVmConfig() {
     return new Builder(new File(System.getProperty("java.home")))
-        .addAllOptions(ManagementFactory.getRuntimeMXBean().getInputArguments())
+        .addAllOptions(Collections2.filter(ManagementFactory.getRuntimeMXBean().getInputArguments(),
+            new Predicate<String>() {
+              @Override public boolean apply(@Nullable String input) {
+                // Exclude the -agentlib:jdwp param which configures the socket debugging protocol.
+                // If this is set in the parent VM we do not want it to be inherited by the child 
+                // VM.  If it is, the child will die immediately on startup because it will fail to
+                // bind to the debug port (because the parent VM is already bound to it).
+                return !input.startsWith("-agentlib:jdwp");
+              }
+            }))
         // still incorporate vm.args
         .addAllOptions(getArgs(subgroupMap(properties, "vm")))
         .build();

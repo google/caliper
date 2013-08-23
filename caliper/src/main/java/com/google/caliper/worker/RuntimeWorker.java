@@ -125,7 +125,7 @@ public abstract class RuntimeWorker extends Worker {
   /**
    * A {@link Worker} for pico benchmarks.
    */
-  public final class Pico extends RuntimeWorker {
+  public static final class Pico extends RuntimeWorker {
     @Inject Pico(@Benchmark Object benchmark, 
         @BenchmarkMethod Method method, Random random, Ticker ticker,
         @WorkerOptions Map<String, String> workerOptions) {

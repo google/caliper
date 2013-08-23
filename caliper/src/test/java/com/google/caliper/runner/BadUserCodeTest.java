@@ -3,17 +3,14 @@ package com.google.caliper.runner;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.legacy.Benchmark;
-import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.Lists;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.util.List;
 
 /**
@@ -21,15 +18,13 @@ import java.util.List;
  */
 @RunWith(JUnit4.class)
 public class BadUserCodeTest {
-  // TODO(gak): do something with this output so that test failures are useful
-  private PrintWriter out = new PrintWriter(new StringWriter());
-  private PrintWriter err = new PrintWriter(new StringWriter());
+  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
 
   @Test
 
   public void testExceptionInInit() throws Exception {
     try {
-      CaliperMain.exitlessMain(new String[] {ExceptionInInitBenchmark.class.getName()}, out, err);
+      runner.forBenchmark(ExceptionInInitBenchmark.class).run();
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -52,8 +47,7 @@ public class BadUserCodeTest {
 
   public void testExceptionInConstructor() throws Exception {
     try {
-      CaliperMain.exitlessMain(
-          new String[] {ExceptionInConstructorBenchmark.class.getName()}, out, err);
+      runner.forBenchmark(ExceptionInConstructorBenchmark.class).run();
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -72,8 +66,7 @@ public class BadUserCodeTest {
 
   public void testExceptionInMethod() throws Exception {
     try {
-      CaliperMain.exitlessMain(
-          new String[] {ExceptionInMethodBenchmark.class.getName()}, out, err);
+      runner.forBenchmark(ExceptionInMethodBenchmark.class).run();
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -88,8 +81,7 @@ public class BadUserCodeTest {
 
   public void testExceptionInMethod_notInDryRun() throws Exception {
     try {
-      CaliperMain.exitlessMain(
-          new String[] {ExceptionLateInMethodBenchmark.class.getName()}, out, err);
+      runner.forBenchmark(ExceptionLateInMethodBenchmark.class).run();
       fail();
     } catch (ProxyWorkerException expected) {
       assertTrue(expected.getMessage().contains(ExceptionLateInMethodBenchmark.class.getName()));
@@ -108,8 +100,7 @@ public class BadUserCodeTest {
 
   public void testExceptionInSetUp() throws Exception {
     try {
-      CaliperMain.exitlessMain(
-          new String[] {ExceptionInSetUpBenchmark.class.getName()}, out, err);
+      runner.forBenchmark(ExceptionInSetUpBenchmark.class).run();
       fail();
     } catch (UserCodeException expected) {}
   }
@@ -128,7 +119,10 @@ public class BadUserCodeTest {
 
   public void testNonDeterministicAllocation_noTrackAllocations() throws Exception {
     try {
-      runAllocationWorker(NonDeterministicAllocationBenchmark.class, false);
+      runner.forBenchmark(NonDeterministicAllocationBenchmark.class)
+          .instrument("allocation")
+          .options("-Cinstrument.allocation.options.trackAllocations=" + false)
+          .run();
       fail();
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
@@ -141,7 +135,10 @@ public class BadUserCodeTest {
 
   public void testNonDeterministicAllocation_trackAllocations() throws Exception {
     try {
-      runAllocationWorker(NonDeterministicAllocationBenchmark.class, true);
+      runner.forBenchmark(NonDeterministicAllocationBenchmark.class)
+          .instrument("allocation")
+          .options("-Cinstrument.allocation.options.trackAllocations=" + true)
+          .run();
       fail();
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
@@ -169,14 +166,20 @@ public class BadUserCodeTest {
 
   public void testComplexNonDeterministicAllocation_noTrackAllocations() throws Exception {
     // Without trackAllocations enabled this kind of non-determinism cannot be detected.
-    runAllocationWorker(ComplexNonDeterministicAllocationBenchmark.class, false);
+    runner.forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
+        .instrument("allocation")
+        .options("-Cinstrument.allocation.options.trackAllocations=" + false)
+        .run();
   }
 
   @Test
 
   public void testComplexNonDeterministicAllocation_trackAllocations() throws Exception {
     try {
-      runAllocationWorker(ComplexNonDeterministicAllocationBenchmark.class, true);
+      runner.forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
+          .instrument("allocation")
+          .options("-Cinstrument.allocation.options.trackAllocations=" + true)
+          .run();
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
       assertTrue("Expected " + expected.getMessage() + " to contain " + message,
@@ -198,21 +201,5 @@ public class BadUserCodeTest {
       }
       return list.hashCode();
     }
-  }
-
-  /**
-   * Helper method to run the allocation worker against the given benchmark class.
-   */
-  private void runAllocationWorker(Class<?> benchmarkClass, boolean trackAllocations)
-      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
-    CaliperMain.exitlessMain(
-        new String[] {
-            benchmarkClass.getName(),
-            "-i",
-            "allocation",
-            "-Cinstrument.allocation.options.trackAllocations=" + trackAllocations,
-            },
-        out,
-        err);
   }
 }
