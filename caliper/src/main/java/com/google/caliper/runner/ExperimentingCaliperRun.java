@@ -78,6 +78,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.Collections;
@@ -346,7 +347,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       final ListenableFuture<Reader> pipeReaderFuture =
           producerExecutor.submit(new Callable<Reader>() {
         @Override public Reader call() throws IOException {
-          return new InputStreamReader(serverSocket.accept().getInputStream(), UTF_8);
+          Socket socket = serverSocket.accept();
+          // See comment in WorkerModule for why this is necessary.
+          socket.setTcpNoDelay(true);
+          return new InputStreamReader(socket.getInputStream(), UTF_8);
         }
       });
       processFuture.addListener(new Runnable() {

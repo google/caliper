@@ -74,6 +74,14 @@ final class WorkerModule extends AbstractModule {
 
   @Provides @Singleton PrintWriter providePrintWriter() throws IOException {
     final Socket socket = new Socket(InetAddresses.forString("127.0.0.1"), port);
+    // Setting this to true disables Nagle's algorithm (RFC 896) which seeks to decrease packet
+    // overhead by buffering writes while there are packets outstanding (i.e. haven't been ack'd).
+    // This interacts poorly with another TCP feature called 'delayed acks' (RFC 1122) if the
+    // application sends lots of small messages (which we do!).  Without this enabled messages sent
+    // by the worker may be delayed by up to the delayed ack timeout (on linux this is 40-500ms,
+    // though in practise I have only observed 40ms).  So we need to enable the TCP_NO_DELAY option
+    // here.
+    socket.setTcpNoDelay(true);
     // close the socket when the worker exits
     Runtime.getRuntime().addShutdownHook(new Thread() {
       @Override
