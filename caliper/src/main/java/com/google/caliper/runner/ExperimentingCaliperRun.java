@@ -222,7 +222,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     try {
       for (int i = 0; i < options.trialsPerScenario(); i++) {
         for (Experiment experiment : experimentsToRun) {
-          stdout.printf("Starting experiment %d of %d: %s%n", trialNumber, totalTrials, experiment);
+          stdout.printf("Starting experiment %d of %d: %s\u2026 ",
+              trialNumber, totalTrials, experiment);
           try {
             Trial trial = measure(experiment);
             stdout.println("Complete!");
