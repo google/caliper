@@ -27,6 +27,7 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 
 import java.util.Map;
@@ -40,6 +41,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.QueryHint;
 
 /**
@@ -70,23 +73,17 @@ public final class InstrumentSpec {
   @Sort(type = NATURAL)
   private SortedMap<String, String> options;
   @ExcludeFromJson
+  @Index(name = "hash_index")
   private int hash;
 
   private InstrumentSpec() {
     this.className = "";
     this.options = Maps.newTreeMap();
-    this.hash = 0;
   }
 
   private InstrumentSpec(Builder builder) {
     this.className = builder.className;
     this.options = Maps.newTreeMap(builder.options);
-    this.hash = getPersistentHashFunction()
-        .newHasher()
-        .putString(className)
-        .putObject(options, StringMapFunnel.INSTANCE)
-        .hash()
-        .asInt();
   }
 
   public String className() {
@@ -102,15 +99,27 @@ public final class InstrumentSpec {
       return true;
     } else if (obj instanceof InstrumentSpec) {
       InstrumentSpec that = (InstrumentSpec) obj;
-      return (this.hash == that.hash)
-          && this.className.equals(that.className)
+      return this.className.equals(that.className)
           && this.options.equals(that.options);
     } else {
       return false;
     }
   }
 
+  @PrePersist
+  @PreUpdate
+  private void initHash() {
+    if (hash == 0) {
+      this.hash = getPersistentHashFunction()
+          .newHasher()
+          .putUnencodedChars(className)
+          .putObject(options, StringMapFunnel.INSTANCE)
+          .hash().asInt();
+    }
+  }
+
   @Override public int hashCode() {
+    initHash();
     return hash;
   }
 

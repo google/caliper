@@ -27,6 +27,7 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 
 import java.util.Map;
@@ -39,6 +40,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.QueryHint;
 
 /**
@@ -62,18 +65,16 @@ public final class VmSpec {
   @Id @GeneratedValue @ExcludeFromJson private int id;
   @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> properties;
   @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> options;
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson @Index(name = "hash_index") private int hash;
 
   private VmSpec() {
     this.properties = Maps.newTreeMap();
     this.options = Maps.newTreeMap();
-    this.hash = 0;
   }
 
   private VmSpec(Builder builder) {
     this.properties = Maps.newTreeMap(builder.properties);
     this.options = Maps.newTreeMap(builder.options);
-    this.hash = getPersistentHashFunction().hashObject(this, VmSpecFunnel.INSTANCE).asInt();
   }
 
   public ImmutableSortedMap<String, String> options() {
@@ -89,15 +90,23 @@ public final class VmSpec {
       return true;
     } else if (obj instanceof VmSpec) {
       VmSpec that = (VmSpec) obj;
-      return (this.hash == that.hash)
-          && this.properties.equals(that.properties)
+      return this.properties.equals(that.properties)
           && this.options.equals(that.options);
     } else {
       return false;
     }
   }
 
+  @PrePersist
+  @PreUpdate
+  private void initHash() {
+    if (hash == 0) {
+      this.hash = getPersistentHashFunction().hashObject(this, VmSpecFunnel.INSTANCE).asInt();
+    }
+  }
+
   @Override public int hashCode() {
+    initHash();
     return hash;
   }
 

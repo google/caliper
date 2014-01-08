@@ -29,6 +29,7 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 
 import java.util.Map;
@@ -42,6 +43,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.QueryHint;
 
 /**
@@ -66,20 +69,18 @@ public final class BenchmarkSpec {
   @Basic(optional = false) private String className;
   @Basic(optional = false) private String methodName;
   @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> parameters;
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson @Index(name = "hash_index") private int hash;
 
   private BenchmarkSpec() {
     this.className = "";
     this.methodName = "";
     this.parameters = Maps.newTreeMap();
-    this.hash = 0;
   }
 
   private BenchmarkSpec(Builder builder) {
     this.className = builder.className;
     this.methodName = builder.methodName;
     this.parameters = Maps.newTreeMap(builder.parameters);
-    this.hash = getPersistentHashFunction().hashObject(this, BenchmarkSpecFunnel.INSTANCE).asInt();
   }
 
   public String className() {
@@ -99,8 +100,7 @@ public final class BenchmarkSpec {
       return true;
     } else if (obj instanceof BenchmarkSpec) {
       BenchmarkSpec that = (BenchmarkSpec) obj;
-      return (this.hash == that.hash)
-          && this.className.equals(that.className)
+      return this.className.equals(that.className)
           && this.methodName.equals(that.methodName)
           && this.parameters.equals(that.parameters);
     } else {
@@ -108,7 +108,17 @@ public final class BenchmarkSpec {
     }
   }
 
+  @PrePersist
+  @PreUpdate
+  private void initHash() {
+    if (hash == 0) {
+      this.hash = getPersistentHashFunction()
+          .hashObject(this, BenchmarkSpecFunnel.INSTANCE).asInt();
+    }
+  }
+
   @Override public int hashCode() {
+    initHash();
     return hash;
   }
 
@@ -124,8 +134,8 @@ public final class BenchmarkSpec {
     INSTANCE;
 
     @Override public void funnel(BenchmarkSpec from, PrimitiveSink into) {
-      into.putString(from.className)
-          .putString(from.methodName);
+      into.putUnencodedChars(from.className)
+          .putUnencodedChars(from.methodName);
       StringMapFunnel.INSTANCE.funnel(from.parameters, into);
     }
   }

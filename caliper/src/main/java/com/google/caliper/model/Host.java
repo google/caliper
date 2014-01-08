@@ -30,6 +30,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.PrimitiveSink;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 
 import java.util.Map;
@@ -43,6 +44,8 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.QueryHint;
 
 /**
@@ -66,16 +69,16 @@ public final class Host {
 
   @Id @GeneratedValue @ExcludeFromJson private int id;
   @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> properties;
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson @Index(name = "hash_index") private int hash;
 
   private Host() {
     this.properties = Maps.newTreeMap();
-    this.hash = 0;
   }
 
   private Host(Builder builder) {
     this.properties = Maps.newTreeMap(builder.properties);
-    this.hash = builder.hashFunction.hashObject(this, HostFunnel.INSTANCE).asInt();
+    // eagerly initialize hash to allow for the test-only hash function
+    initHash(builder.hashFunction);
   }
 
   public ImmutableSortedMap<String, String> properties() {
@@ -87,14 +90,26 @@ public final class Host {
       return true;
     } else if (obj instanceof Host) {
       Host that = (Host) obj;
-      return (this.hash == that.hash)
-          && this.properties.equals(that.properties);
+      return this.properties.equals(that.properties);
     } else {
       return false;
     }
   }
 
+  private void initHash(HashFunction hashFunction) {
+    if (hash == 0) {
+      this.hash = hashFunction.hashObject(this, HostFunnel.INSTANCE).asInt();
+    }
+  }
+
+  @PrePersist
+  @PreUpdate
+  private void initHash() {
+    initHash(getPersistentHashFunction());
+  }
+
   @Override public int hashCode() {
+    initHash();
     return hash;
   }
 

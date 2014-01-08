@@ -27,6 +27,7 @@ import com.google.caliper.model.VmSpec.VmSpecFunnel;
 import com.google.common.base.Objects;
 
 import org.hibernate.annotations.Immutable;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.Access;
 import javax.persistence.Cacheable;
@@ -35,6 +36,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQuery;
+import javax.persistence.PrePersist;
+import javax.persistence.PreUpdate;
 import javax.persistence.QueryHint;
 
 /**
@@ -61,26 +64,18 @@ public final class Scenario {
   @ManyToOne(optional = false) private VmSpec vmSpec;
   @ManyToOne(optional = false) private BenchmarkSpec benchmarkSpec;
   // TODO(gak): include data about caliper itself and the code being benchmarked
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson @Index(name = "hash_index") private int hash;
 
   private Scenario() {
     this.host = Host.DEFAULT;
     this.vmSpec = VmSpec.DEFAULT;
     this.benchmarkSpec = BenchmarkSpec.DEFAULT;
-    this.hash = 0;
   }
 
   private Scenario(Builder builder) {
     this.host = builder.host;
     this.vmSpec = builder.vmSpec;
     this.benchmarkSpec = builder.benchmarkSpec;
-    this.hash = getPersistentHashFunction()
-        .newHasher()
-        .putObject(host, HostFunnel.INSTANCE)
-        .putObject(vmSpec, VmSpecFunnel.INSTANCE)
-        .putObject(benchmarkSpec, BenchmarkSpecFunnel.INSTANCE)
-        .hash()
-        .asInt();
   }
 
   public Host host() {
@@ -100,8 +95,7 @@ public final class Scenario {
       return true;
     } else if (obj instanceof Scenario) {
       Scenario that = (Scenario) obj;
-      return (this.hash == that.hash)
-          && this.host.equals(that.host)
+      return this.host.equals(that.host)
           && this.vmSpec.equals(that.vmSpec)
           && this.benchmarkSpec.equals(that.benchmarkSpec);
     } else {
@@ -109,7 +103,21 @@ public final class Scenario {
     }
   }
 
+  @PrePersist
+  @PreUpdate
+  private void initHash() {
+    if (hash == 0) {
+      this.hash = getPersistentHashFunction()
+          .newHasher()
+          .putObject(host, HostFunnel.INSTANCE)
+          .putObject(vmSpec, VmSpecFunnel.INSTANCE)
+          .putObject(benchmarkSpec, BenchmarkSpecFunnel.INSTANCE)
+          .hash().asInt();
+    }
+  }
+
   @Override public int hashCode() {
+    initHash();
     return hash;
   }
 
