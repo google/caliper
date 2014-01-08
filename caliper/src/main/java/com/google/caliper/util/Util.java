@@ -21,7 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 import com.google.common.io.Resources;
 
 import java.io.IOException;
@@ -55,11 +55,12 @@ public final class Util {
 
   public static ImmutableMap<String, String> loadProperties(ByteSource is) throws IOException {
     Properties props = new Properties();
-    InputStream in = is.openStream();
+    Closer closer = Closer.create();
+    InputStream in = closer.register(is.openStream());
     try {
       props.load(in);
     } finally {
-      Closeables.closeQuietly(in);
+      closer.close();
     }
     return Maps.fromProperties(props);
   }

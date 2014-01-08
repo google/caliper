@@ -16,13 +16,14 @@
 
 package com.google.caliper.config;
 
+import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperDirectory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
-import com.google.common.io.Closeables;
+import com.google.common.io.Closer;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -57,16 +58,21 @@ final class LoggingConfigLoader {
   @Inject void loadLoggingConfig() {
     File loggingPropertiesFile = new File(caliperDirectory, "logging.properties");
     if (loggingPropertiesFile.isFile()) {
+      Closer closer = Closer.create();
       FileInputStream fis = null;
       try {
-        fis = new FileInputStream(loggingPropertiesFile);
+        fis = closer.register(new FileInputStream(loggingPropertiesFile));
         logManager.readConfiguration(fis);
       } catch (SecurityException e) {
         logConfigurationException(e);
       } catch (IOException e) {
         logConfigurationException(e);
       } finally {
-        Closeables.closeQuietly(fis);
+        try {
+          closer.close();
+        } catch (IOException e) {
+          logger.log(SEVERE, "could not close " + loggingPropertiesFile, e);
+        }
       }
       logger.info(String.format("Using logging configuration at %s", loggingPropertiesFile));
     } else {
