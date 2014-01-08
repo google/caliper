@@ -28,7 +28,6 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
-import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
@@ -36,13 +35,11 @@ import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
 import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 import com.google.caliper.runner.StreamService.StreamItem;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
-import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
@@ -50,10 +47,8 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.inject.CreationException;
@@ -68,8 +63,6 @@ import org.joda.time.Duration;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -92,6 +85,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final StreamService.Factory streamServiceFactory;
   private final ExperimentSelector selector;
+  private final WorkerProcess.Factory workerFactory;
   private final Host host;
   private final Run run;
   private final Gson gson;
@@ -110,6 +104,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       StreamService.Factory streamServiceFactory,
+      WorkerProcess.Factory workerFactory,
       ExperimentSelector selector,
       Host host,
       Run run,
@@ -122,6 +117,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
     this.streamServiceFactory = streamServiceFactory;
+    this.workerFactory = workerFactory;
     this.selector = selector;
     this.host = host;
     this.run = run;
@@ -213,69 +209,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     }
   }
 
-  private ProcessBuilder createWorkerProcessBuilder(Experiment experiment,
-      BenchmarkSpec benchmarkSpec, int port) {
-    Instrumentation instrumentation = experiment.instrumentation();
-    Instrument instrument = instrumentation.instrument();
-    ImmutableList.Builder<String> parameterClassNames = ImmutableList.builder();
-    for (Class<?> parameterType : instrumentation.benchmarkMethod.getParameterTypes()) {
-      parameterClassNames.add(parameterType.getName());
-    }
-    WorkerSpec request = new WorkerSpec(
-        instrumentation.workerClass().getName(),
-        instrumentation.workerOptions(),
-        benchmarkSpec,
-        parameterClassNames.build(),
-        port);
-
-    ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
-
-    List<String> args = processBuilder.command();
-
-    String jvmName = experiment.vm().name;
-
-    String jdkPath = experiment.vm().config.javaExecutable().getAbsolutePath();
-    args.add(jdkPath);
-    logger.fine(String.format("Java(%s) Path: %s", jvmName, jdkPath));
-
-    ImmutableList<String> jvmOptions = experiment.vm().config.options();
-    args.addAll(jvmOptions);
-    logger.fine(String.format("Java(%s) args: %s", jvmName, jvmOptions));
-
-    ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
-    args.addAll(benchmarkJvmOptions);
-    logger.fine(String.format("Benchmark(%s) Java args: %s", benchmarkClass.name(),
-        benchmarkJvmOptions));
-
-    String classPath = getClassPath();
-    Collections.addAll(args, "-cp", classPath);
-    logger.finer(String.format("Class path: %s", classPath));
-
-    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs();
-    Iterables.addAll(args, instrumentJvmOptions);
-    logger.fine(String.format("Instrument(%s) Java args: %s", instrument.getClass().getName(),
-        instrumentJvmOptions));
-
-    // last to ensure that they're always applied
-    args.add("-XX:+PrintFlagsFinal");
-    args.add("-XX:+PrintCompilation");
-    args.add("-XX:+PrintGC");
-
-    args.add(WorkerMain.class.getName());
-    args.add(gson.toJson(request));
-
-    logger.finest(String.format("Full JVM (%s) args: %s", jvmName, args));
-    return processBuilder;
-  }
-
-  private static String getClassPath() {
-    String classpath;
-    // Use the effective class path in case this is being invoked in an isolated class loader
-    classpath =
-        EffectiveClassPath.getClassPathForClassLoader(Thread.currentThread().getContextClassLoader());
-    return classpath;
-  }
-
   // TODO(lukes): This method tracks a lot of temporary state, consider extracting a class.
   private Trial measure(final Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
@@ -286,24 +219,29 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
     // TODO(lukes): make only one of these for the whole process instead of one per measurement
     final ServerSocket serverSocket = new ServerSocket(0);
-
+    UUID trialId = UUID.randomUUID();
     StreamService manager = streamServiceFactory.create(
-        createWorkerProcessBuilder(experiment, benchmarkSpec, serverSocket.getLocalPort()),
-        serverSocket, trialNumber);
+        workerFactory.create(
+            trialId,
+            experiment,
+            benchmarkSpec,
+            serverSocket.getLocalPort()),
+        serverSocket,
+        trialNumber);
     trialStopwatch.start();
     manager.start();
     try {
       // TODO(lukes): The DataCollectingVisitor should be able to tell us when it has collected all
       // its data.
       DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
-      MeasurementCollectingVisitor measurementCollectingVisitor =
+      MeasurementCollectingVisitor measurementCollectingVisitor = 
           experiment.instrumentation().getMeasurementCollectingVisitor();
-
+      
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
       boolean doneCollecting = false;
       boolean done = false;
       while (!done) {
-        StreamItem item = manager.readItem(timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS),
+        StreamItem item = manager.readItem(timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS), 
             NANOSECONDS);
         switch (item.kind()) {
           case DATA:
@@ -313,21 +251,21 @@ public final class ExperimentingCaliperRun implements CaliperRun {
             if (!doneCollecting && measurementCollectingVisitor.isDoneCollecting()) {
               doneCollecting = true;
               // We have received all the measurements we need and are about to tell the worker to
-              // shut down.  At this point the worker should shutdown soon, but we don't want to
-              // wait too long, so decrease the time limit so that we wait no more than
+              // shut down.  At this point the worker should shutdown soon, but we don't want to 
+              // wait too long, so decrease the time limit so that we wait no more than 
               // WORKER_CLEANUP_DURATION.
               long cleanupTimeNanos = MILLISECONDS.toNanos(WORKER_CLEANUP_DURATION.getMillis());
-              // TODO(lukes): Does the min operation make sense here? should we just use the
+              // TODO(lukes): Does the min operation make sense here? should we just use the 
               // cleanupTimeNanos?
               timeLimitNanos = trialStopwatch.elapsed(NANOSECONDS) + cleanupTimeNanos;
             }
             // If it is a stop measurement message we need to tell the worker to either stop or keep
-            // going with a WorkerContinueMessage.  This needs to be done after the
+            // going with a WorkerContinueMessage.  This needs to be done after the 
             // measurementCollecting visitor sees the message so that isDoneCollection will be up to
             // date.
             if (logMessage instanceof StopMeasurementLogMessage) {
-              // TODO(lukes): this is a blocking write, perhaps we should perform it in a non
-              // blocking manner to keep this thread only blocking in one place.  This would
+              // TODO(lukes): this is a blocking write, perhaps we should perform it in a non 
+              // blocking manner to keep this thread only blocking in one place.  This would 
               // complicate error handling, but may increase performance since it would free this
               // thread up to handle other messages.
               manager.writeLine(gson.toJson(new ShouldContinueMessage(!doneCollecting)));
@@ -347,7 +285,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           case TIMEOUT:
             if (doneCollecting) {
               // Should this be an error?
-              logger.warning("Worker failed to exit cleanly within the alloted time.");
+              logger.warning("Worker failed to exit cleanly within the alloted time.");  
               done = true;
             } else {
               throw new TrialFailureException(String.format(
@@ -361,7 +299,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       }
 
-      return makeTrial(experiment, benchmarkSpec, dataCollectingVisitor,
+      return makeTrial(trialId, experiment, benchmarkSpec, dataCollectingVisitor, 
           measurementCollectingVisitor);
     } catch (InterruptedException e) {
       throw new AssertionError();
@@ -373,7 +311,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   }
 
   /** Returns a {@link Trial} containing all the data collected by the given experiment. */
-  private Trial makeTrial(final Experiment experiment, BenchmarkSpec benchmarkSpec,
+  private Trial makeTrial(UUID trialId, final Experiment experiment, BenchmarkSpec benchmarkSpec,
       DataCollectingVisitor dataCollectingVisitor,
       MeasurementCollectingVisitor measurementCollectingVisitor) {
     checkState(measurementCollectingVisitor.isDoneCollecting());
@@ -383,7 +321,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         .addAllProperties(dataCollectingVisitor.vmProperties.get())
         .addAllOptions(vmOptions)
         .build();
-    return new Trial.Builder(UUID.randomUUID())
+    return new Trial.Builder(trialId)
         .run(run)
         .instrumentSpec(experiment.instrumentation().instrument().getSpec())
         .scenario(new Scenario.Builder()

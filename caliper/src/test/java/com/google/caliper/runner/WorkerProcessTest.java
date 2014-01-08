@@ -16,64 +16,151 @@
 
 package com.google.caliper.runner;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
-import com.google.caliper.runner.WorkerProcess.ShutdownHookRegistrar;
+import com.google.caliper.Benchmark;
+import com.google.caliper.config.VmConfig;
+import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.worker.WorkerMain;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
+import com.google.gson.Gson;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.runners.JUnit4;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 /**
  * Tests {@link WorkerProcess}.
+ *
+ * <p>TODO(lukes,gak): write more tests for how our specs get turned into commandlines
  */
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(JUnit4.class)
 public class WorkerProcessTest {
-  @Mock ShutdownHookRegistrar registrar;
-  @Mock Process delegate;
-  @Captor ArgumentCaptor<Thread> hookCaptor;
-  private WorkerProcess workerProcess;
+  private static final int PORT_NUMBER = 4004;
+  private static final UUID TRIAL_ID = UUID.randomUUID();
 
-  @Before public void createWorkerProcess() {
-    this.workerProcess = new WorkerProcess(registrar, delegate);
+  private static class MockRegistrar implements ShutdownHookRegistrar {
+    Set<Thread> hooks = Sets.newHashSet();
+    @Override public void addShutdownHook(Thread hook) {
+      hooks.add(hook);
+    }
+    @Override public boolean removeShutdownHook(Thread hook) {
+      return hooks.remove(hook);
+    }
+  }
+
+  private final MockRegistrar registrar = new MockRegistrar();
+  private final Gson gson = new Gson();
+  private BenchmarkClass benchmarkClass;
+
+  @Before public void setUp() throws InvalidBenchmarkException {
+    benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
+  }
+
+  @Test public void simpleArgsTest() throws Exception {
+    Method method = TestBenchmark.class.getDeclaredMethods()[0];
+    AllocationInstrument allocationInstrument = new AllocationInstrument();
+    allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
+    Experiment experiment = new Experiment(
+        allocationInstrument.createInstrumentation(method),
+        ImmutableMap.<String, String>of(),
+        new VirtualMachine("foo-jvm",
+            new VmConfig.Builder(new File("/usr/bin/foo"))
+                .addOption("--doTheHustle")
+                .build()));
+    BenchmarkSpec spec = new BenchmarkSpec.Builder()
+        .className(TestBenchmark.class.getName())
+        .methodName(method.getName())
+        .build();
+    ProcessBuilder builder = createProcess(experiment, spec);
+    List<String> commandLine = builder.command();
+    assertEquals("/usr/bin/foo/bin/java", commandLine.get(0));
+    assertEquals("--doTheHustle", commandLine.get(1));  // vm specific flags come next
+    assertEquals("-cp", commandLine.get(2));  // then the classpath
+    // should we assert on classpath contents?
+    ImmutableSet<String> extraCommandLineArgs = allocationInstrument.getExtraCommandLineArgs();
+    assertEquals(extraCommandLineArgs.asList(),
+        commandLine.subList(4, 4 + extraCommandLineArgs.size()));
+    int index = 4 + extraCommandLineArgs.size();
+    assertEquals("-XX:+PrintFlagsFinal", commandLine.get(index));
+    assertEquals("-XX:+PrintCompilation", commandLine.get(++index));
+    assertEquals("-XX:+PrintGC", commandLine.get(++index));
+    assertEquals(WorkerMain.class.getName(), commandLine.get(++index));
+    // followed by worker args...
   }
 
   @Test public void shutdownHook_waitFor() throws Exception {
-    verify(registrar).addShutdownHook(hookCaptor.capture());
-    when(delegate.waitFor()).thenReturn(0);
-    workerProcess.waitFor();
-    verify(registrar).removeShutdownHook(hookCaptor.getValue());
+    Process worker = createWorkerProcess("exit 0").startWorker();
+    assertEquals("worker-shutdown-hook-" + TRIAL_ID,
+        Iterables.getOnlyElement(registrar.hooks).getName());
+    worker.waitFor();
+    assertTrue(registrar.hooks.isEmpty());
   }
 
   @Test public void shutdownHook_exitValueThrows() throws Exception {
-    verify(registrar).addShutdownHook(hookCaptor.capture());
-    when(delegate.exitValue()).thenThrow(new IllegalThreadStateException());
+    Process worker = createWorkerProcess("sleep 1m").startWorker();
     try {
-      workerProcess.exitValue();
-      fail();
-    } catch (IllegalThreadStateException expected) {}
-    verify(registrar, never()).removeShutdownHook(hookCaptor.getValue());
+      Thread hook = Iterables.getOnlyElement(registrar.hooks);
+      assertEquals("worker-shutdown-hook-" + TRIAL_ID, hook.getName());
+      try {
+        worker.exitValue();
+        fail();
+      } catch (IllegalThreadStateException expected) {}
+      assertTrue(registrar.hooks.contains(hook));
+    } finally {
+      worker.destroy(); // clean up
+    }
   }
 
   @Test public void shutdownHook_exitValue() throws Exception {
-    verify(registrar).addShutdownHook(hookCaptor.capture());
-    when(delegate.exitValue()).thenReturn(0);
-    workerProcess.exitValue();
-    verify(registrar).removeShutdownHook(hookCaptor.getValue());
+    Process worker = createWorkerProcess("exit 0").startWorker();
+    while (true) {
+      try {
+        worker.exitValue();
+        assertTrue(registrar.hooks.isEmpty());
+        break;
+      } catch (IllegalThreadStateException e) {
+        Thread.sleep(10);  // keep polling
+      }
+    }
   }
 
   @Test public void shutdownHook_destroy() throws Exception {
-    verify(registrar).addShutdownHook(hookCaptor.capture());
-    workerProcess.destroy();
-    verify(delegate).destroy();
-    verify(registrar).removeShutdownHook(hookCaptor.getValue());
+    Process worker = createWorkerProcess("sleep 1m").startWorker();
+    worker.destroy();
+    assertTrue(registrar.hooks.isEmpty());
+  }
+
+  static final class TestBenchmark {
+    @Benchmark long thing(long reps) {
+      long dummy = 0;
+      for (long i = 0; i < reps; i++) {
+        dummy += new Long(dummy).hashCode();
+      }
+      return dummy;
+    }
+  }
+
+  private ProcessBuilder createProcess(Experiment experiment, BenchmarkSpec benchmarkSpec) {
+    return WorkerProcess.buildProcess(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, gson,
+        benchmarkClass);
+  }
+
+  private WorkerProcess createWorkerProcess(String bashScript) {
+    return new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
+        TRIAL_ID, registrar);
   }
 }

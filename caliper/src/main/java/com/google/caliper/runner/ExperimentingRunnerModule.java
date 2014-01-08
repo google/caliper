@@ -59,6 +59,9 @@ final class ExperimentingRunnerModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(StreamService.class, StreamService.class)
         .build(StreamService.Factory.class));
+    install(new FactoryModuleBuilder()
+        .implement(WorkerProcess.class, WorkerProcess.class)
+        .build(WorkerProcess.Factory.class));
   }
 
   @Provides ImmutableSet<ResultProcessor> provideResultProcessors(CaliperConfig config,

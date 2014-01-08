@@ -34,8 +34,8 @@ import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.Service;  // for javadoc
-import com.google.common.util.concurrent.Service.State;  // for javadoc
+import com.google.common.util.concurrent.Service; // for javadoc
+import com.google.common.util.concurrent.Service.State; // for javadoc
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -55,7 +55,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
@@ -85,13 +84,10 @@ final class StreamService extends AbstractService {
   /** How long to wait for a process that should be exiting to actually exit. */
   private static final int SHUTDOWN_WAIT_MILLIS = 10;
 
-  // TODO(lukes):  Move the ProcessBuilder creation either into this class or some kind of wrapper
-  // Factory that can provide guarantees about how it was constructed.  Taking a raw process builder
-  // is not specific enough due to the assumptions we make about it (like the fact that its going to
-  // connect to us on the ServerSocket).
   interface Factory {
-    StreamService create(ProcessBuilder process, ServerSocket serverSocket, int trialNumber);
+    StreamService create(WorkerProcess worker, ServerSocket serverSocket, int trialNumber);
   }
+
   private static final Logger logger = Logger.getLogger(StreamService.class.getName());
   private static final StreamItem TIMEOUT_ITEM = new StreamItem(Kind.TIMEOUT, null);
   private static final StreamItem EOF_ITEM = new StreamItem(Kind.EOF, null);
@@ -99,8 +95,8 @@ final class StreamService extends AbstractService {
   private final ListeningExecutorService streamExecutor = MoreExecutors.listeningDecorator(
       Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
-  private final ProcessBuilder processBuilder;
-  private volatile WorkerProcess process;
+  private final WorkerProcess worker;
+  private volatile Process process;
   private final ServerSocket serverSocket;
   private final Parser<LogMessage> logMessageParser;
   private final CaliperOptions options;
@@ -123,10 +119,10 @@ final class StreamService extends AbstractService {
   private final AtomicInteger runningReadStreams = new AtomicInteger();
   private Writer socketWriter;
   
-  @Inject StreamService(@Assisted ProcessBuilder processBuilder, 
+  @Inject StreamService(@Assisted WorkerProcess worker,
       @Assisted ServerSocket serverSocket, @Assisted int trialNumber, 
       Parser<LogMessage> logMessageParser, CaliperOptions options, @Stdout PrintWriter stdout) {
-    this.processBuilder = processBuilder;
+    this.worker = worker;
     this.serverSocket = serverSocket;
     this.trialNumber = trialNumber;
     this.logMessageParser = logMessageParser;
@@ -136,7 +132,7 @@ final class StreamService extends AbstractService {
   
   @Override protected void doStart() {
     try {
-      process = new WorkerProcess(processBuilder);
+      process = worker.startWorker();
     } catch (IOException e) {
       notifyFailed(e);
       return;

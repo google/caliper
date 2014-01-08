@@ -19,6 +19,7 @@ package com.google.caliper.config;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.model.VmSpec;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
@@ -80,7 +81,7 @@ public final class VmConfig {
         .toString();
   }
 
-  static final class Builder {
+  @VisibleForTesting public static final class Builder {
     private final File javaHome;
     private final ImmutableList.Builder<String> optionsBuilder = ImmutableList.builder();
 

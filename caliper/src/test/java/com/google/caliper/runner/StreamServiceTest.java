@@ -47,6 +47,7 @@ import java.net.ServerSocket;
 import java.net.SocketException;
 import java.text.ParseException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -198,7 +199,10 @@ public class StreamServiceTest {
 
   private void makeService(String bashScript) {
     checkState(service == null, "You can only make one StreamService per test");
-    service = new StreamService(new ProcessBuilder().command("bash", "-c", bashScript),
+    service = new StreamService(
+        new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
+            UUID.randomUUID(),
+            new RuntimeShutdownHookRegistrar()),
         serverSocket, TRIAL_NUMBER, parser, options, stdout);
     service.addListener(new Listener() {
       @Override public void starting() {}

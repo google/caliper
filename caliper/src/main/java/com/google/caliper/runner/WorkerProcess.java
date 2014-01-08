@@ -16,100 +16,201 @@
 
 package com.google.caliper.runner;
 
+import static java.lang.Thread.currentThread;
+
+import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.concurrent.ThreadFactory;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Logger;
+
+import javax.annotation.concurrent.GuardedBy;
 
 /**
- * A processor subclass that is specifically designed to be a worker process.  Thus, it will be
- * {@linkplain Process#destroy() destroyed} when the parent process exits.
+ * A representation of an unstarted worker.
+ *
+ * <p>A worker is a sub process that runs a benchmark trial.  Specifically it is a JVM running
+ * {@link com.google.caliper.worker.WorkerMain}.  Because of this we can make certain assumptions
+ * about its behavior, including but not limited to:
+ *
+ * <ul>
+ *   <li>The worker will connect back to us over a socket connection and send us UTF-8 json
+ *       messages in a line oriented protocol.
+ *   <li>TODO(lukes,gak): This is probably as good a place as any to specify the entire protocol.
+ * </ul>
  */
-final class WorkerProcess extends Process {
-  private static final ThreadFactory shutdownHookThreadFactory = new ThreadFactoryBuilder()
-      .setNameFormat("worker-shutdown-hook-%d")
-      .build();
+final class WorkerProcess {
+  private static final Logger logger = Logger.getLogger(WorkerProcess.class.getName());
 
-  private static final ShutdownHookRegistrar runtimeRegistrar = new ShutdownHookRegistrar() {
-    @Override
-    public boolean removeShutdownHook(Thread hook) {
-      return Runtime.getRuntime().removeShutdownHook(hook);
-    }
+  interface Factory {
+    WorkerProcess create(UUID trialId, Experiment experiment, BenchmarkSpec benchmarkSpec,
+        int localPort);
+  }
 
-    @Override
-    public void addShutdownHook(Thread hook) {
-      Runtime.getRuntime().addShutdownHook(hook);
-    }
-  };
-
+  @GuardedBy("this")
+  private Process worker;
+  private final ProcessBuilder workerBuilder;
+  private final UUID trialId;
   private final ShutdownHookRegistrar shutdownHookRegistrar;
-  private final Process delegate;
-  private final Thread shutdownHook;
 
-  WorkerProcess(ProcessBuilder processBuilder) throws IOException {
-    this(runtimeRegistrar, processBuilder.start());
-  }
-
-  @VisibleForTesting WorkerProcess(ShutdownHookRegistrar shutdownHookRegistrar, Process process) {
+  @VisibleForTesting WorkerProcess(ProcessBuilder workerBuilder, UUID trialId,
+      ShutdownHookRegistrar shutdownHookRegistrar) {
+    this.workerBuilder = workerBuilder;
+    this.trialId = trialId;
     this.shutdownHookRegistrar = shutdownHookRegistrar;
-    this.delegate = process;
-    this.shutdownHook = shutdownHookThreadFactory.newThread(new ProcessDestroyer(delegate));
-    shutdownHookRegistrar.addShutdownHook(shutdownHook);
   }
 
-  @Override
-  public OutputStream getOutputStream() {
-    return delegate.getOutputStream();
+  @Inject WorkerProcess(@Assisted UUID trialId,
+      @Assisted Experiment experiment,
+      @Assisted BenchmarkSpec benchmarkSpec,
+      @Assisted int localPort,
+      Gson gson,
+      BenchmarkClass benchmarkClass,
+      ShutdownHookRegistrar shutdownHookRegistrar) {
+    this.workerBuilder = buildProcess(trialId, experiment, benchmarkSpec, localPort, gson,
+        benchmarkClass);
+    this.trialId = trialId;
+    this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
 
-  @Override
-  public InputStream getInputStream() {
-    return delegate.getInputStream();
+  UUID trialId() {
+    return trialId;
   }
 
-  @Override
-  public InputStream getErrorStream() {
-    return delegate.getErrorStream();
-  }
+  /**
+   * Returns a {@link Process} representing this worker.  The process will be started if it hasn't
+   * already.
+   */
+  synchronized Process startWorker() throws IOException {
+    if (worker == null) {
+      final Process delegate = workerBuilder.start();
+      final Thread shutdownHook = new Thread("worker-shutdown-hook-" + trialId) {
+        @Override public void run() {
+          delegate.destroy();
+        }
+      };
+      shutdownHookRegistrar.addShutdownHook(shutdownHook);
+      worker = new Process() {
+        @Override public OutputStream getOutputStream() {
+          return delegate.getOutputStream();
+        }
 
-  @Override
-  public int waitFor() throws InterruptedException {
-    int waitFor = delegate.waitFor();
-    shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-    return waitFor;
-  }
+        @Override public InputStream getInputStream() {
+          return delegate.getInputStream();
+        }
 
-  @Override
-  public int exitValue() {
-    int exitValue = delegate.exitValue();
-    // if it hasn't thrown, the process is done
-    shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-    return exitValue;
-  }
+        @Override public InputStream getErrorStream() {
+          return delegate.getErrorStream();
+        }
 
-  @Override
-  public void destroy() {
-    delegate.destroy();
-    shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-  }
+        @Override public int waitFor() throws InterruptedException {
+          int waitFor = delegate.waitFor();
+          shutdownHookRegistrar.removeShutdownHook(shutdownHook);
+          return waitFor;
+        }
 
-  @VisibleForTesting interface ShutdownHookRegistrar {
-    void addShutdownHook(Thread hook);
-    boolean removeShutdownHook(Thread hook);
-  }
+        @Override public int exitValue() {
+          int exitValue = delegate.exitValue();
+          // if it hasn't thrown, the process is done
+          shutdownHookRegistrar.removeShutdownHook(shutdownHook);
+          return exitValue;
+        }
 
-  private static final class ProcessDestroyer implements Runnable {
-    final Process process;
-
-    ProcessDestroyer(Process process) {
-      this.process = process;
+        @Override public void destroy() {
+          delegate.destroy();
+          shutdownHookRegistrar.removeShutdownHook(shutdownHook);
+        }
+      };
     }
+    return worker;
+  }
 
-    @Override public void run() {
-      process.destroy();
+  @VisibleForTesting static ProcessBuilder buildProcess(
+      UUID trialId,
+      Experiment experiment,
+      BenchmarkSpec benchmarkSpec,
+      int localPort,
+      Gson gson,
+      BenchmarkClass benchmarkClass) {
+    // TODO(lukes): it would be nice to split this method into a few smaller more targeted methods
+    Instrumentation instrumentation = experiment.instrumentation();
+    Instrument instrument = instrumentation.instrument();
+    ImmutableList.Builder<String> parameterClassNames = ImmutableList.builder();
+    for (Class<?> parameterType : instrumentation.benchmarkMethod.getParameterTypes()) {
+      parameterClassNames.add(parameterType.getName());
     }
+    WorkerSpec request = new WorkerSpec(
+        trialId,
+        instrumentation.workerClass().getName(),
+        instrumentation.workerOptions(),
+        benchmarkSpec,
+        parameterClassNames.build(),
+        localPort);
+
+    ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
+
+    List<String> args = processBuilder.command();
+
+    args.addAll(getJvmArgs(experiment, benchmarkClass));
+
+    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs();
+    Iterables.addAll(args, instrumentJvmOptions);
+    logger.fine(String.format("Instrument(%s) Java args: %s", instrument.getClass().getName(),
+        instrumentJvmOptions));
+
+    // last to ensure that they're always applied
+    args.add("-XX:+PrintFlagsFinal");
+    args.add("-XX:+PrintCompilation");
+    args.add("-XX:+PrintGC");
+
+    args.add(WorkerMain.class.getName());
+    args.add(gson.toJson(request));
+
+    logger.finest(String.format("Full JVM (%s) args: %s", experiment.vm().name, args));
+    return processBuilder;
+  }
+
+  private static List<String> getJvmArgs(Experiment experiment, BenchmarkClass benchmarkClass) {
+    String jvmName = experiment.vm().name;
+    List<String> args = Lists.newArrayList();
+    String jdkPath = experiment.vm().config.javaExecutable().getAbsolutePath();
+    args.add(jdkPath);
+    logger.fine(String.format("Java(%s) Path: %s", jvmName, jdkPath));
+
+    ImmutableList<String> jvmOptions = experiment.vm().config.options();
+    args.addAll(jvmOptions);
+    logger.fine(String.format("Java(%s) args: %s", jvmName, jvmOptions));
+
+    ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
+    args.addAll(benchmarkJvmOptions);
+    logger.fine(String.format("Benchmark(%s) Java args: %s", benchmarkClass.name(),
+        benchmarkJvmOptions));
+
+    String classPath = getClassPath();
+    Collections.addAll(args, "-cp", classPath);
+    logger.finer(String.format("Class path: %s", classPath));
+    return args;
+  }
+
+  private static String getClassPath() {
+    // Use the effective class path in case this is being invoked in an isolated class loader
+    String classpath =
+        EffectiveClassPath.getClassPathForClassLoader(currentThread().getContextClassLoader());
+    return classpath;
   }
 }
