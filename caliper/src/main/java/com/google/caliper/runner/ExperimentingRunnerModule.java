@@ -42,7 +42,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
 import com.google.inject.Singleton;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
 import com.google.inject.multibindings.Multibinder;
 
 import org.joda.time.Instant;
@@ -55,26 +54,21 @@ import java.util.UUID;
  */
 final class ExperimentingRunnerModule extends AbstractModule {
   @Override protected void configure() {
+    install(new TrialModule());
     install(new RunnerModule());
     bind(CaliperRun.class).to(ExperimentingCaliperRun.class);
     bind(ExperimentSelector.class).to(FullCartesianExperimentSelector.class);
-    install(new FactoryModuleBuilder()
-        .implement(StreamService.class, StreamService.class)
-        .build(StreamService.Factory.class));
-    install(new FactoryModuleBuilder()
-        .implement(WorkerProcess.class, WorkerProcess.class)
-        .build(WorkerProcess.Factory.class));
     Multibinder.newSetBinder(binder(), Service.class)
         .addBinding()
         .to(ServerSocketService.class);
   }
 
-  @LocalPort
+  @LocalPort 
   @Provides
   int providePortNumber(ServerSocketService serverSocketService) {
     return serverSocketService.getPort();
   }
-  
+
   @Provides ImmutableSet<ResultProcessor> provideResultProcessors(CaliperConfig config,
       Injector injector) {
     ImmutableSet.Builder<ResultProcessor> builder = ImmutableSet.builder();

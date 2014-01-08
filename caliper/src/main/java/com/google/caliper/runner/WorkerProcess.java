@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,15 +55,8 @@ import javax.annotation.concurrent.GuardedBy;
  *   <li>TODO(lukes,gak): This is probably as good a place as any to specify the entire protocol.
  * </ul>
  */
-final class WorkerProcess {
+@TrialScoped final class WorkerProcess {
   private static final Logger logger = Logger.getLogger(WorkerProcess.class.getName());
-
-  interface Factory {
-    WorkerProcess create(UUID trialId,
-        ListenableFuture<OpenedSocket> openedSocket,
-        Experiment experiment,
-        BenchmarkSpec benchmarkSpec);
-  }
 
   @GuardedBy("this")
   private Process worker;
@@ -83,10 +75,10 @@ final class WorkerProcess {
     this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
 
-  @Inject WorkerProcess(@Assisted UUID trialId,
-      @Assisted ListenableFuture<OpenedSocket> openedSocket,
-      @Assisted Experiment experiment,
-      @Assisted BenchmarkSpec benchmarkSpec,
+  @Inject WorkerProcess(@TrialId UUID trialId,
+      ListenableFuture<OpenedSocket> openedSocket,
+      Experiment experiment,
+      BenchmarkSpec benchmarkSpec,
       @LocalPort int localPort,
       Gson gson,
       BenchmarkClass benchmarkClass,

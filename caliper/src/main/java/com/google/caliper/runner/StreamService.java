@@ -37,7 +37,6 @@ import com.google.common.util.concurrent.Service; // for javadoc
 import com.google.common.util.concurrent.Service.State; // for javadoc
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.Inject;
-import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -77,13 +76,9 @@ import javax.annotation.Nullable;
  *       IllegalStateExceptions. 
  * </ul>
  */
-final class StreamService extends AbstractService {
+@TrialScoped final class StreamService extends AbstractService {
   /** How long to wait for a process that should be exiting to actually exit. */
   private static final int SHUTDOWN_WAIT_MILLIS = 10;
-
-  interface Factory {
-    StreamService create(WorkerProcess worker, int trialNumber);
-  }
 
   private static final Logger logger = Logger.getLogger(StreamService.class.getName());
   private static final StreamItem TIMEOUT_ITEM = new StreamItem(Kind.TIMEOUT, null);
@@ -115,9 +110,11 @@ final class StreamService extends AbstractService {
   private final AtomicInteger runningReadStreams = new AtomicInteger();
   private Writer socketWriter;
   
-  @Inject StreamService(@Assisted WorkerProcess worker,
-      @Assisted int trialNumber, 
-      Parser<LogMessage> logMessageParser, CaliperOptions options, @Stdout PrintWriter stdout) {
+  @Inject StreamService(WorkerProcess worker,
+      @TrialNumber int trialNumber, 
+      Parser<LogMessage> logMessageParser, 
+      CaliperOptions options, 
+      @Stdout PrintWriter stdout) {
     this.worker = worker;
     this.trialNumber = trialNumber;
     this.logMessageParser = logMessageParser;
