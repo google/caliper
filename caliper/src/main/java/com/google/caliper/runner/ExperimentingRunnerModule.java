@@ -41,6 +41,7 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
 import com.google.inject.Singleton;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
 
 import org.joda.time.Instant;
 
@@ -55,6 +56,9 @@ final class ExperimentingRunnerModule extends AbstractModule {
     install(new RunnerModule());
     bind(CaliperRun.class).to(ExperimentingCaliperRun.class);
     bind(ExperimentSelector.class).to(FullCartesianExperimentSelector.class);
+    install(new FactoryModuleBuilder()
+        .implement(StreamService.class, StreamService.class)
+        .build(StreamService.Factory.class));
   }
 
   @Provides ImmutableSet<ResultProcessor> provideResultProcessors(CaliperConfig config,

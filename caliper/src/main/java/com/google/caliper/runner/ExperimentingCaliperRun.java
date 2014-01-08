@@ -14,20 +14,16 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
-import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
-import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.LogMessage;
-import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
@@ -42,7 +38,7 @@ import com.google.caliper.model.VmSpec;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
-import com.google.caliper.util.Parser;
+import com.google.caliper.runner.StreamService.StreamItem;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
@@ -59,16 +55,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Queues;
-import com.google.common.io.Closeables;
-import com.google.common.io.LineReader;
-import com.google.common.util.concurrent.AsyncFunction;
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.gson.Gson;
 import com.google.inject.CreationException;
 import com.google.inject.Inject;
@@ -79,28 +65,13 @@ import com.google.inject.spi.Message;
 
 import org.joda.time.Duration;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.Writer;
 import java.net.ServerSocket;
-import java.net.Socket;
-import java.nio.charset.Charset;
-import java.text.ParseException;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import javax.annotation.Nullable;
 
 /**
  * An execution of each {@link Experiment} for the configured number of trials.
@@ -119,23 +90,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final BenchmarkClass benchmarkClass;
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
-  private final Parser<LogMessage> logMessageParser;
+  private final StreamService.Factory streamServiceFactory;
   private final ExperimentSelector selector;
   private final Host host;
   private final Run run;
   private final Gson gson;
-  private final ListeningExecutorService consumerExecutor =
-      MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(
-          new ThreadFactoryBuilder()
-              .setNameFormat("line-processor-%d")
-              .setDaemon(true)
-              .build()));
-  private final ListeningExecutorService processExecutor =
-      MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor(
-          new ThreadFactoryBuilder()
-              .setNameFormat("process-watcher-%d")
-              .setDaemon(true)
-              .build()));
 
   private final Stopwatch trialStopwatch = new Stopwatch();
   /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
@@ -150,7 +109,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       BenchmarkClass benchmarkClass,
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
-      Parser<LogMessage> logMessageParser,
+      StreamService.Factory streamServiceFactory,
       ExperimentSelector selector,
       Host host,
       Run run,
@@ -162,7 +121,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.benchmarkClass = benchmarkClass;
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
-    this.logMessageParser = logMessageParser;
+    this.streamServiceFactory = streamServiceFactory;
     this.selector = selector;
     this.host = host;
     this.run = run;
@@ -219,30 +178,26 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
     Stopwatch stopwatch = new Stopwatch().start();
 
-    try {
-      for (int i = 0; i < options.trialsPerScenario(); i++) {
-        for (Experiment experiment : experimentsToRun) {
-          stdout.printf("Starting experiment %d of %d: %s\u2026 ",
-              trialNumber, totalTrials, experiment);
-          try {
-            Trial trial = measure(experiment);
-            stdout.println("Complete!");
-            for (ResultProcessor resultProcessor : resultProcessors) {
-              resultProcessor.processTrial(trial);
-            }
-          } catch (TrialFailureException e) {
-            stderr.println(
-                "ERROR: Trial failed to complete (its results will not be included in the run):\n"
-                    + "  " + e.getMessage());
-          } catch (IOException e) {
-            throw Throwables.propagate(e);
-          } finally {
-            trialNumber++;
+    for (int i = 0; i < options.trialsPerScenario(); i++) {
+      for (Experiment experiment : experimentsToRun) {
+        stdout.printf("Starting experiment %d of %d: %s\u2026 ",
+            trialNumber, totalTrials, experiment);
+        try {
+          Trial trial = measure(experiment);
+          stdout.println("Complete!");
+          for (ResultProcessor resultProcessor : resultProcessors) {
+            resultProcessor.processTrial(trial);
           }
+        } catch (TrialFailureException e) {
+          stderr.println(
+              "ERROR: Trial failed to complete (its results will not be included in the run):\n"
+                  + "  " + e.getMessage());
+        } catch (IOException e) {
+          throw Throwables.propagate(e);
+        } finally {
+          trialNumber++;
         }
       }
-    } finally {
-      consumerExecutor.shutdown();
     }
 
     stdout.print("\n");
@@ -257,8 +212,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       }
     }
   }
-
-  private static final int NUM_WORKER_STREAMS = 3;
 
   private ProcessBuilder createWorkerProcessBuilder(Experiment experiment,
       BenchmarkSpec benchmarkSpec, int port) {
@@ -323,7 +276,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     return classpath;
   }
 
-
+  // TODO(lukes): This method tracks a lot of temporary state, consider extracting a class.
   private Trial measure(final Experiment experiment) throws IOException {
     BenchmarkSpec benchmarkSpec = new BenchmarkSpec.Builder()
         .className(experiment.instrumentation().benchmarkMethod().getDeclaringClass().getName())
@@ -331,161 +284,122 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         .addAllParameters(experiment.userParameters())
         .build();
 
+    // TODO(lukes): make only one of these for the whole process instead of one per measurement
     final ServerSocket serverSocket = new ServerSocket(0);
 
-    final WorkerProcess process =
-        new WorkerProcess(createWorkerProcessBuilder(experiment, benchmarkSpec,
-            serverSocket.getLocalPort()));
-    final ListenableFuture<Integer> processFuture = processExecutor.submit(new Callable<Integer>() {
-      @Override public Integer call() throws Exception {
-        return process.waitFor();
-      }
-    });
+    StreamService manager = streamServiceFactory.create(
+        createWorkerProcessBuilder(experiment, benchmarkSpec, serverSocket.getLocalPort()),
+        serverSocket, trialNumber);
     trialStopwatch.start();
-
-    final ListeningExecutorService producerExecutor = MoreExecutors.listeningDecorator(
-        Executors.newFixedThreadPool(NUM_WORKER_STREAMS, new ThreadFactoryBuilder()
-            .setDaemon(true)
-            .setNameFormat("stream-listener-%d")
-            .build()));
+    manager.start();
     try {
-      final BlockingQueue<String> queue = Queues.newLinkedBlockingQueue();
-      // TODO(gak,lukes): rewrite to encapsulate the worker in a service that exposes stderr and
-      // stdout as Pipes so that they can be select()'ed on along with the socket.
-      // use the default charset because worker streams will use the default for output
-      Charset processCharset = Charset.defaultCharset();
-      producerExecutor.submit(
-          new LineProducer(new InputStreamReader(process.getInputStream(), processCharset), queue));
-      producerExecutor.submit(
-          new LineProducer(new InputStreamReader(process.getErrorStream(), processCharset), queue));
-      final ListenableFuture<Socket> pipeFuture =
-          producerExecutor.submit(new Callable<Socket>() {
-            @Override public Socket call() throws IOException {
-              Socket socket = serverSocket.accept();
-              // See comment in WorkerModule for why this is necessary.
-              socket.setTcpNoDelay(true);
-              return socket;
-            }
-          });
-      final ListenableFuture<Reader> pipeReaderFuture = Futures.transform(pipeFuture,
-          new AsyncFunction<Socket, Reader>() {
-            @Override public ListenableFuture<Reader> apply(Socket pipe) throws IOException {
-              return Futures.<Reader>immediateFuture(
-                  new InputStreamReader(pipe.getInputStream(), UTF_8));
-            }
-          });
-      final ListenableFuture<Writer> pipeWriterFuture = Futures.transform(pipeFuture,
-          new AsyncFunction<Socket, Writer>() {
-            @Override public ListenableFuture<Writer> apply(Socket pipe) throws IOException {
-              return Futures.<Writer>immediateFuture(
-                  new OutputStreamWriter(pipe.getOutputStream(), UTF_8));
-            }
-          });
-      processFuture.addListener(new Runnable() {
-        @Override public void run() {
-          if (!pipeReaderFuture.isDone()) {
-            // the process completed without the pipe ever being written to.  it crashed.
-            // TODO(gak): get the output from the worker so we can know why it crashed
-            stdout.print("The worker exited without producing data. "
-                + "It has likely crashed. Run with --verbose to see any worker output.\n");
-            stdout.flush();
-            System.exit(1);
-          }
-        }
-      }, MoreExecutors.sameThreadExecutor());
-      Futures.addCallback(pipeReaderFuture, new FutureCallback<Reader>() {
-        @Override public void onSuccess(Reader result) {
-          logger.fine("successfully opened the pipe from the worker");
-          producerExecutor.submit(new LineProducer(result, queue));
-        }
+      // TODO(lukes): The DataCollectingVisitor should be able to tell us when it has collected all
+      // its data.
+      DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
+      MeasurementCollectingVisitor measurementCollectingVisitor =
+          experiment.instrumentation().getMeasurementCollectingVisitor();
 
-        @Override public void onFailure(Throwable t) {
-          logger.log(SEVERE, "Could not open the pipe from the worker", t);
-          // don't worry about propagating the exception since the future will take care of it
-        }
-      });
-
-      final DataCollectingVisitor dataCollectingVisitor = new DataCollectingVisitor();
-      ListenableFuture<MeasurementCollectingVisitor> consumerFuture =
-          Futures.transform(pipeWriterFuture,
-              new AsyncFunction<Writer, MeasurementCollectingVisitor>() {
-                @Override public ListenableFuture<MeasurementCollectingVisitor> apply(Writer input)
-                    throws Exception {
-                  return consumerExecutor.submit(
-                      new LineConsumer(queue,
-                          new BufferedWriter(input),
-                          experiment.instrumentation().getMeasurementCollectingVisitor(),
-                          ImmutableSet.of(dataCollectingVisitor)));
-                }
-              });
-      /*
-       * Start watching the queue before we wait on the pipe so that we can see output from failed
-       * workers.
-       */
-      consumerFuture.addListener(new Runnable() {
-        @Override public void run() {
-          // kill the process because we're all done
-          try {
-            // by closing the pipe, the worker should notice and have a chance shut itself down
-            // cleanly.
-            Futures.getUnchecked(pipeFuture).close();
-            // wait for no more than 2 seconds before killing the worker.
-            processFuture.get(WORKER_CLEANUP_DURATION.getMillis(), MILLISECONDS);
-          } catch (Exception e) {
-            // Ignore, this is a best effort only attempt to quietly shutdown the worker.
-            logger.log(Level.FINE, "Exception while waiting for the worker to stop.", e);
-          } finally {
-            try {
-              process.exitValue();
-              // process has already exited
-            } catch (IllegalThreadStateException e) {
-              logger.warning("The worker did not exit within " + WORKER_CLEANUP_DURATION.getMillis()
-                  + " milliseconds.  Forcefully killing worker.");
-              process.destroy();
+      long timeLimitNanos = getTrialTimeLimitTrialNanos();
+      boolean doneCollecting = false;
+      boolean done = false;
+      while (!done) {
+        StreamItem item = manager.readItem(timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS),
+            NANOSECONDS);
+        switch (item.kind()) {
+          case DATA:
+            LogMessage logMessage = item.content();
+            logMessage.accept(measurementCollectingVisitor);
+            logMessage.accept(dataCollectingVisitor);
+            if (!doneCollecting && measurementCollectingVisitor.isDoneCollecting()) {
+              doneCollecting = true;
+              // We have received all the measurements we need and are about to tell the worker to
+              // shut down.  At this point the worker should shutdown soon, but we don't want to
+              // wait too long, so decrease the time limit so that we wait no more than
+              // WORKER_CLEANUP_DURATION.
+              long cleanupTimeNanos = MILLISECONDS.toNanos(WORKER_CLEANUP_DURATION.getMillis());
+              // TODO(lukes): Does the min operation make sense here? should we just use the
+              // cleanupTimeNanos?
+              timeLimitNanos = trialStopwatch.elapsed(NANOSECONDS) + cleanupTimeNanos;
             }
-          }
+            // If it is a stop measurement message we need to tell the worker to either stop or keep
+            // going with a WorkerContinueMessage.  This needs to be done after the
+            // measurementCollecting visitor sees the message so that isDoneCollection will be up to
+            // date.
+            if (logMessage instanceof StopMeasurementLogMessage) {
+              // TODO(lukes): this is a blocking write, perhaps we should perform it in a non
+              // blocking manner to keep this thread only blocking in one place.  This would
+              // complicate error handling, but may increase performance since it would free this
+              // thread up to handle other messages.
+              manager.writeLine(gson.toJson(new ShouldContinueMessage(!doneCollecting)));
+              if (doneCollecting) {
+                manager.closeWriter();
+              }
+            }
+            break;
+          case EOF:
+            // We consider EOF to be synonymous with worker shutdown
+            if (!doneCollecting) {
+              throw new TrialFailureException("The worker exited without producing data. It has "
+                  + "likely crashed. Run with --verbose to see any worker output.");
+            }
+            done = true;
+            break;
+          case TIMEOUT:
+            if (doneCollecting) {
+              // Should this be an error?
+              logger.warning("Worker failed to exit cleanly within the alloted time.");
+              done = true;
+            } else {
+              throw new TrialFailureException(String.format(
+                  "Trial exceeded the total allowable runtime (%s). "
+                      + "The limit may be adjusted using the --time-limit flag.",
+                      options.timeLimit()));
+            }
+            break;
+          default:
+            throw new AssertionError("Impossible item: " + item);
         }
-      }, MoreExecutors.sameThreadExecutor());
+      }
 
-      process.waitFor();
-      // We call get() here so that dataCollectingVisitor is definitely visible since all writes to
-      // it occur in the consumer thread.
-      MeasurementCollectingVisitor measurementCollectingVisitor = consumerFuture.get();
-
-      ImmutableMap<String, String> vmOptions = dataCollectingVisitor.vmOptionsBuilder.build();
-      checkState(!vmOptions.isEmpty());
-      VmSpec vmSpec = new VmSpec.Builder()
-          .addAllProperties(dataCollectingVisitor.vmProperties.get())
-          .addAllOptions(vmOptions)
-          .build();
-      return new Trial.Builder(UUID.randomUUID())
-          .run(run)
-          .instrumentSpec(experiment.instrumentation().instrument().getSpec())
-          .scenario(new Scenario.Builder()
-              .host(host)
-              .vmSpec(vmSpec)
-              .benchmarkSpec(benchmarkSpec))
-          .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
-          .build();
+      return makeTrial(experiment, benchmarkSpec, dataCollectingVisitor,
+          measurementCollectingVisitor);
     } catch (InterruptedException e) {
       throw new AssertionError();
-    } catch (ExecutionException e) {
-      Throwable cause = e.getCause();
-      Throwables.propagateIfInstanceOf(cause, TrialFailureException.class);
-      throw Throwables.propagate(cause);
     } finally {
       trialStopwatch.reset();
-      producerExecutor.shutdownNow();
+      manager.stop();
       serverSocket.close();
     }
   }
 
-  private long getRemainingTrialNanos() {
+  /** Returns a {@link Trial} containing all the data collected by the given experiment. */
+  private Trial makeTrial(final Experiment experiment, BenchmarkSpec benchmarkSpec,
+      DataCollectingVisitor dataCollectingVisitor,
+      MeasurementCollectingVisitor measurementCollectingVisitor) {
+    checkState(measurementCollectingVisitor.isDoneCollecting());
+    ImmutableMap<String, String> vmOptions = dataCollectingVisitor.vmOptionsBuilder.build();
+    checkState(!vmOptions.isEmpty());
+    VmSpec vmSpec = new VmSpec.Builder()
+        .addAllProperties(dataCollectingVisitor.vmProperties.get())
+        .addAllOptions(vmOptions)
+        .build();
+    return new Trial.Builder(UUID.randomUUID())
+        .run(run)
+        .instrumentSpec(experiment.instrumentation().instrument().getSpec())
+        .scenario(new Scenario.Builder()
+            .host(host)
+            .vmSpec(vmSpec)
+            .benchmarkSpec(benchmarkSpec))
+        .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
+        .build();
+  }
+
+  private long getTrialTimeLimitTrialNanos() {
     ShortDuration timeLimit = options.timeLimit();
     if (ShortDuration.zero().equals(timeLimit)) {
       return Long.MAX_VALUE;
     }
-    return timeLimit.to(NANOSECONDS) - trialStopwatch.elapsed(NANOSECONDS);
+    return timeLimit.to(NANOSECONDS);
   }
 
   /**
@@ -558,103 +472,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     public void visit(VmPropertiesLogMessage logMessage) {
       vmProperties = Optional.of(ImmutableMap.copyOf(
           Maps.filterKeys(logMessage.properties(), PROPERTIES_TO_RETAIN)));
-    }
-  }
-
-  // a new instance to be extra careful about using ==
-  private static final String POISON_PILL = new String("Bel Biv Devoe");
-
-  private static final class LineProducer implements Callable<Void> {
-    final Reader reader;
-    final BlockingQueue<String> queue;
-
-
-    LineProducer(Reader reader, BlockingQueue<String> queue) {
-      this.reader = reader;
-      this.queue = queue;
-    }
-
-    @Override
-    public Void call() throws IOException, InterruptedException {
-      LineReader lineReader = new LineReader(reader);
-      boolean threw = true;
-      try {
-        String line;
-        while ((line = lineReader.readLine()) != null) {
-          queue.put(line);
-        }
-        threw = false;
-      } finally {
-        queue.put(POISON_PILL);
-        Closeables.close(reader, threw);
-      }
-      return null;
-    }
-  }
-
-  private final class LineConsumer implements Callable<MeasurementCollectingVisitor> {
-    final BlockingQueue<String> queue;
-    final MeasurementCollectingVisitor measurementCollectingVisitor;
-    final ImmutableSet<? extends LogMessageVisitor> otherVisitors;
-    final Writer workerWriter;
-
-    LineConsumer(BlockingQueue<String> queue,
-        Writer workerWriter, MeasurementCollectingVisitor measurementCollectingVisitor,
-        ImmutableSet<? extends LogMessageVisitor> otherVisitors) {
-      this.queue = queue;
-      this.measurementCollectingVisitor = measurementCollectingVisitor;
-      this.otherVisitors = otherVisitors;
-      this.workerWriter = workerWriter;
-    }
-
-    @Override public MeasurementCollectingVisitor call() throws InterruptedException, IOException {
-      int poisonPillsSeen = 0;
-
-      while ((poisonPillsSeen < NUM_WORKER_STREAMS)
-          && !measurementCollectingVisitor.isDoneCollecting()) {
-        @Nullable String line = queue.poll(getRemainingTrialNanos(), NANOSECONDS);
-        if (line == null) {
-          // timed out before we got through the queue
-          throw new TrialFailureException(String.format(
-              "Trial exceeded the total allowable runtime (%s). "
-                  + "The limit may be adjusted using the --time-limit flag.",
-                      options.timeLimit()));
-        } else if (line == POISON_PILL) {
-          poisonPillsSeen++;
-        } else {
-          processLine(line);
-        }
-      }
-
-      trialStopwatch.stop();
-      logger.fine("trial completed in " + trialStopwatch);
-
-      return measurementCollectingVisitor;
-    }
-
-    void processLine(String line) throws IOException {
-      try {
-        LogMessage logMessage = logMessageParser.parse(line);
-        if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
-          stdout.printf("[trial-%d] %s%n", trialNumber, line);
-        }
-        logMessage.accept(measurementCollectingVisitor);
-        for (LogMessageVisitor visitor : otherVisitors) {
-          logMessage.accept(visitor);
-        }
-        // If it is a stop measurement message we need to tell the worker to either stop or keep
-        // going with a WorkerContinueMessage.  This needs to be done after the
-        // measurementCollecting visitor sees the message so that isDoneCollection will be up to
-        // date.
-        if (logMessage instanceof StopMeasurementLogMessage) {
-          workerWriter.write(gson.toJson(
-              new ShouldContinueMessage(!measurementCollectingVisitor.isDoneCollecting())));
-          workerWriter.write('\n');
-          workerWriter.flush();
-        }
-      } catch (ParseException e) {
-        throw new AssertionError();
-      }
     }
   }
 }
