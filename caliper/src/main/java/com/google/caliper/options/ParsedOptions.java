@@ -21,6 +21,7 @@ import com.google.caliper.options.CommandLineParser.Leftovers;
 import com.google.caliper.options.CommandLineParser.Option;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
+import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -193,10 +194,13 @@ final class ParsedOptions implements CaliperOptions {
   // Measuring instruments to use
   // --------------------------------------------------------------------------
 
-  private ImmutableSet<String> instrumentNames = new ImmutableSet.Builder<String>()
+  private static final ImmutableSet<String> DEFAULT_INSTRUMENT_NAMES =
+      new ImmutableSet.Builder<String>()
       .add("allocation")
       .add("runtime")
       .build();
+
+  private ImmutableSet<String> instrumentNames = DEFAULT_INSTRUMENT_NAMES;
 
   @Option({"-i", "--instrument"})
   private void setInstruments(String instrumentsString) {
@@ -376,7 +380,7 @@ final class ParsedOptions implements CaliperOptions {
       "                    whichever VM caliper itself is running in, only)",
       " -i, --instrument   comma-separated list of measuring instruments to use; possible ",
       "                    values are configured in Caliper's configuration file ",
-      "                    (default: 'allocation,micro,footprint')",
+      "                    (default: \"" + Joiner.on(",").join(DEFAULT_INSTRUMENT_NAMES) + "\")",
       " -t, --trials       number of independent trials to peform per benchmark scenario; ",
       "                    a positive integer (default: 1)",
       " -l, --time-limit   maximum length of time allowed for a single trial; use 0 to allow ",
