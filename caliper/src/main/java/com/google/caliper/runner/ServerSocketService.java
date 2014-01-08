@@ -19,15 +19,13 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Multimaps;
+import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.Service;  // for javadoc
-import com.google.common.util.concurrent.Service.State;  // for javadoc
+import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.Service.State;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
@@ -43,9 +41,7 @@ import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.Collection;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -112,13 +108,8 @@ import javax.annotation.concurrent.GuardedBy;
    * requested once.
    */
   @GuardedBy("lock")
-  private final SetMultimap<Source, UUID> connectionState = Multimaps.newSetMultimap(
-      Maps.<Source, Collection<UUID>>newEnumMap(Source.class), 
-          new Supplier<Set<UUID>>(){
-            @Override public Set<UUID> get() {
-              return Sets.newHashSet();
-            }
-          });
+  private final SetMultimap<Source, UUID> connectionState =
+      MultimapBuilder.enumKeys(Source.class).hashSetValues().build();
   
   private ServerSocket serverSocket;
   private final Gson gson;
