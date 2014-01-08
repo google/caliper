@@ -121,6 +121,7 @@ public final class CaliperMain {
           new BridgeModule(),
           new GsonModule(),
           new ConfigModule(),
+          new ServiceModule(),
           runnerModule);
       if (options.printConfiguration()) {
         stdout.println("Configuration:");
