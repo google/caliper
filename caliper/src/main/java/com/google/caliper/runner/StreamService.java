@@ -281,7 +281,7 @@ import javax.annotation.Nullable;
   
   private void closeStream() {
     if (openStreams.decrementAndGet() == 0) {
-      stop();
+      stopAsync();
     }
   }
   

@@ -33,7 +33,6 @@ import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service.Listener;
 import com.google.common.util.concurrent.Service.State;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -93,13 +92,13 @@ public class StreamServiceTest {
 
   @After public void stopService() {
     if (service != null && service.state() != State.FAILED && service.state() != State.TERMINATED) {
-      service.stopAndWait();
+      service.stopAsync().awaitTerminated();
     }
   }
 
   @Test public void testReadOutput() throws Exception {
     makeService("echo foo && echo bar 1>&2");
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     StreamItem item1 = readItem();
     assertEquals(Kind.DATA, item1.kind());
     Set<String> lines = Sets.newHashSet();
@@ -118,7 +117,7 @@ public class StreamServiceTest {
 
   @Test public void failingProcess() throws Exception {
     makeService("exit 1");
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
     assertEquals(State.FAILED, service.state());
@@ -127,7 +126,7 @@ public class StreamServiceTest {
   @Test public void processDoesntExit() throws Exception {
     // close all fds and then sleep
     makeService("exec 0>&- ; exec 1>&- ; exec 2>&- ; sleep 10m");
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(200, TimeUnit.MILLISECONDS);  // we
     assertEquals(State.FAILED, service.state());
@@ -139,7 +138,7 @@ public class StreamServiceTest {
     makeService("exec 3<>/dev/tcp/127.0.0.1/" + localport + ";"
         + "echo start >&3; while read -r line <&3 ; do echo $line >&3; done");
 
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     assertEquals("start", readItem().content().toString());
     service.writeLine("hello socket world");
     assertEquals("hello socket world", readItem().content().toString());
@@ -155,7 +154,7 @@ public class StreamServiceTest {
     // read from the socket and echo it back
     makeService("exec 3<>/dev/tcp/127.0.0.1/" + localport + ";"
         + "echo start >&3; while read -r line <&3 ; do echo $line >&3; done; exec 3>&-; echo foo");
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     assertEquals("start", readItem().content().toString());
     service.writeLine("hello socket world");
     assertEquals("hello socket world", readItem().content().toString());
@@ -173,9 +172,9 @@ public class StreamServiceTest {
     serverSocket.close();  // This will force serverSocket.accept to throw a SocketException
     makeService("sleep 10m");
     try {
-      service.startAndWait();
+      service.startAsync().awaitRunning();
       fail();
-    } catch (UncheckedExecutionException ignored) {}
+    } catch (IllegalStateException ignored) {}
     assertEquals(SocketException.class, service.failureCause().getClass());
   }
 

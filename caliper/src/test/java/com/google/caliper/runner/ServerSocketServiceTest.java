@@ -49,12 +49,12 @@ public class ServerSocketServiceTest {
   private int port;
 
   @Before public void startService() {
-    service.startAndWait();
+    service.startAsync().awaitRunning();
     port = service.getPort();
   }
 
   @After public void stopService() {
-    service.stopAndWait();
+    service.stopAsync().awaitTerminated();
   }
 
   @Test public void getConnectionId_requestComesInFirst() throws Exception {
@@ -73,6 +73,7 @@ public class ServerSocketServiceTest {
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
     // wait for the service to fully initialize the connection
     OpenedSocket serverSocket = pendingServerConnection.get();
+    assertEndsConnected(clientSocket, serverSocket);
     try {
       // the second request is an error
       service.getConnection(id).get();
@@ -84,7 +85,7 @@ public class ServerSocketServiceTest {
     UUID id = UUID.randomUUID();
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
     assertFalse(pendingServerConnection.isDone());
-    service.stopAndWait();
+    service.stopAsync().awaitTerminated();
     assertTrue(pendingServerConnection.isDone());
 
     try {

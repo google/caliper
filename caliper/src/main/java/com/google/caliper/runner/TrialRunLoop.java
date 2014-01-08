@@ -56,7 +56,7 @@ import java.util.logging.Logger;
   // TODO(lukes): The VmDataCollectingVisitor should be able to tell us when it has collected all
   // its data.
   private final VmDataCollectingVisitor dataCollectingVisitor = new VmDataCollectingVisitor();
-  private final Stopwatch trialStopwatch = new Stopwatch();
+  private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
   private final MeasurementCollectingVisitor measurementCollectingVisitor;
 
   @Inject TrialRunLoop(
@@ -76,7 +76,7 @@ import java.util.logging.Logger;
     if (streamService.state() != State.NEW) {
       throw new IllegalStateException("You can only invoke the run loop once");
     }
-    streamService.startAndWait();
+    streamService.startAsync().awaitRunning();
     try {
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
       boolean doneCollecting = false;
@@ -145,7 +145,7 @@ import java.util.logging.Logger;
       throw new AssertionError();
     } finally {
       trialStopwatch.reset();
-      streamService.stop();
+      streamService.stopAsync();
     }
   }
 

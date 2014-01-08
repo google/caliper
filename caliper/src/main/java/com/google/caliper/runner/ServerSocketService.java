@@ -128,7 +128,7 @@ import javax.annotation.concurrent.GuardedBy;
   }
 
   int getPort() {
-    startAndWait();
+    awaitRunning();
     checkState(serverSocket != null, "Socket has not been opened yet");
     return serverSocket.getLocalPort();
   }

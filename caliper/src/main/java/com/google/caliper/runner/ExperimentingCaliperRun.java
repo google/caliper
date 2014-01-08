@@ -19,8 +19,6 @@ import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.model.Host;
-import com.google.caliper.model.Run;
 import com.google.caliper.model.Trial;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.ShortDuration;
@@ -32,7 +30,6 @@ import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
-import com.google.gson.Gson;
 import com.google.inject.CreationException;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -79,9 +76,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
-      Host host,
-      Run run,
-      Gson gson, 
       Provider<TrialRunLoop> runLoopProvider) {
     this.injector = injector;
     this.options = options;
@@ -142,7 +136,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     stdout.flush();
 
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
-    Stopwatch stopwatch = new Stopwatch().start();
+    Stopwatch stopwatch = Stopwatch.createStarted();
 
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
