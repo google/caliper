@@ -62,7 +62,6 @@ import org.joda.time.Duration;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.net.ServerSocket;
 import java.util.UUID;
 import java.util.logging.Logger;
 
@@ -84,6 +83,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final StreamService.Factory streamServiceFactory;
+  private final ServerSocketService serverSocketService;
   private final ExperimentSelector selector;
   private final WorkerProcess.Factory workerFactory;
   private final Host host;
@@ -104,6 +104,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       StreamService.Factory streamServiceFactory,
+      ServerSocketService serverSocketService,
       WorkerProcess.Factory workerFactory,
       ExperimentSelector selector,
       Host host,
@@ -117,6 +118,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
     this.streamServiceFactory = streamServiceFactory;
+    this.serverSocketService = serverSocketService;
     this.workerFactory = workerFactory;
     this.selector = selector;
     this.host = host;
@@ -217,16 +219,13 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         .addAllParameters(experiment.userParameters())
         .build();
 
-    // TODO(lukes): make only one of these for the whole process instead of one per measurement
-    final ServerSocket serverSocket = new ServerSocket(0);
     UUID trialId = UUID.randomUUID();
     StreamService manager = streamServiceFactory.create(
         workerFactory.create(
             trialId,
+            serverSocketService.getConnection(trialId),
             experiment,
-            benchmarkSpec,
-            serverSocket.getLocalPort()),
-        serverSocket,
+            benchmarkSpec),
         trialNumber);
     trialStopwatch.start();
     manager.start();
@@ -306,7 +305,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     } finally {
       trialStopwatch.reset();
       manager.stop();
-      serverSocket.close();
     }
   }
 

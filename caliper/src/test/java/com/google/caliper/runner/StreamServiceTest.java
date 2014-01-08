@@ -23,13 +23,17 @@ import static org.junit.Assert.fail;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.ServerSocketService.OpenedSocket;
 import com.google.caliper.runner.StreamService.StreamItem;
 import com.google.caliper.runner.StreamService.StreamItem.Kind;
 import com.google.caliper.util.Parser;
 import com.google.common.collect.Sets;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service.Listener;
 import com.google.common.util.concurrent.Service.State;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 
 import org.junit.After;
 import org.junit.Before;
@@ -48,6 +52,7 @@ import java.net.SocketException;
 import java.text.ParseException;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -165,17 +170,18 @@ public class StreamServiceTest {
   }
 
   @Test public void failsToAcceptConnection() throws Exception {
-    serverSocket.close();  // This will force serverSocket.accept to throw an IOException
+    serverSocket.close();  // This will force serverSocket.accept to throw a SocketException
     makeService("sleep 10m");
-    service.startAndWait();
-    awaitStopped(100, TimeUnit.MILLISECONDS);
-    assertEquals(State.FAILED, service.state());
+    try {
+      service.startAndWait();
+      fail();
+    } catch (UncheckedExecutionException ignored) {}
     assertEquals(SocketException.class, service.failureCause().getClass());
   }
 
   /** Reads an item, asserting that there was no timeout. */
   private StreamItem readItem() throws InterruptedException {
-    StreamItem item = service.readItem(10, TimeUnit.SECONDS);
+    StreamItem item = service.readItem(100, TimeUnit.SECONDS);
     assertNotSame("Timed out while reading item from worker", Kind.TIMEOUT, item.kind());
     return item;
   }
@@ -202,8 +208,9 @@ public class StreamServiceTest {
     service = new StreamService(
         new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
             UUID.randomUUID(),
+            getSocketFuture(),
             new RuntimeShutdownHookRegistrar()),
-        serverSocket, TRIAL_NUMBER, parser, options, stdout);
+        TRIAL_NUMBER, parser, options, stdout);
     service.addListener(new Listener() {
       @Override public void starting() {}
       @Override public void running() {}
@@ -215,5 +222,21 @@ public class StreamServiceTest {
         terminalLatch.countDown();
       }
     }, MoreExecutors.sameThreadExecutor());
+  }
+
+  private ListenableFuture<OpenedSocket> getSocketFuture() {
+    ListenableFutureTask<OpenedSocket> openSocketTask = ListenableFutureTask.create(
+        new Callable<OpenedSocket>() {
+          @Override
+          public OpenedSocket call() throws Exception {
+            return OpenedSocket.fromSocket(serverSocket.accept());
+          }
+        });
+    // N.B. this thread will block on serverSocket.accept until a connection is accepted or the
+    // socket is closed, so no matter what this thread will die with the test.
+    Thread opener = new Thread(openSocketTask, "SocketOpener");
+    opener.setDaemon(true);
+    opener.start();
+    return openSocketTask;
   }
 }

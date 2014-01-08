@@ -161,6 +161,8 @@ public class WorkerProcessTest {
 
   private WorkerProcess createWorkerProcess(String bashScript) {
     return new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
-        TRIAL_ID, registrar);
+        TRIAL_ID,
+        null,
+        registrar);
   }
 }

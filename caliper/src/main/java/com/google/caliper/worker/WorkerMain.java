@@ -48,7 +48,7 @@ public final class WorkerMain {
     Worker worker = workerInjector.getInstance(Worker.class);
     WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
 
-    log.notifyWorkerStarted();
+    log.notifyWorkerStarted(request.trialId);
     try {
       worker.setUpBenchmark();
       log.notifyWarmupPhaseStarting();

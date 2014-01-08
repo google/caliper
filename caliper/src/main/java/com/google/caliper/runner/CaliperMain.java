@@ -29,6 +29,7 @@ import com.google.caliper.util.Util;
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.util.concurrent.ServiceManager;
 import com.google.inject.CreationException;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -131,8 +132,14 @@ public final class CaliperMain {
       }
       // check that the parameters are valid
       injector.getInstance(BenchmarkClass.class).validateParameters(options.userParameters());
-      CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
-      run.run(); // throws IBE
+      ServiceManager serviceManager = injector.getInstance(ServiceManager.class);
+      serviceManager.startAsync().awaitHealthy();
+      try {
+        CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
+        run.run(); // throws IBE
+      } finally {
+        serviceManager.stopAsync();
+      }
     } catch (CreationException e) {
       propogateIfCaliperException(e.getCause());
       throw e;

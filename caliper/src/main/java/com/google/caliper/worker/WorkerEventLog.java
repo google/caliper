@@ -21,6 +21,7 @@ import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.Renderer;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
+import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
@@ -31,6 +32,7 @@ import com.google.inject.Inject;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.UUID;
 
 public final class WorkerEventLog {
   private final BufferedWriter writer;
@@ -46,8 +48,10 @@ public final class WorkerEventLog {
     this.parser = parser;
   }
 
-  public void notifyWorkerStarted() throws IOException {
-    printlnAndFlush(controlLogMessageRenderer.render(new VmPropertiesLogMessage()));
+  public void notifyWorkerStarted(UUID trialId) throws IOException {
+    println(parser.toJson(new StartupAnnounceMessage(trialId)));
+    println(controlLogMessageRenderer.render(new VmPropertiesLogMessage()));
+    writer.flush();
   }
 
   public void notifyWarmupPhaseStarting() throws IOException {

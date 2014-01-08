@@ -26,8 +26,8 @@ import com.google.inject.BindingAnnotation;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/** Binding annotation for the granularity of {@link System#nanoTime()}. */
+/** Binding annotation for the port to which the worker has bound. */
 @Retention(RUNTIME)
 @Target({FIELD, PARAMETER, METHOD})
 @BindingAnnotation
-@interface NanoTimeGranularity {}
+@interface LocalPort {}

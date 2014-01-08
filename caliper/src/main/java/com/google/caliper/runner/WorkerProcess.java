@@ -21,12 +21,14 @@ import static java.lang.Thread.currentThread;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.ServerSocketService.OpenedSocket;
 import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
@@ -58,38 +60,46 @@ final class WorkerProcess {
   private static final Logger logger = Logger.getLogger(WorkerProcess.class.getName());
 
   interface Factory {
-    WorkerProcess create(UUID trialId, Experiment experiment, BenchmarkSpec benchmarkSpec,
-        int localPort);
+    WorkerProcess create(UUID trialId,
+        ListenableFuture<OpenedSocket> openedSocket,
+        Experiment experiment,
+        BenchmarkSpec benchmarkSpec);
   }
 
   @GuardedBy("this")
   private Process worker;
   private final ProcessBuilder workerBuilder;
-  private final UUID trialId;
   private final ShutdownHookRegistrar shutdownHookRegistrar;
+  private final ListenableFuture<OpenedSocket> openedSocket;
+  private final UUID trialId;
 
-  @VisibleForTesting WorkerProcess(ProcessBuilder workerBuilder, UUID trialId,
+  @VisibleForTesting WorkerProcess(ProcessBuilder workerBuilder,
+      UUID trialId,
+      ListenableFuture<OpenedSocket> openedSocket,
       ShutdownHookRegistrar shutdownHookRegistrar) {
-    this.workerBuilder = workerBuilder;
     this.trialId = trialId;
+    this.workerBuilder = workerBuilder;
+    this.openedSocket = openedSocket;
     this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
 
   @Inject WorkerProcess(@Assisted UUID trialId,
+      @Assisted ListenableFuture<OpenedSocket> openedSocket,
       @Assisted Experiment experiment,
       @Assisted BenchmarkSpec benchmarkSpec,
-      @Assisted int localPort,
+      @LocalPort int localPort,
       Gson gson,
       BenchmarkClass benchmarkClass,
       ShutdownHookRegistrar shutdownHookRegistrar) {
+    this.trialId = trialId;
     this.workerBuilder = buildProcess(trialId, experiment, benchmarkSpec, localPort, gson,
         benchmarkClass);
-    this.trialId = trialId;
+    this.openedSocket = openedSocket;
     this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
 
-  UUID trialId() {
-    return trialId;
+  ListenableFuture<OpenedSocket> socketFuture() {
+    return openedSocket;
   }
 
   /**

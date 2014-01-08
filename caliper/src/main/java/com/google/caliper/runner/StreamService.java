@@ -14,16 +14,15 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.ServerSocketService.OpenedSocket;
 import com.google.caliper.runner.StreamService.StreamItem.Kind;
 import com.google.caliper.util.Parser;
-import com.google.caliper.util.Sockets;
 import com.google.caliper.util.Stdout;
 import com.google.common.base.Objects;
 import com.google.common.base.Objects.ToStringHelper;
@@ -42,16 +41,14 @@ import com.google.inject.assistedinject.Assisted;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -85,7 +82,7 @@ final class StreamService extends AbstractService {
   private static final int SHUTDOWN_WAIT_MILLIS = 10;
 
   interface Factory {
-    StreamService create(WorkerProcess worker, ServerSocket serverSocket, int trialNumber);
+    StreamService create(WorkerProcess worker, int trialNumber);
   }
 
   private static final Logger logger = Logger.getLogger(StreamService.class.getName());
@@ -97,7 +94,6 @@ final class StreamService extends AbstractService {
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
   private final WorkerProcess worker;
   private volatile Process process;
-  private final ServerSocket serverSocket;
   private final Parser<LogMessage> logMessageParser;
   private final CaliperOptions options;
   private final PrintWriter stdout;
@@ -120,10 +116,9 @@ final class StreamService extends AbstractService {
   private Writer socketWriter;
   
   @Inject StreamService(@Assisted WorkerProcess worker,
-      @Assisted ServerSocket serverSocket, @Assisted int trialNumber, 
+      @Assisted int trialNumber, 
       Parser<LogMessage> logMessageParser, CaliperOptions options, @Stdout PrintWriter stdout) {
     this.worker = worker;
-    this.serverSocket = serverSocket;
     this.trialNumber = trialNumber;
     this.logMessageParser = logMessageParser;
     this.options = options;
@@ -149,7 +144,7 @@ final class StreamService extends AbstractService {
       @Override public void failed(State from, Throwable failure) {
         cleanup();
       }
-      
+
       void cleanup() {
         streamExecutor.shutdown();
         process.destroy();
@@ -176,32 +171,25 @@ final class StreamService extends AbstractService {
     streamExecutor.submit(
         threadRenaming("worker-stdout",
             new StreamReader(new InputStreamReader(process.getInputStream(), processCharset))));
-    streamExecutor.submit(threadRenaming("socket-acceptor", new Callable<Void>() {
-      @Override public Void call() throws IOException {
-        Socket socket = null;
-        InputStreamReader socketReader = null;
-        try {
-          socket = serverSocket.accept();
-          logger.fine("successfully opened the pipe from the worker");
-          // See comment in WorkerModule for why this is necessary.
-          socket.setTcpNoDelay(true);
-          // This write is made visible because there is a happens-before relationship enforced by
-          // starting the socket reader and the subsequent queue operations.
-          socketWriter = new OutputStreamWriter(Sockets.getOutputStream(socket), UTF_8);
-          socketReader = new InputStreamReader(Sockets.getInputStream(socket), UTF_8);
-        } catch (IOException e) {
-          notifyFailed(e);
-          if (socket != null) {
-            socket.close();
+    worker.socketFuture().addListener(
+        new Runnable() {
+          @Override public void run() {
+            try {
+              OpenedSocket openedSocket = worker.socketFuture().get();
+              logger.fine("successfully opened the pipe from the worker");
+              socketWriter = openedSocket.writer();
+              runningReadStreams.addAndGet(1);
+              openStreams.addAndGet(1);
+              streamExecutor.submit(threadRenaming("worker-socket",
+                  new StreamReader(openedSocket.reader())));
+            } catch (ExecutionException e) {
+              notifyFailed(e.getCause());
+            } catch (InterruptedException e) {
+              throw new AssertionError("impossible, future is already done.");
+            }
           }
-          return null;
-        }
-        runningReadStreams.addAndGet(1);
-        openStreams.addAndGet(1);
-        streamExecutor.submit(threadRenaming("worker-socket", new StreamReader(socketReader)));
-        return null;
-      }
-    }));
+        },
+        MoreExecutors.sameThreadExecutor());
     notifyStarted();
   }
   

@@ -36,12 +36,14 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultiset;
+import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.multibindings.Multibinder;
 
 import org.joda.time.Instant;
 
@@ -62,8 +64,17 @@ final class ExperimentingRunnerModule extends AbstractModule {
     install(new FactoryModuleBuilder()
         .implement(WorkerProcess.class, WorkerProcess.class)
         .build(WorkerProcess.Factory.class));
+    Multibinder.newSetBinder(binder(), Service.class)
+        .addBinding()
+        .to(ServerSocketService.class);
   }
 
+  @LocalPort
+  @Provides
+  int providePortNumber(ServerSocketService serverSocketService) {
+    return serverSocketService.getPort();
+  }
+  
   @Provides ImmutableSet<ResultProcessor> provideResultProcessors(CaliperConfig config,
       Injector injector) {
     ImmutableSet.Builder<ResultProcessor> builder = ImmutableSet.builder();
