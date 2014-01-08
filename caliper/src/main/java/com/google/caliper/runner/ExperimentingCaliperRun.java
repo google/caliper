@@ -140,7 +140,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
-        stdout.printf("Starting experiment %d of %d: %s\u2026 ",
+        stdout.printf("Starting trial %d of %d: %s\u2026 ",
             trialNumber, totalTrials, experiment);
         try {
           Trial trial = TrialScopes.makeContext(UUID.randomUUID(), trialNumber, experiment)
