@@ -105,6 +105,7 @@ public class ObjectGraphMeasurerTest extends TestCase {
     assertEquals(new ObjectGraphMeasurer.Footprint(1, 0, 0, NO_PRIMITIVES), footprint);
   }
 
+  @SuppressWarnings("unused") // unused test fields
   static final Object oneNullOneNonNull = new Object() {
     Object nonNull1 = new Object();
     Object nonNull2 = nonNull1;

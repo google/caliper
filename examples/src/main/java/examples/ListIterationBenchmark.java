@@ -51,19 +51,23 @@ public class ListIterationBenchmark {
     };
   }
 
-  @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
-  @Benchmark void listIteration(int reps) {
+  @Benchmark int listIteration(int reps) {
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (Object value : list) {
+        dummy |= value.hashCode();
       }
     }
+    return dummy;
   }
 
-  @SuppressWarnings({"UnusedDeclaration"}) // TODO: fix
-  @Benchmark void arrayIteration(int reps) {
+  @Benchmark int arrayIteration(int reps) {
+    int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (Object value : array) {
+        dummy |= value.hashCode();
       }
     }
+    return dummy;
   }
 }

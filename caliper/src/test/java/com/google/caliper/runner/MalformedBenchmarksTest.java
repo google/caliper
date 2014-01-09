@@ -74,6 +74,8 @@ public class MalformedBenchmarksTest {
     expectException(String.format(NO_CONSTRUCTOR, BadConstructorBenchmark.class.getName()),
         BadConstructorBenchmark.class);
   }
+
+  @SuppressWarnings("unused")
   static class BadConstructorBenchmark {
     BadConstructorBenchmark(String damnParam) {}
     @Benchmark void timeIt(int reps) {}
@@ -82,6 +84,8 @@ public class MalformedBenchmarksTest {
   @Test public void noBenchmarkMethods() throws Exception {
     expectException(NO_METHODS, NoMethodsBenchmark.class);
   }
+
+  @SuppressWarnings("unused")
   static class NoMethodsBenchmark {
     void timeIt(int reps) {} // not annotated
   }
@@ -89,6 +93,8 @@ public class MalformedBenchmarksTest {
   @Test public void staticBenchmarkMethod() throws Exception {
     expectException(STATIC_BENCHMARK, StaticBenchmarkMethodBenchmark.class);
   }
+
+  @SuppressWarnings("unused")
   static class StaticBenchmarkMethodBenchmark {
     @Benchmark public static void timeIt(int reps) {}
   }
@@ -97,9 +103,13 @@ public class MalformedBenchmarksTest {
     expectException(WRONG_ARGUMENTS, BoxedParamBenchmark.class);
     expectException(WRONG_ARGUMENTS, ExtraParamBenchmark.class);
   }
+
+  @SuppressWarnings("unused")
   static class BoxedParamBenchmark {
     @Benchmark void timeIt(Integer reps) {}
   }
+
+  @SuppressWarnings("unused")
   static class ExtraParamBenchmark {
     @Benchmark void timeIt(int reps, int what) {}
   }
@@ -112,6 +122,7 @@ public class MalformedBenchmarksTest {
         OverloadsAnnotatedBenchmark.class);
   }
 
+  @SuppressWarnings("unused")
   static class OverloadsAnnotatedBenchmark {
     @Benchmark public void foo(long reps) {}
     @Benchmark public void foo(int reps) {}

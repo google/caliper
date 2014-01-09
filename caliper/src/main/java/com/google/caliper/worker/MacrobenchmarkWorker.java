@@ -31,7 +31,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
-import java.util.Random;
 
 /**
  * The {@link Worker} implementation for macrobenchmarks.
@@ -41,10 +40,10 @@ public class MacrobenchmarkWorker extends Worker {
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;
 
-  @Inject MacrobenchmarkWorker(@Benchmark Object benchmark, 
-      @BenchmarkMethod Method method, Random random, Ticker ticker) {
+  @Inject MacrobenchmarkWorker(@Benchmark Object benchmark, @BenchmarkMethod Method method,
+      Ticker ticker) {
     super(benchmark, method);
-    this.stopwatch = new Stopwatch(ticker);
+    this.stopwatch = Stopwatch.createUnstarted(ticker);
     this.beforeRepMethods =
         getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
     this.afterRepMethods =
@@ -68,7 +67,7 @@ public class MacrobenchmarkWorker extends Worker {
         .value(Value.create(nanos, "ns"))
         .build());
   }
-  
+
   @Override public void postMeasure() throws Exception {
     for (Method afterRepMethod : afterRepMethods) {
       afterRepMethod.invoke(benchmark);

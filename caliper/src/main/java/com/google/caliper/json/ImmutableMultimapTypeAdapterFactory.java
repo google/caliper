@@ -31,7 +31,6 @@ import com.google.gson.stream.JsonWriter;
 
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -69,7 +68,6 @@ final class ImmutableMultimapTypeAdapterFactory implements TypeAdapterFactory {
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T> TypeAdapter<T> create(Gson gson, com.google.gson.reflect.TypeToken<T> typeToken) {
-    Type type = typeToken.getType();
     if (ImmutableListMultimap.class.isAssignableFrom(typeToken.getRawType())) {
       TypeToken<Map<?, List<?>>> mapToken =
           getMapOfListsToken((TypeToken) TypeToken.of(typeToken.getType()));

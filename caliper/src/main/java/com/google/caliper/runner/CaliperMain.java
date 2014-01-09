@@ -145,7 +145,6 @@ public final class CaliperMain {
       propogateIfCaliperException(e.getCause());
       throw e;
     } catch (ProvisionException e) {
-      Throwable cause = e.getCause();
       propogateIfCaliperException(e.getCause());
       for (Message message : e.getErrorMessages()) {
         propogateIfCaliperException(message.getCause());

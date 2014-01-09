@@ -73,7 +73,7 @@ public class BadUserCodeTest {
   }
 
   static class ExceptionInMethodBenchmark {
-    @Benchmark void timeSomething(int reps) {
+    @Benchmark void timeSomething(@SuppressWarnings("unused") int reps) {
       throw new RuntimeException();
     }
   }
@@ -153,7 +153,7 @@ public class BadUserCodeTest {
     static int timeCount = 0;
     // We dump items into this list so the jit cannot remove the allocations
     static List<Object> list = Lists.newArrayList();
-    @Benchmark int timeSomethingFBZ(int reps) {
+    @Benchmark int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());
@@ -193,7 +193,7 @@ public class BadUserCodeTest {
     static int timeCount = 0;
     // We dump items into this list so the jit cannot remove the allocations
     static List<Object> list = Lists.newArrayList();
-    @Benchmark int timeSomethingFBZ(int reps) {
+    @Benchmark int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());

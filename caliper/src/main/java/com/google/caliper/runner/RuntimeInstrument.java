@@ -160,7 +160,7 @@ class RuntimeInstrument extends Instrument {
           ShortDuration.valueOf(options.get(WARMUP_OPTION)));
     }
   }
-  
+
   private abstract class RuntimeInstrumentation extends Instrumentation {
     RuntimeInstrumentation(Method method) {
       super(method);
@@ -187,7 +187,7 @@ class RuntimeInstrument extends Instrument {
       return String.valueOf(
           ShortDuration.valueOf(options.get(optionName)).to(TimeUnit.NANOSECONDS));
     }
-    
+
     @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
       return new RepBasedMeasurementCollector(
           getMeasurementsPerTrial(), ShortDuration.valueOf(options.get(WARMUP_OPTION)));
@@ -349,7 +349,6 @@ class RuntimeInstrument extends Instrument {
 
     @Override
     public ImmutableList<Measurement> getMeasurements() {
-      boolean improperGranularity = true;
       for (Measurement measurement : measurements) {
         validateMeasurement(measurement);
       }
