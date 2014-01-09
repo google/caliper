@@ -30,30 +30,29 @@ import java.util.Random;
  * total size of those allocations.
  */
 public final class MicrobenchmarkAllocationWorker extends Worker {
-  private static final int MAX_BASELINE_REPS = 5;
-  private static final int MAX_REPS_ABOVE_BASELINE = 100;
+  // TODO(gak): make this or something like this an option
+  private static final int WARMUP_REPS = 10;
+  private static final int MAX_REPS = 100;
 
   private final Random random;
   private final AllocationRecorder recorder;
 
-  @Inject MicrobenchmarkAllocationWorker(@Benchmark Object benchmark, 
+  @Inject MicrobenchmarkAllocationWorker(@Benchmark Object benchmark,
       @BenchmarkMethod Method method, AllocationRecorder recorder, Random random) {
     super(benchmark, method);
     this.random = random;
     this.recorder = recorder;
   }
-  
+
   @Override public void bootstrap() throws Exception {
-    // do one initial measurement and throw away its results
-    measureAllocations(benchmark, benchmarkMethod, 1);
+    // do some initial measurements and throw away the results
+    measureAllocations(benchmark, benchmarkMethod, WARMUP_REPS);
   }
 
   @Override public Iterable<Measurement> measure() throws Exception {
-    // [1, 5]
-    int baselineReps = random.nextInt(MAX_BASELINE_REPS) + 1;
-    AllocationStats baseline = measureAllocations(benchmark, benchmarkMethod, baselineReps);
-    // (baseline, baseline + MAX_REPS_ABOVE_BASELINE]
-    int measurementReps = baselineReps + random.nextInt(MAX_REPS_ABOVE_BASELINE) + 1;
+    AllocationStats baseline = measureAllocations(benchmark, benchmarkMethod, 0);
+    // [1, MAX_REPS]
+    int measurementReps = random.nextInt(MAX_REPS) + 1;
     AllocationStats measurement = measureAllocations(benchmark, benchmarkMethod, measurementReps);
     return measurement.minus(baseline).toMeasurements();
   }
