@@ -62,9 +62,12 @@ import javax.annotation.Nullable;
  * The instrument responsible for measuring the runtime of {@link Benchmark} methods.
  */
 class RuntimeInstrument extends Instrument {
+  private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
+  private static final String TIMING_INTERVAL_OPTION = "timingInterval";
+  private static final int DRY_RUN_REPS = 1;
+
   private static final Logger logger = Logger.getLogger(RuntimeInstrument.class.getName());
 
-  private static final int DRY_RUN_REPS = 1;
 
   private final PrintWriter stdout;
   private final PrintWriter stderr;
@@ -88,7 +91,8 @@ class RuntimeInstrument extends Instrument {
   @Override
   protected ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(
-        WARMUP_OPTION, "timingInterval", MEASUREMENTS_OPTION, GC_BEFORE_EACH_OPTION);
+        WARMUP_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION, GC_BEFORE_EACH_OPTION,
+        SUGGEST_GRANULARITY_OPTION);
   }
 
   @Override
@@ -179,7 +183,8 @@ class RuntimeInstrument extends Instrument {
     }
 
     @Override public ImmutableMap<String, String> workerOptions() {
-      return ImmutableMap.of("timingInterval" + "Nanos", toNanosString("timingInterval"),
+      return ImmutableMap.of(
+          TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION),
           GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
 
@@ -284,6 +289,7 @@ class RuntimeInstrument extends Instrument {
           checkArgument("ns".equals(measurement.value().unit()));
           elapsedWarmup = elapsedWarmup.plus(
               ShortDuration.of(BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
+          validateMeasurement(measurement);
         }
       } else if (invalidateMeasurements) {
         logger.fine(String.format("Discarding %s as they were marked invalid.", newMeasurements));
@@ -296,6 +302,11 @@ class RuntimeInstrument extends Instrument {
 
     abstract void validateMeasurement(Measurement measurement);
 
+    @Override
+    public ImmutableList<Measurement> getMeasurements() {
+      return ImmutableList.copyOf(measurements);
+    }
+
     boolean isInWarmup() {
       return elapsedWarmup.compareTo(warmup) < 0;
     }
@@ -307,10 +318,12 @@ class RuntimeInstrument extends Instrument {
   }
 
   private final class RepBasedMeasurementCollector extends RuntimeMeasurementCollector {
+    final boolean suggestGranularity;
     boolean notifiedAboutGranularity = false;
 
     RepBasedMeasurementCollector(int measurementsPerTrial, ShortDuration warmup) {
       super(measurementsPerTrial, warmup);
+      this.suggestGranularity = Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION));
     }
 
     @Override
@@ -334,25 +347,18 @@ class RuntimeInstrument extends Instrument {
 
     @Override
     void validateMeasurement(Measurement measurement) {
-      checkState("ns".equals(measurement.value().unit()));
-      double nanos = measurement.value().magnitude() / measurement.weight();
-      if (!notifiedAboutGranularity && ((nanos / 1000) > nanoTimeGranularity.to(NANOSECONDS))) {
-        notifiedAboutGranularity = true;
-        ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
-        stderr.printf("INFO: This experiment does not require a microbenchmark. "
-            + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime. "
-            + "If all experiments for this benchmark have runtimes greater than %s, "
-            + "consider the macrobenchmark instrument.%n", nanoTimeGranularity,
-                reasonableUpperBound);
+      if (suggestGranularity) {
+        double nanos = measurement.value().magnitude() / measurement.weight();
+        if (!notifiedAboutGranularity && ((nanos / 1000) > nanoTimeGranularity.to(NANOSECONDS))) {
+          notifiedAboutGranularity = true;
+          ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
+          stderr.printf("INFO: This experiment does not require a microbenchmark. "
+              + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime. "
+              + "If all experiments for this benchmark have runtimes greater than %s, "
+              + "consider the macrobenchmark instrument.%n", nanoTimeGranularity,
+              reasonableUpperBound);
+        }
       }
-    }
-
-    @Override
-    public ImmutableList<Measurement> getMeasurements() {
-      for (Measurement measurement : measurements) {
-        validateMeasurement(measurement);
-      }
-      return ImmutableList.copyOf(measurements);
     }
   }
 
@@ -385,7 +391,6 @@ class RuntimeInstrument extends Instrument {
 
     @Override
     void validateMeasurement(Measurement measurement) {
-      checkArgument("ns".equals(measurement.value().unit()));
       double nanos = measurement.value().magnitude() / measurement.weight();
       if ((nanos / 1000) < nanoTimeGranularity.to(NANOSECONDS)) {
         ShortDuration runtime = ShortDuration.of(BigDecimal.valueOf(nanos), NANOSECONDS);
@@ -396,11 +401,6 @@ class RuntimeInstrument extends Instrument {
             + "Use the microbenchmark instrument for accurate measurements.%n",
             nanoTimeGranularity, runtime));
       }
-    }
-
-    @Override
-    public ImmutableList<Measurement> getMeasurements() {
-      return ImmutableList.copyOf(measurements);
     }
   }
 }
