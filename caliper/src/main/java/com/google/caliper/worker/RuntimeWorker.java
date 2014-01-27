@@ -106,7 +106,7 @@ public abstract class RuntimeWorker extends Worker {
       super(benchmark, method, random, ticker, workerOptions);
     }
 
-    @Override  long invokeTimeMethod(long reps) throws Exception {
+    @Override long invokeTimeMethod(long reps) throws Exception {
       int intReps = (int) reps;
       if (reps != intReps) {
         throw new InvalidBenchmarkException("%s.%s takes an int for reps, "
