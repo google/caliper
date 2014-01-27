@@ -28,12 +28,13 @@ import java.util.List;
 public final class CaliperTestWatcher extends TestWatcher {
   // N.B. StringWriter is internally synchronized and is safe to write to from multiple threads.
   private StringWriter output;
+  private final StringWriter stderr = new StringWriter();
 
   private boolean verbose = true;
   private String instrument;
   private Class<?> benchmarkClass;
   private List<String> extraOptions = Lists.newArrayList();
-  
+
   CaliperTestWatcher forBenchmark(Class<?> benchmarkClass) {
     this.benchmarkClass = benchmarkClass;
     return this;
@@ -70,18 +71,25 @@ public final class CaliperTestWatcher extends TestWatcher {
     options.addAll(extraOptions);
     options.add(benchmarkClass.getName());
     this.output = new StringWriter();
-    CaliperMain.exitlessMain(options.toArray(new String[0]), new PrintWriter(output,  true), 
-        new PrintWriter(output,  true)); 
+    CaliperMain.exitlessMain(
+        options.toArray(new String[0]),
+        new PrintWriter(output,  true),
+        new PrintWriter(stderr,  true));
   }
-  
+
   @Override protected void failed(Throwable e, Description description) {
     // don't log if run was never called.
     if (output != null) {
-      System.err.println("Caliper failed with the following output:\n" + output.toString());
+      System.err.println("Caliper failed with the following output (stdout):\n"
+          + output.toString() + "stderr:\n" + stderr.toString());
     }
   }
   
   ImmutableList<Trial> trials() {
     return InMemoryResultsUploader.trials();
+  }
+
+  public StringWriter getStderr() {
+    return stderr;
   }
 }

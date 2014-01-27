@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.caliper.Benchmark;
@@ -171,14 +172,54 @@ public class RuntimeInstrumentTest {
       return spin();
     }
 
-    // busy spin for 10ms and return the ellapsed time.  N.B. we busy spin instead of sleeping so
+    // busy spin for 10ms and return the elapsed time.  N.B. we busy spin instead of sleeping so
     // that we aren't put at the mercy (and variance) of the thread scheduler.
     private final long spin() {
       long remainingNanos = TimeUnit.MILLISECONDS.toNanos(10);
       long start = System.nanoTime();
-      long ellapsed;
-      while ((ellapsed = System.nanoTime() - start) < remainingNanos) {}
-      return ellapsed;
+      long elapsed;
+      while ((elapsed = System.nanoTime() - start) < remainingNanos) {}
+      return elapsed;
+    }
+  }
+
+  @Test
+
+  public void gcBeforeEachOptionIsHonored() throws Exception {
+    runBenchmarkWithKnownHeap(true);
+    // The GC error will only be avoided if gcBeforeEach is true, and
+    // honored by the MacrobenchmarkWorker.
+    assertEquals("No GC warning should be printed to stderr",
+        "", runner.getStderr().toString());
+  }
+
+  @Test
+
+  public void gcBeforeEachOptionIsReallyNecessary() throws Exception {
+    // Verifies that we indeed get a GC warning if gcBeforeEach = false.
+    runBenchmarkWithKnownHeap(false);
+    assertTrue("No GC warning should be printed to stderr",
+        runner.getStderr().toString().contains("WARNING: GC occurred during timing."));
+  }
+
+  private void runBenchmarkWithKnownHeap(boolean gcBeforeEach) throws Exception {
+    runner.forBenchmark(BenchmarkThatAllocatesALot.class)
+        .instrument("runtime")
+        .options(
+            "-Cvm.args=-Xmx512m",
+            "-Cinstrument.runtime.options.measurements=10",
+            "-Cinstrument.runtime.options.gcBeforeEach=" + gcBeforeEach,
+            "--time-limit=30s")
+        .run();
+  }
+
+  static final class BenchmarkThatAllocatesALot {
+    @Benchmark
+    int benchmarkMethod() {
+      // Any larger and the GC doesn't manage to make enough space, resulting in
+      // OOMErrors in both test cases above.
+      long[] array = new long[32 * 1024 * 1024];
+      return array.length;
     }
   }
 }

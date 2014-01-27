@@ -25,12 +25,14 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
 import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
+import com.google.caliper.util.Util;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  * The {@link Worker} implementation for macrobenchmarks.
@@ -39,20 +41,25 @@ public class MacrobenchmarkWorker extends Worker {
   private final Stopwatch stopwatch;
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;
+  private final boolean gcBeforeEach;
 
   @Inject MacrobenchmarkWorker(@Benchmark Object benchmark, @BenchmarkMethod Method method,
-      Ticker ticker) {
+      Ticker ticker, @WorkerOptions Map<String, String> workerOptions) {
     super(benchmark, method);
     this.stopwatch = Stopwatch.createUnstarted(ticker);
     this.beforeRepMethods =
         getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
     this.afterRepMethods =
         getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
+    this.gcBeforeEach = Boolean.parseBoolean(workerOptions.get("gcBeforeEach"));
   }
 
   @Override public void preMeasure() throws Exception {
     for (Method beforeRepMethod : beforeRepMethods) {
       beforeRepMethod.invoke(benchmark);
+    }
+    if (gcBeforeEach) {
+      Util.forceGc();
     }
   }
 
