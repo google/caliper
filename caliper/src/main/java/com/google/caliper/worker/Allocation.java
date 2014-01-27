@@ -85,7 +85,9 @@ final class Allocation {
   }
   
   @Override public String toString() {
-    return String.format("%s (%d bytes) \nat %s", description, size,
-        Joiner.on("\nat ").join(location));
+    StringBuilder builder = new StringBuilder();
+    builder.append(description).append(" (").append(size).append(" bytes)\n\tat ");
+    Joiner.on("\n\tat ").appendTo(builder, location);
+    return builder.toString();
   }
 }

@@ -112,7 +112,7 @@ class AllocationStats {
   ImmutableList<Measurement> toMeasurements() {
     for (Entry<Allocation> entry : allocations.entrySet()) {
       double allocsPerRep = ((double) entry.getCount()) / reps;
-      System.out.printf("Allocated %f allocs per rep of %s", allocsPerRep, entry.getElement());
+      System.out.printf("Allocated %f allocs per rep of %s%n", allocsPerRep, entry.getElement());
     }
     return ImmutableList.of(
         new Measurement.Builder()
