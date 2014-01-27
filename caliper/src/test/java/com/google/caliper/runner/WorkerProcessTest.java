@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -37,6 +38,7 @@ import org.junit.runners.JUnit4;
 
 import java.io.File;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -78,16 +80,14 @@ public class WorkerProcessTest {
         allocationInstrument.createInstrumentation(method),
         ImmutableMap.<String, String>of(),
         new VirtualMachine("foo-jvm",
-            new VmConfig.Builder(new File("/usr/bin/foo"))
-                .addOption("--doTheHustle")
-                .build()));
+            new VmConfig(new File("foo"), Arrays.asList("--doTheHustle"), new File("java"))));
     BenchmarkSpec spec = new BenchmarkSpec.Builder()
         .className(TestBenchmark.class.getName())
         .methodName(method.getName())
         .build();
     ProcessBuilder builder = createProcess(experiment, spec);
     List<String> commandLine = builder.command();
-    assertEquals("/usr/bin/foo/bin/java", commandLine.get(0));
+    assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
     assertEquals("--doTheHustle", commandLine.get(1));  // vm specific flags come next
     assertEquals("-cp", commandLine.get(2));  // then the classpath
     // should we assert on classpath contents?
@@ -103,7 +103,7 @@ public class WorkerProcessTest {
   }
 
   @Test public void shutdownHook_waitFor() throws Exception {
-    Process worker = createWorkerProcess("exit 0").startWorker();
+    Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
     assertEquals("worker-shutdown-hook-" + TRIAL_ID,
         Iterables.getOnlyElement(registrar.hooks).getName());
     worker.waitFor();
@@ -111,7 +111,8 @@ public class WorkerProcessTest {
   }
 
   @Test public void shutdownHook_exitValueThrows() throws Exception {
-    Process worker = createWorkerProcess("sleep 1m").startWorker();
+    Process worker = createWorkerProcess(
+        FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1))).startWorker();
     try {
       Thread hook = Iterables.getOnlyElement(registrar.hooks);
       assertEquals("worker-shutdown-hook-" + TRIAL_ID, hook.getName());
@@ -126,7 +127,7 @@ public class WorkerProcessTest {
   }
 
   @Test public void shutdownHook_exitValue() throws Exception {
-    Process worker = createWorkerProcess("exit 0").startWorker();
+    Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
     while (true) {
       try {
         worker.exitValue();
@@ -139,7 +140,8 @@ public class WorkerProcessTest {
   }
 
   @Test public void shutdownHook_destroy() throws Exception {
-    Process worker = createWorkerProcess("sleep 1m").startWorker();
+    Process worker = createWorkerProcess(
+        FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1))).startWorker();
     worker.destroy();
     assertTrue(registrar.hooks.isEmpty());
   }
@@ -159,8 +161,8 @@ public class WorkerProcessTest {
         benchmarkClass);
   }
 
-  private WorkerProcess createWorkerProcess(String bashScript) {
-    return new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
+  private WorkerProcess createWorkerProcess(Class<?> main, String ...args) {
+    return new WorkerProcess(FakeWorkers.createProcessBuilder(main, args),
         TRIAL_ID,
         null,
         registrar);

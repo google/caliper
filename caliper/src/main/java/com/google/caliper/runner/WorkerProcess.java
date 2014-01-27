@@ -168,7 +168,7 @@ import javax.annotation.concurrent.GuardedBy;
 
     List<String> args = processBuilder.command();
 
-    args.addAll(getJvmArgs(experiment, benchmarkClass));
+    args.addAll(getJvmArgs(experiment.vm(), benchmarkClass));
 
     Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs();
     Iterables.addAll(args, instrumentJvmOptions);
@@ -187,16 +187,16 @@ import javax.annotation.concurrent.GuardedBy;
     return processBuilder;
   }
 
-  private static List<String> getJvmArgs(Experiment experiment, BenchmarkClass benchmarkClass) {
-    String jvmName = experiment.vm().name;
+  @VisibleForTesting static List<String> getJvmArgs(VirtualMachine vm,
+      BenchmarkClass benchmarkClass) {
     List<String> args = Lists.newArrayList();
-    String jdkPath = experiment.vm().config.javaExecutable().getAbsolutePath();
+    String jdkPath = vm.config.javaExecutable().getAbsolutePath();
     args.add(jdkPath);
-    logger.fine(String.format("Java(%s) Path: %s", jvmName, jdkPath));
+    logger.fine(String.format("Java(%s) Path: %s", vm.name, jdkPath));
 
-    ImmutableList<String> jvmOptions = experiment.vm().config.options();
+    ImmutableList<String> jvmOptions = vm.config.options();
     args.addAll(jvmOptions);
-    logger.fine(String.format("Java(%s) args: %s", jvmName, jvmOptions));
+    logger.fine(String.format("Java(%s) args: %s", vm.name, jvmOptions));
 
     ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
     args.addAll(benchmarkJvmOptions);

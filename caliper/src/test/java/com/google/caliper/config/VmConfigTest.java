@@ -16,7 +16,8 @@
 
 package com.google.caliper.config;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,8 +32,14 @@ import java.io.File;
  */
 @RunWith(JUnit4.class)
 public class VmConfigTest {
-  @Test public void testExecutable() {
-    assertEquals(new File("/some/home/dir/bin/java"),
-        new VmConfig.Builder(new File("/some/home/dir")).build().javaExecutable());
+
+
+  @Test
+  public void testExecutable() {
+    File javaExecutable = new VmConfig.Builder(new File(System.getProperty("java.home")))
+        .build()
+        .javaExecutable();
+    assertTrue("Could not find: " + javaExecutable, javaExecutable.exists());
+    assertTrue(javaExecutable + " is not a file", javaExecutable.isFile());
   }
 }

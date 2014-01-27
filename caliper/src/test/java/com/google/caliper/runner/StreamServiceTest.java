@@ -97,7 +97,7 @@ public class StreamServiceTest {
   }
 
   @Test public void testReadOutput() throws Exception {
-    makeService("echo foo && echo bar 1>&2");
+    makeService(FakeWorkers.PrintClient.class, "foo", "bar");
     service.startAsync().awaitRunning();
     StreamItem item1 = readItem();
     assertEquals(Kind.DATA, item1.kind());
@@ -114,9 +114,8 @@ public class StreamServiceTest {
     assertTerminated();
   }
 
-
   @Test public void failingProcess() throws Exception {
-    makeService("exit 1");
+    makeService(FakeWorkers.Exit.class, "1");
     service.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
@@ -125,7 +124,7 @@ public class StreamServiceTest {
 
   @Test public void processDoesntExit() throws Exception {
     // close all fds and then sleep
-    makeService("exec 0>&- ; exec 1>&- ; exec 2>&- ; sleep 10m");
+    makeService(FakeWorkers.CloseAndSleep.class);
     service.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(200, TimeUnit.MILLISECONDS);  // we
@@ -135,8 +134,7 @@ public class StreamServiceTest {
   @Test public void testSocketInputOutput() throws Exception {
     int localport = serverSocket.getLocalPort();
     // read from the socket and echo it back
-    makeService("exec 3<>/dev/tcp/127.0.0.1/" + localport + ";"
-        + "echo start >&3; while read -r line <&3 ; do echo $line >&3; done");
+    makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport));
 
     service.startAsync().awaitRunning();
     assertEquals("start", readItem().content().toString());
@@ -152,8 +150,7 @@ public class StreamServiceTest {
   @Test public void testSocketClosesBeforeProcess() throws Exception {
     int localport = serverSocket.getLocalPort();
     // read from the socket and echo it back
-    makeService("exec 3<>/dev/tcp/127.0.0.1/" + localport + ";"
-        + "echo start >&3; while read -r line <&3 ; do echo $line >&3; done; exec 3>&-; echo foo");
+    makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport), "foo");
     service.startAsync().awaitRunning();
     assertEquals("start", readItem().content().toString());
     service.writeLine("hello socket world");
@@ -170,7 +167,7 @@ public class StreamServiceTest {
 
   @Test public void failsToAcceptConnection() throws Exception {
     serverSocket.close();  // This will force serverSocket.accept to throw a SocketException
-    makeService("sleep 10m");
+    makeService(FakeWorkers.Sleeper.class, Long.toString(TimeUnit.MINUTES.toMillis(10)));
     try {
       service.startAsync().awaitRunning();
       fail();
@@ -202,10 +199,10 @@ public class StreamServiceTest {
     }
   }
 
-  private void makeService(String bashScript) {
+  private void makeService(Class<?> main, String ...args) {
     checkState(service == null, "You can only make one StreamService per test");
     service = new StreamService(
-        new WorkerProcess(new ProcessBuilder().command("bash", "-c", bashScript),
+        new WorkerProcess(FakeWorkers.createProcessBuilder(main, args),
             UUID.randomUUID(),
             getSocketFuture(),
             new RuntimeShutdownHookRegistrar()),
