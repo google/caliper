@@ -20,7 +20,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.persistence.AccessType.FIELD;
 
+import com.google.common.base.Function;
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.Multimaps;
 
 import org.hibernate.annotations.Immutable;
 
@@ -42,6 +45,15 @@ import javax.persistence.Id;
 @Immutable
 @Cacheable
 public class Measurement {
+  public static ImmutableListMultimap<String, Measurement> indexByDescription(
+      Iterable<Measurement> measurements) {
+    return Multimaps.index(measurements, new Function<Measurement, String>() {
+      @Override public String apply(Measurement input) {
+        return input.description;
+      }
+    });
+  }
+
   @Id
   @GeneratedValue
   @ExcludeFromJson

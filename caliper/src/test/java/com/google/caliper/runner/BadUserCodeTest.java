@@ -191,9 +191,9 @@ public class BadUserCodeTest {
   /** Benchmark allocates the same number of things each time but in a different way. */
   static class ComplexNonDeterministicAllocationBenchmark {
     static int timeCount = 0;
-    // We dump items into this list so the jit cannot remove the allocations
-    static List<Object> list = Lists.newArrayList();
     @Benchmark int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
+      // We dump items into this list so the jit cannot remove the allocations
+      List<Object> list = Lists.newArrayList();
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());

@@ -45,6 +45,9 @@ import java.util.logging.Logger;
  * benchmark method and reports some statistic. The benchmark method must accept a
  * single int argument 'reps', which is the number of times to execute the guts of
  * the benchmark method, and it must be public and non-static.
+ *
+ * <p>Note that the allocation instruments reports a "worst case" for allocation in that it reports
+ * the bytes and objects allocated in interpreted mode (no JIT).
  */
 public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
@@ -205,6 +208,8 @@ public final class AllocationInstrument extends Instrument {
     // Add microbenchmark args to minimize differences in the output
     return new ImmutableSet.Builder<String>()
         .addAll(super.getExtraCommandLineArgs())
+        // we just run in interpreted mode to ensure that intrinsics don't break the instrumentation
+        .add("-Xint")
         .add("-javaagent:" + agentJar)
         // Some environments rename files and use symlinks to improve resource caching,
         // if the agent jar path is actually a symlink it will prevent the agent from finding itself
