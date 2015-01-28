@@ -25,6 +25,8 @@ import com.google.inject.Provides;
 
 import java.lang.reflect.Method;
 
+import javax.inject.Singleton;
+
 /**
  * Binds objects related to a benchmark class.
  */
@@ -40,7 +42,7 @@ public final class BenchmarkClassModule extends AbstractModule {
     bind(new Key<Class<?>>(Running.BenchmarkClass.class) {}).toInstance(benchmarkClassObject);
   }
 
-  @Provides BenchmarkClass provideBenchmarkClass() throws InvalidBenchmarkException {
+  @Provides @Singleton BenchmarkClass provideBenchmarkClass() throws InvalidBenchmarkException {
     return BenchmarkClass.forClass(benchmarkClassObject);
   }
 

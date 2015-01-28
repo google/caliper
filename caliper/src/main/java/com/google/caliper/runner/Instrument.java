@@ -64,6 +64,11 @@ public abstract class Instrument {
       throws InvalidBenchmarkException;
 
   /**
+   * Indicates that trials using this instrument can be run in parallel with other trials.
+   */
+  public abstract TrialSchedulingPolicy schedulingPolicy();
+
+  /**
    * The application of an instrument to a particular benchmark method.
    */
   // TODO(gak): consider passing in Instrument explicitly for DI
@@ -164,7 +169,18 @@ public abstract class Instrument {
 
   interface MeasurementCollectingVisitor extends LogMessageVisitor {
     boolean isDoneCollecting();
+    boolean isWarmupComplete();
     ImmutableList<Measurement> getMeasurements();
+    /**
+     * Returns all the messages created while collecting measurments.
+     * 
+     * <p>A message is some piece of user visible data that should be displayed to the user along
+     * with the trial results.
+     * 
+     * <p>TODO(lukes): should we model these as anything more than strings.  These messages already
+     * have a concept of 'level' based on the prefix.
+     */
+    ImmutableList<String> getMessages();
   }
 
   /**
@@ -207,8 +223,17 @@ public abstract class Instrument {
       return true;
     }
 
+    @Override
+    public boolean isWarmupComplete() {
+      return true;
+    }
+
     @Override public ImmutableList<Measurement> getMeasurements() {
       return ImmutableList.copyOf(measurementsByDescription.values());
+    }
+
+    @Override public ImmutableList<String> getMessages() {
+      return ImmutableList.of();
     }
   }
 }

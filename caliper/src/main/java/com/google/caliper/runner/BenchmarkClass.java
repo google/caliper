@@ -34,12 +34,16 @@ import com.google.common.collect.ImmutableSetMultimap;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * An instance of this type represents a user-provided class. It manages creating, setting up and
  * destroying instances of that class.
  */
 final class BenchmarkClass {
+  private static final Logger logger = Logger.getLogger(BenchmarkClass.class.getName());
+
   static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
     return new BenchmarkClass(theClass);
   }
@@ -97,7 +101,16 @@ final class BenchmarkClass {
       // need to call tearDown from here, because no one else has the reference to the
       // Benchmark.
       if (!setupSuccess) {
-        callTearDown(benchmarkInstance);
+        try {
+          callTearDown(benchmarkInstance);
+        } catch (UserCodeException e) {
+          // The exception thrown during setUp shouldn't be lost, as it's probably more
+          // important to the user.
+          logger.log(
+              Level.INFO,
+              "in @AfterExperiment methods called because @BeforeExperiment methods failed",
+              e);
+        }
       }
     }
   }
@@ -141,7 +154,8 @@ final class BenchmarkClass {
         throw new AssertionError(e);
       } catch (InvocationTargetException e) {
         propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
-        throw new UserCodeException("Exception thrown during setUp", e.getCause());
+        throw new UserCodeException(
+            "Exception thrown from a @BeforeExperiment method", e.getCause());
       }
     }
   }
@@ -154,7 +168,8 @@ final class BenchmarkClass {
         throw new AssertionError(e);
       } catch (InvocationTargetException e) {
         propagateIfInstanceOf(e.getCause(), SkipThisScenarioException.class);
-        throw new UserCodeException("Exception thrown during tearDown", e.getCause());
+        throw new UserCodeException(
+            "Exception thrown from an @AfterExperiment method", e.getCause());
       }
     }
   }

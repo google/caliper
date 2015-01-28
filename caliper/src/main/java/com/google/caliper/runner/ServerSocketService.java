@@ -14,34 +14,30 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Charsets.UTF_8;
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StartupAnnounceMessage;
-import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
-import com.google.common.collect.MultimapBuilder;
+import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.Service.State;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -108,15 +104,17 @@ import javax.annotation.concurrent.GuardedBy;
    * requested once.
    */
   @GuardedBy("lock")
-  private final SetMultimap<Source, UUID> connectionState =
-      MultimapBuilder.enumKeys(Source.class).hashSetValues().build();
+  private final SetMultimap<Source, UUID> connectionState = Multimaps.newSetMultimap(
+      Maps.<Source, Collection<UUID>>newEnumMap(Source.class), 
+      new Supplier<Set<UUID>>(){
+        @Override public Set<UUID> get() {
+          return Sets.newHashSet();
+        }
+      });
   
   private ServerSocket serverSocket;
-  private final Gson gson;
 
-  @Inject ServerSocketService(Gson gson) {
-    this.gson = gson;
-  }
+  @Inject ServerSocketService() {}
 
   int getPort() {
     awaitRunning();
@@ -150,8 +148,8 @@ import javax.annotation.concurrent.GuardedBy;
         return;
       }
       OpenedSocket openedSocket = OpenedSocket.fromSocket(socket);
-      UUID id = gson.fromJson(openedSocket.reader().readLine(), StartupAnnounceMessage.class)
-          .trialId();
+
+      UUID id = ((StartupAnnounceMessage) openedSocket.reader().read()).trialId();
       // N.B. you should not call set with the lock held, to prevent same thread executors from
       // running with the lock.
       getConnectionImpl(id, Source.ACCEPT).set(openedSocket);
@@ -216,124 +214,5 @@ import javax.annotation.concurrent.GuardedBy;
     } finally {
       lock.unlock();
     }
-  }
-
-  /**
-   * A simple tuple for the opened streams of a socket.
-   */
-  static final class OpenedSocket {
-    @VisibleForTesting static OpenedSocket fromSocket(Socket socket) throws IOException {
-      // See comment in WorkerModule for why this is necessary.
-      socket.setTcpNoDelay(true);
-      return new OpenedSocket(
-          new OutputStreamWriter(getOutputStream(socket), UTF_8), 
-          new BufferedReader(new InputStreamReader(getInputStream(socket), UTF_8)));
-    }
-    
-    private final BufferedReader reader;
-    private final Writer writer;
-
-    private OpenedSocket(Writer writer, BufferedReader reader) {
-      this.reader = reader;
-      this.writer = writer;
-    }
-
-    BufferedReader reader() {
-      return reader;
-    }
-    
-    Writer writer() {
-      return writer;
-    }
-  }
-
-  /**
-   * Returns an {@link OutputStream} for the socket, but unlike {@link Socket#getOutputStream()}
-   * when you call {@link OutputStream#close() close} it only closes the output end of the socket
-   * instead of the entire socket.
-   */
-  private static OutputStream getOutputStream(final Socket socket) throws IOException {
-    final OutputStream delegate = socket.getOutputStream();
-    return new OutputStream() {
-
-      @Override public void close() throws IOException {
-        delegate.flush();
-        synchronized (socket) {
-          socket.shutdownOutput();
-          if (socket.isInputShutdown()) {
-            socket.close();
-          }
-        }
-      }
-    
-      // Boring delegates from here on down
-      @Override public void write(int b) throws IOException {
-        delegate.write(b);
-      }
-    
-      @Override public void write(byte[] b) throws IOException {
-        delegate.write(b);
-      }
-    
-      @Override public void write(byte[] b, int off, int len) throws IOException {
-        delegate.write(b, off, len);
-      }
-    
-      @Override public void flush() throws IOException {
-        delegate.flush();
-      }
-    };
-  }
-  
-  /**
-   * Returns an {@link InputStream} for the socket, but unlike {@link Socket#getInputStream()}
-   * when you call {@link InputStream#close() close} it only closes the input end of the socket
-   * instead of the entire socket.
-   */
-  private static InputStream getInputStream(final Socket socket) throws IOException {
-    final InputStream delegate = socket.getInputStream();
-    return new InputStream() {
-      @Override public void close() throws IOException {
-        synchronized (socket) {
-          socket.shutdownInput();
-          if (socket.isOutputShutdown()) {
-            socket.close();
-          }
-        }
-      }
-      
-      // Boring delegates from here on down
-      @Override public int read() throws IOException {
-        return delegate.read();
-      }
-      
-      @Override public int read(byte[] b) throws IOException {
-        return delegate.read(b);
-      }
-      
-      @Override public int read(byte[] b, int off, int len) throws IOException {
-        return delegate.read(b, off, len);
-      }
-      
-      @Override public long skip(long n) throws IOException {
-        return delegate.skip(n);
-      }
-      
-      @Override public int available() throws IOException {
-        return delegate.available();
-      }
-      
-      @Override public void mark(int readlimit) {
-        delegate.mark(readlimit);
-      }
-      
-      @Override public void reset() throws IOException {
-        delegate.reset();
-      }
-      
-      @Override public boolean markSupported() {
-        return delegate.markSupported();
-      }
-    };
   }
 }

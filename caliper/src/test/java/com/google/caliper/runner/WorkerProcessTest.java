@@ -29,7 +29,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +64,6 @@ public class WorkerProcessTest {
   }
 
   private final MockRegistrar registrar = new MockRegistrar();
-  private final Gson gson = new Gson();
   private BenchmarkClass benchmarkClass;
 
   @Before public void setUp() throws InvalidBenchmarkException {
@@ -157,7 +155,7 @@ public class WorkerProcessTest {
   }
 
   private ProcessBuilder createProcess(Experiment experiment, BenchmarkSpec benchmarkSpec) {
-    return WorkerProcess.buildProcess(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, gson,
+    return WorkerProcess.buildProcess(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER,
         benchmarkClass);
   }
 

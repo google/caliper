@@ -21,7 +21,6 @@ package com.google.caliper.bridge;
  */
 public interface LogMessageVisitor {
   void visit(GcLogMessage logMessage);
-  void visit(GenericLogMessage logMessage);
   void visit(FailureLogMessage logMessage);
   void visit(HotspotLogMessage logMessage);
   void visit(StartMeasurementLogMessage logMessage);

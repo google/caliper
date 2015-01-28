@@ -24,11 +24,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-import com.google.inject.Inject;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 /**
  * Loads caliper configuration files and, if necessary, creates new versions from the defaults.

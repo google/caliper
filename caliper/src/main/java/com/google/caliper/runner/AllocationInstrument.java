@@ -120,6 +120,11 @@ public final class AllocationInstrument extends Instrument {
     }
   }
 
+  @Override public TrialSchedulingPolicy schedulingPolicy() {
+    // Assuming there is enough memory it should be fine to run these in parallel.
+    return TrialSchedulingPolicy.PARALLEL;
+  }
+
   private final class MacroAllocationInstrumentation extends Instrumentation {
     MacroAllocationInstrumentation(Method benchmarkMethod) {
       super(benchmarkMethod);

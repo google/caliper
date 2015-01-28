@@ -123,5 +123,9 @@ public class ExperimentingRunnerModuleTest {
         }
       };
     }
+
+    @Override public TrialSchedulingPolicy schedulingPolicy() {
+      return TrialSchedulingPolicy.SERIAL;
+    }
   }
 }

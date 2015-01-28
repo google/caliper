@@ -36,6 +36,8 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.TreeMultiset;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
@@ -48,19 +50,29 @@ import org.joda.time.Instant;
 
 import java.lang.reflect.Method;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 
 /**
  * Configures a {@link CaliperRun} that performs experiments.
  */
 final class ExperimentingRunnerModule extends AbstractModule {
+  private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
+
   @Override protected void configure() {
     install(new TrialModule());
     install(new RunnerModule());
     bind(CaliperRun.class).to(ExperimentingCaliperRun.class);
     bind(ExperimentSelector.class).to(FullCartesianExperimentSelector.class);
-    Multibinder.newSetBinder(binder(), Service.class)
-        .addBinding()
-        .to(ServerSocketService.class);
+    Multibinder<Service> services = Multibinder.newSetBinder(binder(), Service.class);
+    services.addBinding().to(ServerSocketService.class);
+    services.addBinding().to(TrialOutputFactoryService.class);
+    bind(TrialOutputFactory.class).to(TrialOutputFactoryService.class);
+  }
+
+  @Provides
+  ListeningExecutorService provideExecutorService(CaliperConfig config) {
+    int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
+    return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
 
   @LocalPort 
@@ -122,8 +134,9 @@ final class ExperimentingRunnerModule extends AbstractModule {
       });
       String className = instrumentConfig.className();
       try {
-        builder.add(instrumentInjector.getInstance(
-            Util.lenientClassForName(className).asSubclass(Instrument.class)));
+        Class<? extends Instrument> clazz =
+            Util.lenientClassForName(className).asSubclass(Instrument.class);
+        builder.add(instrumentInjector.getInstance(clazz));
       } catch (ClassNotFoundException e) {
         throw new InvalidCommandException("Cannot find instrument class '%s'", className);
       } catch (ProvisionException e) {

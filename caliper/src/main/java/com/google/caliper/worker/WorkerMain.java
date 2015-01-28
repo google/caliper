@@ -19,13 +19,18 @@ package com.google.caliper.worker;
 import static com.google.inject.Stage.PRODUCTION;
 
 import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.bridge.CommandLineSerializer;
+import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
-import com.google.caliper.json.GsonModule;
 import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
-import com.google.gson.Gson;
+import com.google.common.net.InetAddresses;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
@@ -35,31 +40,38 @@ public final class WorkerMain {
   private WorkerMain() {}
 
   public static void main(String[] args) throws Exception {
-    Injector gsonInjector = Guice.createInjector(PRODUCTION, new GsonModule());
-    WorkerSpec request =
-        gsonInjector.getInstance(Gson.class).fromJson(args[0], WorkerSpec.class);
+    // TODO(lukes): instead of parsing the spec from the command line pass the port number on the
+    // command line and then receive the spec from the socket.  This way we can start JVMs prior
+    // to starting experiments and thus get better experiment latency.
+    WorkerSpec request = CommandLineSerializer.parse(args[0]);
+    // nonblocking connect so we can interleave the system call with injector creation.
+    SocketChannel channel = SocketChannel.open();
+    channel.configureBlocking(false);
+    channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
-    Injector workerInjector = gsonInjector.createChildInjector(
+    Injector workerInjector = Guice.createInjector(PRODUCTION,
         new BenchmarkClassModule(Class.forName(request.benchmarkSpec.className())),
-        ExperimentModule.forWorkerSpec(request),
         new BridgeModule(),
+        ExperimentModule.forWorkerSpec(request),
         new WorkerModule(request));
-
     Worker worker = workerInjector.getInstance(Worker.class);
-    WorkerEventLog log = workerInjector.getInstance(WorkerEventLog.class);
+    WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
 
     log.notifyWorkerStarted(request.trialId);
     try {
       worker.setUpBenchmark();
-      log.notifyWarmupPhaseStarting();
+      log.notifyBootstrapPhaseStarting();
       worker.bootstrap();
       log.notifyMeasurementPhaseStarting();
       boolean keepMeasuring = true;
+      boolean isInWarmup = true;
       while (keepMeasuring) {
-        worker.preMeasure();
+        worker.preMeasure(isInWarmup);
         log.notifyMeasurementStarting();
         try {
-          keepMeasuring = log.notifyMeasurementEnding(worker.measure());
+          ShouldContinueMessage message = log.notifyMeasurementEnding(worker.measure());
+          keepMeasuring = message.shouldContinue();
+          isInWarmup = !message.isWarmupComplete();
         } finally {
           worker.postMeasure();
         }
@@ -69,6 +81,7 @@ public final class WorkerMain {
     } finally {
       System.out.flush(); // ?
       worker.tearDownBenchmark();
+      log.close();
     }
   }
 }

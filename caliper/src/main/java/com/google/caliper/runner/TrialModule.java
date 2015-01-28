@@ -18,13 +18,13 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
-import com.google.caliper.runner.ServerSocketService.OpenedSocket;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
@@ -35,7 +35,6 @@ import java.util.UUID;
  * Configuration for a {@link TrialRunLoop}.
  */
 final class TrialModule extends AbstractModule {
-
   @Override protected void configure() {
     install(TrialScopes.module());
   }
@@ -63,24 +62,36 @@ final class TrialModule extends AbstractModule {
     return experiment.instrumentation().getMeasurementCollectingVisitor();
   }
 
-  @Provides TrialFactory provideTrialFactory(@TrialId final UUID trialId,
+  @Provides
+  @TrialScoped
+  TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
+    return experiment.instrumentation().instrument().schedulingPolicy();
+  }
+
+  @Provides TrialResultFactory provideTrialFactory(@TrialId final UUID trialId,
       final Run run,
       final Host host,
       final Experiment experiment,
       final BenchmarkSpec benchmarkSpec) {
-    return new TrialFactory() {
-      @Override public Trial newTrial(VmDataCollectingVisitor dataCollectingVisitor,
+    return new TrialResultFactory() {
+      @Override public TrialResult newTrialResult(
+          VmDataCollectingVisitor dataCollectingVisitor,
           MeasurementCollectingVisitor measurementCollectingVisitor) {
         checkState(measurementCollectingVisitor.isDoneCollecting());
-        return new Trial.Builder(trialId)
-            .run(run)
-            .instrumentSpec(experiment.instrumentation().instrument().getSpec())
-            .scenario(new Scenario.Builder()
-                .host(host)
-                .vmSpec(dataCollectingVisitor.vmSpec())
-                .benchmarkSpec(benchmarkSpec))
-            .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
-            .build();
+        // TODO(lukes): should the trial messages be part of the Trial datastructure?  It seems like
+        // the web UI could make use of them.
+        return new TrialResult(
+            new Trial.Builder(trialId)
+                .run(run)
+                .instrumentSpec(experiment.instrumentation().instrument().getSpec())
+                .scenario(new Scenario.Builder()
+                    .host(host)
+                    .vmSpec(dataCollectingVisitor.vmSpec())
+                    .benchmarkSpec(benchmarkSpec))
+                .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
+                .build(),
+            experiment,
+            measurementCollectingVisitor.getMessages());
       }
     };
   }

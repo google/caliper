@@ -73,6 +73,12 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     return new ArbitraryMeasurementInstrumentation(benchmarkMethod);
   }
 
+  @Override public TrialSchedulingPolicy schedulingPolicy() {
+    // We could allow it here but in general it would depend on the particular measurement so it
+    // should probably be configured by the user.  For now we just disable it.
+    return TrialSchedulingPolicy.SERIAL;
+  }
+
   private final class ArbitraryMeasurementInstrumentation extends Instrumentation {
     protected ArbitraryMeasurementInstrumentation(Method benchmarkMethod) {
       super(benchmarkMethod);
@@ -121,6 +127,11 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     }
 
     @Override
+    public boolean isWarmupComplete() {
+      return true;
+    }
+
+    @Override
     public ImmutableList<Measurement> getMeasurements() {
       return ImmutableList.copyOf(measurement.asSet());
     }
@@ -128,6 +139,11 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     @Override
     public void visit(StopMeasurementLogMessage logMessage) {
       this.measurement = Optional.of(Iterables.getOnlyElement(logMessage.measurements()));
+    }
+
+    @Override 
+    public ImmutableList<String> getMessages() {
+      return ImmutableList.of();
     }
   }
 }

@@ -19,10 +19,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StartupAnnounceMessage;
-import com.google.caliper.runner.ServerSocketService.OpenedSocket;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.gson.Gson;
 
 import org.junit.After;
 import org.junit.Before;
@@ -31,7 +30,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.io.IOException;
-import java.io.Writer;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
@@ -44,8 +42,7 @@ import java.util.concurrent.ExecutionException;
 
 public class ServerSocketServiceTest {
 
-  private final Gson gson = new Gson();
-  private final ServerSocketService service = new ServerSocketService(gson);
+  private final ServerSocketService service = new ServerSocketService();
   private int port;
 
   @Before public void startService() {
@@ -110,21 +107,20 @@ public class ServerSocketServiceTest {
    */
   private OpenedSocket openConnectionAndIdentify(UUID id) throws IOException {
     OpenedSocket clientSocket = openClientConnection();
-    Writer writer = clientSocket.writer();
-    writer.write(gson.toJson(new StartupAnnounceMessage(id)));
-    writer.write('\n');
+    OpenedSocket.Writer writer = clientSocket.writer();
+    writer.write(new StartupAnnounceMessage(id));
     writer.flush();
     return clientSocket;
   }
 
   private void assertEndsConnected(OpenedSocket clientSocket, OpenedSocket serverSocket)
       throws IOException {
-    serverSocket.writer().write("hello client!\n");
+    serverSocket.writer().write("hello client!");
     serverSocket.writer().flush();  // necessary to prevent deadlock
-    assertEquals("hello client!", clientSocket.reader().readLine());
+    assertEquals("hello client!", clientSocket.reader().read());
 
-    clientSocket.writer().write("hello server!\n");
+    clientSocket.writer().write("hello server!");
     clientSocket.writer().flush();  // ditto
-    assertEquals("hello server!", serverSocket.reader().readLine());
+    assertEquals("hello server!", serverSocket.reader().read());
   }
 }

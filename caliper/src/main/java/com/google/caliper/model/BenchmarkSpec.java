@@ -32,6 +32,7 @@ import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Index;
 import org.hibernate.annotations.Sort;
 
+import java.io.Serializable;
 import java.util.Map;
 import java.util.SortedMap;
 
@@ -62,7 +63,9 @@ import javax.persistence.QueryHint;
     hints = {
         @QueryHint(name = "org.hibernate.cacheable", value = "true"),
         @QueryHint(name = "org.hibernate.readOnly", value = "true")})
-public final class BenchmarkSpec {
+public final class BenchmarkSpec implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   static final BenchmarkSpec DEFAULT = new BenchmarkSpec();
 
   @Id @GeneratedValue @ExcludeFromJson private int id;

@@ -53,8 +53,13 @@ public abstract class Worker {
   /** Called once before all measurements but after benchmark setup. */
   public void bootstrap() throws Exception {}
 
-  /** Called immediately before {@link #measure()}. */
-  public void preMeasure() throws Exception {}
+  /**
+   * Called immediately before {@link #measure()}.
+   *
+   * @param inWarmup whether we are in warmup, or taking real measurements. Used by
+   *                 some implementations to skip forcing GC to make warmup faster.
+   */
+  public void preMeasure(boolean inWarmup) throws Exception {}
 
   /** Called immediately after {@link #measure()}. */
   public void postMeasure() throws Exception {}

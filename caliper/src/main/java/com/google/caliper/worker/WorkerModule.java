@@ -16,24 +16,13 @@
 
 package com.google.caliper.worker;
 
-import static com.google.common.base.Charsets.UTF_8;
-
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.net.InetAddresses;
 import com.google.inject.AbstractModule;
 import com.google.inject.Key;
-import com.google.inject.Provides;
-import com.google.inject.Singleton;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.net.Socket;
 import java.util.Map;
 import java.util.Random;
 
@@ -47,24 +36,16 @@ import java.util.Random;
  */
 final class WorkerModule extends AbstractModule {
   private final Class<? extends Worker> workerClass;
-  private final int port;
   private final ImmutableMap<String, String> workerOptions;
 
-  @SuppressWarnings("unchecked")
   WorkerModule(WorkerSpec workerSpec) {
-    try {
-      this.workerClass = Class.forName(workerSpec.workerClassName).asSubclass(Worker.class);
-    } catch (ClassNotFoundException e) {
-      throw new AssertionError("classes referenced in the runner are always present");
-    }
-    this.port = workerSpec.port;
+    this.workerClass = workerSpec.workerClass.asSubclass(Worker.class);
     this.workerOptions = workerSpec.workerOptions;
   }
 
   @Override protected void configure() {
     bind(Worker.class).to(workerClass);
     bind(Ticker.class).toInstance(Ticker.systemTicker());
-    bind(WorkerEventLog.class);
     if (Boolean.valueOf(workerOptions.get("trackAllocations"))) {
       bind(AllocationRecorder.class).to(AllAllocationsRecorder.class);
     } else {
@@ -72,37 +53,5 @@ final class WorkerModule extends AbstractModule {
     }
     bind(Random.class);
     bind(new Key<Map<String, String>>(WorkerOptions.class) {}).toInstance(workerOptions);
-  }
-  
-  @Provides @Singleton BufferedWriter provideSocketWriter(Socket socket) throws IOException {
-    return new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), UTF_8));
-  }
-  
-  @Provides @Singleton BufferedReader provideSocketReader(Socket socket) throws IOException {
-    return new BufferedReader(new InputStreamReader(socket.getInputStream(), UTF_8));
-  }
-
-  @Provides @Singleton Socket provideSocket() throws IOException {
-    final Socket socket = new Socket(InetAddresses.forString("127.0.0.1"), port);
-    // Setting this to true disables Nagle's algorithm (RFC 896) which seeks to decrease packet
-    // overhead by buffering writes while there are packets outstanding (i.e. haven't been ack'd).
-    // This interacts poorly with another TCP feature called 'delayed acks' (RFC 1122) if the
-    // application sends lots of small messages (which we do!).  Without this enabled messages sent
-    // by the worker may be delayed by up to the delayed ack timeout (on linux this is 40-500ms,
-    // though in practise I have only observed 40ms).  So we need to enable the TCP_NO_DELAY option
-    // here.
-    socket.setTcpNoDelay(true);
-    // close the socket when the worker exits
-    Runtime.getRuntime().addShutdownHook(new Thread() {
-      @Override
-      public void run() {
-        try {
-          socket.close();
-        } catch (IOException e) {
-          // nothing we can do
-        }
-      }
-    });
-    return socket;
   }
 }

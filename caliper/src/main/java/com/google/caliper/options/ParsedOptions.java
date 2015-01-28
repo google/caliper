@@ -100,17 +100,6 @@ final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
-  // Verbose?
-  // --------------------------------------------------------------------------
-
-  @Option({"-v", "--verbose"})
-  private boolean verbose = false;
-
-  @Override public boolean verbose() {
-    return verbose;
-  }
-
-  // --------------------------------------------------------------------------
   // Print configuration?
   // --------------------------------------------------------------------------
 
@@ -352,7 +341,6 @@ final class ParsedOptions implements CaliperOptions {
         .add("vms", this.vmNames())
         .add("vmArguments", this.vmArguments())
         .add("trials", this.trialsPerScenario())
-        .add("verbose", this.verbose())
         .add("printConfig", this.printConfiguration())
         .add("delimiter", this.delimiter)
         .add("caliperConfigFile", this.caliperConfigFile)
@@ -386,10 +374,6 @@ final class ParsedOptions implements CaliperOptions {
       " -l, --time-limit   maximum length of time allowed for a single trial; use 0 to allow ",
       "                    trials to run indefinitely. (default: 30s) ",
       " -r, --run-name     a user-friendly string used to identify the run",
-      " -v, --verbose      in addition to normal console output, display a raw feed of very",
-      "                    detailed information from the worker (GC, compilation events, etc.).",
-      "                    Runner output from loggers can be controlled via",
-      "                    $HOME/.caliper/logging.properties",
       " -p, --print-config print the effective configuration that will be used by Caliper",
       " -d, --delimiter    separator used in options that take multiple values (default: ',')",
       " -c, --config       location of Caliper's configuration file (default:",

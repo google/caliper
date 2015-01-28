@@ -18,10 +18,12 @@ package com.google.caliper.runner;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.ShortDuration;
@@ -31,6 +33,7 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.Uninterruptibles;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -38,8 +41,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -54,8 +55,7 @@ public class RuntimeInstrumentTest {
   private RuntimeInstrument instrument;
 
   @Before public void createInstrument() {
-    this.instrument = new RuntimeInstrument(ShortDuration.of(100, NANOSECONDS),
-        new PrintWriter(new StringWriter()), new PrintWriter(new StringWriter()));
+    this.instrument = new RuntimeInstrument(ShortDuration.of(100, NANOSECONDS));
   }
 
   @Test public void isBenchmarkMethod() {
@@ -171,16 +171,16 @@ public class RuntimeInstrumentTest {
     @Macrobenchmark long macro() {
       return spin();
     }
+  }
 
-    // busy spin for 10ms and return the elapsed time.  N.B. we busy spin instead of sleeping so
-    // that we aren't put at the mercy (and variance) of the thread scheduler.
-    private final long spin() {
-      long remainingNanos = TimeUnit.MILLISECONDS.toNanos(10);
-      long start = System.nanoTime();
-      long elapsed;
-      while ((elapsed = System.nanoTime() - start) < remainingNanos) {}
-      return elapsed;
-    }
+  // busy spin for 10ms and return the elapsed time.  N.B. we busy spin instead of sleeping so
+  // that we aren't put at the mercy (and variance) of the thread scheduler.
+  private static long spin() {
+    long remainingNanos = TimeUnit.MILLISECONDS.toNanos(10);
+    long start = System.nanoTime();
+    long elapsed;
+    while ((elapsed = System.nanoTime() - start) < remainingNanos) {}
+    return elapsed;
   }
 
   @Test
@@ -189,8 +189,8 @@ public class RuntimeInstrumentTest {
     runBenchmarkWithKnownHeap(true);
     // The GC error will only be avoided if gcBeforeEach is true, and
     // honored by the MacrobenchmarkWorker.
-    assertEquals("No GC warning should be printed to stderr",
-        "", runner.getStderr().toString());
+    assertFalse("No GC warning should be printed to stderr",
+        runner.getStdout().toString().contains("WARNING: GC occurred during timing."));
   }
 
   @Test
@@ -198,8 +198,8 @@ public class RuntimeInstrumentTest {
   public void gcBeforeEachOptionIsReallyNecessary() throws Exception {
     // Verifies that we indeed get a GC warning if gcBeforeEach = false.
     runBenchmarkWithKnownHeap(false);
-    assertTrue("No GC warning should be printed to stderr",
-        runner.getStderr().toString().contains("WARNING: GC occurred during timing."));
+    assertTrue("A GC warning should be printed to stderr if gcBeforeEach isn't honored",
+        runner.getStdout().toString().contains("WARNING: GC occurred during timing."));
   }
 
   private void runBenchmarkWithKnownHeap(boolean gcBeforeEach) throws Exception {
@@ -220,6 +220,36 @@ public class RuntimeInstrumentTest {
       // OOMErrors in both test cases above.
       long[] array = new long[32 * 1024 * 1024];
       return array.length;
+    }
+  }
+
+  @Test
+
+  public void maxWarmupWallTimeOptionIsHonored() throws Exception {
+    runner.forBenchmark(MacroBenchmarkWithLongBeforeRep.class)
+        .instrument("runtime")
+        .options(
+            "-Cinstrument.runtime.options.maxWarmupWallTime=100ms",
+            "--time-limit=10s")
+        .run();
+
+    assertTrue(
+        "The maxWarmupWallTime should trigger an interruption of warmup and a warning "
+            + "should be printed to stderr",
+        runner.getStdout().toString().contains(
+            "WARNING: Warmup was interrupted "
+                + "because it took longer than 100ms of wall-clock time."));
+  }
+
+  static final class MacroBenchmarkWithLongBeforeRep {
+    @BeforeRep
+    public void beforeRepMuchLongerThanBenchmark() {
+      Uninterruptibles.sleepUninterruptibly(100, TimeUnit.MILLISECONDS);
+    }
+
+    @Benchmark
+    long prettyFastMacroBenchmark() {
+      return spin();
     }
   }
 }

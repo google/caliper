@@ -281,7 +281,7 @@ public class CopyArrayBenchmark {
   @Benchmark int objects(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(objectArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(objectArray));
     }
     return dummy;
   }
@@ -289,7 +289,7 @@ public class CopyArrayBenchmark {
   @Benchmark int booleans(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(booleanArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(booleanArray));
     }
     return dummy;
   }
@@ -297,7 +297,7 @@ public class CopyArrayBenchmark {
   @Benchmark int bytes(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(byteArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(byteArray));
     }
     return dummy;
   }
@@ -305,7 +305,7 @@ public class CopyArrayBenchmark {
   @Benchmark int chars(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(charArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(charArray));
     }
     return dummy;
   }
@@ -313,7 +313,7 @@ public class CopyArrayBenchmark {
   @Benchmark int doubles(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(doubleArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(doubleArray));
     }
     return dummy;
   }
@@ -321,7 +321,7 @@ public class CopyArrayBenchmark {
   @Benchmark int floats(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(floatArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(floatArray));
     }
     return dummy;
   }
@@ -329,7 +329,7 @@ public class CopyArrayBenchmark {
   @Benchmark int ints(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(intArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(intArray));
     }
     return dummy;
   }
@@ -337,7 +337,7 @@ public class CopyArrayBenchmark {
   @Benchmark int longs(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(longArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(longArray));
     }
     return dummy;
   }
@@ -345,7 +345,7 @@ public class CopyArrayBenchmark {
   @Benchmark int shorts(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.copy(shortArray).hashCode();
+      dummy += System.identityHashCode(strategy.copy(shortArray));
     }
     return dummy;
   }

@@ -17,13 +17,12 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.caliper.bridge.CaliperControlLogMessage;
 import com.google.caliper.bridge.LogMessage;
-import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.runner.ServerSocketService.OpenedSocket;
+import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.bridge.StopMeasurementLogMessage;
+import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.StreamService.StreamItem.Kind;
 import com.google.caliper.util.Parser;
-import com.google.caliper.util.Stdout;
 import com.google.common.base.Objects;
 import com.google.common.base.Objects.ToStringHelper;
 import com.google.common.collect.Queues;
@@ -36,13 +35,13 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service; // for javadoc
 import com.google.common.util.concurrent.Service.State; // for javadoc
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.common.util.concurrent.Uninterruptibles;
 import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.Reader;
-import java.io.Writer;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.ParseException;
 import java.util.concurrent.BlockingQueue;
@@ -72,7 +71,7 @@ import javax.annotation.Nullable;
  *   <li>{@linkplain State#FAILED FAILED} : The service will transition to failed if it encounters
  *       any errors while reading from or writing to the streams, service failure will also cause 
  *       the worker process to be forcibly shutdown and {@link #readItem(long, TimeUnit)}, 
- *       {@link #closeWriter()} and {@link #writeLine(String)} will start throwing 
+ *       {@link #closeWriter()} and {@link #sendMessage(Serializable)} will start throwing 
  *       IllegalStateExceptions. 
  * </ul>
  */
@@ -82,7 +81,9 @@ import javax.annotation.Nullable;
 
   private static final Logger logger = Logger.getLogger(StreamService.class.getName());
   private static final StreamItem TIMEOUT_ITEM = new StreamItem(Kind.TIMEOUT, null);
-  private static final StreamItem EOF_ITEM = new StreamItem(Kind.EOF, null);
+
+  /** The final item that will be sent down the stream. */
+  static final StreamItem EOF_ITEM = new StreamItem(Kind.EOF, null);
 
   private final ListeningExecutorService streamExecutor = MoreExecutors.listeningDecorator(
       Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
@@ -90,9 +91,7 @@ import javax.annotation.Nullable;
   private final WorkerProcess worker;
   private volatile Process process;
   private final Parser<LogMessage> logMessageParser;
-  private final CaliperOptions options;
-  private final PrintWriter stdout;
-  private final int trialNumber;
+  private final TrialOutputLogger trialOutput;
   
   /** 
    * This represents the number of open streams from the users perspective.  i.e. can you still
@@ -108,22 +107,19 @@ import javax.annotation.Nullable;
    * queue.
    */
   private final AtomicInteger runningReadStreams = new AtomicInteger();
-  private Writer socketWriter;
-  
+  private OpenedSocket.Writer socketWriter;
+
   @Inject StreamService(WorkerProcess worker,
-      @TrialNumber int trialNumber, 
       Parser<LogMessage> logMessageParser, 
-      CaliperOptions options, 
-      @Stdout PrintWriter stdout) {
+      TrialOutputLogger trialOutput) {
     this.worker = worker;
-    this.trialNumber = trialNumber;
     this.logMessageParser = logMessageParser;
-    this.options = options;
-    this.stdout = stdout;
+    this.trialOutput = trialOutput;
   }
-  
+
   @Override protected void doStart() {
     try {
+      // TODO(lukes): write the commandline to the trial output file?
       process = worker.startWorker();
     } catch (IOException e) {
       notifyFailed(e);
@@ -164,25 +160,26 @@ import javax.annotation.Nullable;
     openStreams.addAndGet(1);
     streamExecutor.submit(
         threadRenaming("worker-stderr", 
-            new StreamReader(new InputStreamReader(process.getErrorStream(), processCharset))));
+            new StreamReader("stderr", 
+                new InputStreamReader(process.getErrorStream(), processCharset))));
     streamExecutor.submit(
         threadRenaming("worker-stdout",
-            new StreamReader(new InputStreamReader(process.getInputStream(), processCharset))));
+            new StreamReader("stdout", 
+                new InputStreamReader(process.getInputStream(), processCharset))));
     worker.socketFuture().addListener(
         new Runnable() {
           @Override public void run() {
             try {
-              OpenedSocket openedSocket = worker.socketFuture().get();
+              OpenedSocket openedSocket =
+                  Uninterruptibles.getUninterruptibly(worker.socketFuture());
               logger.fine("successfully opened the pipe from the worker");
               socketWriter = openedSocket.writer();
               runningReadStreams.addAndGet(1);
               openStreams.addAndGet(1);
               streamExecutor.submit(threadRenaming("worker-socket",
-                  new StreamReader(openedSocket.reader())));
+                  new SocketStreamReader(openedSocket.reader())));
             } catch (ExecutionException e) {
               notifyFailed(e.getCause());
-            } catch (InterruptedException e) {
-              throw new AssertionError("impossible, future is already done.");
             }
           }
         },
@@ -206,17 +203,16 @@ import javax.annotation.Nullable;
   /**
    * Write a line of data to the worker process over the socket.
    *
-   * <p>N.B. Writing data via {@link #writeLine(String)} is only valid once the underlying socket
-   * has been opened.  This should be fine assuming that socket writes are only in response to
-   * socket eads (which is currently the case), so there is no way that a write could happen prior
-   * to the socket being opened.
+   * <p>N.B. Writing data via {@link #sendMessage(Serializable)} is only valid once the underlying
+   * socket has been opened.  This should be fine assuming that socket writes are only in response
+   * to socket reads (which is currently the case), so there is no way that a write could happen
+   * prior to the socket being opened.
   */
-  void writeLine(String line) throws IOException {
+  void sendMessage(Serializable message) throws IOException {
     checkState(isRunning(), "Cannot read items from a %s StreamService", state());
     checkState(socketWriter != null, "Attempted to write to the socket before it was opened.");
     try {
-      socketWriter.write(line);
-      socketWriter.write('\n');
+      socketWriter.write(message);
       // We need to flush since this is a back and forth lockstep protocol, buffering can cause 
       // deadlock! 
       socketWriter.flush();
@@ -316,7 +312,7 @@ import javax.annotation.Nullable;
     
     /** Returns the content.  This is only valid if {@link #kind()} return {@link Kind#DATA}. */
     LogMessage content() {
-      checkState(kind == Kind.DATA, "Only data lines have content");
+      checkState(kind == Kind.DATA, "Only data lines have content: %s", this);
       return logMessage;
     }
     
@@ -359,8 +355,10 @@ import javax.annotation.Nullable;
    */
   private final class StreamReader implements Callable<Void> {
     final Reader reader;
+    final String streamName;
 
-    StreamReader(Reader reader) {
+    StreamReader(String streamName, Reader reader) {
+      this.streamName = streamName;
       this.reader = reader;
     }
     
@@ -370,20 +368,67 @@ import javax.annotation.Nullable;
       try {
         String line;
         while ((line = lineReader.readLine()) != null) {
+          trialOutput.log(streamName, line);
           LogMessage logMessage = logMessageParser.parse(line);
-          if (options.verbose() && !(logMessage instanceof CaliperControlLogMessage)) {
-            stdout.printf("[trial-%d] %s%n", trialNumber, line);
+          if (logMessage != null) {
+            outputQueue.put(new StreamItem(logMessage));
           }
-          outputQueue.put(new StreamItem(logMessage));
         }
         threw = false;
-      } catch (IOException e) {
+      } catch (Exception e) {
         notifyFailed(e);
       } finally {
         closeReadStream();
         Closeables.close(reader, threw);
       }
       return null;
+    }
+  }
+  
+  /**
+   * A background task that reads lines of text from a {@link OpenedSocket.Reader} and puts them
+   * onto a {@link BlockingQueue}.
+   */
+  private final class SocketStreamReader implements Callable<Void> {
+    final OpenedSocket.Reader reader;
+
+    SocketStreamReader(OpenedSocket.Reader reader) {
+      this.reader = reader;
+    }
+    
+    @Override public Void call() throws IOException, InterruptedException, ParseException {
+      boolean threw = true;
+      try {
+        Object obj;
+        while ((obj = reader.read()) != null) {
+          if (obj instanceof String) {
+            log(obj.toString());
+            continue;
+          } 
+          LogMessage message = (LogMessage) obj;
+          if (message instanceof StopMeasurementLogMessage) {
+            // TODO(lukes): how useful are these messages?  They seem like leftover debugging info
+            for (Measurement measurement : ((StopMeasurementLogMessage) message).measurements()) {
+              log(String.format("I got a result! %s: %f%s%n",
+                  measurement.description(),
+                  measurement.value().magnitude() / measurement.weight(), 
+                  measurement.value().unit()));
+            }
+          }
+          outputQueue.put(new StreamItem(message));
+        }
+        threw = false;
+      } catch (Exception e) {
+        notifyFailed(e);
+      } finally {
+        closeReadStream();
+        Closeables.close(reader, threw);
+      }
+      return null;
+    }
+
+    private void log(String text) {
+      trialOutput.log("socket", text);
     }
   }
 }

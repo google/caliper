@@ -1,17 +1,16 @@
 package com.google.caliper.runner;
 
+import com.google.caliper.bridge.LogMessage;
+import com.google.caliper.bridge.LogMessageVisitor;
+import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
-import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableMap;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -107,6 +106,28 @@ final class FakeWorkers {
     }
   }
   
+  static final class DummyLogMessage extends LogMessage implements Serializable {
+    private final String content;
+
+    DummyLogMessage(String content) {
+      this.content = content;
+    }
+
+    @Override public void accept(LogMessageVisitor visitor) {}
+
+    @Override public String toString() {
+      return content;
+    }
+
+    @Override public boolean equals(Object obj) {
+      return obj instanceof DummyLogMessage && ((DummyLogMessage) obj).content.equals(content);
+    }
+
+    @Override public int hashCode() {
+      return content.hashCode();
+    }
+  }
+  
   /** 
    * Connects to a socket on localhost on the port provided as the first argument and echos all 
    * data.
@@ -114,22 +135,21 @@ final class FakeWorkers {
    * <p>Once the connection has been closed it prints the remaining args to stdout
    */
   static final class SocketEchoClient {
-    public static void main(String[] args) throws UnknownHostException, IOException {
+    public static void main(String[] args) throws Exception {
       int port = Integer.parseInt(args[0]);
-      Socket socket = new Socket(InetAddress.getLocalHost(), port);
-      socket.setTcpNoDelay(true);
-      BufferedReader reader = 
-          new BufferedReader(new InputStreamReader(socket.getInputStream(), Charsets.UTF_8));
-      OutputStreamWriter writer = 
-          new OutputStreamWriter(socket.getOutputStream(), Charsets.UTF_8);
-      writer.write("start\n");
+      OpenedSocket openedSocket = OpenedSocket.fromSocket(
+          new Socket(InetAddress.getLocalHost(), port));
+      OpenedSocket.Reader reader = openedSocket.reader();
+      OpenedSocket.Writer writer = openedSocket.writer();
+      writer.write(new DummyLogMessage("start"));
       writer.flush();
-      String line;
-      while ((line = reader.readLine()) != null) {
-        writer.write(line + "\n");
+      Serializable obj;
+      while ((obj = reader.read()) != null) {
+        writer.write(obj);
         writer.flush();
       }
-      socket.close();
+      writer.close();
+      reader.close();
       for (int i = 1; i < args.length; i++) {
         System.out.println(args[i]);
         System.out.flush();

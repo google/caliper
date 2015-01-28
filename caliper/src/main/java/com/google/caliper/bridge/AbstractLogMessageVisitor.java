@@ -23,8 +23,6 @@ package com.google.caliper.bridge;
 public abstract class AbstractLogMessageVisitor implements LogMessageVisitor {
   @Override public void visit(GcLogMessage logMessage) {}
 
-  @Override public void visit(GenericLogMessage logMessage) {}
-
   @Override public void visit(FailureLogMessage logMessage) {}
 
   @Override public void visit(HotspotLogMessage logMessage) {}

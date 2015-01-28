@@ -17,7 +17,6 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.util.Parser;
-import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 
@@ -27,17 +26,10 @@ import com.google.inject.Provides;
  */
 public final class BridgeModule extends AbstractModule {
   @Override protected void configure() {
-    requireBinding(Gson.class);
     bind(LogMessageParser.class);
-    bind(ControlLogMessageRenderer.class);
   }
 
   @Provides Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
     return parser;
-  }
-
-  @Provides Renderer<CaliperControlLogMessage> provideControlLogMessageRenderer(
-      ControlLogMessageRenderer renderer) {
-    return renderer;
   }
 }

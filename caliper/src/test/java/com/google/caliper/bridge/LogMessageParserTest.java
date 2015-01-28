@@ -27,7 +27,6 @@ import com.google.caliper.json.GsonModule;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.io.Resources;
 import com.google.inject.Guice;
-import com.google.inject.Inject;
 import com.google.inject.Injector;
 
 import org.junit.Before;
@@ -36,6 +35,8 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 import java.util.List;
+
+import javax.inject.Inject;
 
 /**
  * Tests {@link LogMessageParser}.

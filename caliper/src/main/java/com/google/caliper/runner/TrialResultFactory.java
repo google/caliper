@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2013 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.google.caliper.runner;
 
-package com.google.caliper.bridge;
+import com.google.caliper.model.Trial;
+import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 
-
-/**
- * A message representing generic, miscellaneous output.
+/** 
+ * A factory for producing {@link TrialResult TrialResults} based on data collected from visitors.
  */
-public final class GenericLogMessage extends LogMessage {
-  // TODO(gak): retain the text?
-  GenericLogMessage() {}
-
-  @Override
-  public void accept(LogMessageVisitor visitor) {
-    visitor.visit(this);
-  }
+interface TrialResultFactory {
+  /** Returns a new {@link Trial}. */
+  TrialResult newTrialResult(VmDataCollectingVisitor vmData, 
+      MeasurementCollectingVisitor measurementData);
 }

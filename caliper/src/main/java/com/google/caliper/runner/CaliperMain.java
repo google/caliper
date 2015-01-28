@@ -39,6 +39,8 @@ import com.google.inject.spi.Message;
 
 import java.io.PrintWriter;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.annotation.Nullable;
 
@@ -139,7 +141,13 @@ public final class CaliperMain {
         CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
         run.run(); // throws IBE
       } finally {
-        serviceManager.stopAsync();
+        try {
+          // We have some shutdown logic to ensure that files are cleaned up so give it a chance to
+          // run
+          serviceManager.stopAsync().awaitStopped(10, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+          // Thats fine
+        }
       }
     } catch (CreationException e) {
       propogateIfCaliperException(e.getCause());

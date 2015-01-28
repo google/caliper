@@ -26,15 +26,17 @@ import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 import com.google.caliper.runner.StreamService.StreamItem;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Throwables;
 import com.google.common.util.concurrent.Service.State;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
 
 import org.joda.time.Duration;
 
 import java.io.IOException;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
 
 /**
  * The main data gather control loop for a Trial.
@@ -42,7 +44,7 @@ import java.util.logging.Logger;
  * <p>This class starts the worker process, reads all the data from it and constructs the
  * {@link Trial} while enforcing the trial timeout.
  */
-@TrialScoped class TrialRunLoop implements Callable<Trial> {
+@TrialScoped class TrialRunLoop implements Callable<TrialResult> {
   private static final Logger logger = Logger.getLogger(TrialRunLoop.class.getName());
 
   /** The time that the worker has to clean up after an experiment. */
@@ -50,41 +52,60 @@ import java.util.logging.Logger;
 
   private final CaliperOptions options;
   private final StreamService streamService;
-  private final Gson gson;
-  private final TrialFactory trialFactory;
+  private final TrialResultFactory trialFactory;
 
   // TODO(lukes): The VmDataCollectingVisitor should be able to tell us when it has collected all
   // its data.
   private final VmDataCollectingVisitor dataCollectingVisitor = new VmDataCollectingVisitor();
   private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
   private final MeasurementCollectingVisitor measurementCollectingVisitor;
+  private final TrialOutputLogger trialOutput;
 
   @Inject TrialRunLoop(
       MeasurementCollectingVisitor measurementCollectingVisitor,
       CaliperOptions options,
-      TrialFactory trialFactory,
-      Gson gson,
+      TrialResultFactory trialFactory,
+      TrialOutputLogger trialOutput,
       StreamService streamService) {
     this.options = options;
     this.trialFactory = trialFactory;
-    this.gson = gson;
     this.streamService = streamService;
     this.measurementCollectingVisitor = measurementCollectingVisitor; 
+    this.trialOutput = trialOutput;
   }
 
-  @Override public Trial call() throws TrialFailureException, IOException {
+  @Override public TrialResult call() throws TrialFailureException, IOException {
     if (streamService.state() != State.NEW) {
       throw new IllegalStateException("You can only invoke the run loop once");
     }
+    trialOutput.open();
+    trialOutput.printHeader();
     streamService.startAsync().awaitRunning();
     try {
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
       boolean doneCollecting = false;
       boolean done = false;
       while (!done) {
-        StreamItem item = streamService.readItem(
-            timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS), 
-            NANOSECONDS);
+        StreamItem item;
+        try {
+          item = streamService.readItem(
+              timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS), 
+              NANOSECONDS);
+        } catch (InterruptedException e) {
+          trialOutput.ensureFileIsSaved();
+          // Someone has asked us to stop (via Futures.cancel?).
+          if (doneCollecting) {
+            logger.log(Level.WARNING, "Trial cancelled before completing normally (but after "
+                + "collecting sufficient data). Inspect {0} to see any worker output", 
+                trialOutput.trialOutputFile());
+            done = true;
+            break;
+          }
+          // We were asked to stop but we didn't actually finish (the normal case).  Fail the trial.
+          throw new TrialFailureException(
+              String.format("Trial cancelled.  Inspect %s to see any worker output.",
+                trialOutput.trialOutputFile()));
+        }
         switch (item.kind()) {
           case DATA:
             LogMessage logMessage = item.content();
@@ -110,7 +131,10 @@ import java.util.logging.Logger;
               // blocking manner to keep this thread only blocking in one place.  This would 
               // complicate error handling, but may increase performance since it would free this
               // thread up to handle other messages
-              streamService.writeLine(gson.toJson(new ShouldContinueMessage(!doneCollecting)));
+              streamService.sendMessage(
+                  new ShouldContinueMessage(
+                      !doneCollecting,
+                      measurementCollectingVisitor.isWarmupComplete()));
               if (doneCollecting) {
                 streamService.closeWriter();
               }
@@ -119,33 +143,47 @@ import java.util.logging.Logger;
           case EOF:
             // We consider EOF to be synonymous with worker shutdown
             if (!doneCollecting) {
-              throw new TrialFailureException("The worker exited without producing data. It has "
-                  + "likely crashed. Run with --verbose to see any worker output.");
+              trialOutput.ensureFileIsSaved();
+              throw new TrialFailureException(String.format("The worker exited without producing "
+                  + "data. It has likely crashed. Inspect %s to see any worker output.", 
+                  trialOutput.trialOutputFile()));
             }
             done = true;
             break;
           case TIMEOUT:
+            trialOutput.ensureFileIsSaved();
             if (doneCollecting) {
               // Should this be an error?
-              logger.warning("Worker failed to exit cleanly within the alloted time.");  
+              logger.log(Level.WARNING, "Worker failed to exit cleanly within the alloted time. "
+                  + "Inspect {0} to see any worker output", trialOutput.trialOutputFile());
               done = true;
             } else {
               throw new TrialFailureException(String.format(
                   "Trial exceeded the total allowable runtime (%s). "
-                      + "The limit may be adjusted using the --time-limit flag.",
-                      options.timeLimit()));
+                      + "The limit may be adjusted using the --time-limit flag.  Inspect %s to "
+                      + "see any worker output",
+                      options.timeLimit(), trialOutput.trialOutputFile()));
             }
             break;
           default:
             throw new AssertionError("Impossible item: " + item);
         }
       }
-      return trialFactory.newTrial(dataCollectingVisitor, measurementCollectingVisitor);
-    } catch (InterruptedException e) {
-      throw new AssertionError();
+      return trialFactory.newTrialResult(dataCollectingVisitor, measurementCollectingVisitor);
+    } catch (Throwable e) {
+      Throwables.propagateIfInstanceOf(e, TrialFailureException.class);
+      // This is some failure that is not a TrialFailureException, let the exception propagate but
+      // log the filename for the user. 
+      trialOutput.ensureFileIsSaved();
+      logger.severe(
+          String.format(
+              "Unexpected error while executing trial. Inspect %s to see any worker output.", 
+              trialOutput.trialOutputFile()));
+      throw Throwables.propagate(e);
     } finally {
       trialStopwatch.reset();
       streamService.stopAsync();
+      trialOutput.close();
     }
   }
 

@@ -61,7 +61,7 @@ public final class ExperimentModule extends AbstractModule {
       throws ClassNotFoundException {
     Class<?> benchmarkClass = Class.forName(spec.benchmarkSpec.className());
     Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(),
-        spec.methodParameterClassNames);
+        spec.methodParameterClasses);
     benchmarkMethod.setAccessible(true);
     return new ExperimentModule(benchmarkClass, benchmarkMethod, spec.benchmarkSpec.parameters());
   }
@@ -110,40 +110,15 @@ public final class ExperimentModule extends AbstractModule {
   }
 
   private static Method findBenchmarkMethod(Class<?> benchmark, String methodName,
-      ImmutableList<String> methodParameterClassNames) {
-    // Annoyingly Class.forName doesn't work for primitives so we can't convert these classnames
-    // back into Class objects in order to call getDeclaredMethod(String, Class<?>...classes).
-    // Instead we just match on names which should be just as unique.
-    Method found = null;
-    for (Method method : benchmark.getDeclaredMethods()) {
-      if (method.getName().equals(methodName)) {
-        if (methodParameterClassNames.equals(toClassNames(method.getParameterTypes()))) {
-          if (found == null) {
-            found = method;
-          } else {
-            throw new AssertionError(String.format(
-                "Found two methods named %s with the same list of parameters: %s",
-                methodName,
-                methodParameterClassNames));
-          }
-        }
-      }
+      ImmutableList<Class<?>> methodParameterClasses) {
+    Class<?>[] params = methodParameterClasses.toArray(new Class[methodParameterClasses.size()]);
+    try {
+      return benchmark.getDeclaredMethod(methodName, params);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    } catch (SecurityException e) {
+      // assertion error?
+      throw new RuntimeException(e);
     }
-    if (found == null) {
-      throw new AssertionError(String.format(
-          "Could not find method %s in class %s with these parameters %s",
-          methodName,
-          benchmark,
-          methodParameterClassNames));
-    }
-    return found;
-  }
-
-  private static ImmutableList<String> toClassNames(Class<?>[] classes) {
-    ImmutableList.Builder<String> classNames = ImmutableList.builder();
-    for (Class<?> parameterType : classes) {
-      classNames.add(parameterType.getName());
-    }
-    return classNames.build();
   }
 }

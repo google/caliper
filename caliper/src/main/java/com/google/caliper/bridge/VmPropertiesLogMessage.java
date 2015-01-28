@@ -22,12 +22,15 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import java.io.Serializable;
 
 /**
  * A message containing a selection of {@link System#getProperties() system properties} from the
  * worker JVM.
  */
-public class VmPropertiesLogMessage extends CaliperControlLogMessage {
+public class VmPropertiesLogMessage extends LogMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private final ImmutableMap<String, String> properties;
 
   public VmPropertiesLogMessage() {

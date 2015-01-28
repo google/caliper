@@ -87,7 +87,6 @@ public class ParsedOptionsTest extends TestCase {
     assertEquals(expectedInstruments, options.instrumentNames());
     assertEquals(1, options.trialsPerScenario());
     assertTrue(options.userParameters().isEmpty());
-    assertFalse(options.verbose());
     assertFalse(options.printConfiguration());
     assertTrue(options.vmArguments().isEmpty());
     assertEquals(0, options.vmNames().size());
@@ -104,7 +103,6 @@ public class ParsedOptionsTest extends TestCase {
         "-Dy=b;d",
         "-Csome.property=value",
         "-Csome.other.property=other-value",
-        "--verbose",
         "--print-config",
         "-JmemoryMax=-Xmx32m;-Xmx64m",
         "--vm=testVm",
@@ -124,7 +122,6 @@ public class ParsedOptionsTest extends TestCase {
         options.userParameters());
     assertEquals(ImmutableMap.of("some.property", "value", "some.other.property", "other-value"),
         options.configProperties());
-    assertTrue(options.verbose());
     assertTrue(options.printConfiguration());
     assertEquals(ImmutableSetMultimap.of("memoryMax", "-Xmx32m", "memoryMax", "-Xmx64m"),
         options.vmArguments());

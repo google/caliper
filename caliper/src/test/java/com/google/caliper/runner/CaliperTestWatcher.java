@@ -7,10 +7,12 @@ import com.google.caliper.model.Trial;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.io.Files;
 
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
@@ -27,10 +29,10 @@ import java.util.List;
  */
 public final class CaliperTestWatcher extends TestWatcher {
   // N.B. StringWriter is internally synchronized and is safe to write to from multiple threads.
-  private StringWriter output;
+  private StringWriter stdout;
   private final StringWriter stderr = new StringWriter();
+  private File workerOutput;
 
-  private boolean verbose = true;
   private String instrument;
   private Class<?> benchmarkClass;
   private List<String> extraOptions = Lists.newArrayList();
@@ -45,11 +47,6 @@ public final class CaliperTestWatcher extends TestWatcher {
     return this;
   }
   
-  CaliperTestWatcher verbose(boolean verbose) {
-    this.verbose = verbose;
-    return this;
-  }
-  
   CaliperTestWatcher options(String... extraOptions) {
     this.extraOptions = Arrays.asList(extraOptions);
     return this;
@@ -58,30 +55,39 @@ public final class CaliperTestWatcher extends TestWatcher {
   void run() throws InvalidCommandException, InvalidBenchmarkException, 
       InvalidConfigurationException {
     checkState(benchmarkClass != null, "You must configure a benchmark!");
+    workerOutput = Files.createTempDir();
+    // configure a custom dir so the files aren't deleted when CaliperMain returns
     List<String> options = Lists.newArrayList(
+        "-Cworker.output=" + workerOutput.getPath(),
         "-Cresults.file.class=",
         "-Cresults.upload.class=" + InMemoryResultsUploader.class.getName());
     if (instrument != null) {
       options.add("-i");
       options.add(instrument);
     }
-    if (verbose) {
-      options.add("-v");
-    }
     options.addAll(extraOptions);
     options.add(benchmarkClass.getName());
-    this.output = new StringWriter();
+    this.stdout = new StringWriter();
     CaliperMain.exitlessMain(
         options.toArray(new String[0]),
-        new PrintWriter(output,  true),
+        new PrintWriter(stdout,  true),
         new PrintWriter(stderr,  true));
   }
 
+  @Override protected void finished(Description description) {
+    if (workerOutput != null) {
+      for (File f : workerOutput.listFiles()) {
+        f.delete();
+      }
+      workerOutput.delete();
+    }
+  }
+  
   @Override protected void failed(Throwable e, Description description) {
     // don't log if run was never called.
-    if (output != null) {
+    if (stdout != null) {
       System.err.println("Caliper failed with the following output (stdout):\n"
-          + output.toString() + "stderr:\n" + stderr.toString());
+          + stdout.toString() + "stderr:\n" + stderr.toString());
     }
   }
   
@@ -91,5 +97,13 @@ public final class CaliperTestWatcher extends TestWatcher {
 
   public StringWriter getStderr() {
     return stderr;
+  }
+  
+  public StringWriter getStdout() {
+    return stdout;
+  }
+  
+  File workerOutputDirectory() {
+    return workerOutput;
   }
 }

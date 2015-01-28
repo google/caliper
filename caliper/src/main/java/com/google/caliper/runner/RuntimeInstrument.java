@@ -15,6 +15,7 @@
 package com.google.caliper.runner;
 
 import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
+import static com.google.caliper.runner.CommonInstrumentOptions.MAX_WARMUP_WALL_TIME_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.WARMUP_OPTION;
 import static com.google.caliper.util.Reflection.getAnnotatedMethods;
@@ -23,6 +24,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.Benchmark;
@@ -37,23 +39,20 @@ import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.util.ShortDuration;
-import com.google.caliper.util.Stderr;
-import com.google.caliper.util.Stdout;
 import com.google.caliper.worker.MacrobenchmarkWorker;
 import com.google.caliper.worker.RuntimeWorker;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.inject.Inject;
 
-import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
@@ -68,17 +67,11 @@ class RuntimeInstrument extends Instrument {
 
   private static final Logger logger = Logger.getLogger(RuntimeInstrument.class.getName());
 
-
-  private final PrintWriter stdout;
-  private final PrintWriter stderr;
   private final ShortDuration nanoTimeGranularity;
 
   @Inject
-  RuntimeInstrument(@NanoTimeGranularity ShortDuration nanoTimeGranularity,
-      @Stdout PrintWriter stdout, @Stderr PrintWriter stderr) {
+  RuntimeInstrument(@NanoTimeGranularity ShortDuration nanoTimeGranularity) {
     this.nanoTimeGranularity = nanoTimeGranularity;
-    this.stdout = stdout;
-    this.stderr = stderr;
   }
 
   @Override
@@ -91,8 +84,8 @@ class RuntimeInstrument extends Instrument {
   @Override
   protected ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(
-        WARMUP_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION, GC_BEFORE_EACH_OPTION,
-        SUGGEST_GRANULARITY_OPTION);
+        WARMUP_OPTION, MAX_WARMUP_WALL_TIME_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION,
+        GC_BEFORE_EACH_OPTION, SUGGEST_GRANULARITY_OPTION);
   }
 
   @Override
@@ -161,8 +154,18 @@ class RuntimeInstrument extends Instrument {
     MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
       return new SingleInvocationMeasurementCollector(
           Integer.parseInt(options.get(MEASUREMENTS_OPTION)),
-          ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+          ShortDuration.valueOf(options.get(WARMUP_OPTION)),
+          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)),
+          nanoTimeGranularity);
     }
+  }
+
+  @Override public TrialSchedulingPolicy schedulingPolicy() {
+    // Runtime measurements are currently believed to be too sensitive to system performance to
+    // allow parallel runners.
+    // TODO(lukes): investigate this, on a multicore system it seems like we should be able to
+    // allow some parallelism without corrupting results.
+    return TrialSchedulingPolicy.SERIAL;
   }
 
   private abstract class RuntimeInstrumentation extends Instrumentation {
@@ -190,12 +193,16 @@ class RuntimeInstrument extends Instrument {
 
     private String toNanosString(String optionName) {
       return String.valueOf(
-          ShortDuration.valueOf(options.get(optionName)).to(TimeUnit.NANOSECONDS));
+          ShortDuration.valueOf(options.get(optionName)).to(NANOSECONDS));
     }
 
     @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
       return new RepBasedMeasurementCollector(
-          getMeasurementsPerTrial(), ShortDuration.valueOf(options.get(WARMUP_OPTION)));
+          getMeasurementsPerTrial(),
+          ShortDuration.valueOf(options.get(WARMUP_OPTION)),
+          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)),
+          Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION)),
+          nanoTimeGranularity);
     }
   }
 
@@ -229,10 +236,11 @@ class RuntimeInstrument extends Instrument {
     }
   }
 
-  private abstract class RuntimeMeasurementCollector extends AbstractLogMessageVisitor
+  private abstract static class RuntimeMeasurementCollector extends AbstractLogMessageVisitor
       implements MeasurementCollectingVisitor {
     final int targetMeasurements;
     final ShortDuration warmup;
+    final ShortDuration maxWarmupWallTime;
     final List<Measurement> measurements = Lists.newArrayList();
     ShortDuration elapsedWarmup = ShortDuration.zero();
     boolean measuring = false;
@@ -240,15 +248,24 @@ class RuntimeInstrument extends Instrument {
     boolean notifiedAboutGc = false;
     boolean notifiedAboutJit = false;
     boolean notifiedAboutMeasuringJit = false;
+    Stopwatch timeSinceStartOfTrial = Stopwatch.createUnstarted();
+    final List<String> messages = Lists.newArrayList();
+    final ShortDuration nanoTimeGranularity;
 
-    RuntimeMeasurementCollector(int targetMeasurements, ShortDuration warmup) {
+    RuntimeMeasurementCollector(
+        int targetMeasurements,
+        ShortDuration warmup,
+        ShortDuration maxWarmupWallTime,
+        ShortDuration nanoTimeGranularity) {
       this.targetMeasurements = targetMeasurements;
       this.warmup = warmup;
+      this.maxWarmupWallTime = maxWarmupWallTime;
+      this.nanoTimeGranularity = nanoTimeGranularity;
     }
 
     @Override
     public void visit(GcLogMessage logMessage) {
-      if (measuring && !isInWarmup() && !notifiedAboutGc) {
+      if (measuring && isWarmupComplete() && !notifiedAboutGc) {
         gcWhileMeasuring();
         notifiedAboutGc = true;
       }
@@ -258,7 +275,7 @@ class RuntimeInstrument extends Instrument {
 
     @Override
     public void visit(HotspotLogMessage logMessage) {
-      if (!isInWarmup()) {
+      if (isWarmupComplete()) {
         if (measuring && notifiedAboutMeasuringJit) {
           hotspotWhileMeasuring();
           notifiedAboutMeasuringJit = true;
@@ -277,13 +294,16 @@ class RuntimeInstrument extends Instrument {
     public void visit(StartMeasurementLogMessage logMessage) {
       checkState(!measuring);
       measuring = true;
+      if (!timeSinceStartOfTrial.isRunning()) {
+        timeSinceStartOfTrial.start();
+      }
     }
 
     @Override
     public void visit(StopMeasurementLogMessage logMessage) {
       checkState(measuring);
       ImmutableList<Measurement> newMeasurements = logMessage.measurements();
-      if (isInWarmup()) {
+      if (!isWarmupComplete()) {
         for (Measurement measurement : newMeasurements) {
           // TODO(gak): eventually we will need to resolve different units
           checkArgument("ns".equals(measurement.value().unit()));
@@ -291,10 +311,20 @@ class RuntimeInstrument extends Instrument {
               ShortDuration.of(BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
           validateMeasurement(measurement);
         }
-      } else if (invalidateMeasurements) {
-        logger.fine(String.format("Discarding %s as they were marked invalid.", newMeasurements));
       } else {
-        this.measurements.addAll(newMeasurements);
+        if (!measuredWarmupDurationReached()) {
+          messages.add(String.format(
+              "WARNING: Warmup was interrupted because it took longer than %s of wall-clock time. "
+                  + "%s was spent in the benchmark method for warmup "
+                  + "(normal warmup duration should be %s).",
+              maxWarmupWallTime, elapsedWarmup, warmup));
+        }
+
+        if (invalidateMeasurements) {
+          logger.fine(String.format("Discarding %s as they were marked invalid.", newMeasurements));
+        } else {
+          this.measurements.addAll(newMeasurements);
+        }
       }
       invalidateMeasurements = false;
       measuring = false;
@@ -307,40 +337,63 @@ class RuntimeInstrument extends Instrument {
       return ImmutableList.copyOf(measurements);
     }
 
-    boolean isInWarmup() {
-      return elapsedWarmup.compareTo(warmup) < 0;
+    boolean measuredWarmupDurationReached() {
+      return elapsedWarmup.compareTo(warmup) >= 0;
+    }
+
+    @Override
+    public boolean isWarmupComplete() {
+      // Fast macro-benchmarks (up to tens of ms) need lots of measurements to reach 10s of
+      // measured warmup time. Because of the per-measurement overhead of running @BeforeRep and
+      // @AfterRep, warmup can take very long.
+      //
+      // To prevent this, we enforce a cap on the wall-clock time here.
+      return measuredWarmupDurationReached()
+          || timeSinceStartOfTrial.elapsed(MILLISECONDS) > maxWarmupWallTime.to(MILLISECONDS);
     }
 
     @Override
     public boolean isDoneCollecting() {
       return measurements.size() >= targetMeasurements;
     }
+
+    @Override
+    public ImmutableList<String> getMessages() {
+      return ImmutableList.copyOf(messages);
+    }
   }
 
-  private final class RepBasedMeasurementCollector extends RuntimeMeasurementCollector {
+  private static final class RepBasedMeasurementCollector extends RuntimeMeasurementCollector {
     final boolean suggestGranularity;
     boolean notifiedAboutGranularity = false;
 
-    RepBasedMeasurementCollector(int measurementsPerTrial, ShortDuration warmup) {
-      super(measurementsPerTrial, warmup);
-      this.suggestGranularity = Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION));
+    RepBasedMeasurementCollector(
+        int measurementsPerTrial,
+        ShortDuration warmup,
+        ShortDuration maxWarmupWallTime,
+        boolean suggestGranularity,
+        ShortDuration nanoTimeGranularity) {
+      super(measurementsPerTrial, warmup, maxWarmupWallTime, nanoTimeGranularity);
+      this.suggestGranularity = suggestGranularity;
     }
 
     @Override
     void gcWhileMeasuring() {
       invalidateMeasurements = true;
-      stderr.println("ERROR: GC occurred during timing.");
+      messages.add("ERROR: GC occurred during timing. Measurements were discarded.");
     }
 
     @Override
     void hotspotWhileMeasuring() {
-      stderr.println(
-          "ERROR: Hotspot compilation occurred during timing. Warmup is likely insufficent.");
+      invalidateMeasurements = true;
+      messages.add(
+          "ERROR: Hotspot compilation occurred during timing: warmup is likely insufficent. "
+              + "Measurements were discarded.");
     }
 
     @Override
     void hotspotWhileNotMeasuring() {
-      stdout.println(
+      messages.add(
           "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
                 + "Results may be affected. Run with --verbose to see which method was compiled.");
     }
@@ -352,38 +405,44 @@ class RuntimeInstrument extends Instrument {
         if (!notifiedAboutGranularity && ((nanos / 1000) > nanoTimeGranularity.to(NANOSECONDS))) {
           notifiedAboutGranularity = true;
           ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
-          stderr.printf("INFO: This experiment does not require a microbenchmark. "
+          messages.add(String.format("INFO: This experiment does not require a microbenchmark. "
               + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime. "
               + "If all experiments for this benchmark have runtimes greater than %s, "
-              + "consider the macrobenchmark instrument.%n", nanoTimeGranularity,
-              reasonableUpperBound);
+              + "consider the macrobenchmark instrument.", nanoTimeGranularity,
+              reasonableUpperBound));
         }
       }
     }
   }
 
-  private final class SingleInvocationMeasurementCollector extends RuntimeMeasurementCollector {
-    SingleInvocationMeasurementCollector(int measurementsPerTrial, ShortDuration warmup) {
-      super(measurementsPerTrial, warmup);
+  private static final class SingleInvocationMeasurementCollector
+      extends RuntimeMeasurementCollector {
+
+    SingleInvocationMeasurementCollector(
+        int measurementsPerTrial,
+        ShortDuration warmup,
+        ShortDuration maxWarmupWallTime,
+        ShortDuration nanoTimeGranularity) {
+      super(measurementsPerTrial, warmup, maxWarmupWallTime, nanoTimeGranularity);
     }
 
     @Override
     void gcWhileMeasuring() {
-      stderr.println("WARNING: GC occurred during timing. "
+      messages.add("WARNING: GC occurred during timing. "
           + "Depending on the scope of the benchmark, this might significantly impact results. "
           + "Consider running with a larger heap size.");
     }
 
     @Override
     void hotspotWhileMeasuring() {
-      stderr.println("WARNING: Hotspot compilation occurred during timing. "
+      messages.add("WARNING: Hotspot compilation occurred during timing. "
           + "Depending on the scope of the benchmark, this might significantly impact results. "
           + "Consider running with a longer warmup.");
     }
 
     @Override
     void hotspotWhileNotMeasuring() {
-      stderr.println(
+      messages.add(
           "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
               + "Depending on the scope of the benchmark, this might significantly impact results. "
               + "Consider running with a longer warmup.");
@@ -398,9 +457,10 @@ class RuntimeInstrument extends Instrument {
             "This experiment requires a microbenchmark. "
             + "The granularity of the timer (%s) "
             + "is greater than 0.1%% of the measured runtime (%s). "
-            + "Use the microbenchmark instrument for accurate measurements.%n",
+            + "Use the microbenchmark instrument for accurate measurements.",
             nanoTimeGranularity, runtime));
       }
     }
   }
 }
+

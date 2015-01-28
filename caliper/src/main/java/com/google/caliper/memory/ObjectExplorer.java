@@ -16,7 +16,6 @@
 
 package com.google.caliper.memory;
 
-import com.google.caliper.memory.ObjectVisitor.Traversal;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
@@ -26,13 +25,13 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.EnumSet;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.annotation.Nonnull;
 
@@ -104,7 +103,7 @@ public final class ObjectExplorer {
     while (!stack.isEmpty()) {
       Chain chain = stack.pop();
       //the only place where the return value of visit() is considered
-      Traversal traversal = visitor.visit(chain);
+      ObjectVisitor.Traversal traversal = visitor.visit(chain);
       switch (traversal) {
         case SKIP: continue;
         case EXPLORE: break;
@@ -140,7 +139,9 @@ public final class ObjectExplorer {
          * them to the stack in reverse order, so when we pop them, we get them in the original
          * (declaration) order.
          */
-        for (Field field : Lists.reverse(getAllFields(value))) {
+        final Field[] fields = getAllFields(value);
+        for (int j = fields.length - 1; j >= 0; j--) {
+          final Field field = fields[j];
           Object childValue = null;
           try {
             childValue = field.get(value);
@@ -194,11 +195,37 @@ public final class ObjectExplorer {
     }
   };
 
-  private static List<Field> getAllFields(Object o) {
-    List<Field> fields = Lists.newArrayListWithCapacity(8);
+  /**
+   * A cache of {@code Field}s that are accessible for a given {@code Class<?>}.
+   */
+  private static final ConcurrentHashMap<Class<?>, Field[]> clazzFields =
+      new ConcurrentHashMap<Class<?>, Field[]>();
+
+  private static Field[] getAllFields(Object o) {
     Class<?> clazz = o.getClass();
+    return getAllFields(clazz);
+  }
+
+  /**
+   * Keep a cache of fields per class of interest.
+   *
+   * @param clazz - the {@code Class<?>} to interrogate.
+   * @return An array of fields of the given class.
+   */
+  private static Field[] getAllFields(Class<?> clazz) {
+    Field[] f = clazzFields.get(clazz);
+    if (f == null) {
+      f = computeAllFields(clazz);
+      Field[] u = clazzFields.putIfAbsent(clazz, f);
+      return u == null ? f : u;
+    }
+    return f;
+  }
+
+  private static Field[] computeAllFields(Class<?> clazz) {
+    List<Field> fields = Lists.newArrayListWithCapacity(8);
     while (clazz != null) {
-      for (Field field : Arrays.asList(clazz.getDeclaredFields())) {
+      for (Field field : clazz.getDeclaredFields()) {
         // add only non-static fields
         if (!Modifier.isStatic(field.getModifiers())) {
           fields.add(field);
@@ -207,9 +234,10 @@ public final class ObjectExplorer {
       clazz = clazz.getSuperclass();
     }
 
-    //all together so there is only one security check
-    AccessibleObject.setAccessible(fields.toArray(new AccessibleObject[fields.size()]), true);
-    return fields;
+    // all together so there is only one security check
+    Field[] afields = fields.toArray(new Field[fields.size()]);
+    AccessibleObject.setAccessible(afields, true);
+    return afields;
   }
 
   /**

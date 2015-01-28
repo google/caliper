@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
@@ -25,6 +24,7 @@ import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
 import com.google.caliper.util.Stdout;
 import com.google.common.base.Function;
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
@@ -32,11 +32,11 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.rank.Percentile;
 
+import java.io.Closeable;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Map.Entry;
@@ -46,19 +46,52 @@ import java.util.Set;
  * Prints a brief summary of the results collected.  It does not contain the measurements themselves
  * as that is the responsibility of the webapp.
  */
-final class ConsoleResultProcessor implements ResultProcessor {
+final class ConsoleOutput implements Closeable {
   private final PrintWriter stdout;
 
-  private Set<InstrumentSpec> instrumentSpecs = Sets.newHashSet();
-  private Set<VmSpec> vmSpecs = Sets.newHashSet();
-  private Set<BenchmarkSpec> benchmarkSpecs = Sets.newHashSet();
+  private final Set<InstrumentSpec> instrumentSpecs = Sets.newHashSet();
+  private final Set<VmSpec> vmSpecs = Sets.newHashSet();
+  private final Set<BenchmarkSpec> benchmarkSpecs = Sets.newHashSet();
   private int numMeasurements = 0;
+  private int trialsCompleted = 0;
+  private final int numberOfTrials;
+  private final Stopwatch stopwatch;
 
-  @Inject ConsoleResultProcessor(@Stdout PrintWriter stdout) {
+
+  ConsoleOutput(@Stdout PrintWriter stdout, int numberOfTrials, Stopwatch stopwatch) {
     this.stdout = stdout;
+    this.numberOfTrials = numberOfTrials;
+    this.stopwatch = stopwatch;
   }
 
-  @Override public void processTrial(Trial trial) {
+  /**
+   * Prints a short message when we observe a trial failure.
+   */  
+  void processFailedTrial(TrialFailureException e) {
+    trialsCompleted++;
+    // TODO(lukes): it would be nice to print which trial failed.  Consider adding Experiment data
+    // to the TrialFailureException.
+    stdout.println(
+        "ERROR: Trial failed to complete (its results will not be included in the run):\n"
+            + "  " + e.getMessage());
+    stdout.flush();
+  }
+  
+  /**
+   * Prints a summary of a successful trial result.
+   */
+  void processTrial(TrialResult result) {
+    trialsCompleted++;
+    stdout.printf("Trial Report (%d of %d):%n  Experiment %s%n", 
+        trialsCompleted, numberOfTrials, result.getExperiment());
+    if (!result.getTrialMessages().isEmpty()) {
+      stdout.println("  Messages:");
+      for (String message : result.getTrialMessages()) {
+        stdout.print("    ");
+        stdout.println(message);
+      }
+    }
+    Trial trial = result.getTrial();
     ImmutableListMultimap<String, Measurement> measurementsIndex =
         new ImmutableListMultimap.Builder<String, Measurement>()
             .orderKeysBy(Ordering.natural())
@@ -68,6 +101,7 @@ final class ConsoleResultProcessor implements ResultProcessor {
               }
             }))
             .build();
+    stdout.println("  Results:");
     for (Entry<String, Collection<Measurement>> entry : measurementsIndex.asMap().entrySet()) {
       Collection<Measurement> measurements = entry.getValue();
       ImmutableSet<String> units = FluentIterable.from(measurements)
@@ -87,13 +121,13 @@ final class ConsoleResultProcessor implements ResultProcessor {
       DescriptiveStatistics descriptiveStatistics = new DescriptiveStatistics(weightedValues);
       String unit = Iterables.getOnlyElement(units);
       stdout.printf(
-          "  %s%s: min=%.2f, 1st qu.=%.2f, median=%.2f, mean=%.2f, 3rd qu.=%.2f, max=%.2f%n",
+          "    %s%s: min=%.2f, 1st qu.=%.2f, median=%.2f, mean=%.2f, 3rd qu.=%.2f, max=%.2f%n",
           entry.getKey(), unit.isEmpty() ? "" : "(" + unit + ")",
           descriptiveStatistics.getMin(), percentile.evaluate(25),
           percentile.evaluate(50), descriptiveStatistics.getMean(),
           percentile.evaluate(75), descriptiveStatistics.getMax());
     }
-
+    
     instrumentSpecs.add(trial.instrumentSpec());
     Scenario scenario = trial.scenario();
     vmSpecs.add(scenario.vmSpec());
@@ -102,10 +136,14 @@ final class ConsoleResultProcessor implements ResultProcessor {
   }
 
   @Override public void close() {
-    stdout.printf("Collected %d measurements from:%n", numMeasurements);
-    stdout.printf("  %d instrument(s)%n", instrumentSpecs.size());
-    stdout.printf("  %d virtual machine(s)%n", vmSpecs.size());
-    stdout.printf("  %d benchmark(s)%n", benchmarkSpecs.size());
-    stdout.flush();
+    if (trialsCompleted == numberOfTrials) {  // if we finished all the trials
+      stdout.printf("Collected %d measurements from:%n", numMeasurements);
+      stdout.printf("  %d instrument(s)%n", instrumentSpecs.size());
+      stdout.printf("  %d virtual machine(s)%n", vmSpecs.size());
+      stdout.printf("  %d benchmark(s)%n", benchmarkSpecs.size());
+      stdout.println();
+      stdout.format("Execution complete: %s.%n", stopwatch.stop());
+      stdout.flush();
+    }
   }
 }

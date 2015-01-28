@@ -14,6 +14,7 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
@@ -21,9 +22,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.caliper.bridge.LogMessage;
-import com.google.caliper.bridge.LogMessageVisitor;
-import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.runner.ServerSocketService.OpenedSocket;
+import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.runner.FakeWorkers.DummyLogMessage;
 import com.google.caliper.runner.StreamService.StreamItem;
 import com.google.caliper.runner.StreamService.StreamItem.Kind;
 import com.google.caliper.util.Parser;
@@ -39,10 +39,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.MockitoAnnotations;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -63,26 +62,19 @@ import java.util.concurrent.TimeUnit;
 public class StreamServiceTest {
 
   private ServerSocket serverSocket;
-  @Mock CaliperOptions options;
   private final StringWriter writer = new StringWriter();
   private final PrintWriter stdout = new PrintWriter(writer, true);
   private final Parser<LogMessage> parser = new Parser<LogMessage>() {
     @Override public LogMessage parse(final CharSequence text) throws ParseException {
-      return new LogMessage() {
-        @Override public void accept(LogMessageVisitor visitor) {}
-        @Override  public String toString() {
-          return text.toString();
-        }
-      };
+      return new DummyLogMessage(text.toString());
     }
   };
+
   private StreamService service;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);
   private static final int TRIAL_NUMBER = 3;
 
   @Before public void setUp() throws IOException {
-    MockitoAnnotations.initMocks(this);
-    Mockito.when(options.verbose()).thenReturn(true);
     serverSocket = new ServerSocket(0);
   }
 
@@ -137,12 +129,13 @@ public class StreamServiceTest {
     makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport));
 
     service.startAsync().awaitRunning();
-    assertEquals("start", readItem().content().toString());
-    service.writeLine("hello socket world");
-    assertEquals("hello socket world", readItem().content().toString());
+    assertEquals(new DummyLogMessage("start"), readItem().content());
+    service.sendMessage(new DummyLogMessage("hello socket world"));
+    assertEquals(new DummyLogMessage("hello socket world"), readItem().content());
     service.closeWriter();
     assertEquals(State.RUNNING, service.state());
-    assertEquals(Kind.EOF, readItem().kind());
+    StreamItem nextItem = readItem();
+    assertEquals("Expected EOF " + nextItem, Kind.EOF, nextItem.kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
     assertTerminated();
   }
@@ -152,9 +145,9 @@ public class StreamServiceTest {
     // read from the socket and echo it back
     makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport), "foo");
     service.startAsync().awaitRunning();
-    assertEquals("start", readItem().content().toString());
-    service.writeLine("hello socket world");
-    assertEquals("hello socket world", readItem().content().toString());
+    assertEquals(new DummyLogMessage("start"), readItem().content());
+    service.sendMessage(new DummyLogMessage("hello socket world"));
+    assertEquals(new DummyLogMessage("hello socket world"), readItem().content());
     service.closeWriter();
 
     assertEquals("foo", readItem().content().toString());
@@ -171,13 +164,13 @@ public class StreamServiceTest {
     try {
       service.startAsync().awaitRunning();
       fail();
-    } catch (IllegalStateException ignored) {}
+    } catch (IllegalStateException expected) {}
     assertEquals(SocketException.class, service.failureCause().getClass());
   }
 
   /** Reads an item, asserting that there was no timeout. */
   private StreamItem readItem() throws InterruptedException {
-    StreamItem item = service.readItem(100, TimeUnit.SECONDS);
+    StreamItem item = service.readItem(10, TimeUnit.SECONDS);
     assertNotSame("Timed out while reading item from worker", Kind.TIMEOUT, item.kind());
     return item;
   }
@@ -199,14 +192,35 @@ public class StreamServiceTest {
     }
   }
 
+  @SuppressWarnings("resource")
   private void makeService(Class<?> main, String ...args) {
     checkState(service == null, "You can only make one StreamService per test");
+    UUID trialId = UUID.randomUUID();
+    TrialOutputLogger trialOutput = new TrialOutputLogger(new TrialOutputFactory() {
+      @Override public FileAndWriter getTrialOutputFile(int trialNumber)
+          throws FileNotFoundException {
+        checkArgument(trialNumber == TRIAL_NUMBER);
+        return new FileAndWriter(new File("/tmp/not-a-file"), stdout);
+      }
+
+      @Override public void persistFile(File f) {
+        throw new UnsupportedOperationException();
+      }
+
+    }, TRIAL_NUMBER, trialId, null /* experiment */);
+    try {
+      // normally the TrialRunLoop opens/closes the logger
+      trialOutput.open();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     service = new StreamService(
         new WorkerProcess(FakeWorkers.createProcessBuilder(main, args),
-            UUID.randomUUID(),
+            trialId,
             getSocketFuture(),
             new RuntimeShutdownHookRegistrar()),
-        TRIAL_NUMBER, parser, options, stdout);
+        parser,
+        trialOutput);
     service.addListener(new Listener() {
       @Override public void starting() {}
       @Override public void running() {}

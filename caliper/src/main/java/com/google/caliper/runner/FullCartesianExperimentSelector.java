@@ -25,12 +25,13 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-import com.google.inject.Inject;
 
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+
+import javax.inject.Inject;
 
 /**
  * A set of {@link Experiment experiments} constructed by taking all possible combinations of

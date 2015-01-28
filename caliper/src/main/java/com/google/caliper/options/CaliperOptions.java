@@ -32,7 +32,6 @@ public interface CaliperOptions {
   int trialsPerScenario();
   ShortDuration timeLimit();
   String runName();
-  boolean verbose();
   boolean printConfiguration();
   boolean dryRun();
   File caliperDirectory();

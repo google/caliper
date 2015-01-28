@@ -30,7 +30,6 @@ import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
-import com.google.inject.Inject;
 
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -39,6 +38,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
+
+import javax.inject.Inject;
 
 /**
  * {@link ResultProcessor} that dumps the output data to a file in JSON format. By default, the

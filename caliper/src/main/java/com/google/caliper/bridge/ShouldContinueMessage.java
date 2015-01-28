@@ -16,15 +16,21 @@
 
 package com.google.caliper.bridge;
 
+import java.io.Serializable;
+
 /**
  * A message sent from the runner to the worker to indicate whether or not measuring should 
  * continue.
  */
-public class ShouldContinueMessage {
-  private final boolean shouldContinue;
+public class ShouldContinueMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
 
-  public ShouldContinueMessage(boolean shouldContinue) {
+  private final boolean shouldContinue;
+  private final boolean warmupComplete;
+
+  public ShouldContinueMessage(boolean shouldContinue, boolean warmupComplete) {
     this.shouldContinue = shouldContinue;
+    this.warmupComplete = warmupComplete;
   }
   
   public boolean shouldContinue() {
@@ -38,5 +44,9 @@ public class ShouldContinueMessage {
   @Override public boolean equals(Object obj) {
     return obj instanceof ShouldContinueMessage 
         && shouldContinue == ((ShouldContinueMessage) obj).shouldContinue;
+  }
+
+  public boolean isWarmupComplete() {
+    return warmupComplete;
   }
 }

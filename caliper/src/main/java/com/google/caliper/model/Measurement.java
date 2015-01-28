@@ -27,6 +27,8 @@ import com.google.common.collect.Multimaps;
 
 import org.hibernate.annotations.Immutable;
 
+import java.io.Serializable;
+
 import javax.persistence.Access;
 import javax.persistence.Basic;
 import javax.persistence.Cacheable;
@@ -44,7 +46,9 @@ import javax.persistence.Id;
 @Access(FIELD)
 @Immutable
 @Cacheable
-public class Measurement {
+public class Measurement implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   public static ImmutableListMultimap<String, Measurement> indexByDescription(
       Iterable<Measurement> measurements) {
     return Multimaps.index(measurements, new Function<Measurement, String>() {

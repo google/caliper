@@ -18,13 +18,16 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.io.Serializable;
 import java.util.UUID;
 
 /**
  * A message sent from the worker to the runner immediately after startup to identify the trial
  * that it is performing.
  */
-public final class StartupAnnounceMessage {
+public final class StartupAnnounceMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private final UUID trialId;
 
   public StartupAnnounceMessage(UUID trialId) {

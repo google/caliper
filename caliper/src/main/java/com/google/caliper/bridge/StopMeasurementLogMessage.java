@@ -20,11 +20,14 @@ import com.google.caliper.model.Measurement;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 
+import java.io.Serializable;
+
 /**
  * A message signaling that the timing interval has ended in the worker.
  */
-// TODO(gak): rename in terms of measurement
-public class StopMeasurementLogMessage extends CaliperControlLogMessage {
+public class StopMeasurementLogMessage extends LogMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   private final ImmutableList<Measurement> measurements;
 
   public StopMeasurementLogMessage(Iterable<Measurement> measurements) {

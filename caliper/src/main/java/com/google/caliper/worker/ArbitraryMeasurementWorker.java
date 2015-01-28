@@ -47,8 +47,8 @@ public final class ArbitraryMeasurementWorker extends Worker {
     this.description = annotation.description();
   }
 
-  @Override public void preMeasure() throws Exception {
-    if (options.gcBeforeEach) {
+  @Override public void preMeasure(boolean inWarmup) throws Exception {
+    if (options.gcBeforeEach && !inWarmup) {
       Util.forceGc();
     }
   }

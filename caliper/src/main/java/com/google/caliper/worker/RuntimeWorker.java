@@ -62,10 +62,10 @@ public abstract class RuntimeWorker extends Worker {
     totalNanos = invokeTimeMethod(INITIAL_REPS);
   }
 
-  @Override public void preMeasure() throws Exception {
+  @Override public void preMeasure(boolean inWarmup) throws Exception {
     nextReps = calculateTargetReps(totalReps, totalNanos, options.timingIntervalNanos,
         random.nextGaussian());
-    if (options.gcBeforeEach) {
+    if (options.gcBeforeEach && !inWarmup) {
       Util.forceGc();
     }
   }

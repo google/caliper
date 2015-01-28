@@ -21,6 +21,8 @@ import static javax.persistence.AccessType.FIELD;
 
 import com.google.common.base.Objects;
 
+import java.io.Serializable;
+
 import javax.persistence.Access;
 import javax.persistence.Cacheable;
 import javax.persistence.Embeddable;
@@ -33,7 +35,9 @@ import javax.persistence.Embeddable;
 @Embeddable
 @Access(FIELD)
 @Cacheable
-public class Value {
+public class Value implements Serializable {
+  private static final long serialVersionUID = 1L;
+
   static final Value DEFAULT = new Value();
 
   public static Value create(double value, String unit) {

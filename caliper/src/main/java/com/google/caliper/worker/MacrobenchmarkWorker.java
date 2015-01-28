@@ -54,11 +54,11 @@ public class MacrobenchmarkWorker extends Worker {
     this.gcBeforeEach = Boolean.parseBoolean(workerOptions.get("gcBeforeEach"));
   }
 
-  @Override public void preMeasure() throws Exception {
+  @Override public void preMeasure(boolean inWarmup) throws Exception {
     for (Method beforeRepMethod : beforeRepMethods) {
       beforeRepMethod.invoke(benchmark);
     }
-    if (gcBeforeEach) {
+    if (gcBeforeEach && !inWarmup) {
       Util.forceGc();
     }
   }
