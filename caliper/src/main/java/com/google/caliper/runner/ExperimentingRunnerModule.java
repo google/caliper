@@ -27,15 +27,11 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.base.Function;
-import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedSet;
-import com.google.common.collect.Multiset;
-import com.google.common.collect.Multisets;
 import com.google.common.collect.Ordering;
-import com.google.common.collect.TreeMultiset;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
@@ -49,6 +45,9 @@ import com.google.inject.multibindings.Multibinder;
 import org.joda.time.Instant;
 
 import java.lang.reflect.Method;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
@@ -174,22 +173,21 @@ final class ExperimentingRunnerModule extends AbstractModule {
             return method.getName();
           }
         }));
-    // use a TreeMultiset so iteration order is consistent no matter what order methods are added.
-    Multiset<String> benchmarkMethodNames = TreeMultiset.create();
+    Set<String> benchmarkMethodNames = new HashSet<String>();
+    Set<String> overloadedMethodNames = new TreeSet<String>();
     for (Method method : benchmarkClass.getDeclaredMethods()) {
       if (instrument.isBenchmarkMethod(method)) {
         method.setAccessible(true);
         result.add(method);
-        benchmarkMethodNames.add(method.getName());
+        if (!benchmarkMethodNames.add(method.getName())) {
+          overloadedMethodNames.add(method.getName());
+        }
       }
     }
-    // remove all benchmark methods with unique names (i.e. counts of 1)
-    Multisets.removeOccurrences(benchmarkMethodNames,
-        HashMultiset.create(benchmarkMethodNames.elementSet()));
-    if (!benchmarkMethodNames.isEmpty()) {
+    if (!overloadedMethodNames.isEmpty()) {
       throw new InvalidBenchmarkException(
           "Overloads are disallowed for benchmark methods, found overloads of %s in benchmark %s",
-          benchmarkMethodNames.elementSet(),
+          overloadedMethodNames,
           benchmarkClass);
     }
     return result.build();
