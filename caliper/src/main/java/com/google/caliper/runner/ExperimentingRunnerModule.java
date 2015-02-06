@@ -155,12 +155,18 @@ final class ExperimentingRunnerModule extends AbstractModule {
           throws InvalidBenchmarkException {
     ImmutableSet.Builder<Instrumentation> builder = ImmutableSet.builder();
     ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
+    Set<String> unusedBenchmarkNames = new HashSet<String>(benchmarkMethodNames);
     for (Instrument instrument : instruments) {
       for (Method method : findAllBenchmarkMethods(benchmarkClass.benchmarkClass(), instrument)) {
         if (benchmarkMethodNames.isEmpty() || benchmarkMethodNames.contains(method.getName())) {
           builder.add(instrument.createInstrumentation(method));
+          unusedBenchmarkNames.remove(method.getName());
         }
       }
+    }
+    if (!unusedBenchmarkNames.isEmpty()) {
+      throw new InvalidBenchmarkException(
+          "Invalid benchmark method(s) specified in options: " + unusedBenchmarkNames);
     }
     return builder.build();
   }

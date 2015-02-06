@@ -17,6 +17,8 @@
 package com.google.caliper.runner;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
@@ -92,6 +94,19 @@ public class ExperimentingRunnerModuleTest {
         module.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
+  }
+
+  @Test public void provideInstrumentations_withInvalidName() {
+    when(options.benchmarkMethodNames()).thenReturn(
+        ImmutableSet.of("a", "c", "bad"));
+    try {
+      module.provideInstrumentations(options,
+          BenchmarkClass.forClass(TestBenchmark.class),
+          ImmutableSet.of(instrumentA, instrumentB));
+      fail("should have thrown for invalid benchmark method name");
+    } catch (Exception expected) {
+      assertTrue(expected.getMessage().contains("[bad]"));
+    }
   }
 
   static final class TestBenchmark {
