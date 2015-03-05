@@ -231,7 +231,7 @@ public class StreamServiceTest {
       @Override public void failed(State from, Throwable failure) {
         terminalLatch.countDown();
       }
-    }, MoreExecutors.sameThreadExecutor());
+    }, MoreExecutors.directExecutor());
   }
 
   private ListenableFuture<OpenedSocket> getSocketFuture() {
