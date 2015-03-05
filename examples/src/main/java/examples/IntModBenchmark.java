@@ -18,8 +18,6 @@ package examples;
 
 import com.google.caliper.Benchmark;
 
-
-
 /**
  * Measures several candidate implementations for mod().
  */

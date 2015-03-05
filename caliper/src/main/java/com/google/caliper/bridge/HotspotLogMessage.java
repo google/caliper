@@ -16,7 +16,6 @@
 
 package com.google.caliper.bridge;
 
-
 /**
  * A message representing output produced by the JVM when {@code -XX:+PrintCompliation} is enabled.
  */

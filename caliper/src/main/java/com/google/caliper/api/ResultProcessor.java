@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package com.google.caliper.api;
 
 import com.google.caliper.model.Trial;
