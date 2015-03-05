@@ -148,7 +148,7 @@ import javax.annotation.Nullable;
         }
         streamExecutor.shutdownNow();
       }
-    }, MoreExecutors.sameThreadExecutor());
+    }, MoreExecutors.directExecutor());
     // You may be thinking as you read this "Yo dawg, what if IOExceptions rain from the sky?" 
     // If a stream we are reading from throws an IOException then we fail the entire Service. This
     // will cause the worker to be killed (if its not dead already) and the various StreamReaders to
@@ -183,7 +183,7 @@ import javax.annotation.Nullable;
             }
           }
         },
-        MoreExecutors.sameThreadExecutor());
+        MoreExecutors.directExecutor());
     notifyStarted();
   }
   
