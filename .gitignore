@@ -15,5 +15,6 @@ out/
 
 # Eclipse
 .classpath
+.factorypath
 .project
 .settings/
