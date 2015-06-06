@@ -153,7 +153,7 @@ public abstract class Instrument {
       // do compilation serially
       "-Xbatch",
       // make sure compilation doesn't run in parallel with itself
-      "-XX:CICompilerCount=1",
+      "-XX:CICompilerCount=2",
       // ensure the parallel garbage collector
       "-XX:+UseParallelGC",
       // generate classes or don't, but do it immediately
