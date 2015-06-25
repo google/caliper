@@ -16,16 +16,26 @@
 
 package com.google.caliper.runner;
 
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.Proxy.Type;
+import java.net.ProxySelector;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.util.List;
+
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.util.Stdout;
 import com.google.gson.Gson;
 import com.google.inject.Inject;
-
 import com.sun.jersey.api.client.Client;
-
-import java.io.PrintWriter;
+import com.sun.jersey.client.urlconnection.HttpURLConnectionFactory;
+import com.sun.jersey.client.urlconnection.URLConnectionClientHandler;
 
 /**
  * A {@link ResultProcessor} implementation that publishes results to the webapp using an HTTP
@@ -34,6 +44,43 @@ import java.io.PrintWriter;
 public class HttpUploader extends ResultsUploader {
   @Inject HttpUploader(@Stdout PrintWriter stdout, Gson gson, CaliperConfig config)
       throws InvalidConfigurationException {
-    super(stdout, gson, Client.create(), config.getResultProcessorConfig(HttpUploader.class));
+    super(stdout, gson, createClientUsingProxy(config), config.getResultProcessorConfig(HttpUploader.class));
+  }
+  
+  
+  public static Client createClientUsingProxy(final CaliperConfig config) {
+  	HttpURLConnectionFactory httpURLConnectionFactory = new HttpURLConnectionFactory() {
+			
+			public HttpURLConnection getHttpURLConnection(URL url) throws IOException {
+				Proxy proxy = null;
+				if (config.properties().containsKey("http.proxyHost")) {
+					String proxyHost = config.properties().get("http.proxyHost");
+					String proxyPortStr = config.properties().get("http.proxyPort");
+					int proxyPort = 8080;
+					if (proxyPortStr != null) {
+						proxyPort = Integer.parseInt(proxyPortStr); 
+					}
+					proxy = new Proxy(Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+				}
+				else {
+					try {
+						List<Proxy> proxies = ProxySelector.getDefault().select(url.toURI());
+						if ((proxies != null) && (! proxies.isEmpty())) {
+							proxy = proxies.iterator().next();
+						}
+					} 
+					catch (Exception e) {
+					}
+				}
+				
+				//Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+				if (proxy == null) {
+					return (HttpURLConnection)url.openConnection();
+				}
+				return (HttpURLConnection)url.openConnection(proxy);
+			}
+		};
+  	Client result = new Client(new URLConnectionClientHandler(httpURLConnectionFactory));
+  	return result;
   }
 }
