@@ -90,7 +90,7 @@ final class OutputFileDumper implements ResultProcessor {
   }
 
   private String createTimestamp() {
-    return ISODateTimeFormat.dateTimeNoMillis().print(run.startTime());
+    return ISODateTimeFormat.dateTimeNoMillis().print(run.startTime()).replace(':', '_');
   }
 
   @Override public void processTrial(Trial trial) {
