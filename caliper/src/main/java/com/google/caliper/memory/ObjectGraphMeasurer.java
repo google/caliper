@@ -17,6 +17,7 @@
 package com.google.caliper.memory;
 
 import com.google.caliper.memory.ObjectExplorer.Feature;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
@@ -128,7 +129,7 @@ public final class ObjectGraphMeasurer {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(this)
+      return MoreObjects.toStringHelper(this)
           .add("Objects", objects)
           .add("NonNullRefs", nonNullRefs)
           .add("NullRefs", nullRefs)

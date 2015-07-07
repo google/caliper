@@ -19,8 +19,8 @@ package com.google.caliper.bridge;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.util.ShortDuration;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
 
 /**
  * A message representing output produced by the JVM when {@code -XX:+PrintGC} is enabled.
@@ -75,7 +75,7 @@ public final class GcLogMessage extends LogMessage {
 
   @Override
   public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .addValue(type)
         .add("duration", duration)
         .toString();
