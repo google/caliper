@@ -26,6 +26,8 @@ import com.google.common.collect.Lists;
 import java.io.IOException;
 import java.util.List;
 
+import javax.inject.Inject;
+
 /**
  * A {@link ResultProcessor} that collects all trials in a static list for easy inspection by tests.
  */
@@ -37,7 +39,7 @@ public class InMemoryResultsUploader implements ResultProcessor {
   private static List<Trial> trials;
   private boolean isClosed;
 
-  public InMemoryResultsUploader() {
+  @Inject public InMemoryResultsUploader() {
     trials = Lists.newArrayList();
   }
 

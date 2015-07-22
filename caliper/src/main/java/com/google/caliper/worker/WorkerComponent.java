@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,24 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
+package com.google.caliper.worker;
 
-import com.google.caliper.util.Parser;
-import dagger.Module;
-import dagger.Provides;
+import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.runner.BenchmarkClassModule;
+import com.google.caliper.runner.ExperimentModule;
+import com.google.caliper.util.MainScope;
+import dagger.Component;
 
 /**
- * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
+ * Creates {@link Worker} for an {@link com.google.caliper.runner.Experiment}.
  */
-@Module
-public final class BridgeModule {
-  @Provides static Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
-    return parser;
-  }
+@MainScope
+@Component(modules = {
+    BenchmarkClassModule.class,
+    BridgeModule.class,
+    ExperimentModule.class,
+    WorkerModule.class
+})
+interface WorkerComponent {
+  Worker getWorker();
 }

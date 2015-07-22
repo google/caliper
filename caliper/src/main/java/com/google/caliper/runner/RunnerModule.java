@@ -19,24 +19,22 @@ package com.google.caliper.runner;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.config.VmConfig;
+import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.util.MainScope;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
+import dagger.Module;
+import dagger.Provides;
+import org.joda.time.Instant;
+import java.util.UUID;
 
 /**
- * A Guice module that configures bindings common to all {@link CaliperRun} implementations. Callers
- * shouldn't install this directly.  Use either {@link PerflabInfoRunnerModule} or
- * {@link ExperimentingRunnerModule}.
+ * A Dagger module that configures bindings common to all {@link CaliperRun} implementations.
  */
 // TODO(gak): throwing providers for all of the things that throw
-final class RunnerModule extends AbstractModule {
-  @Override protected void configure() {
-    requireBinding(CaliperOptions.class);
-    requireBinding(CaliperConfig.class);
-  }
-
-  @Provides ImmutableSet<VirtualMachine> provideVirtualMachines(CaliperOptions options,
+@Module
+final class RunnerModule {
+  @Provides static ImmutableSet<VirtualMachine> provideVirtualMachines(CaliperOptions options,
       CaliperConfig config) throws InvalidConfigurationException {
     ImmutableSet<String> vmNames = options.vmNames();
     ImmutableSet.Builder<VirtualMachine> builder = ImmutableSet.builder();
@@ -49,5 +47,19 @@ final class RunnerModule extends AbstractModule {
       }
     }
     return builder.build();
+  }
+
+  @Provides
+  static Instant provideInstant() {
+    return Instant.now();
+  }
+
+  @Provides static CaliperRun provideCaliperRun(ExperimentingCaliperRun experimentingCaliperRun) {
+    return experimentingCaliperRun;
+  }
+
+  @Provides @MainScope
+  static Run provideRun(UUID uuid, CaliperOptions caliperOptions, Instant startTime) {
+    return new Run.Builder(uuid).label(caliperOptions.runName()).startTime(startTime).build();
   }
 }

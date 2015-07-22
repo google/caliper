@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
@@ -25,23 +26,52 @@ import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
+import com.google.caliper.util.Parser;
 import com.google.common.util.concurrent.ListenableFuture;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
+import dagger.Module;
+import dagger.Provides;
 
 import java.util.UUID;
 
 /**
  * Configuration for a {@link TrialRunLoop}.
  */
-final class TrialModule extends AbstractModule {
-  @Override protected void configure() {
-    install(TrialScopes.module());
+@Module
+final class TrialModule {
+
+  private final UUID trialId;
+  private final int trialNumber;
+  private final Experiment experiment;
+
+  TrialModule(UUID trialId, int trialNumber, Experiment experiment) {
+    this.trialId = trialId;
+    this.trialNumber = trialNumber;
+    this.experiment = experiment;
   }
 
   @TrialScoped
   @Provides
-  BenchmarkSpec provideBenchmarkSpec(Experiment experiment) {
+  @TrialId
+  UUID provideTrialId() {
+    return trialId;
+  }
+
+  @TrialScoped
+  @Provides
+  @TrialNumber
+  int provideTrialNumber() {
+    return trialNumber;
+  }
+
+  @TrialScoped
+  @Provides
+  Experiment provideExperiment() {
+    return experiment;
+  }
+
+  @TrialScoped
+  @Provides
+  static BenchmarkSpec provideBenchmarkSpec(Experiment experiment) {
     return new BenchmarkSpec.Builder()
         .className(experiment.instrumentation().benchmarkMethod().getDeclaringClass().getName())
         .methodName(experiment.instrumentation().benchmarkMethod().getName())
@@ -51,24 +81,41 @@ final class TrialModule extends AbstractModule {
 
   @Provides
   @TrialScoped
-  ListenableFuture<OpenedSocket> provideTrialSocket(
+  static ListenableFuture<OpenedSocket> provideTrialSocket(
       @TrialId UUID trialId,
       ServerSocketService serverSocketService) {
     return serverSocketService.getConnection(trialId);
   }
 
   @Provides
-  MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
+  static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
     return experiment.instrumentation().getMeasurementCollectingVisitor();
   }
 
   @Provides
   @TrialScoped
-  TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
+  static TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
     return experiment.instrumentation().instrument().schedulingPolicy();
   }
 
-  @Provides TrialResultFactory provideTrialFactory(@TrialId final UUID trialId,
+  @Provides
+  @TrialScoped
+  static StreamService provideStreamService(
+      WorkerProcess worker,
+      Parser<LogMessage> logMessageParser,
+      TrialOutputLogger trialOutput) {
+    return new StreamService(worker, logMessageParser, trialOutput);
+  }
+
+  // TODO(user): make this a singleton in a higher level module.
+  @Provides
+  @TrialScoped
+  static ShutdownHookRegistrar provideShutdownHook() {
+    return new RuntimeShutdownHookRegistrar();
+  }
+
+  @Provides static TrialResultFactory provideTrialFactory(
+      @TrialId final UUID trialId,
       final Run run,
       final Host host,
       final Experiment experiment,

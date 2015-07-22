@@ -23,6 +23,8 @@ import java.io.Closeable;
 /**
  * Interface for processing results as they complete. Callers must invoke {@link #close()} after
  * all trials have been {@linkplain #processTrial processed}.
+ *
+ * <p>Implementations must have a public no argument constructor.
  */
 public interface ResultProcessor extends Closeable {
   void processTrial(Trial trial);

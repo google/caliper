@@ -16,26 +16,17 @@ package com.google.caliper.runner;
 
 import static com.google.common.collect.ObjectArrays.concat;
 
-import com.google.caliper.bridge.BridgeModule;
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.config.ConfigModule;
 import com.google.caliper.config.InvalidConfigurationException;
-import com.google.caliper.json.GsonModule;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.options.CaliperOptionsComponent;
+import com.google.caliper.options.DaggerCaliperOptionsComponent;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import com.google.caliper.util.Util;
 import com.google.common.base.Strings;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.util.concurrent.ServiceManager;
-import com.google.inject.CreationException;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.ProvisionException;
-import com.google.inject.spi.Message;
 
 import java.io.PrintWriter;
 import java.util.Map.Entry;
@@ -113,32 +104,31 @@ public final class CaliperMain {
     }
     try {
       // TODO(gak): see if there's a better way to deal with options. probably a module
-      Injector optionsInjector = Guice.createInjector(new OptionsModule(args));
-      CaliperOptions options = optionsInjector.getInstance(CaliperOptions.class);
-      Module runnerModule = new ExperimentingRunnerModule();
+      OptionsModule optionsModule = new OptionsModule(args);
+      CaliperOptionsComponent optionsComponent = DaggerCaliperOptionsComponent.builder()
+          .optionsModule(optionsModule)
+          .build();
+      CaliperOptions options = optionsComponent.getCaliperOptions();
       Class<?> benchmarkClass = benchmarkClassForName(options.benchmarkClassName());
-      Injector injector = optionsInjector.createChildInjector(
-          new BenchmarkClassModule(benchmarkClass),
-          new OutputModule(stdout, stderr),
-          new BridgeModule(),
-          new GsonModule(),
-          new ConfigModule(),
-          new ServiceModule(),
-          runnerModule);
+      MainComponent mainComponent = DaggerMainComponent.builder()
+          .benchmarkClassModule(new BenchmarkClassModule(benchmarkClass))
+          .caliperOptionsComponent(optionsComponent)
+          .outputModule(new OutputModule(stdout, stderr))
+          .build();
       if (options.printConfiguration()) {
         stdout.println("Configuration:");
         ImmutableSortedMap<String, String> sortedProperties =
-            ImmutableSortedMap.copyOf(injector.getInstance(CaliperConfig.class).properties());
+            ImmutableSortedMap.copyOf(mainComponent.getCaliperConfig().properties());
         for (Entry<String, String> entry : sortedProperties.entrySet()) {
           stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
         }
       }
       // check that the parameters are valid
-      injector.getInstance(BenchmarkClass.class).validateParameters(options.userParameters());
-      ServiceManager serviceManager = injector.getInstance(ServiceManager.class);
+      mainComponent.getBenchmarkClass().validateParameters(options.userParameters());
+      ServiceManager serviceManager = mainComponent.getServiceManager();
       serviceManager.startAsync().awaitHealthy();
       try {
-        CaliperRun run = injector.getInstance(CaliperRun.class); // throws wrapped ICE, IBE
+        CaliperRun run = mainComponent.getCaliperRun();
         run.run(); // throws IBE
       } finally {
         try {
@@ -146,23 +136,14 @@ public final class CaliperMain {
           // run
           serviceManager.stopAsync().awaitStopped(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
-          // Thats fine
+          // That's fine
         }
       }
-    } catch (CreationException e) {
-      propogateIfCaliperException(e.getCause());
-      throw e;
-    } catch (ProvisionException e) {
-      propogateIfCaliperException(e.getCause());
-      for (Message message : e.getErrorMessages()) {
-        propogateIfCaliperException(message.getCause());
-      }
-      throw e;
+    } finally {
+      // courtesy flush
+      stderr.flush();
+      stdout.flush();
     }
-
-    // courtesy flush
-    stderr.flush();
-    stdout.flush();
   }
 
   private static Class<?> benchmarkClassForName(String className)
@@ -177,12 +158,5 @@ public final class CaliperMain {
     } catch (NoClassDefFoundError e) {
       throw new UserCodeException("Unable to load " + className, e);
     }
-  }
-
-  private static void propogateIfCaliperException(Throwable throwable)
-      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
-    Throwables.propagateIfInstanceOf(throwable, InvalidCommandException.class);
-    Throwables.propagateIfInstanceOf(throwable, InvalidBenchmarkException.class);
-    Throwables.propagateIfInstanceOf(throwable, InvalidConfigurationException.class);
   }
 }

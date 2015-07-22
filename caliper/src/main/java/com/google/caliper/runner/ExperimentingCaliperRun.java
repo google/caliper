@@ -37,17 +37,11 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.inject.CreationException;
-import com.google.inject.Injector;
-import com.google.inject.Key;
-import com.google.inject.ProvisionException;
-import com.google.inject.spi.Message;
 
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -71,34 +65,31 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     }
   };
 
-  private final Injector injector;
+  private final MainComponent mainComponent;
   private final CaliperOptions options;
   private final PrintWriter stdout;
   private final BenchmarkClass benchmarkClass;
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final ExperimentSelector selector;
-  private final Provider<ScheduledTrial> scheduledTrial;
   private final Provider<ListeningExecutorService> executorProvider;
 
   @Inject @VisibleForTesting
   public ExperimentingCaliperRun(
-      Injector injector,
+      MainComponent mainComponent,
       CaliperOptions options,
       @Stdout PrintWriter stdout,
       BenchmarkClass benchmarkClass,
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
-      Provider<ScheduledTrial> scheduledTrial,
       Provider<ListeningExecutorService> executorProvider) {
-    this.injector = injector;
+    this.mainComponent = mainComponent;
     this.options = options;
     this.stdout = stdout;
     this.benchmarkClass = benchmarkClass;
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
-    this.scheduledTrial = scheduledTrial;
     this.selector = selector;
     this.executorProvider = executorProvider;
   }
@@ -252,14 +243,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
         try {
-          trials.add(TrialScopes.makeContext(UUID.randomUUID(), trialNumber, experiment)
-              .call(new Callable<ScheduledTrial>() {
-                @Override public ScheduledTrial call() {
-                  return scheduledTrial.get();
-                }
-              }));
-        } catch (Exception e) {
-          throw new RuntimeException(e);
+          TrialScopeComponent trialScopeComponent = mainComponent.newTrialComponent(
+              new TrialModule(UUID.randomUUID(), trialNumber, experiment));
+
+          trials.add(trialScopeComponent.getScheduledTrial());
         } finally {
           trialNumber++;
         }
@@ -276,10 +263,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       throws InvalidBenchmarkException {
     ImmutableSet.Builder<Experiment> builder = ImmutableSet.builder();
     for (Experiment experiment : experiments) {
-      Class<?> clazz = benchmarkClass.benchmarkClass();
       try {
-        Object benchmark = injector.createChildInjector(ExperimentModule.forExperiment(experiment))
-            .getInstance(Key.get(clazz));
+        ExperimentComponent experimentComponent =
+            mainComponent.newExperimentComponent(ExperimentModule.forExperiment(experiment));
+        Object benchmark = experimentComponent.getBenchmarkInstance();
         benchmarkClass.setUpBenchmark(benchmark);
         try {
           experiment.instrumentation().dryRun(benchmark);
@@ -288,22 +275,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           // discard 'benchmark' now; the worker will have to instantiate its own anyway
           benchmarkClass.cleanup(benchmark);
         }
-      } catch (ProvisionException e) {
-        Throwable cause = e.getCause();
-        if (cause != null) {
-          throw new UserCodeException(cause);
-        }
-        throw e;
-      } catch (CreationException e) {
-        // Guice formatting is a little ugly
-        StringBuilder message = new StringBuilder(
-            "Could not create an instance of the benchmark class following reasons:");
-        int errorNum = 0;
-        for (Message guiceMessage : e.getErrorMessages()) {
-          message.append("\n  ").append(++errorNum).append(") ")
-              .append(guiceMessage.getMessage());
-        }
-        throw new InvalidBenchmarkException(message.toString(), e);
       } catch (SkipThisScenarioException innocuous) {}
     }
     return builder.build();

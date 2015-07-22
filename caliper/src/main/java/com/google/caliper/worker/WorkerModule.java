@@ -18,13 +18,18 @@ package com.google.caliper.worker;
 
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
-import com.google.inject.AbstractModule;
-import com.google.inject.Key;
+import dagger.MapKey;
+import dagger.Module;
+import dagger.Provides;
+import dagger.Provides.Type;
 
 import java.util.Map;
 import java.util.Random;
+
+import javax.inject.Provider;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link Param parameters}
@@ -34,7 +39,8 @@ import java.util.Random;
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
  * worker).
  */
-final class WorkerModule extends AbstractModule {
+@Module
+final class WorkerModule {
   private final Class<? extends Worker> workerClass;
   private final ImmutableMap<String, String> workerOptions;
 
@@ -43,15 +49,84 @@ final class WorkerModule extends AbstractModule {
     this.workerOptions = workerSpec.workerOptions;
   }
 
-  @Override protected void configure() {
-    bind(Worker.class).to(workerClass);
-    bind(Ticker.class).toInstance(Ticker.systemTicker());
-    if (Boolean.valueOf(workerOptions.get("trackAllocations"))) {
-      bind(AllocationRecorder.class).to(AllAllocationsRecorder.class);
-    } else {
-      bind(AllocationRecorder.class).to(AggregateAllocationsRecorder.class);
+  @Provides
+  Worker provideWorker(Map<Class<? extends Worker>, Provider<Worker>> availableWorkers) {
+    Provider<Worker> workerProvider = availableWorkers.get(workerClass);
+    if (workerProvider == null) {
+      throw new InvalidCommandException("%s is not a supported worker (%s).",
+          workerClass, availableWorkers);
     }
-    bind(Random.class);
-    bind(new Key<Map<String, String>>(WorkerOptions.class) {}).toInstance(workerOptions);
+    return workerProvider.get();
+  }
+
+  /**
+   * Specifies the {@link Class} object to use as a key in the map of available
+   * {@link Worker workers} passed to {@link #providesWorker(Map)}.
+   */
+  @MapKey(unwrapValue = true)
+  public @interface WorkerClassKey {
+    Class<? extends Worker> value();
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(ArbitraryMeasurementWorker.class)
+  static Worker provideArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(MicrobenchmarkAllocationWorker.class)
+  static Worker provideMicrobenchmarkAllocationWorker(MicrobenchmarkAllocationWorker impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(MacrobenchmarkWorker.class)
+  static Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(MacrobenchmarkAllocationWorker.class)
+  static Worker provideMacrobenchmarkAllocationWorker(MacrobenchmarkAllocationWorker impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(RuntimeWorker.Micro.class)
+  static Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @WorkerClassKey(RuntimeWorker.Pico.class)
+  static Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl) {
+    return impl;
+  }
+
+  @Provides
+  static Ticker provideTicker() {
+    return Ticker.systemTicker();
+  }
+
+  @Provides
+  AllocationRecorder provideAllocationRecorder(
+      Provider<AllAllocationsRecorder> allAllocationsRecorderProvider,
+      Provider<AggregateAllocationsRecorder> aggregateAllocationsRecorderProvider) {
+
+    return Boolean.valueOf(workerOptions.get("trackAllocations"))
+        ? allAllocationsRecorderProvider.get()
+        : aggregateAllocationsRecorderProvider.get();
+  }
+
+  @Provides
+  static Random provideRandom() {
+    return new Random();
+  }
+
+  @Provides
+  @WorkerOptions
+  Map<String, String> provideWorkerOptions() {
+    return workerOptions;
   }
 }

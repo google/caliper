@@ -21,6 +21,7 @@ import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperDirectory;
+import com.google.caliper.util.MainScope;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
@@ -36,12 +37,11 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * Loading the logging configuration at {@code ~/.caliper/logging.properties} if present.
  */
-@Singleton
+@MainScope
 final class LoggingConfigLoader {
   private static final Logger logger = Logger.getLogger(LoggingConfigLoader.class.getName());
 

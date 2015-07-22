@@ -20,14 +20,13 @@ import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InstrumentConfig;
 import com.google.caliper.model.Host;
-import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.MainScope;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.base.Function;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedSet;
@@ -35,123 +34,193 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
-import com.google.inject.AbstractModule;
-import com.google.inject.Injector;
-import com.google.inject.Provides;
-import com.google.inject.ProvisionException;
-import com.google.inject.multibindings.Multibinder;
-
-import org.joda.time.Instant;
+import dagger.MapKey;
+import dagger.Module;
+import dagger.Provides;
+import dagger.Provides.Type;
 
 import java.lang.reflect.Method;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
-import javax.inject.Singleton;
+import javax.inject.Provider;
 
 /**
  * Configures a {@link CaliperRun} that performs experiments.
  */
-final class ExperimentingRunnerModule extends AbstractModule {
+@Module
+final class ExperimentingRunnerModule {
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
 
-  @Override protected void configure() {
-    install(new TrialModule());
-    install(new RunnerModule());
-    bind(CaliperRun.class).to(ExperimentingCaliperRun.class);
-    bind(ExperimentSelector.class).to(FullCartesianExperimentSelector.class);
-    Multibinder<Service> services = Multibinder.newSetBinder(binder(), Service.class);
-    services.addBinding().to(ServerSocketService.class);
-    services.addBinding().to(TrialOutputFactoryService.class);
-    bind(TrialOutputFactory.class).to(TrialOutputFactoryService.class);
+  @Provides(type = Type.SET)
+  static Service provideServerSocketService(ServerSocketService impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.SET)
+  static Service provideTrialOutputFactoryService(TrialOutputFactoryService impl) {
+    return impl;
   }
 
   @Provides
-  ListeningExecutorService provideExecutorService(CaliperConfig config) {
+  static TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl) {
+    return impl;
+  }
+
+  @Provides
+  static ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl) {
+    return impl;
+  }
+
+  @Provides
+  static ListeningExecutorService provideExecutorService(CaliperConfig config) {
     int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
     return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
 
-  @LocalPort 
+  @LocalPort
   @Provides
-  int providePortNumber(ServerSocketService serverSocketService) {
+  static int providePortNumber(ServerSocketService serverSocketService) {
     return serverSocketService.getPort();
   }
 
-  @Provides ImmutableSet<ResultProcessor> provideResultProcessors(CaliperConfig config,
-      Injector injector) {
+  /**
+   * Specifies the {@link Class} object to use as a key in the map of available
+   * {@link ResultProcessor result processors} passed to
+   * {@link #provideResultProcessors(CaliperConfig, Map)}.
+   */
+  @MapKey(unwrapValue = true)
+  public @interface ResultProcessorClassKey {
+    Class<? extends ResultProcessor> value();
+  }
+
+  @Provides(type = Type.MAP)
+  @ResultProcessorClassKey(OutputFileDumper.class)
+  static ResultProcessor provideOutputFileDumper(OutputFileDumper impl) {
+    return impl;
+  }
+
+  @Provides(type = Type.MAP)
+  @ResultProcessorClassKey(HttpUploader.class)
+  static ResultProcessor provideHttpUploader(HttpUploader impl) {
+    return impl;
+  }
+
+  @Provides static ImmutableSet<ResultProcessor> provideResultProcessors(
+      CaliperConfig config,
+      Map<Class<? extends ResultProcessor>, Provider<ResultProcessor>> availableProcessors) {
     ImmutableSet.Builder<ResultProcessor> builder = ImmutableSet.builder();
     for (Class<? extends ResultProcessor> processorClass : config.getConfiguredResultProcessors()) {
-      builder.add(injector.getInstance(processorClass));
+      Provider<ResultProcessor> resultProcessorProvider = availableProcessors.get(processorClass);
+      ResultProcessor resultProcessor = resultProcessorProvider == null
+          ? ResultProcessorCreator.createResultProcessor(processorClass)
+          : resultProcessorProvider.get();
+      builder.add(resultProcessor);
     }
     return builder.build();
   }
 
-  @Provides UUID provideUuid() {
+  @Provides static UUID provideUuid() {
     return UUID.randomUUID();
   }
 
-  @Provides @BenchmarkParameters ImmutableSetMultimap<String, String> provideBenchmarkParameters(
+  @Provides @BenchmarkParameters
+  static ImmutableSetMultimap<String, String> provideBenchmarkParameters(
       BenchmarkClass benchmarkClass, CaliperOptions options) throws InvalidBenchmarkException {
     return benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
   }
 
-  @Provides @Singleton Host provideHost(EnvironmentGetter environmentGetter) {
+  @Provides @MainScope
+  static Host provideHost(EnvironmentGetter environmentGetter) {
     return environmentGetter.getHost();
   }
 
-  @Provides @Singleton Run provideRun(UUID id, CaliperOptions options, Instant startTime) {
-    return new Run.Builder(id).label(options.runName()).startTime(startTime).build();
+  @Provides @MainScope static EnvironmentGetter provideEnvironmentGetter() {
+    return new EnvironmentGetter();
   }
 
-  @Provides ImmutableSet<Instrument> provideInstruments(Injector injector,
-      CaliperOptions options, final CaliperConfig config) throws InvalidCommandException {
+  /**
+   * Specifies the {@link Class} object to use as a key in the map of available
+   * {@link Instrument instruments} passed to
+   * {@link #provideInstruments(MainComponent, CaliperOptions, CaliperConfig, Map)},
+   */
+  @MapKey(unwrapValue = true)
+  public @interface InstrumentClassKey {
+    Class<? extends Instrument> value();
+  }
+
+  @Provides(type = Type.MAP)
+  @InstrumentClassKey(ArbitraryMeasurementInstrument.class)
+  static Instrument provideArbitraryMeasurementInstrument() {
+    return new ArbitraryMeasurementInstrument();
+  }
+
+  @Provides(type = Type.MAP)
+  @InstrumentClassKey(AllocationInstrument.class)
+  static Instrument provideAllocationInstrument() {
+    return new AllocationInstrument();
+  }
+
+  @Provides(type = Type.MAP)
+  @InstrumentClassKey(RuntimeInstrument.class)
+  static Instrument provideRuntimeInstrument(
+      @NanoTimeGranularity ShortDuration nanoTimeGranularity) {
+    return new RuntimeInstrument(nanoTimeGranularity);
+  }
+
+  @Provides
+  static ImmutableSet<Instrument> provideInstruments(
+      MainComponent mainComponent,
+      CaliperOptions options,
+      final CaliperConfig config,
+      Map<Class<? extends Instrument>, Provider<Instrument>> availableInstruments)
+      throws InvalidCommandException {
+
     ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
     ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
     for (final String instrumentName : options.instrumentNames()) {
       if (!configuredInstruments.contains(instrumentName)) {
         throw new InvalidCommandException("%s is not a configured instrument (%s). "
             + "use --print-config to see the configured instruments.",
-                instrumentName, configuredInstruments);
+            instrumentName, configuredInstruments);
       }
       final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
-      Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
-        @Override protected void configure() {
-          bind(InstrumentConfig.class).toInstance(instrumentConfig);
-        }
-
-        @Provides @InstrumentOptions ImmutableMap<String, String> provideInstrumentOptions(
-            InstrumentConfig config) {
-          return config.options();
-        }
-
-        @Provides @InstrumentName String provideInstrumentName() {
-          return instrumentName;
-        }
-      });
       String className = instrumentConfig.className();
       try {
         Class<? extends Instrument> clazz =
             Util.lenientClassForName(className).asSubclass(Instrument.class);
-        builder.add(instrumentInjector.getInstance(clazz));
+        Provider<Instrument> instrumentProvider = availableInstruments.get(clazz);
+        if (instrumentProvider == null) {
+          throw new InvalidInstrumentException("Instrument %s not supported", className);
+        }
+        Instrument instrument = instrumentProvider.get();
+        InstrumentInjectorModule injectorModule =
+            new InstrumentInjectorModule(instrumentConfig, instrumentName);
+        InstrumentComponent instrumentComponent =
+            mainComponent.newInstrumentComponent(injectorModule);
+        instrumentComponent.injectInstrument(instrument);
+        builder.add(instrument);
       } catch (ClassNotFoundException e) {
         throw new InvalidCommandException("Cannot find instrument class '%s'", className);
-      } catch (ProvisionException e) {
-        throw new InvalidInstrumentException("Could not create the instrument %s", className);
       }
     }
     return builder.build();
   }
 
-  @Provides @Singleton @NanoTimeGranularity ShortDuration provideNanoTimeGranularity(
+  @Provides @MainScope static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
+    return new NanoTimeGranularityTester();
+  }
+
+  @Provides @MainScope @NanoTimeGranularity static ShortDuration provideNanoTimeGranularity(
       NanoTimeGranularityTester tester) {
     return tester.testNanoTimeGranularity();
   }
 
-  @Provides ImmutableSet<Instrumentation> provideInstrumentations(CaliperOptions options,
+  @Provides static ImmutableSet<Instrumentation> provideInstrumentations(CaliperOptions options,
       BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
           throws InvalidBenchmarkException {
     ImmutableSet.Builder<Instrumentation> builder = ImmutableSet.builder();

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
+package com.google.caliper.util;
 
-import com.google.caliper.util.Parser;
-import dagger.Module;
-import dagger.Provides;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Target;
+import javax.inject.Scope;
 
 /**
- * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
+ * The scope of the main component.
+ *
+ * todo(user): replace with @Singleton once scoped component dependency issues are fixed.
  */
-@Module
-public final class BridgeModule {
-  @Provides static Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
-    return parser;
-  }
+@Scope
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface MainScope {
 }

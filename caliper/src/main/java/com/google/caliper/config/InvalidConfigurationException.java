@@ -23,7 +23,7 @@ import java.io.PrintWriter;
  *
  * @author gak@google.com (Gregory Kick)
  */
-public final class InvalidConfigurationException extends Exception {
+public final class InvalidConfigurationException extends RuntimeException {
   public InvalidConfigurationException() {
     super();
   }

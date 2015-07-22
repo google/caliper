@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.util.MainScope;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -35,7 +36,6 @@ import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * A {@link TrialOutputFactory} implemented as a service that manages a directory either under 
@@ -45,7 +45,8 @@ import javax.inject.Singleton;
  * Otherwise the only way to ensure that the log files survive service shutdown is to explicitly
  * call {@link #persistFile(File)} with each file that should not be deleted.
  */
-@Singleton final class TrialOutputFactoryService
+@MainScope
+final class TrialOutputFactoryService
     extends AbstractIdleService implements TrialOutputFactory {
   private static final String LOG_DIRECTORY_PROPERTY = "worker.output";
 
@@ -68,13 +69,15 @@ import javax.inject.Singleton;
 
   /** Returns the file to write trial output to. */
   @Override public FileAndWriter getTrialOutputFile(int trialNumber) throws FileNotFoundException {
+    File dir;
     synchronized (this) {
       if (directory == null) {
         throw new RuntimeException(
             String.format("The output manager %s has not been started yet", this));
       }
+      dir = directory;
     }
-    File trialFile = new File(directory, String.format("trial-%d.log", trialNumber));
+    File trialFile = new File(dir, String.format("trial-%d.log", trialNumber));
     synchronized (this) {
       if (!persistFiles) {
           toDelete.add(trialFile.getPath());

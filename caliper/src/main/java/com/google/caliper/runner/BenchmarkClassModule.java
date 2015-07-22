@@ -18,41 +18,43 @@ package com.google.caliper.runner;
 
 import com.google.caliper.runner.Running.AfterExperimentMethods;
 import com.google.caliper.runner.Running.BeforeExperimentMethods;
+import com.google.caliper.util.MainScope;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.AbstractModule;
-import com.google.inject.Key;
-import com.google.inject.Provides;
+import dagger.Module;
+import dagger.Provides;
 
 import java.lang.reflect.Method;
-
-import javax.inject.Singleton;
 
 /**
  * Binds objects related to a benchmark class.
  */
 // TODO(gak): move more of benchmark class into this module
-public final class BenchmarkClassModule extends AbstractModule {
+@Module
+public final class BenchmarkClassModule {
   private final Class<?> benchmarkClassObject;
 
   public BenchmarkClassModule(Class<?> benchmarkClassObject) {
     this.benchmarkClassObject = benchmarkClassObject;
   }
 
-  @Override protected void configure() {
-    bind(new Key<Class<?>>(Running.BenchmarkClass.class) {}).toInstance(benchmarkClassObject);
+  @Provides @Running.BenchmarkClass Class<?> provideBenchmarkClassObject() {
+    return benchmarkClassObject;
   }
 
-  @Provides @Singleton BenchmarkClass provideBenchmarkClass() throws InvalidBenchmarkException {
+  @Provides @MainScope
+  BenchmarkClass provideBenchmarkClass() throws InvalidBenchmarkException {
     return BenchmarkClass.forClass(benchmarkClassObject);
   }
 
-  @Provides @BeforeExperimentMethods ImmutableSet<Method> provideBeforeExperimentMethods(
-      BenchmarkClass benchmarkClass) {
+  @Provides
+  @BeforeExperimentMethods
+  static ImmutableSet<Method> provideBeforeExperimentMethods(BenchmarkClass benchmarkClass) {
     return benchmarkClass.beforeExperimentMethods();
   }
 
-  @Provides @AfterExperimentMethods ImmutableSet<Method> provideAfterExperimentMethods(
-      BenchmarkClass benchmarkClass) {
+  @Provides
+  @AfterExperimentMethods
+  static ImmutableSet<Method> provideAfterExperimentMethods(BenchmarkClass benchmarkClass) {
     return benchmarkClass.afterExperimentMethods();
   }
 }

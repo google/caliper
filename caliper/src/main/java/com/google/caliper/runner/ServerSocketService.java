@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StartupAnnounceMessage;
+import com.google.caliper.util.MainScope;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
@@ -41,7 +42,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
 /**
  * A {@link Service} that manages a {@link ServerSocket}.
@@ -49,7 +49,7 @@ import javax.inject.Singleton;
  * <p> This service provides two pieces of functionality:
  * <ol>
  *   <li>It adapts {@link ServerSocket#accept()} to a {@link ListenableFuture} of an opened socket.
- *   <li>It demultiplexes incomming connections based on a {@link StartupAnnounceMessage} that is 
+ *   <li>It demultiplexes incoming connections based on a {@link StartupAnnounceMessage} that is
  *       sent over the socket.
  * </ol>
  *
@@ -86,7 +86,8 @@ import javax.inject.Singleton;
  *         and then tries to read again, it will deadlock.
  * </ul>
  */
-@Singleton class ServerSocketService extends AbstractExecutionThreadService {
+@MainScope
+final class ServerSocketService extends AbstractExecutionThreadService {
   private enum Source { REQUEST, ACCEPT}
   
   private final Lock lock = new ReentrantLock();

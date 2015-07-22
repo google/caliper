@@ -16,9 +16,6 @@
 
 package com.google.caliper.worker;
 
-import static com.google.inject.Stage.PRODUCTION;
-
-import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
@@ -27,8 +24,6 @@ import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
 import com.google.caliper.util.Util;
 import com.google.common.net.InetAddresses;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
@@ -50,12 +45,13 @@ public final class WorkerMain {
     channel.configureBlocking(false);
     channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
-    Injector workerInjector = Guice.createInjector(PRODUCTION,
-        new BenchmarkClassModule(Util.loadClass(request.benchmarkSpec.className())),
-        new BridgeModule(),
-        ExperimentModule.forWorkerSpec(request),
-        new WorkerModule(request));
-    Worker worker = workerInjector.getInstance(Worker.class);
+    Class<?> benchmarkClassObject = Util.loadClass(request.benchmarkSpec.className());
+    WorkerComponent workerComponent = DaggerWorkerComponent.builder()
+        .benchmarkClassModule(new BenchmarkClassModule(benchmarkClassObject))
+        .experimentModule(ExperimentModule.forWorkerSpec(request))
+        .workerModule(new WorkerModule(request))
+        .build();
+    Worker worker = workerComponent.getWorker();
     WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
 
     log.notifyWorkerStarted(request.trialId);

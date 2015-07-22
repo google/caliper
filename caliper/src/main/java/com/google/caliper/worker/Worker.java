@@ -30,11 +30,11 @@ import javax.inject.Inject;
 public abstract class Worker {
   @Inject
   @BeforeExperimentMethods
-  private ImmutableSet<Method> beforeExperimentMethods;
+  ImmutableSet<Method> beforeExperimentMethods;
   
   @Inject
   @AfterExperimentMethods
-  private ImmutableSet<Method> afterExperimentMethods;
+  ImmutableSet<Method> afterExperimentMethods;
   
   protected final Method benchmarkMethod;
   protected final Object benchmark;

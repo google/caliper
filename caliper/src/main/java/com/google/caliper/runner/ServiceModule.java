@@ -16,26 +16,20 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.util.MainScope;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
+import dagger.Module;
+import dagger.Provides;
 
 import java.util.Set;
 
-import javax.inject.Singleton;
-
 /** Configures the {@link ServiceManager}. */
-class ServiceModule extends AbstractModule {
-  @Override protected void configure() {
-    // Ensure that the binding exists, even if it is empty.
-    Multibinder.newSetBinder(binder(), Service.class);
-  }
-
+@Module
+final class ServiceModule {
   @Provides
-  @Singleton
-  ServiceManager provideServiceManager(Set<Service> services) {
+  @MainScope
+  static ServiceManager provideServiceManager(Set<Service> services) {
     return new ServiceManager(services);
   }
 }

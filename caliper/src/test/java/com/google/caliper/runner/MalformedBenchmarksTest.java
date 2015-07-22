@@ -45,10 +45,7 @@ public class MalformedBenchmarksTest {
   private static final String ABSTRACT =
       "Class '%s' is abstract";
   private static final String NO_CONSTRUCTOR =
-      "Could not create an instance of the benchmark class following reasons:\n"
-      + "  1) Could not find a suitable constructor in %s. "
-      + "Classes must have either one (and only one) constructor annotated with @Inject "
-      + "or a zero-argument constructor that is not private.";
+      "Benchmark class %s does not have a publicly visible default constructor";
   private static final String NO_METHODS =
       "There were no experiments to be performed for the class %s using the instruments " +
       "[allocation, runtime]";

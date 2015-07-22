@@ -16,57 +16,60 @@
 
 package com.google.caliper.json;
 
-import static java.lang.annotation.ElementType.FIELD;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
-
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.bind.TypeAdapters;
-import com.google.inject.AbstractModule;
-import com.google.inject.Key;
-import com.google.inject.Provides;
-import com.google.inject.multibindings.Multibinder;
-
+import dagger.Module;
+import dagger.Provides;
+import dagger.Provides.Type;
 import org.joda.time.Instant;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
 import java.util.Set;
-
-import javax.inject.Qualifier;
 
 /**
  * Binds a {@link Gson} instance suitable for serializing and deserializing Caliper
  * {@linkplain com.google.caliper.model model} objects.
  */
-public final class GsonModule extends AbstractModule {
-  @Override protected void configure() {
-    Multibinder<TypeAdapterFactory> typeAdapterFactoryMultibinder =
-        Multibinder.newSetBinder(binder(), TypeAdapterFactory.class);
-    typeAdapterFactoryMultibinder.addBinding().to(ImmutableListTypeAdatperFactory.class);
-    typeAdapterFactoryMultibinder.addBinding().to(ImmutableMapTypeAdapterFactory.class);
-    typeAdapterFactoryMultibinder.addBinding().to(NaturallySortedMapTypeAdapterFactory.class);
-    typeAdapterFactoryMultibinder.addBinding()
-        .to(Key.get(TypeAdapterFactory.class, ForInstant.class));
-    typeAdapterFactoryMultibinder.addBinding().to(ImmutableMultimapTypeAdapterFactory.class);
-    bind(ExclusionStrategy.class).to(AnnotationExclusionStrategy.class);
+@Module
+public final class GsonModule {
+
+  @Provides(type = Type.SET)
+  static TypeAdapterFactory provideImmutableListTypeAdapterFactory() {
+    return new ImmutableListTypeAdatperFactory();
   }
 
-  @Retention(RUNTIME)
-  @Target({FIELD, PARAMETER, METHOD})
-  @Qualifier
-  private @interface ForInstant {}
+  @Provides(type = Type.SET)
+  static TypeAdapterFactory provideImmutableMapTypeAdapterFactory() {
+    return new ImmutableMapTypeAdapterFactory();
+  }
 
-  @Provides @ForInstant TypeAdapterFactory provideTypeAdapterFactoryForInstant(
+  @Provides(type = Type.SET)
+  static TypeAdapterFactory provideNaturallySortedMapTypeAdapterFactory() {
+    return new NaturallySortedMapTypeAdapterFactory();
+  }
+
+  @Provides(type = Type.SET)
+  static TypeAdapterFactory provideImmutableMultimapTypeAdapterFactory() {
+    return new ImmutableMultimapTypeAdapterFactory();
+  }
+
+  @Provides
+  static ExclusionStrategy provideAnnotationExclusionStrategy() {
+    return new AnnotationExclusionStrategy();
+  }
+
+  @Provides(type = Type.SET)
+  static TypeAdapterFactory provideTypeAdapterFactoryForInstant(
       InstantTypeAdapter typeAdapter) {
     return TypeAdapters.newFactory(Instant.class, typeAdapter);
   }
 
-  @Provides Gson provideGson(Set<TypeAdapterFactory> typeAdapterFactories,
+  @Provides static InstantTypeAdapter provideInstantTypeAdapter() {
+    return new InstantTypeAdapter();
+  }
+
+  @Provides static Gson provideGson(Set<TypeAdapterFactory> typeAdapterFactories,
       ExclusionStrategy exclusionStrategy) {
     GsonBuilder gsonBuilder = new GsonBuilder().setExclusionStrategies(exclusionStrategy);
     for (TypeAdapterFactory typeAdapterFactory : typeAdapterFactories) {

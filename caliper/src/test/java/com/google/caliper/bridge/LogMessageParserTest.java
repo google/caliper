@@ -23,12 +23,10 @@ import static java.util.concurrent.TimeUnit.MICROSECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.google.caliper.json.GsonModule;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.io.Resources;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
+import dagger.Component;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,9 +44,13 @@ import javax.inject.Inject;
 public class LogMessageParserTest {
   @Inject LogMessageParser parser;
 
+  @Component(modules = BridgeModule.class)
+  interface LogMessageParserComponent {
+    void inject(LogMessageParserTest test);
+  }
+
   @Before public void setUp() {
-    Injector injector = Guice.createInjector(new GsonModule(), new BridgeModule());
-    injector.injectMembers(this);
+    DaggerLogMessageParserTest_LogMessageParserComponent.create().inject(this);
   }
 
   @Test public void gcPatten_jdk6() throws Exception {

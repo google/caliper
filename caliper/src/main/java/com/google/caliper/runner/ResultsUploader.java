@@ -40,7 +40,6 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 
 /**
  * {@link ResultProcessor} implementation that uploads the JSON-serialized results to the Caliper
@@ -59,7 +58,7 @@ abstract class ResultsUploader implements ResultProcessor {
   private Optional<UUID> runId = Optional.absent();
   private boolean failure = false;
 
-  @Inject ResultsUploader(PrintWriter stdout, Gson gson, Client client,
+  ResultsUploader(PrintWriter stdout, Gson gson, Client client,
       ResultProcessorConfig resultProcessorConfig) throws InvalidConfigurationException {
     this.stdout = stdout;
     this.client = client;

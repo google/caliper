@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
+package com.google.caliper.options;
 
-import com.google.caliper.util.Parser;
-import dagger.Module;
-import dagger.Provides;
+import dagger.Component;
+
+import java.io.File;
+
+import javax.inject.Singleton;
 
 /**
- * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
+ * Provides access to command line option related information.
  */
-@Module
-public final class BridgeModule {
-  @Provides static Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
-    return parser;
-  }
+@Singleton
+@Component(modules = {OptionsModule.class})
+public interface CaliperOptionsComponent {
+
+  CaliperOptions getCaliperOptions();
+
+  /**
+   * Export the caliper directory for use by the {@link com.google.caliper.runner.MainComponent}
+   */
+  @CaliperDirectory File getCaliperDirectory();
 }

@@ -20,7 +20,7 @@ import java.io.PrintWriter;
  *
  */
 @SuppressWarnings("serial")
-public class InvalidBenchmarkException extends Exception {
+public class InvalidBenchmarkException extends RuntimeException {
   public InvalidBenchmarkException(String message, Object... args) {
     super(String.format(message, fixArgs(args)));
   }

@@ -16,15 +16,16 @@ package com.google.caliper.util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Provides;
+import dagger.Module;
+import dagger.Provides;
 
 import java.io.PrintWriter;
 
 /**
  * A module that binds {@link PrintWriter} instances for {@link Stdout} and {@link Stderr}.
  */
-public final class OutputModule extends AbstractModule {
+@Module
+public final class OutputModule {
   public static OutputModule system() {
     return new OutputModule(new PrintWriter(System.out, true), new PrintWriter(System.err, true));
   }
@@ -36,8 +37,6 @@ public final class OutputModule extends AbstractModule {
     this.stdout = checkNotNull(stdout);
     this.stderr = checkNotNull(stderr);
   }
-
-  @Override protected void configure() {}
 
   @Provides @Stdout PrintWriter provideStdoutWriter() {
     return stdout;

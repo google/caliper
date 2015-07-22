@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
+package com.google.caliper.runner;
 
-import com.google.caliper.util.Parser;
-import dagger.Module;
-import dagger.Provides;
+import dagger.Subcomponent;
 
 /**
- * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
+ * Component to use to inject values into an {@link Instrument}.
  */
-@Module
-public final class BridgeModule {
-  @Provides static Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
-    return parser;
-  }
+@Subcomponent(modules = InstrumentInjectorModule.class)
+interface InstrumentComponent {
+
+  void injectInstrument(Instrument instrument);
 }
