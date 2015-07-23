@@ -70,7 +70,7 @@ import javax.inject.Inject;
   }
 
   /** Prints header information to the file. */
-  void printHeader() {
+  synchronized void printHeader() {
     checkOpened();
     // make the file self describing
     // TODO(lukes): we could print the command line here.  The user wouldn't be able to run it again
@@ -88,7 +88,7 @@ import javax.inject.Inject;
    * @param source The source of the line (e.g. 'stderr')
    * @param line The output
    */
-  void log(String source, String line) {
+  synchronized void log(String source, String line) {
     checkOpened();
     writer.printf("[%s] %s%n", source, line);
   }
@@ -100,13 +100,13 @@ import javax.inject.Inject;
   }
 
   /** Marks the log file so that it will not be deleted at the end of the benchmark. */
-  void ensureFileIsSaved() {
+  synchronized void ensureFileIsSaved() {
     checkOpened();
     outputManager.persistFile(file);
   }
   
   /** Returns the log file path. */
-  File trialOutputFile() {
+  synchronized File trialOutputFile() {
     checkOpened();
     return file;
   }

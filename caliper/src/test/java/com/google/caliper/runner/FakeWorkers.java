@@ -44,7 +44,7 @@ final class FakeWorkers {
    * Try to find the currently executing jvm binary, N.B. This isn't guaranteed to be cross 
    * platform.
    */
-  private static synchronized void init() {
+  private static synchronized VirtualMachine init() {
     if (jvm == null) {
       try {
         jvm = new VirtualMachine("default", 
@@ -53,6 +53,7 @@ final class FakeWorkers {
         throw new RuntimeException();
       }
     }
+    return jvm;
   }
 
   /** 
@@ -60,7 +61,7 @@ final class FakeWorkers {
    * with a classpath equivalent to the currently executing JVM.
    */
   static ProcessBuilder createProcessBuilder(Class<?> mainClass, String ...mainArgs) {
-    init();
+    VirtualMachine jvm = init();
     List<String> args;
     try {
       args = WorkerProcess.getJvmArgs(jvm, BenchmarkClass.forClass(mainClass));

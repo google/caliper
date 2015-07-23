@@ -75,12 +75,12 @@ import javax.annotation.concurrent.GuardedBy;
       }
     }
     File trialFile = new File(directory, String.format("trial-%d.log", trialNumber));
-    if (!persistFiles) {
-      synchronized (this) {
-        toDelete.add(trialFile.getPath());
+    synchronized (this) {
+      if (!persistFiles) {
+          toDelete.add(trialFile.getPath());
       }
     }
-    return new FileAndWriter(trialFile, 
+    return new FileAndWriter(trialFile,
         new PrintWriter(
             new BufferedWriter(
                 new OutputStreamWriter(
