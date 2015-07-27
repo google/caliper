@@ -51,7 +51,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 
 import javax.inject.Inject;
@@ -314,7 +313,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       Iterable<? extends ListenableFuture<? extends T>> futures) {
     final ConcurrentLinkedQueue<SettableFuture<T>> delegates = Queues.newConcurrentLinkedQueue();
     ImmutableList.Builder<ListenableFuture<T>> listBuilder = ImmutableList.builder();
-    Executor executor = MoreExecutors.sameThreadExecutor();
     for (final ListenableFuture<? extends T> future : futures) {
       SettableFuture<T> delegate = SettableFuture.create();
       // Must make sure to add the delegate to the queue first in case the future is already done
@@ -330,7 +328,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
             delegate.cancel(true);
           }
         }
-      }, executor);
+      }, MoreExecutors.directExecutor());
       listBuilder.add(delegate);
     }
     return listBuilder.build();
