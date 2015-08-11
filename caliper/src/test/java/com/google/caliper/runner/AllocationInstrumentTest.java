@@ -67,13 +67,13 @@ public class AllocationInstrumentTest {
     Trial trial = Iterables.getOnlyElement(runner.trials());
     ImmutableListMultimap<String, Measurement> measurementsByDescription =
         Measurement.indexByDescription(trial.measurements());
-    // 14 objects and 1960 bytes are the known values for growing an ArrayList from 1 element to 100
+    // 12 objects and 1824 bytes are the known values for growing an ArrayList from 1 element to 100
     // elements
     for (Measurement objectMeasurement : measurementsByDescription.get("objects")) {
-      assertEquals(14.0, objectMeasurement.value().magnitude() / objectMeasurement.weight(), 0.001);
+      assertEquals(12.0, objectMeasurement.value().magnitude() / objectMeasurement.weight(), 0.001);
     }
     for (Measurement byteMeasurement : measurementsByDescription.get("bytes")) {
-      assertEquals(1960.0, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
+      assertEquals(1824.0, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
     }
   }
 
