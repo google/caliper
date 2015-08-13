@@ -49,17 +49,17 @@ public class DemoBenchmark {
     }
   }
 
-  @Benchmark int something(int reps) {
+  @Benchmark int something(long reps) {
     int dummy = 0;
-    for (int i = 0; i < reps; i++) {
+    for (long i = 0; i < reps; i++) {
       dummy += i;
     }
     return dummy;
   }
 
-  @Benchmark int somethingElse(int reps) {
+  @Benchmark int somethingElse(long reps) {
     int dummy = 0;
-    for (int i = 0; i < reps; i++) {
+    for (long i = 0; i < reps; i++) {
       dummy -= i;
     }
     return dummy;

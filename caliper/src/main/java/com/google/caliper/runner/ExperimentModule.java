@@ -18,10 +18,15 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.text.ParseException;
+
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
+import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.AbstractModule;
@@ -30,10 +35,6 @@ import com.google.inject.TypeLiteral;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.text.ParseException;
 
 /**
  * A module that binds data specific to a single experiment.
@@ -57,9 +58,8 @@ public final class ExperimentModule extends AbstractModule {
         experiment.userParameters());
   }
 
-  public static ExperimentModule forWorkerSpec(WorkerSpec spec)
-      throws ClassNotFoundException {
-    Class<?> benchmarkClass = Class.forName(spec.benchmarkSpec.className());
+  public static ExperimentModule forWorkerSpec(WorkerSpec spec) throws ClassNotFoundException {
+    final Class<?> benchmarkClass = Util.lookupClass(spec.benchmarkSpec.className());
     Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(),
         spec.methodParameterClasses);
     benchmarkMethod.setAccessible(true);

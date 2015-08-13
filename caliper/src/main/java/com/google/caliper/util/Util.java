@@ -24,10 +24,14 @@ import com.google.common.io.ByteSource;
 import com.google.common.io.Closer;
 import com.google.common.io.Resources;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
 import java.lang.reflect.Modifier;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -35,6 +39,23 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 public final class Util {
+
+  // lookupClass related fields.
+  private static final File ROOT = new File(".");
+  private static final URLClassLoader CLASS_LOADER;
+
+  private static URL[] urls;
+  static {
+    try {
+        urls = new URL[] { ROOT.toURI().toURL() };
+    } catch (MalformedURLException e) {
+        System.err.println("Could get root URI, class lookup via Util.lookupClass() will not work. root="+ROOT);
+        System.err.println(e);
+        urls = null;
+    }
+    CLASS_LOADER = URLClassLoader.newInstance(urls);
+  }
+
   private Util() {}
 
   // Users have no idea that nested classes are identified with '$', not '.', so if class lookup
@@ -124,5 +145,10 @@ public final class Util {
     } else {
       return generateUniqueName(index / 26 - 1) + generateUniqueName(index % 26);
     }
+  }
+
+  public static Class<?> lookupClass(String className) throws ClassNotFoundException {
+    final Class<?> clazz = Class.forName(className, true, CLASS_LOADER);
+    return clazz;
   }
 }

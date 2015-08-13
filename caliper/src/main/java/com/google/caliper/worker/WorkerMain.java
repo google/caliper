@@ -18,6 +18,9 @@ package com.google.caliper.worker;
 
 import static com.google.inject.Stage.PRODUCTION;
 
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
+
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
@@ -25,12 +28,10 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
+import com.google.caliper.util.Util;
 import com.google.common.net.InetAddresses;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
-
-import java.net.InetSocketAddress;
-import java.nio.channels.SocketChannel;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
@@ -49,8 +50,9 @@ public final class WorkerMain {
     channel.configureBlocking(false);
     channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
+    final Class<?> clazz = Util.lookupClass(request.benchmarkSpec.className());
     Injector workerInjector = Guice.createInjector(PRODUCTION,
-        new BenchmarkClassModule(Class.forName(request.benchmarkSpec.className())),
+        new BenchmarkClassModule(clazz),
         new BridgeModule(),
         ExperimentModule.forWorkerSpec(request),
         new WorkerModule(request));

@@ -24,7 +24,17 @@ package com.google.caliper.worker;
  * thread.
  */
 abstract class AllocationRecorder {
+
+  private static final boolean LESS_THAN_JAVA_7 = System.getProperty("java.version").startsWith("1.5") || System.getProperty("java.version").startsWith("1.6");
+
+  // (Java 1.7+)
   private boolean firstTime = true;
+  {
+    // (Java 1.5, Java 1.6) Allocations seem somewhat non-deterministic, so disable
+    if (LESS_THAN_JAVA_7)
+        firstTime = false;
+  }
+
   
   /** 
    * Clears the prior state and starts a new recording.
