@@ -41,6 +41,19 @@ import java.util.List;
 @RunWith(JUnit4.class)
 public class AllocationInstrumentTest {
 
+  private final boolean LESS_THAN_JAVA_7 = System.getProperty("java.version").startsWith("1.5") || System.getProperty("java.version").startsWith("1.6");
+
+  // (Java 1.7+) 14 objects and 1960 bytes are the known values for growing an ArrayList from 1 element to 100 elements
+  private double objects = 14.0;
+  private double bytes = 1960.0;
+  {
+    if (LESS_THAN_JAVA_7) {
+        // (Java 1.5, 1.6)
+        objects = 12.0;
+        bytes = 1824.0;
+    }
+  }
+
   @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
 
   @Test public void getExtraCommandLineArgs() throws Exception {
@@ -65,15 +78,12 @@ public class AllocationInstrumentTest {
         .instrument("allocation")
         .run();
     Trial trial = Iterables.getOnlyElement(runner.trials());
-    ImmutableListMultimap<String, Measurement> measurementsByDescription =
-        Measurement.indexByDescription(trial.measurements());
-    // 12 objects and 1824 bytes are the known values for growing an ArrayList from 1 element to 100
-    // elements
+    ImmutableListMultimap<String, Measurement> measurementsByDescription = Measurement.indexByDescription(trial.measurements());
     for (Measurement objectMeasurement : measurementsByDescription.get("objects")) {
-      assertEquals(12.0, objectMeasurement.value().magnitude() / objectMeasurement.weight(), 0.001);
+      assertEquals(objects, objectMeasurement.value().magnitude() / objectMeasurement.weight(), 0.001);
     }
     for (Measurement byteMeasurement : measurementsByDescription.get("bytes")) {
-      assertEquals(1824.0, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
+      assertEquals(bytes, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
     }
   }
 
