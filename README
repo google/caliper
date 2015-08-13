@@ -1,8 +1,13 @@
-To build this project with Maven:
+To build this project with Maven (assuming you are in the caliper root directory):
+1.  cd caliper
+# Make sure it builds
+1a. mvn eclipse:configure-workspace eclipse:eclipse install -Dmaven.test.skip=true
+# Optionally, run the tests
+1b. mvn eclipse:configure-workspace eclipse:eclipse install
 
-1. cd caliper
-mvn eclipse:configure-workspace eclipse:eclipse install
+cd ..
 
-2. To build examples
-cd examples
-mvn eclipse:configure-workspace eclipse:eclipse install
+To build examples
+2.  cd examples
+# There are no tests in the examples
+2a. mvn eclipse:configure-workspace eclipse:eclipse install
