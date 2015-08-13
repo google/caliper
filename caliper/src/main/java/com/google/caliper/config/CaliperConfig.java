@@ -73,7 +73,7 @@ public final class CaliperConfig {
       Matcher matcher = CLASS_PROPERTY_PATTERN.matcher(entry.getKey());
       if (matcher.matches() && !entry.getValue().isEmpty()) {
         try {
-          Class<?> someClass = Class.forName(entry.getValue());
+          Class<?> someClass = Util.lookupClass(entry.getValue());
           checkState(type.isAssignableFrom(someClass));
           @SuppressWarnings("unchecked")
           Class<? extends T> verifiedClass = (Class<? extends T>) someClass;

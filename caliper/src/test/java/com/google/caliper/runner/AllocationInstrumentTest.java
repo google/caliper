@@ -41,7 +41,7 @@ import java.util.List;
 @RunWith(JUnit4.class)
 public class AllocationInstrumentTest {
 
-  private final boolean LESS_THAN_JAVA_7 = System.getProperty("java.version").startsWith("1.5") || System.getProperty("java.version").startsWith("1.6");
+  private static final boolean LESS_THAN_JAVA_7 = System.getProperty("java.version").startsWith("1.5") || System.getProperty("java.version").startsWith("1.6");
 
   // (Java 1.7+) 14 objects and 1960 bytes are the known values for growing an ArrayList from 1 element to 100 elements
   private double objects = 14.0;
