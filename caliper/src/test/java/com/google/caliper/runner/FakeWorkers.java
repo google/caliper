@@ -19,6 +19,8 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.util.Util;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 
 import java.io.IOException;
@@ -72,7 +74,11 @@ final class FakeWorkers {
     Collections.addAll(args, mainArgs);
     return new ProcessBuilder().command(args);
   }
-  
+
+  public static VirtualMachine getVirtualMachine() {
+    return init();
+  }
+
   /** 
    * A simple main method that will sleep for the number of milliseconds specified in the first
    * argument.
@@ -120,7 +126,19 @@ final class FakeWorkers {
       }
     }
   }
-  
+
+  /**
+   * Prints alternating arguments to standard out and standard error.
+   */
+  @VisibleForTesting
+  static final class LoadBenchmarkClass {
+
+    public static void main(String[] args) throws ClassNotFoundException {
+        String benchmarkClassName = args[0];
+        Util.loadClass(benchmarkClassName);
+    }
+  }
+
   static final class DummyLogMessage extends LogMessage implements Serializable {
     private final String content;
 

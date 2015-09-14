@@ -41,16 +41,29 @@ public final class Util {
   // fails try replacing the last . with $.
   public static Class<?> lenientClassForName(String className) throws ClassNotFoundException {
     try {
-      // TODO: consider whether any control over class loader is really needed here
-      // (forName(className, true, Thread.currentThread().getContextClassLoader())?)
-      return Class.forName(className);
+      return loadClass(className);
     } catch (ClassNotFoundException ignored) {
       // try replacing the last dot with a $, in case that helps
       // example: tutorial.Tutorial.Benchmark1 becomes tutorial.Tutorial$Benchmark1
       // amusingly, the $ character means three different things in this one line alone
       String newName = className.replaceFirst("\\.([^.]+)$", "\\$$1");
-      return Class.forName(newName);
+      return loadClass(newName);
     }
+  }
+
+  /**
+   * Search for a class by name.
+   *
+   * @param className the name of the class.
+   * @return the class.
+   * @throws ClassNotFoundException if the class could not be found.
+   */
+  public static Class<?> loadClass(String className) throws ClassNotFoundException {
+    // Use the thread context class loader. This is necessary because in some configurations, e.g.
+    // when run from a single JAR containing caliper and all its dependencies the caliper JAR
+    // ends up on the boot class path of the Worker and so needs to the use thread context class
+    // loader to load classes provided by the user.
+    return Class.forName(className, true, Thread.currentThread().getContextClassLoader());
   }
 
   public static ImmutableMap<String, String> loadProperties(ByteSource is) throws IOException {

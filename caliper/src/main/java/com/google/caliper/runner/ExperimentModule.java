@@ -22,6 +22,7 @@ import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
+import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.inject.AbstractModule;
@@ -59,7 +60,7 @@ public final class ExperimentModule extends AbstractModule {
 
   public static ExperimentModule forWorkerSpec(WorkerSpec spec)
       throws ClassNotFoundException {
-    Class<?> benchmarkClass = Class.forName(spec.benchmarkSpec.className());
+    Class<?> benchmarkClass = Util.loadClass(spec.benchmarkSpec.className());
     Method benchmarkMethod = findBenchmarkMethod(benchmarkClass, spec.benchmarkSpec.methodName(),
         spec.methodParameterClasses);
     benchmarkMethod.setAccessible(true);
@@ -111,7 +112,7 @@ public final class ExperimentModule extends AbstractModule {
 
   private static Method findBenchmarkMethod(Class<?> benchmark, String methodName,
       ImmutableList<Class<?>> methodParameterClasses) {
-    Class<?>[] params = methodParameterClasses.toArray(new Class[methodParameterClasses.size()]);
+    Class<?>[] params = methodParameterClasses.toArray(new Class<?>[methodParameterClasses.size()]);
     try {
       return benchmark.getDeclaredMethod(methodName, params);
     } catch (NoSuchMethodException e) {

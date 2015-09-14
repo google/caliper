@@ -25,6 +25,7 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
+import com.google.caliper.util.Util;
 import com.google.common.net.InetAddresses;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -50,7 +51,7 @@ public final class WorkerMain {
     channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
     Injector workerInjector = Guice.createInjector(PRODUCTION,
-        new BenchmarkClassModule(Class.forName(request.benchmarkSpec.className())),
+        new BenchmarkClassModule(Util.loadClass(request.benchmarkSpec.className())),
         new BridgeModule(),
         ExperimentModule.forWorkerSpec(request),
         new WorkerModule(request));
