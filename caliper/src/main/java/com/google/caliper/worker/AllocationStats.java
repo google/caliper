@@ -19,6 +19,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
@@ -26,12 +27,13 @@ import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.Multisets;
 
+import java.text.DecimalFormat;
 import java.util.Collection;
 
 /**
  * A set of statistics about the allocations performed by a benchmark method.
  */
-class AllocationStats {
+final class AllocationStats {
   private final int allocationCount;
   private final long allocationSize;
   private final int reps;
@@ -105,7 +107,21 @@ class AllocationStats {
           baseline, this), e);
     }
   }
-  
+
+  /**
+   * Computes and returns the difference between this measurement and the given
+   * {@code baseline} measurement. Unlike {@link #minus(AllocationStats)} this does not have to
+   * be a super set of the baseline.
+   */
+  public Delta delta(AllocationStats baseline) {
+    return new Delta(
+        allocationCount - baseline.allocationCount,
+        allocationSize - baseline.allocationSize,
+        reps - baseline.reps,
+        Multisets.difference(allocations, baseline.allocations),
+        Multisets.difference(baseline.allocations, allocations));
+  }
+
   /**
    * Returns a list of {@link Measurement measurements} based on this collection of stats.
    */
@@ -126,12 +142,74 @@ class AllocationStats {
             .description("bytes")
             .build());
   }
-  
+
+  @Override
+  public boolean equals(Object obj) {
+    if (obj == this) {
+      return true;
+    } else if (obj instanceof AllocationStats) {
+      AllocationStats that = (AllocationStats) obj;
+      return allocationCount == that.allocationCount
+          && allocationSize == that.allocationSize
+          && reps == that.reps
+          && Objects.equal(allocations, that.allocations);
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hashCode(allocationCount, allocationSize, reps, allocations);
+  }
+
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("allocationCount", allocationCount)
         .add("allocationSize", allocationSize)
         .add("reps", reps)
+        .add("allocations", allocations)
         .toString();
+  }
+
+  /**
+   * The delta between two different sets of statistics.
+   */
+  static final class Delta {
+    private final int count;
+    private final long size;
+    private final int reps;
+    private final Multiset<Allocation> additions;
+    private final Multiset<Allocation> removals;
+
+    Delta(
+        int count,
+        long size,
+        int reps,
+        Multiset<Allocation> additions,
+        Multiset<Allocation> removals) {
+      this.count = count;
+      this.size = size;
+      this.reps = reps;
+      this.additions = additions;
+      this.removals = removals;
+    }
+
+    /**
+     * Returns the long formatted with a leading +/- sign
+     */
+    private static String formatWithLeadingSign(long n) {
+      return n > 0 ? "+" + n : "" + n;
+    }
+
+    @Override public String toString() {
+      return MoreObjects.toStringHelper(this)
+          .add("count", formatWithLeadingSign(count))
+          .add("size", formatWithLeadingSign(size))
+          .add("reps", formatWithLeadingSign(reps))
+          .add("additions", additions)
+          .add("removals", removals)
+          .toString();
+    }
   }
 }
