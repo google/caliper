@@ -23,8 +23,6 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractIdleService;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,6 +34,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * A {@link TrialOutputFactory} implemented as a service that manages a directory either under 

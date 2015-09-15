@@ -24,7 +24,6 @@ import com.google.caliper.options.CaliperDirectory;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
-import com.google.inject.Singleton;
 
 import org.joda.time.format.ISODateTimeFormat;
 
@@ -37,6 +36,7 @@ import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * Loading the logging configuration at {@code ~/.caliper/logging.properties} if present.

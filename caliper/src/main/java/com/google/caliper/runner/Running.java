@@ -21,10 +21,10 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.google.inject.BindingAnnotation;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
+
+import javax.inject.Qualifier;
 
 /**
  * A collection of annotations for bindings pertaining to the currently running experiment.
@@ -34,26 +34,26 @@ public class Running {
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   public @interface Benchmark {}
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   public @interface BenchmarkMethod {}
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   public @interface BenchmarkClass {}
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   public @interface BeforeExperimentMethods {}
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   public @interface AfterExperimentMethods {}
 }

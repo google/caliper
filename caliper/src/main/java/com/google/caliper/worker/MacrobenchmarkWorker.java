@@ -29,10 +29,11 @@ import com.google.caliper.util.Util;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 /**
  * The {@link Worker} implementation for macrobenchmarks.

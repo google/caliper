@@ -20,9 +20,10 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.common.collect.ImmutableList;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
+
+import javax.inject.Inject;
 
 /**
  * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method

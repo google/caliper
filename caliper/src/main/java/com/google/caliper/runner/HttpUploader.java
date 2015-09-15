@@ -21,11 +21,12 @@ import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.util.Stdout;
 import com.google.gson.Gson;
-import com.google.inject.Inject;
 
 import com.sun.jersey.api.client.Client;
 
 import java.io.PrintWriter;
+
+import javax.inject.Inject;
 
 /**
  * A {@link ResultProcessor} implementation that publishes results to the webapp using an HTTP

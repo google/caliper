@@ -28,11 +28,12 @@ import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Random;
+
+import javax.inject.Inject;
 
 /**
  * A {@link Worker} base class for micro and pico benchmarks.

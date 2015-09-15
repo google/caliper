@@ -26,10 +26,7 @@ import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
-import com.google.common.util.concurrent.Service.State;
 import com.google.common.util.concurrent.SettableFuture;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
 
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -43,6 +40,8 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * A {@link Service} that manages a {@link ServerSocket}.

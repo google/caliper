@@ -24,7 +24,6 @@ import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
-import com.google.inject.Inject;
 
 import java.io.Closeable;
 import java.io.IOException;

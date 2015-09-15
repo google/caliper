@@ -17,11 +17,12 @@ package com.google.caliper.worker;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.inject.Inject;
 import com.google.monitoring.runtime.instrumentation.Sampler;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.inject.Inject;
 
 /**
  * An {@link AllocationRecorder} that records the number and cumulative size of allocation.

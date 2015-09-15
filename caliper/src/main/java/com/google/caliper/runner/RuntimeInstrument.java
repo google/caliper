@@ -47,7 +47,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import com.google.inject.Inject;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -56,6 +55,7 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 /**
  * The instrument responsible for measuring the runtime of {@link Benchmark} methods.

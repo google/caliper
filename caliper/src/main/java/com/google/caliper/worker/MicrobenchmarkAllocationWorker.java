@@ -19,10 +19,11 @@ package com.google.caliper.worker;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Random;
+
+import javax.inject.Inject;
 
 /**
  * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method

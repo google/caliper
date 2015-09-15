@@ -20,8 +20,9 @@ import static java.util.Arrays.asList;
 
 import com.google.caliper.runner.Running;
 import com.google.common.collect.ConcurrentHashMultiset;
-import com.google.inject.Inject;
 import com.google.monitoring.runtime.instrumentation.Sampler;
+
+import javax.inject.Inject;
 
 /**
  * An {@link AllocationRecorder} that records every allocation and its location.

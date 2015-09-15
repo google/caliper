@@ -19,9 +19,10 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.AfterExperimentMethods;
 import com.google.caliper.runner.Running.BeforeExperimentMethods;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
+
+import javax.inject.Inject;
 
 /**
  * A {@link Worker} collects measurements on behalf of a particular Instrument.

@@ -27,7 +27,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.bind.TypeAdapters;
 import com.google.inject.AbstractModule;
-import com.google.inject.BindingAnnotation;
 import com.google.inject.Key;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
@@ -37,6 +36,8 @@ import org.joda.time.Instant;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import java.util.Set;
+
+import javax.inject.Qualifier;
 
 /**
  * Binds a {@link Gson} instance suitable for serializing and deserializing Caliper
@@ -57,7 +58,7 @@ public final class GsonModule extends AbstractModule {
 
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
-  @BindingAnnotation
+  @Qualifier
   private @interface ForInstant {}
 
   @Provides @ForInstant TypeAdapterFactory provideTypeAdapterFactoryForInstant(

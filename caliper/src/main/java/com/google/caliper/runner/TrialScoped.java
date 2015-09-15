@@ -19,18 +19,18 @@ package com.google.caliper.runner;
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.ElementType.TYPE;
 
-import com.google.inject.ScopeAnnotation;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import javax.inject.Scope;
+
 /**
- * ScopeAnnotation for the TrialScope.
+ * Scope annotation for the TrialScope.
  *
  * <p>Apply this to binding for which there can only be one per trial.
  */
 @Target({ TYPE, METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@ScopeAnnotation
+@Scope
 @interface TrialScoped {}

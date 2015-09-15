@@ -36,7 +36,6 @@ import com.google.common.util.concurrent.Service; // for javadoc
 import com.google.common.util.concurrent.Service.State; // for javadoc
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.inject.Inject;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -53,6 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 /**
  * A {@link Service} that establishes a connection over a socket to a process and then allows 

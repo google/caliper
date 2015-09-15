@@ -27,7 +27,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-import com.google.inject.Inject;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
@@ -41,6 +40,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
+import javax.inject.Inject;
 
 /**
  * {@link ResultProcessor} implementation that uploads the JSON-serialized results to the Caliper

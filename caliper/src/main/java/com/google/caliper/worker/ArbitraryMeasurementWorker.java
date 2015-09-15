@@ -23,10 +23,11 @@ import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableSet;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+
+import javax.inject.Inject;
 
 /**
  * Worker for arbitrary measurements.

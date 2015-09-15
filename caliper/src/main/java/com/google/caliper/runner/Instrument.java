@@ -33,9 +33,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-import com.google.inject.Inject;
 
 import java.lang.reflect.Method;
+
+import javax.inject.Inject;
 
 public abstract class Instrument {
   protected ImmutableMap<String, String> options;

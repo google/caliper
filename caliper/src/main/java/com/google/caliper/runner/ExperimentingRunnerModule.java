@@ -39,7 +39,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.google.inject.ProvisionException;
-import com.google.inject.Singleton;
 import com.google.inject.multibindings.Multibinder;
 
 import org.joda.time.Instant;
@@ -50,6 +49,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Executors;
+
+import javax.inject.Singleton;
 
 /**
  * Configures a {@link CaliperRun} that performs experiments.
