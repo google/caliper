@@ -18,43 +18,33 @@ package dk.ilios.caliperx.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static javax.persistence.AccessType.FIELD;
 
 import com.google.common.base.Objects;
 
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Type;
 import org.joda.time.Instant;
 
 import java.util.UUID;
-
-import javax.persistence.Access;
-import javax.persistence.Basic;
-import javax.persistence.Cacheable;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
 
 /**
  * A single invocation of caliper.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
+//@Entity
+//@Access(FIELD)
+//@Immutable
+//@Cacheable
 public final class Run {
   static final Run DEFAULT = new Run();
 
-  @Id
-  @Type(type = "uuid-binary")
-  @Column(length = 16)
+//  @Id
+//  @Type(type = "uuid-binary")
+//  @Column(length = 16)
   private UUID id;
-  @Basic(optional = false)
+//  @Basic(optional = false)
   private String label;
-  @Basic(optional = false)
-  @Type(type = "org.joda.time.contrib.hibernate.PersistentInstant")
+//  @Basic(optional = false)
+//  @Type(type = "org.joda.time.contrib.hibernate.PersistentInstant")
   private Instant startTime;
 
   private Run() {

@@ -17,24 +17,19 @@
 package dk.ilios.caliperx.model;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.persistence.AccessType.FIELD;
 
 import com.google.common.base.Objects;
 
 import java.io.Serializable;
-
-import javax.persistence.Access;
-import javax.persistence.Cacheable;
-import javax.persistence.Embeddable;
 
 /**
  * A magnitude with units.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Embeddable
-@Access(FIELD)
-@Cacheable
+//@Embeddable
+//@Access(FIELD)
+//@Cacheable
 public class Value implements Serializable {
   private static final long serialVersionUID = 1L;
 

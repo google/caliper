@@ -17,8 +17,6 @@
 package dk.ilios.caliperx.model;
 
 import static dk.ilios.caliperx.model.PersistentHashing.getPersistentHashFunction;
-import static javax.persistence.AccessType.FIELD;
-import static org.hibernate.annotations.SortType.NATURAL;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSortedMap;
@@ -26,132 +24,127 @@ import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Sort;
-
 import java.util.Map;
 import java.util.SortedMap;
-
-import javax.persistence.Access;
-import javax.persistence.Cacheable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.QueryHint;
 
 /**
  * A configuration of a virtual machine.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
-@NamedQuery(
-    name = "listVmSpecsForHash",
-    query = "SELECT v FROM VmSpec v WHERE hash = :hash",
-    hints = {
-        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
+//@Entity
+//@Access(FIELD)
+//@Immutable
+//@Cacheable
+//@NamedQuery(
+//    name = "listVmSpecsForHash",
+//    query = "SELECT v FROM VmSpec v WHERE hash = :hash",
+//    hints = {
+//        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+//        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
 public final class VmSpec {
-  static final VmSpec DEFAULT = new VmSpec();
+    static final VmSpec DEFAULT = new VmSpec();
 
-  @Id @GeneratedValue @ExcludeFromJson private int id;
-  @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> properties;
-  @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> options;
-  @ExcludeFromJson @Index(name = "hash_index") private int hash;
+    //  @Id @GeneratedValue
+    @ExcludeFromJson
+    private int id;
+    //  @ElementCollection @Sort(type = NATURAL)
+    private SortedMap<String, String> properties;
+    //  @ElementCollection @Sort(type = NATURAL)
+    private SortedMap<String, String> options;
+    @ExcludeFromJson
+//  @Index(name = "hash_index")
+    private int hash;
 
-  private VmSpec() {
-    this.properties = Maps.newTreeMap();
-    this.options = Maps.newTreeMap();
-  }
-
-  private VmSpec(Builder builder) {
-    this.properties = Maps.newTreeMap(builder.properties);
-    this.options = Maps.newTreeMap(builder.options);
-  }
-
-  public ImmutableSortedMap<String, String> options() {
-    return ImmutableSortedMap.copyOf(options);
-  }
-
-  public ImmutableSortedMap<String, String> properties() {
-    return ImmutableSortedMap.copyOf(properties);
-  }
-
-  @Override public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    } else if (obj instanceof VmSpec) {
-      VmSpec that = (VmSpec) obj;
-      return this.properties.equals(that.properties)
-          && this.options.equals(that.options);
-    } else {
-      return false;
-    }
-  }
-
-  @PrePersist
-  @PreUpdate
-  private void initHash() {
-    if (hash == 0) {
-      this.hash = getPersistentHashFunction().hashObject(this, VmSpecFunnel.INSTANCE).asInt();
-    }
-  }
-
-  @Override public int hashCode() {
-    initHash();
-    return hash;
-  }
-
-  @Override public String toString() {
-    return Objects.toStringHelper(this)
-        .add("properties", properties)
-        .add("options", options)
-        .toString();
-  }
-
-  enum VmSpecFunnel implements Funnel<VmSpec> {
-    INSTANCE;
-
-    @Override public void funnel(VmSpec from, PrimitiveSink into) {
-      StringMapFunnel.INSTANCE.funnel(from.properties, into);
-      StringMapFunnel.INSTANCE.funnel(from.options, into);
-    }
-  }
-
-  public static final class Builder {
-    private final SortedMap<String, String> properties = Maps.newTreeMap();
-    private final SortedMap<String, String> options = Maps.newTreeMap();
-
-    public Builder addOption(String optionName, String value) {
-      this.options.put(optionName, value);
-      return this;
+    private VmSpec() {
+        this.properties = Maps.newTreeMap();
+        this.options = Maps.newTreeMap();
     }
 
-    public Builder addAllOptions(Map<String, String> options) {
-      this.options.putAll(options);
-      return this;
+    private VmSpec(Builder builder) {
+        this.properties = Maps.newTreeMap(builder.properties);
+        this.options = Maps.newTreeMap(builder.options);
     }
 
-    public Builder addProperty(String property, String value) {
-      this.properties.put(property, value);
-      return this;
+    public ImmutableSortedMap<String, String> options() {
+        return ImmutableSortedMap.copyOf(options);
     }
 
-    public Builder addAllProperties(Map<String, String> properties) {
-      this.properties.putAll(properties);
-      return this;
+    public ImmutableSortedMap<String, String> properties() {
+        return ImmutableSortedMap.copyOf(properties);
     }
 
-    public VmSpec build() {
-      return new VmSpec(this);
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof VmSpec) {
+            VmSpec that = (VmSpec) obj;
+            return this.properties.equals(that.properties)
+                    && this.options.equals(that.options);
+        } else {
+            return false;
+        }
     }
-  }
+
+    //  @PrePersist
+//  @PreUpdate
+    private void initHash() {
+        if (hash == 0) {
+            this.hash = getPersistentHashFunction().hashObject(this, VmSpecFunnel.INSTANCE).asInt();
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        initHash();
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return Objects.toStringHelper(this)
+                .add("properties", properties)
+                .add("options", options)
+                .toString();
+    }
+
+    enum VmSpecFunnel implements Funnel<VmSpec> {
+        INSTANCE;
+
+        @Override
+        public void funnel(VmSpec from, PrimitiveSink into) {
+            StringMapFunnel.INSTANCE.funnel(from.properties, into);
+            StringMapFunnel.INSTANCE.funnel(from.options, into);
+        }
+    }
+
+    public static final class Builder {
+        private final SortedMap<String, String> properties = Maps.newTreeMap();
+        private final SortedMap<String, String> options = Maps.newTreeMap();
+
+        public Builder addOption(String optionName, String value) {
+            this.options.put(optionName, value);
+            return this;
+        }
+
+        public Builder addAllOptions(Map<String, String> options) {
+            this.options.putAll(options);
+            return this;
+        }
+
+        public Builder addProperty(String property, String value) {
+            this.properties.put(property, value);
+            return this;
+        }
+
+        public Builder addAllProperties(Map<String, String> properties) {
+            this.properties.putAll(properties);
+            return this;
+        }
+
+        public VmSpec build() {
+            return new VmSpec(this);
+        }
+    }
 }

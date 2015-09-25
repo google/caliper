@@ -19,25 +19,10 @@ package dk.ilios.caliperx.model;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 import static dk.ilios.caliperx.model.PersistentHashing.getPersistentHashFunction;
-import static javax.persistence.AccessType.FIELD;
 
 import dk.ilios.caliperx.model.Host.HostFunnel;
 import dk.ilios.caliperx.model.VmSpec.VmSpecFunnel;
 import com.google.common.base.Objects;
-
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Index;
-
-import javax.persistence.Access;
-import javax.persistence.Cacheable;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToOne;
-import javax.persistence.NamedQuery;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.QueryHint;
 
 /**
  * The combination of properties whose combination, when measured with a particular instrument,
@@ -45,25 +30,32 @@ import javax.persistence.QueryHint;
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
-@NamedQuery(
-    name = "listScenariosForHash",
-    query = "SELECT s FROM Scenario s WHERE hash = :hash",
-    hints = {
-        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
+//@Entity
+//@Access(FIELD)
+//@Immutable
+//@Cacheable
+//@NamedQuery(
+//    name = "listScenariosForHash",
+//    query = "SELECT s FROM Scenario s WHERE hash = :hash",
+//    hints = {
+//        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
+//        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
 public final class Scenario {
   static final Scenario DEFAULT = new Scenario();
 
-  @Id @GeneratedValue @ExcludeFromJson private int id;
-  @ManyToOne(optional = false) private Host host;
-  @ManyToOne(optional = false) private VmSpec vmSpec;
-  @ManyToOne(optional = false) private BenchmarkSpec benchmarkSpec;
+//  @Id @GeneratedValue
+  @ExcludeFromJson
+  private int id;
+//  @ManyToOne(optional = false)
+  private Host host;
+//  @ManyToOne(optional = false)
+  private VmSpec vmSpec;
+//  @ManyToOne(optional = false)
+  private BenchmarkSpec benchmarkSpec;
   // TODO(gak): include data about caliper itself and the code being benchmarked
-  @ExcludeFromJson @Index(name = "hash_index") private int hash;
+  @ExcludeFromJson
+//  @Index(name = "hash_index")
+  private int hash;
 
   private Scenario() {
     this.host = Host.DEFAULT;
@@ -102,8 +94,8 @@ public final class Scenario {
     }
   }
 
-  @PrePersist
-  @PreUpdate
+//  @PrePersist
+//  @PreUpdate
   private void initHash() {
     if (hash == 0) {
       this.hash = getPersistentHashFunction()
