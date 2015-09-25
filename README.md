@@ -13,6 +13,11 @@ It is a fork of the original Caliper project started by Google: code.google.com/
 2) Example of unit test with annotations
 
 
+## Resources
+
+- http://jeremymanson.blogspot.dk/2009/12/allocation-instrumenter-for-java_10.html
+
+
 
 ## Old docs
 
