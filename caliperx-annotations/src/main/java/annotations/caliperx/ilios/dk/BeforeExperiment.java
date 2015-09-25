@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package annotations.caliperx.ilios.dk;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
@@ -24,16 +24,16 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * An annotation for methods to be run after an experiment has been performed.
+ * An annotation for methods to be run before an experiment has been performed.
  *
- * @see BeforeExperiment
+ * @see AfterExperiment
  */
 @Target(METHOD)
 @Retention(RUNTIME)
-public @interface AfterExperiment {
+public @interface BeforeExperiment {
   /**
    * A qualifier for which types of experiments this method should run. For example, annotating a
-   * method with {@code @AfterExperiment(Benchmark.class)} will cause it to only run for
+   * method with {@code @BeforeExperiment(Benchmark.class)} will cause it to only run for
    * {@link Benchmark} experiments. By default, annotated methods run for all experiments.
    */
   Class<? extends Annotation> value() default All.class;

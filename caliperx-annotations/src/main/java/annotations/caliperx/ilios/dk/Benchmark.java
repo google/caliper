@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper;
+package annotations.caliperx.ilios.dk;
 
 import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
