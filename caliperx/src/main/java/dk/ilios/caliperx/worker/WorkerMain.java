@@ -1,0 +1,87 @@
+/*
+ * Copyright (C) 2011 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package dk.ilios.caliperx.worker;
+
+import static com.google.inject.Stage.PRODUCTION;
+
+import dk.ilios.caliperx.bridge.BridgeModule;
+import dk.ilios.caliperx.bridge.CommandLineSerializer;
+import dk.ilios.caliperx.bridge.OpenedSocket;
+import dk.ilios.caliperx.bridge.ShouldContinueMessage;
+import dk.ilios.caliperx.bridge.WorkerSpec;
+import dk.ilios.caliperx.runner.BenchmarkClassModule;
+import dk.ilios.caliperx.runner.ExperimentModule;
+import com.google.common.net.InetAddresses;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
+import java.net.InetSocketAddress;
+import java.nio.channels.SocketChannel;
+
+/**
+ * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
+ * the benchmark and hands it off to the instrument's worker.
+ */
+public final class WorkerMain {
+  private WorkerMain() {}
+
+  public static void main(String[] args) throws Exception {
+    // TODO(lukes): instead of parsing the spec from the command line pass the port number on the
+    // command line and then receive the spec from the socket.  This way we can start JVMs prior
+    // to starting experiments and thus get better experiment latency.
+    WorkerSpec request = CommandLineSerializer.parse(args[0]);
+    // nonblocking connect so we can interleave the system call with injector creation.
+    SocketChannel channel = SocketChannel.open();
+    channel.configureBlocking(false);
+    channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
+
+    Injector workerInjector = Guice.createInjector(PRODUCTION,
+        new BenchmarkClassModule(Class.forName(request.benchmarkSpec.className())),
+        new BridgeModule(),
+        ExperimentModule.forWorkerSpec(request),
+        new WorkerModule(request));
+    Worker worker = workerInjector.getInstance(Worker.class);
+    WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
+
+    log.notifyWorkerStarted(request.trialId);
+    try {
+      worker.setUpBenchmark();
+      log.notifyBootstrapPhaseStarting();
+      worker.bootstrap();
+      log.notifyMeasurementPhaseStarting();
+      boolean keepMeasuring = true;
+      boolean isInWarmup = true;
+      while (keepMeasuring) {
+        worker.preMeasure(isInWarmup);
+        log.notifyMeasurementStarting();
+        try {
+          ShouldContinueMessage message = log.notifyMeasurementEnding(worker.measure());
+          keepMeasuring = message.shouldContinue();
+          isInWarmup = !message.isWarmupComplete();
+        } finally {
+          worker.postMeasure();
+        }
+      }
+    } catch (Exception e) {
+      log.notifyFailure(e);
+    } finally {
+      System.out.flush(); // ?
+      worker.tearDownBenchmark();
+      log.close();
+    }
+  }
+}

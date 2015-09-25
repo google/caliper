@@ -2,4 +2,19 @@ apply plugin: 'java'
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile project(':caliperx-annotations')
+    compile 'com.google.code.findbugs:jsr305:1.3.9' // Should be provided
+    compile 'com.google.code.gson:gson:2.2.2'
+    compile 'joda-time:joda-time:2.1'
+    compile 'com.sun.jersey:jersey-client:1.11'
+    compile 'com.google.guava:guava:18.0'
+    compile 'com.google.inject:guice:3.0'
+    compile 'com.google.inject.extensions:guice-multibindings:3.0'
+    compile 'com.google.inject.extensions:guice-assistedinject:3.0'
+    compile'org.hibernate:hibernate-core:3.6.7.Final' // Should be provided
+    compile 'org.apache.commons:commons-math:2.2'
+    compile 'com.google.code.java-allocation-instrumenter:java-allocation-instrumenter:3.0'
+
+    testCompile 'junit:junit:4.10'
+    testCompile 'org.mockito:mockito-all:1.9.5'
 }
