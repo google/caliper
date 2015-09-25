@@ -24,8 +24,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-import javax.annotation.Nullable;
-
 /**
  * Provides a class path containing all of the jars present on the local machine that are referenced
  * by a given {@link ClassLoader}.
@@ -39,7 +37,8 @@ final class EffectiveClassPath {
 
   private static ImmutableSet<File> getClassPathFiles(ClassLoader classLoader) {
     ImmutableSet.Builder<File> files = ImmutableSet.builder();
-    @Nullable ClassLoader parent = classLoader.getParent();
+//    @Nullable ClassLoader parent = classLoader.getParent();
+    ClassLoader parent = classLoader.getParent();
     if (parent != null) {
       files.addAll(getClassPathFiles(parent));
     }

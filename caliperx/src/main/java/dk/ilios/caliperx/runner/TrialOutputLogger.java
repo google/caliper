@@ -24,17 +24,16 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.UUID;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
 
 /**
  * A logger to write trial output to a file.
  */
 @TrialScoped final class TrialOutputLogger implements Closeable {
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private File file;
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private PrintWriter writer;
 
   private final int trialNumber;

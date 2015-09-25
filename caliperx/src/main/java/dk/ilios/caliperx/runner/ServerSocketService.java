@@ -42,8 +42,6 @@ import java.util.UUID;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import javax.annotation.concurrent.GuardedBy;
-
 /**
  * A {@link Service} that manages a {@link ServerSocket}.
  *
@@ -96,14 +94,14 @@ import javax.annotation.concurrent.GuardedBy;
    * Contains futures that have either only been accepted or requested.  Once both occur they are
    * removed from this map.
    */
-  @GuardedBy("lock")
+//  @GuardedBy("lock")
   private final Map<UUID, SettableFuture<OpenedSocket>> halfFinishedConnections = Maps.newHashMap();
   
   /**
    * Contains the history of connections so we can ensure that each id is only accepted once and
    * requested once.
    */
-  @GuardedBy("lock")
+//  @GuardedBy("lock")
   private final SetMultimap<Source, UUID> connectionState = Multimaps.newSetMultimap(
       Maps.<Source, Collection<UUID>>newEnumMap(Source.class), 
       new Supplier<Set<UUID>>(){

@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-import javax.annotation.concurrent.Immutable;
+import dk.ilios.caliperx.model.InstrumentSpec;
 
 /**
  * This is the configuration passed to the instrument by the user. This differs from the
@@ -33,7 +33,7 @@ import javax.annotation.concurrent.Immutable;
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Immutable
+//@Immutable
 public final class InstrumentConfig {
   private final String className;
   private final ImmutableMap<String, String> options;

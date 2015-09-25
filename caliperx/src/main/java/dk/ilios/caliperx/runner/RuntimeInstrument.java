@@ -52,8 +52,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
-
 import static dk.ilios.caliperx.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
 import static dk.ilios.caliperx.runner.CommonInstrumentOptions.MAX_WARMUP_WALL_TIME_OPTION;
 import static dk.ilios.caliperx.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
@@ -220,7 +218,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   private int getMeasurementsPerTrial() {
-    @Nullable
+//    @Nullable
     String measurementsString = options.get(MEASUREMENTS_OPTION);
     int measurementsPerTrial =
         (measurementsString == null) ? 1 : Integer.parseInt(measurementsString);

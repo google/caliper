@@ -35,8 +35,6 @@ import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-import javax.annotation.concurrent.GuardedBy;
-
 /**
  * A {@link TrialOutputFactory} implemented as a service that manages a directory either under 
  * {@code /tmp} or in a user configured directory.
@@ -52,13 +50,13 @@ import javax.annotation.concurrent.GuardedBy;
   private final CaliperOptions options;
   private final Run run;
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private final Set<String> toDelete = new LinkedHashSet<String>();
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private File directory;
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private boolean persistFiles;
 
   @Inject TrialOutputFactoryService(Run run, CaliperOptions options) {

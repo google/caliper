@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.annotation.Nonnull;
-
 /**
  * A depth-first object graph explorer. The traversal starts at a root (an
  * {@code Object}) and explores any other reachable object (recursively) or
@@ -111,7 +109,8 @@ public final class ObjectExplorer {
       }
 
       //only nonnull values pushed in the stack
-      @Nonnull Object value = chain.getValue();
+//      @Nonnull Object value = chain.getValue();
+      Object value = chain.getValue();
       Class<?> valueClass = value.getClass();
       if (valueClass.isArray()) {
         boolean isPrimitive = valueClass.getComponentType().isPrimitive();

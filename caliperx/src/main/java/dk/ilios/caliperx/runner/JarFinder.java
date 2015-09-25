@@ -38,8 +38,6 @@ import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Logger;
 
-import javax.annotation.Nullable;
-
 /**
  * Scans the source of a {@link ClassLoader} and finds all jar files.  This is a modified version
  * of {@link ClassPath} that finds jars instead of resources.
@@ -165,8 +163,9 @@ final class JarFinder {
      * JAR File Specification</a>. If {@code manifest} is null, it means the jar file has no
      * manifest, and an empty set will be returned.
      */
-    @VisibleForTesting static ImmutableSet<URI> getClassPathFromManifest(
-        File jarFile, @Nullable Manifest manifest) {
+//    @VisibleForTesting static ImmutableSet<URI> getClassPathFromManifest(File jarFile, @Nullable Manifest manifest) {
+    @VisibleForTesting static ImmutableSet<URI> getClassPathFromManifest(File jarFile, Manifest manifest) {
+
       if (manifest == null) {
         return ImmutableSet.of();
       }

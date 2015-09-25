@@ -43,8 +43,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.annotation.Nullable;
-
 /**
  * Primary entry point for the caliper benchmark runner application; run with {@code --help} for
  * details. This class's only purpose is to take care of anything that's specific to command-line
@@ -108,7 +106,8 @@ public final class CaliperMain {
 
   public static void exitlessMain(String[] args, PrintWriter stdout, PrintWriter stderr)
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
-    @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
+//    @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
+    String legacyCaliperEnv = System.getenv(LEGACY_ENV);
     if (!Strings.isNullOrEmpty(legacyCaliperEnv)) {
       System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
     }

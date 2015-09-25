@@ -25,7 +25,7 @@ import com.google.common.collect.ImmutableList;
 
 import java.io.File;
 
-import javax.annotation.concurrent.GuardedBy;
+import dk.ilios.caliperx.model.VmSpec;
 
 /**
  * This is the configuration passed to the VM by the user. This differs from the {@link VmSpec}
@@ -39,7 +39,7 @@ public final class VmConfig {
   private final File javaHome;
   private final ImmutableList<String> options;
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private File javaExecutable;
 
   private VmConfig(Builder builder) {

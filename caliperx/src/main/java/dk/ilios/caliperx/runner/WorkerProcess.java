@@ -40,7 +40,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
-import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
 
 /**
@@ -59,7 +58,7 @@ import javax.inject.Inject;
 @TrialScoped final class WorkerProcess {
   private static final Logger logger = Logger.getLogger(WorkerProcess.class.getName());
 
-  @GuardedBy("this")
+//  @GuardedBy("this")
   private Process worker;
   private final ProcessBuilder workerBuilder;
   private final ShutdownHookRegistrar shutdownHookRegistrar;

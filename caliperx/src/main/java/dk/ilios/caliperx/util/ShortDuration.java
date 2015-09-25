@@ -34,8 +34,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.annotation.Nullable;
-
 /**
  * Represents a nonnegative duration from 0 to 100 days, with picosecond precision.
  * Contrast with Joda-Time's duration class, which has only millisecond precision but can
@@ -192,9 +190,8 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
       checkNotNull(that);
       return -1;
     }
-    @Override public boolean equals(@Nullable Object that) {
-      return this == that;
-    }
+//    @Override public boolean equals(@Nullable Object that) {
+    @Override public boolean equals(Object that) { return this == that; }
     @Override public int hashCode() {
       return 0;
     }
