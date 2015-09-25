@@ -1,9 +1,0 @@
-<component name="libraryTable">
-  <library name="allocation">
-    <CLASSES>
-      <root url="jar://$PROJECT_DIR$/lib/allocation.jar!/" />
-    </CLASSES>
-    <JAVADOC />
-    <SOURCES />
-  </library>
-</component>
