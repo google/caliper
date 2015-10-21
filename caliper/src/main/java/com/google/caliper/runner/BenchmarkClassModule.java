@@ -31,30 +31,25 @@ import java.lang.reflect.Method;
 // TODO(gak): move more of benchmark class into this module
 @Module
 public final class BenchmarkClassModule {
-  private final Class<?> benchmarkClassObject;
 
-  public BenchmarkClassModule(Class<?> benchmarkClassObject) {
-    this.benchmarkClassObject = benchmarkClassObject;
-  }
-
-  @Provides @Running.BenchmarkClass Class<?> provideBenchmarkClassObject() {
-    return benchmarkClassObject;
-  }
-
-  @Provides @MainScope
-  BenchmarkClass provideBenchmarkClass() throws InvalidBenchmarkException {
+  @Provides
+  @MainScope
+  static BenchmarkClass provideBenchmarkClass(@Running.BenchmarkClass Class<?> benchmarkClassObject)
+      throws InvalidBenchmarkException {
     return BenchmarkClass.forClass(benchmarkClassObject);
   }
 
   @Provides
   @BeforeExperimentMethods
-  static ImmutableSet<Method> provideBeforeExperimentMethods(BenchmarkClass benchmarkClass) {
+  static ImmutableSet<Method> provideBeforeExperimentMethods(
+      BenchmarkClass benchmarkClass) {
     return benchmarkClass.beforeExperimentMethods();
   }
 
   @Provides
   @AfterExperimentMethods
-  static ImmutableSet<Method> provideAfterExperimentMethods(BenchmarkClass benchmarkClass) {
+  static ImmutableSet<Method> provideAfterExperimentMethods(
+      BenchmarkClass benchmarkClass) {
     return benchmarkClass.afterExperimentMethods();
   }
 }

@@ -17,12 +17,11 @@
 package com.google.caliper.options;
 
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.MainScope;
 import dagger.Module;
 import dagger.Provides;
 
 import java.io.File;
-
-import javax.inject.Singleton;
 
 /**
  * Bindings for Caliper command line options.
@@ -35,9 +34,9 @@ public final class OptionsModule {
     this.args = args.clone(); // defensive copy, just in case
   }
 
-  @Singleton
-  @Provides CaliperOptions provideOptions() throws InvalidCommandException {
-    // TODO(gak): throwing provider
+  @Provides
+  @MainScope
+  CaliperOptions provideOptions() throws InvalidCommandException {
     return ParsedOptions.from(args);
   }
 

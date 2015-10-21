@@ -18,7 +18,9 @@ package com.google.caliper.worker;
 
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.runner.Running;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.Util;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
 import dagger.MapKey;
@@ -44,9 +46,19 @@ final class WorkerModule {
   private final Class<? extends Worker> workerClass;
   private final ImmutableMap<String, String> workerOptions;
 
-  WorkerModule(WorkerSpec workerSpec) {
+  private final Class<?> benchmarkClassObject;
+
+  WorkerModule(WorkerSpec workerSpec) throws ClassNotFoundException {
     this.workerClass = workerSpec.workerClass.asSubclass(Worker.class);
     this.workerOptions = workerSpec.workerOptions;
+
+    benchmarkClassObject = Util.loadClass(workerSpec.benchmarkSpec.className());
+  }
+
+  @Provides
+  @Running.BenchmarkClass
+  Class<?> provideBenchmarkClassObject() {
+    return benchmarkClassObject;
   }
 
   @Provides
@@ -61,7 +73,7 @@ final class WorkerModule {
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available
-   * {@link Worker workers} passed to {@link #providesWorker(Map)}.
+   * {@link Worker workers} passed to {@link #provideWorker(Map)}.
    */
   @MapKey(unwrapValue = true)
   public @interface WorkerClassKey {

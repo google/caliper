@@ -20,9 +20,7 @@ import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
-import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
-import com.google.caliper.util.Util;
 import com.google.common.net.InetAddresses;
 
 import java.net.InetSocketAddress;
@@ -45,9 +43,7 @@ public final class WorkerMain {
     channel.configureBlocking(false);
     channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
-    Class<?> benchmarkClassObject = Util.loadClass(request.benchmarkSpec.className());
     WorkerComponent workerComponent = DaggerWorkerComponent.builder()
-        .benchmarkClassModule(new BenchmarkClassModule(benchmarkClassObject))
         .experimentModule(ExperimentModule.forWorkerSpec(request))
         .workerModule(new WorkerModule(request))
         .build();

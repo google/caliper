@@ -18,12 +18,9 @@ import static com.google.common.collect.ObjectArrays.concat;
 
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.options.CaliperOptionsComponent;
-import com.google.caliper.options.DaggerCaliperOptionsComponent;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
-import com.google.caliper.util.Util;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.util.concurrent.ServiceManager;
@@ -103,18 +100,11 @@ public final class CaliperMain {
       System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
     }
     try {
-      // TODO(gak): see if there's a better way to deal with options. probably a module
-      OptionsModule optionsModule = new OptionsModule(args);
-      CaliperOptionsComponent optionsComponent = DaggerCaliperOptionsComponent.builder()
-          .optionsModule(optionsModule)
-          .build();
-      CaliperOptions options = optionsComponent.getCaliperOptions();
-      Class<?> benchmarkClass = benchmarkClassForName(options.benchmarkClassName());
       MainComponent mainComponent = DaggerMainComponent.builder()
-          .benchmarkClassModule(new BenchmarkClassModule(benchmarkClass))
-          .caliperOptionsComponent(optionsComponent)
+          .optionsModule(new OptionsModule(args))
           .outputModule(new OutputModule(stdout, stderr))
           .build();
+      CaliperOptions options = mainComponent.getCaliperOptions();
       if (options.printConfiguration()) {
         stdout.println("Configuration:");
         ImmutableSortedMap<String, String> sortedProperties =
@@ -143,20 +133,6 @@ public final class CaliperMain {
       // courtesy flush
       stderr.flush();
       stdout.flush();
-    }
-  }
-
-  private static Class<?> benchmarkClassForName(String className)
-      throws InvalidCommandException, UserCodeException {
-    try {
-      return Util.lenientClassForName(className);
-    } catch (ClassNotFoundException e) {
-      throw new InvalidCommandException("Benchmark class not found: " + className);
-    } catch (ExceptionInInitializerError e) {
-      throw new UserCodeException(
-          "Exception thrown while initializing class '" + className + "'", e.getCause());
-    } catch (NoClassDefFoundError e) {
-      throw new UserCodeException("Unable to load " + className, e);
     }
   }
 }

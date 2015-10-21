@@ -20,7 +20,8 @@ import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.ConfigModule;
 import com.google.caliper.json.GsonModule;
-import com.google.caliper.options.CaliperOptionsComponent;
+import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.MainScope;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ServiceManager;
@@ -36,17 +37,19 @@ import dagger.Component;
     ConfigModule.class,
     ExperimentingRunnerModule.class,
     GsonModule.class,
-    RunnerModule.class,
+    MainModule.class,
+    OptionsModule.class,
     OutputModule.class,
+    RunnerModule.class,
     ServiceModule.class,
-}, dependencies = {
-    CaliperOptionsComponent.class
 })
 interface MainComponent {
 
   BenchmarkClass getBenchmarkClass();
 
   CaliperConfig getCaliperConfig();
+
+  CaliperOptions getCaliperOptions();
 
   CaliperRun getCaliperRun();
 
