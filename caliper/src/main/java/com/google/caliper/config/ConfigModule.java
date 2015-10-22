@@ -16,11 +16,11 @@
 
 package com.google.caliper.config;
 
-import com.google.caliper.util.MainScope;
 import dagger.Module;
 import dagger.Provides;
 
 import java.util.logging.LogManager;
+import javax.inject.Singleton;
 
 /**
  * Bindings for Caliper configuration.
@@ -32,7 +32,8 @@ public final class ConfigModule {
    * The {@code doNotRemove} parameter is required here to ensure that the logging configuration
    * is loaded and used to update the logger settings before the configuration is loaded.
    */
-  @Provides @MainScope static CaliperConfig provideCaliperConfig(
+  @Provides @Singleton
+  static CaliperConfig provideCaliperConfig(
       CaliperConfigLoader configLoader,
       @SuppressWarnings("unused") LoggingConfigLoader doNotRemove)
       throws InvalidConfigurationException {

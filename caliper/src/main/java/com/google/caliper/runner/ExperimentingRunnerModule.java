@@ -23,7 +23,6 @@ import com.google.caliper.model.Host;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.MainScope;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Util;
 import com.google.common.base.Function;
@@ -48,6 +47,7 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 /**
  * Configures a {@link CaliperRun} that performs experiments.
@@ -134,12 +134,13 @@ final class ExperimentingRunnerModule {
     return benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
   }
 
-  @Provides @MainScope
+  @Provides @Singleton
   static Host provideHost(EnvironmentGetter environmentGetter) {
     return environmentGetter.getHost();
   }
 
-  @Provides @MainScope static EnvironmentGetter provideEnvironmentGetter() {
+  @Provides @Singleton
+  static EnvironmentGetter provideEnvironmentGetter() {
     return new EnvironmentGetter();
   }
 
@@ -211,11 +212,11 @@ final class ExperimentingRunnerModule {
     return builder.build();
   }
 
-  @Provides @MainScope static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
+  @Provides @Singleton static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
     return new NanoTimeGranularityTester();
   }
 
-  @Provides @MainScope @NanoTimeGranularity static ShortDuration provideNanoTimeGranularity(
+  @Provides @Singleton @NanoTimeGranularity static ShortDuration provideNanoTimeGranularity(
       NanoTimeGranularityTester tester) {
     return tester.testNanoTimeGranularity();
   }

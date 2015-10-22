@@ -18,12 +18,12 @@ package com.google.caliper.runner;
 
 import com.google.caliper.runner.Running.AfterExperimentMethods;
 import com.google.caliper.runner.Running.BeforeExperimentMethods;
-import com.google.caliper.util.MainScope;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 
 import java.lang.reflect.Method;
+import javax.inject.Singleton;
 
 /**
  * Binds objects related to a benchmark class.
@@ -33,7 +33,7 @@ import java.lang.reflect.Method;
 public final class BenchmarkClassModule {
 
   @Provides
-  @MainScope
+  @Singleton
   static BenchmarkClass provideBenchmarkClass(@Running.BenchmarkClass Class<?> benchmarkClassObject)
       throws InvalidBenchmarkException {
     return BenchmarkClass.forClass(benchmarkClassObject);

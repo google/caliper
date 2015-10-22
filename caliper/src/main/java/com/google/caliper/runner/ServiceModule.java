@@ -16,19 +16,19 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.util.MainScope;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import dagger.Module;
 import dagger.Provides;
 
 import java.util.Set;
+import javax.inject.Singleton;
 
 /** Configures the {@link ServiceManager}. */
 @Module
 final class ServiceModule {
   @Provides
-  @MainScope
+  @Singleton
   static ServiceManager provideServiceManager(Set<Service> services) {
     return new ServiceManager(services);
   }

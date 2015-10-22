@@ -18,10 +18,10 @@ package com.google.caliper.runner;
 
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.MainScope;
 import com.google.caliper.util.Util;
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 
 /**
  * Provides bindings to integrate other modules into the {@link MainComponent}.
@@ -44,7 +44,7 @@ class MainModule {
   }
 
   @Provides
-  @MainScope
+  @Singleton
   @Running.BenchmarkClass
   static Class<?> provideBenchmarkClass(CaliperOptions options) {
     return benchmarkClassForName(options.benchmarkClassName());

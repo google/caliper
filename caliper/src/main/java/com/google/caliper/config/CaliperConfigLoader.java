@@ -17,7 +17,6 @@
 package com.google.caliper.config;
 
 import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.util.MainScope;
 import com.google.caliper.util.Util;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
@@ -31,11 +30,12 @@ import java.io.IOException;
 import java.util.Map;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * Loads caliper configuration files and, if necessary, creates new versions from the defaults.
  */
-@MainScope
+@Singleton
 public final class CaliperConfigLoader {
   private final CaliperOptions options;
 

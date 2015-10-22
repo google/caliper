@@ -22,15 +22,15 @@ import com.google.caliper.config.ConfigModule;
 import com.google.caliper.json.GsonModule;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.options.OptionsModule;
-import com.google.caliper.util.MainScope;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ServiceManager;
 import dagger.Component;
+import javax.inject.Singleton;
 
 /**
  * The main component used when running caliper.
  */
-@MainScope
+@Singleton
 @Component(modules = {
     BenchmarkClassModule.class,
     BridgeModule.class,

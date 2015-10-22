@@ -19,13 +19,13 @@ package com.google.caliper.worker;
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.runner.BenchmarkClassModule;
 import com.google.caliper.runner.ExperimentModule;
-import com.google.caliper.util.MainScope;
 import dagger.Component;
+import javax.inject.Singleton;
 
 /**
  * Creates {@link Worker} for an {@link com.google.caliper.runner.Experiment}.
  */
-@MainScope
+@Singleton
 @Component(modules = {
     BenchmarkClassModule.class,
     BridgeModule.class,

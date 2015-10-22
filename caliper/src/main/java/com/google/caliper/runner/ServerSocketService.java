@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StartupAnnounceMessage;
-import com.google.caliper.util.MainScope;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
@@ -42,6 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * A {@link Service} that manages a {@link ServerSocket}.
@@ -86,7 +86,7 @@ import javax.inject.Inject;
  *         and then tries to read again, it will deadlock.
  * </ul>
  */
-@MainScope
+@Singleton
 final class ServerSocketService extends AbstractExecutionThreadService {
   private enum Source { REQUEST, ACCEPT}
   

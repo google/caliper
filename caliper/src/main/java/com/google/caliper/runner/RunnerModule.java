@@ -21,12 +21,12 @@ import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.util.MainScope;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
 import org.joda.time.Instant;
 import java.util.UUID;
+import javax.inject.Singleton;
 
 /**
  * A Dagger module that configures bindings common to all {@link CaliperRun} implementations.
@@ -58,7 +58,7 @@ final class RunnerModule {
     return experimentingCaliperRun;
   }
 
-  @Provides @MainScope
+  @Provides @Singleton
   static Run provideRun(UUID uuid, CaliperOptions caliperOptions, Instant startTime) {
     return new Run.Builder(uuid).label(caliperOptions.runName()).startTime(startTime).build();
   }
