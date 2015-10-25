@@ -1,0 +1,306 @@
+/* we need a .body DIV, otherwise GWT overrides our body CSS with its own */
+body, .body {
+    background: #444;
+    font-family: Helvetica, sans-serif;
+    font-size: 12pt;
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+/* put this on a container having a float that needs to be "cleared" */
+.clearfix:after {
+    content: ".";
+    display: block;
+    height: 0;
+    clear: both;
+    visibility: hidden
+}
+
+.content {
+    padding: 8px 8px 30px 8px;
+    background: #FFF;
+}
+
+h3 {
+    color: #999;
+    margin-top: 40px;
+    margin-bottom: 0;
+}
+
+.package, .tagline, .owner {
+    font-size: 10pt;
+}
+
+.owner {
+    font-weight:normal;
+}
+
+h1 {
+    margin-bottom: 0;
+}
+
+.credentials {
+    color: #999999;
+    font-size: 10pt;
+    float: right;
+}
+
+.actionLink {
+    color: #999;
+    font-size: 10pt;
+}
+
+.actionLink:hover {
+    color: #00A;
+}
+
+/* table structure */
+
+table.data  {
+    border-collapse: separate;
+    border-spacing: 0 0;
+    margin: 3px;
+}
+
+table.data td {
+    padding: 3px 12px;
+    white-space: nowrap;
+}
+
+.evenRow {
+    background-color: #FFF;
+}
+
+.oddRow {
+    background-color: #F6F6F6;
+}
+
+.evenRow td, .oddRow td, .environmentDifferRow td {
+    border-bottom: solid 1px #CCC;
+}
+
+.valueRow td {
+    padding: 0 0;
+}
+
+.parameterRow td.parameterKey {
+    border-bottom: solid 1px #999;
+}
+
+td.rowLabel {
+    font-weight:bold;
+    text-align:right;
+    color:#999;
+}
+
+/* table headers and values */
+
+.parameterKey, .fixedParameterKey {
+    font-weight: bold;
+    margin: 0;
+    color: #999;
+    vertical-align: bottom;
+}
+
+.parameterKey {
+    text-align: center;
+}
+
+.fixedParameterKey {
+    text-align: right;
+}
+
+.numericCell {
+    text-align: right;
+}
+
+.nanos {
+    font-weight: bold;
+}
+
+td.nanos {
+    padding-right: 2px;
+}
+td.bar {
+    padding-left: 2px;
+}
+
+.valueHeader {
+    text-align: center;
+    border-bottom: solid 1px #000;
+    margin: 0 10px;
+}
+
+.plainText {
+    padding: 10px;
+    white-space: pre;
+    font-family: monospace;
+}
+
+/* footer */
+
+.footer, .splashpage {
+    background: #444;
+    border-top: solid 10px #666;
+    padding: 10px;
+    margin: 0;
+    text-align: center;
+}
+
+.footer a, .footer a:visited {
+    color: #B4BEC4;
+    text-decoration: none;
+}
+
+.footer img {
+    border: 0;
+}
+
+/* splashpage */
+
+table.splashtable  {
+    margin: auto;
+    width: 700px;
+    margin-top: 30px;
+}
+
+.splashpage p, .splashpage h1, .splashpage h3, .splashpage table {
+    color: #CCC;
+}
+
+.splashpage h1 {
+    font-style: italic;
+    color: #FFF;
+    font-size: 14pt;
+}
+
+.apikeydivcontainer {
+    width:auto;
+    float:left;
+}
+
+.apikeydiv {
+    border: 1px dashed #666666;
+}
+
+.apikey {
+    font-family: monospace;
+    font-size: 12pt;
+    background-color:transparent;
+    padding: 12px 5px;
+    margin:0;
+}
+
+.caliperrcpath {
+    float:right;
+    margin-right:5px;
+    margin-top:5px;
+}
+
+.splashpage a, .splashpage a:visited {
+    color: #B4BEC4;
+}
+
+
+/* variables table */
+
+.data span.gwt-CheckBox {
+    margin-right: 12px; 
+}
+
+/* subtle controls normally hidden in the display */
+
+a.hiddentoggle, a.visibletoggle {
+    text-decoration: none;
+    color: #999;
+}
+
+a.hiddentoggle {
+    visibility: hidden;
+}
+
+a.labelField {
+    color: #000;
+    text-decoration: none;
+    display: block;
+    padding-right: 60px;
+}
+
+/* .data qualifier is necessary for precedence */
+.data a.subtlelink {
+    color: #000;
+    text-decoration: none;
+    display: block;
+}
+
+.credentials a.nameLink {
+    color: #999999;
+    text-decoration:none;
+}
+
+a.tableHeaderLink {
+    text-decoration: none;
+    color: #000;
+}
+
+.environmentPanel {
+    margin-top:10px;
+}
+
+.environmentHeader {
+    margin-bottom:5px;
+}
+
+.environmentDifferRow {
+    background-color: #D0EEFD;
+}
+
+.header {
+    color: #000;
+    font-weight:bold;
+}
+
+a.headerLink {
+    text-decoration: none;
+}
+
+.placeholder {
+    color: #999;
+}
+
+.strong {
+    font-weight:bold;
+}
+
+table:hover a.hiddentoggle, table:hover a.visibletoggle, table:hover a.labelField,
+a.headerLink:hover, a.subtlelink:hover, a.tableHeaderLink:hover, .credentials a.nameLink:hover {
+    color: #00A;
+    visibility: visible;
+}
+
+table:hover .headerRow, table:hover a.labelField, a.headerLink:hover, a.tableHeaderLink:hover {
+    background-color: #FFFFD3;
+}
+
+#caveats {
+    margin-top:5px;
+}
+
+.linkList {
+    -webkit-padding-start:0;
+    -moz-padding-start:0;
+    list-style-type:none;
+    margin:10px 0;
+}
+
+.inline {
+    display:inline;
+}
+
+.eventLog {
+    overflow:auto;
+    height:500px;
+    width:700px;
+    white-space:nowrap;
+}

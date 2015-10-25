@@ -1,1 +1,1 @@
-include ':sample', ':caliperx-annotations', ':caliperx-compiler', ':caliperx';
+include ':sample', ':library';

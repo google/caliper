@@ -7,12 +7,19 @@ buildscript {
     dependencies {
         classpath 'com.android.tools.build:gradle:1.3.0'
         classpath 'com.neenbedankt.gradle.plugins:android-apt:1.8'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:3.1.1'
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4'
+        classpath 'ch.netzwerg:gradle-release-plugin:1.1.0'
+        classpath 'com.netflix.nebula:gradle-extra-configurations-plugin:3.0.3'
     }
 }
 
 allprojects {
+    group = 'dk.ilios'
+    version = file("${rootDir}/library/version.txt").text.trim();
     repositories {
         jcenter()
+        mavenLocal()
     }
 }
 

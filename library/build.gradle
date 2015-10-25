@@ -1,0 +1,176 @@
+apply plugin: 'com.android.library'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: "com.jfrog.artifactory"
+apply plugin: 'ch.netzwerg.release'
+apply plugin: 'checkstyle'
+
+archivesBaseName = 'spanner'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE.txt'
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+
+    // Should be provided by the application, and only required for Spanner to
+    // work with JUnit.
+    provided 'com.android.support:support-annotations:23.0.1'
+    provided 'com.android.support.test:runner:0.4.1'
+    provided 'com.android.support.test:rules:0.4.1'
+    provided 'junit:junit:4.12'
+
+    // Required dependencies
+    compile 'com.google.guava:guava:18.0'
+    compile 'org.threeten:threetenbp:1.3.1'
+    compile 'com.google.code.gson:gson:2.4'
+    compile 'org.apache.commons:commons-math:2.2'
+    compile 'com.sun.jersey:jersey-client:1.11'
+}
+
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            groupId 'dk.ilios'
+            artifactId 'spanner'
+            version version
+            artifact file("${rootDir}/library/build/outputs/aar/library-release.aar")
+            artifact sourcesJar
+            artifact javadocJar
+            pom.withXml {
+                Node root = asNode()
+                root.appendNode('name', 'spanner')
+                root.appendNode('description', 'Spanner is a micro benchmarking library for Android.')
+                root.appendNode('url', 'https://github.com/cmelchior/spanner')
+
+                //Iterate over the compile dependencies (we don't want the test ones),
+                // adding a <dependency> node for each
+                def dependenciesNode = asNode().appendNode('dependencies')
+                configurations.compile.allDependencies.each {
+                    def dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', it.group)
+                    dependencyNode.appendNode('artifactId', it.name)
+                    dependencyNode.appendNode('version', it.version)
+                }
+
+                def issues = root.appendNode('issueManagement')
+                issues.appendNode('system', 'github')
+                issues.appendNode('url', 'https://github.com/cmelchior/spanner/issues')
+
+                def scm = root.appendNode('scm')
+                scm.appendNode('url', 'scm:https://github.com/cmelchior/spanner')
+                scm.appendNode('connection', 'scm:git@github.com:cmelchior/spanner.git')
+                scm.appendNode('developerConnection', 'scm:git@github.com:cmelchior/spanner.git')
+
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+            }
+        }
+    }
+}
+
+// SNAPSHOT configuration
+artifactory {
+    contextUrl = 'https://oss.jfrog.org'
+    publish {
+        repository {
+            repoKey = 'oss-snapshot-local'
+            username = project.hasProperty('spannerBintrayUser') ? spannerBintrayUser : System.getenv('SPANNER_BINTRAY_USER')
+            password = project.hasProperty('spannerBintrayKey') ? spannerBintrayKey : System.getenv('SPANNER_BINTRAY_KEY')
+            maven = true
+        }
+        defaults {
+            publications ('library')
+        }
+    }
+}
+
+// Release configuration
+bintray {
+    // user and key come from the gradle.properties file in ~/.gradle
+    user = project.hasProperty('spannerBintrayUser') ? spannerBintrayUser : System.getenv('SPANNER_BINTRAY_USER')
+    key = project.hasProperty('spannerBintrayKey') ? spannerBintrayKey : System.getenv('SPANNER_BINTRAY_KEY')
+    publications = ['library']
+    publish = true
+    pkg {
+        repo = 'maven'
+        name = 'spanner'
+        desc = 'Spanner - Microbenchmarks on Android'
+        websiteUrl = 'https://github.com/cmelchior/spanner'
+        issueTrackerUrl = 'https://github.com/cmelchior/spanner/issues'
+        vcsUrl = 'https://github.com/cmelchior/spanner.git'
+        licenses = ['Apache-2.0']
+        labels = ['android', 'spanner', 'benchmark']
+        publicDownloadNumbers = false
+    }
+}
+
+// Configure ch.netzwerg.release plugin
+// See https://github.com/netzwerg/gradle-release-plugin
+release {
+    dependsOn build
+    push = true
+    versionSuffix = '-SNAPSHOT'
+    tagPrefix = 'v'
+}
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
+task checkstyle(type: Checkstyle) {
+    source 'src'
+    include '**/*.java'
+    exclude '**/gen/**'
+    exclude '**/R.java'
+    exclude '**/BuildConfig.java'
+
+//    def configProps = ['proj.module.dir': projectDir.absolutePath]
+//    configProperties configProps
+
+    // empty classpath
+    classpath = files()
+}
