@@ -70,7 +70,7 @@ public class SpannerConfig {
         private boolean warnIfWrongTestGranularity = false;
         private boolean createBaseline = false;
         private boolean uploadResults = false;
-        private String apiKey = null;
+        private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com/");
         private  double baselineFailure = 20.0; // If change from baseline is bigger, fail experiment
 
