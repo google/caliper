@@ -9,7 +9,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 import dk.ilios.spanner.config.SpannerConfiguration;
-import dk.ilios.spanner.example.BuildConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
@@ -27,7 +26,7 @@ public class UnitTestBenchmarks {
             .baseline(baselineFile)
             .baselineFailure(15.0)
             .uploadResults()
-            .apiKey(BuildConfig.CALIPER_API_KEY)
+            // .apiKey(BuildConfig.CALIPER_API_KEY) // Add API key to persist uploads
             .build();
 
     // Public test parameters (value chosen and injected by Experiment)

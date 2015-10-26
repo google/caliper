@@ -24,12 +24,7 @@ public class ActivityBenchmarks {
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
             .resultsFolder(externalDir)
-//            .baseline(baselineFile)
-            .baselineFailure(15.0)
-            .uploadResults()
-            .apiKey(BuildConfig.CALIPER_API_KEY)
             .build();
-
 
     // Public test parameters (value chosen and injected by Experiment)
     @Param(value = {"java.util.Date", "java.lang.Object"})
