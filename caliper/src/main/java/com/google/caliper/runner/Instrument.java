@@ -25,6 +25,7 @@ import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
@@ -107,7 +108,7 @@ public abstract class Instrument {
 
     @Override
     public String toString() {
-      return Objects.toStringHelper(Instrumentation.class)
+      return MoreObjects.toStringHelper(Instrumentation.class)
           .add("instrument", Instrument.this)
           .add("benchmarkMethod", benchmarkMethod)
           .toString();

@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.config.VmConfig;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 /**
@@ -45,7 +46,7 @@ final class VirtualMachine {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("name", name)
         .add("config", config)
         .toString();

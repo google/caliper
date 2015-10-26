@@ -23,8 +23,8 @@ import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.StreamService.StreamItem.Kind;
 import com.google.caliper.util.Parser;
-import com.google.common.base.Objects;
-import com.google.common.base.Objects.ToStringHelper;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.Queues;
 import com.google.common.io.Closeables;
 import com.google.common.io.LineReader;
@@ -321,7 +321,7 @@ import javax.inject.Inject;
     }
     
     @Override public String toString() {
-      ToStringHelper helper = Objects.toStringHelper(StreamItem.class);
+      ToStringHelper helper = MoreObjects.toStringHelper(StreamItem.class);
       if (kind == Kind.DATA) {
         helper.addValue(logMessage);
       } else {
