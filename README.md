@@ -7,8 +7,7 @@ It is a fork of the original Caliper project for Java started by Google: code.go
 
 # Getting started
 
-
-## Getting Spanner
+## Download
 
 Stable releases of Spanner is available on [JCenter](https://bintray.com/cmelchior/maven/spanner/view).
 
@@ -32,8 +31,12 @@ dependencies {
 }
 ```
 
-In order to run Spanner benchmarks using JUnit you also need to add the 
-following dependencies.
+## Benchmarks as unit tests
+
+Spanner provides a custom JUnit4 runner that makes it possible to run benchmarks
+as part of the JUnit framework. To use this feature you need to add the 
+following dependencies manually:
+
 
 ```
 androidTestCompile 'com.android.support:support-annotations:23.0.1'
@@ -42,6 +45,12 @@ androidTestCompile 'com.android.support.test:rules:0.4.1'
 androidTestCompile 'junit:junit:4.12'
 ```
 
+## Online results
+
+Spanner benchmarks results are compatible with the output from Caliper and can
+therefore be uploaded to [https://microbenchmarks.appspot.com/](https://microbenchmarks.appspot.com/)
+as well.
+
 In order to upload benchmark results to the website you need the following
 permission in AndroidManifest.xml:
 
@@ -49,25 +58,17 @@ permission in AndroidManifest.xml:
 <uses-permission android:name="android.permission.INTERNET" />
 ```
 
-
-
-
 ## Creating a benchmark
 
-* See an example of a standalone benchmark [here]().
-* See an example of a JUnit benchmark [here]().
+* See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
+* See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
 
-## Benchmark results
+## Benchmark results (TODO)
 
 The output from a benchmark will be posted in 3 places:
 - LogCat
 - Json file in `context.getExternalFilesDir()` 
 - Uploaded to Caliper website (if enabled)
-
-The output from Spanner is compatible with the output from Caliper, so if
-enabled in the configuration, the  results can be uploaded to the Caliper website: 
-https://microbenchmarks.appspot.com/
-
 
 ## Differences from Caliper (TODO)
 
@@ -80,7 +81,6 @@ https://microbenchmarks.appspot.com/
 
 ## Why should I benchmark? (TODO)
 
-* https://github.com/google/caliper/wiki/JavaMicrobenchmarks
 * https://github.com/google/caliper/wiki/JavaMicrobenchmarks
 
 
