@@ -22,6 +22,7 @@ import static javax.persistence.AccessType.FIELD;
 import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -130,7 +131,7 @@ public final class Trial { // used to be Result
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("run", run)
         .add("instrumentSpec", instrumentSpec)

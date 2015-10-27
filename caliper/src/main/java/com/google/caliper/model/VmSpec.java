@@ -20,7 +20,7 @@ import static com.google.caliper.model.PersistentHashing.getPersistentHashFuncti
 import static javax.persistence.AccessType.FIELD;
 import static org.hibernate.annotations.SortType.NATURAL;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
@@ -111,7 +111,7 @@ public final class VmSpec {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("properties", properties)
         .add("options", options)
         .toString();

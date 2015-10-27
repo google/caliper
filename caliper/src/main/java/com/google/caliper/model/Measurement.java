@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static javax.persistence.AccessType.FIELD;
 
 import com.google.common.base.Function;
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
@@ -98,7 +99,7 @@ public class Measurement implements Serializable {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("value", value)
         .add("weight", weight)
         .add("description", description)

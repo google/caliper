@@ -24,7 +24,7 @@ import static javax.persistence.AccessType.FIELD;
 import com.google.caliper.model.BenchmarkSpec.BenchmarkSpecFunnel;
 import com.google.caliper.model.Host.HostFunnel;
 import com.google.caliper.model.VmSpec.VmSpecFunnel;
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import org.hibernate.annotations.Immutable;
 import org.hibernate.annotations.Index;
@@ -122,7 +122,7 @@ public final class Scenario {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("environment", host)
         .add("vmSpec", vmSpec)
         .add("benchmarkSpec", benchmarkSpec)

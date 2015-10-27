@@ -22,7 +22,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static javax.persistence.AccessType.FIELD;
 import static org.hibernate.annotations.SortType.NATURAL;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 
@@ -124,7 +124,7 @@ public final class InstrumentSpec {
   }
 
   @Override public String toString() {
-    return Objects.toStringHelper(this)
+    return MoreObjects.toStringHelper(this)
         .add("className", className)
         .add("options", options)
         .toString();
