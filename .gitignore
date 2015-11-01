@@ -1,20 +1,7 @@
-# Ant
-build/
-
-# Maven
-target/
-*.ser
-*.ec
-
-# IntelliJ Idea
-.idea/
-out/
-*.ipr
-*.iws
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
 *.iml
-
-# Eclipse
-.classpath
-.factorypath
-.project
-.settings/
