@@ -16,7 +16,7 @@ buildscript {
 
 allprojects {
     group = 'dk.ilios'
-    version = file("${rootDir}/library/version.txt").text.trim();
+    version = file("${rootDir}/spanner-library/version.txt").text.trim();
     repositories {
         jcenter()
         mavenLocal()

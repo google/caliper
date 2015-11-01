@@ -59,8 +59,6 @@ public class AndroidExperimentSelector implements ExperimentSelector {
 
     @Override
     public ImmutableSet<Experiment> selectExperiments(Trial[] baselineData) {
-
-
         try {
             // Create all combinations
             List<Experiment> experiments = new ArrayList<>();

@@ -113,8 +113,7 @@ public class SpannerRunner extends Runner {
         // then determine how the unit test is displayed when it finishes or crashes.
         //
         // Only downside is that the duration of the benchmark test as measured by Junit will be 0s instead of the
-        // actual value, but on the upside it is posible to show the value of the benchmark in the title.
-
+        // actual value, but on the upside it is possible to show the value of the benchmark in the title.
         try {
             final Description RUNNING = Description.createTestDescription(testClass.getJavaClass(), "doingStuff");
             runNotifier.fireTestRunStarted(RUNNING);

@@ -5,8 +5,6 @@ apply plugin: "com.jfrog.artifactory"
 apply plugin: 'ch.netzwerg.release'
 apply plugin: 'checkstyle'
 
-archivesBaseName = 'spanner'
-
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
@@ -59,7 +57,7 @@ publishing {
             groupId 'dk.ilios'
             artifactId 'spanner'
             version version
-            artifact file("${rootDir}/library/build/outputs/aar/library-release.aar")
+            artifact file("${rootDir}/spanner-library/build/outputs/aar/spanner-library-release.aar")
             artifact sourcesJar
             artifact javadocJar
             pom.withXml {

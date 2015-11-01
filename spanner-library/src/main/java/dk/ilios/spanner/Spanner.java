@@ -51,7 +51,7 @@ import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.util.Util;
 
 /**
- * Main class for starting a benchmark
+ * Main class for starting a benchmark.
  */
 public class Spanner {
 

@@ -70,8 +70,8 @@ public class SpannerConfig {
         private boolean warnIfWrongTestGranularity = false;
         private boolean createBaseline = false;
         private boolean uploadResults = false;
-        private String apiKey = null;
-        private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com/");
+        private String apiKey = "";
+        private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
         private  double baselineFailure = 20.0; // If change from baseline is bigger, fail experiment
 
         public Builder() {
@@ -139,6 +139,7 @@ public class SpannerConfig {
         }
 
         public Builder apiKey(String apiKey) {
+            checkNotNull(apiKey, "Only non-null keys allowed");
             this.apiKey = apiKey;
             return this;
         }
