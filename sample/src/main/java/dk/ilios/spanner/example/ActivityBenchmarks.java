@@ -1,7 +1,6 @@
 package dk.ilios.spanner.example;
 
 import android.annotation.SuppressLint;
-import android.os.Environment;
 
 import java.io.File;
 
@@ -11,25 +10,20 @@ import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
 import dk.ilios.spanner.Param;
 import dk.ilios.spanner.SpannerConfig;
-import dk.ilios.spanner.config.SpannerConfiguration;
 
 public class ActivityBenchmarks {
 
-    @SuppressLint("InlinedApi")
-    private File externalDir = MyApplication.getContext().getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS);
-    private File resultsDir = new File(externalDir, "results");
-    //    private File baseLineFile = new File(resultstsDir, "baseline.json");
-    private File baselineFile = SpannerConfiguration.getLatestJsonFile(resultsDir);
+    private File filesDir = MyApplication.getContext().getFilesDir();
+    private File resultsDir = new File(filesDir, "results");
+    private File baseLineFile = Utils.copyFromAssets("baseline.json");
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .resultsFolder(externalDir)
-//            .baseline(baselineFile)
-            .baselineFailure(15.0)
+            .resultsFolder(resultsDir)
+            .baseline(baseLineFile)
+            .baselineFailure(100.0) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
-            .apiKey(BuildConfig.CALIPER_API_KEY)
             .build();
-
 
     // Public test parameters (value chosen and injected by Experiment)
     @Param(value = {"java.util.Date", "java.lang.Object"})

@@ -20,10 +20,6 @@ android {
     }
 
     buildTypes {
-        debug {
-            buildConfigField "String", "CALIPER_API_KEY", "\"${System.getenv('CALIPER_API_KEY')}\""
-        }
-
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
@@ -43,11 +39,9 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:23.0.1'
     compile 'com.android.support:support-annotations:23.0.1'
-    compile project(":library")
+    compile project(':spanner-library')
 
-//    androidTestCompile 'dk.ilios:spanner:0.1.1-SNAPSHOT'
-//    androidTestCompile 'junit:junit:4.12'
-//    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
-//    androidTestCompile 'com.android.support.test:runner:0.4.1'
-//
+    androidTestCompile 'com.android.support.test:rules:0.4.1'
+    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+    androidTestCompile 'junit:junit:4.12'
 }

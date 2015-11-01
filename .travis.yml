@@ -1,20 +1,37 @@
 language: android
 
+env:
+  global:
+  - secure: MC2otmh1gHKEzF8PCoU2Intm7HO0zyEoDtfyEzgRPh9IRzjMn8vqLi4S01y3bm9zk3G3EmEFCE6Cr1BbsX0Pv0Mex6vJMjjZmD6wTC6G+fmd2zIvVxAuWLNxve7boADGSvPRFh5pXl/MUrJ0mfcIarmzq40yFMQBfyfcCH3mKV//RjvuqcKS5J0dc+Qddrh4FkOD4a/y4jWn917RU6PvuNRFghHfDFr6iZYxPIP2Y5pTy0xS/ZLrsKM5rybjXTG9Ob7h8eZe/o046Im1RqOuxm7HEoblHgUFyWAsA7RXAoM9vNPAmANUQIl5n/GZ3lwAnyf6HptG5/f7GbPz4s/o6t7FMnYHMG47NT8K6IehFNzPXICmbEuPkQmJsh4nIh5seUh21aKwqkxT4ZRCu/nPWnD+290lOFIIXaN097XmAJX5L4i7mFmH1ykxafcfmp6VaygUQEv3KMJIWwU8ksdtzhaSLHSU63+3DaLnGuAOrSqPDXbyhLqiCbDWRYo9c+rUK8XenkaL/uCQaGGDwrdAiTtTu+mNAWWG+rY63aNtI7fkWYrTSCBHxWe8fi+H+k4cQcr+fHOZNyxsgZJJL8NNJ+LrRj7/M4/tiLwtjRtIK1Bdzat2KI/FBbOMhPRG+yF/rx7z+x3gDCNeFp0V1PMKA+v/mtqDPBIouuj5YGm/15M=
+  - secure: XlmiVL+Ur5rOmTF9jctoSm2Vq37kBn4MvAtr785aEB5qjDamXppzrPcyScSN1Sdw+8y0pRmEu84xbuDiMIzPQgpIjQF+w0e6vwEUfQ+UNjJXbwxIdDfwa+49Q3PJbLOPRO+pvIn8fYRNwWQeFyodIFVQNMZY39xmvouCrwUYr8ue0vXkUHnSm7XwFis7Dhuab09W9i7Mkag9koD+q8JYgVunbwBIsWcYBdTQCyY1Zpcg2no5aHSSI/7oiX8C7icdK6pluUoZGamCyZUS1qaknkxsj70mw2Q11fP4pKB9I1ck40/93iXY9jYSs2Y6R1gh3FDyBzX2097+AmiGCdJvcJSyFgPWc/FDkBg08EgxVx2pSKyf34Di8mb+x6OjtA9h9LS8JaNE+OKKuUcsLhrAhwid2OhyIPoy6ZsTI+web3/kMVvdcVjBZJEiJ/SuVZlXGJ1vOanC6xZC+m/2C/oQXv0bi0E8oejO1TyMwgp6VCHlVoexLINb02QzXrLcpcOx8AZBYzHnljn3wfD9RXprWg8LPsg8brTBhCsL2mwG5vr43ZkXVq6tboS57tLgeKMl0ZpgGP2pe5sEUd1lgZIqDBla11JZNF4VCgLmQfVxDhSFGcIwMyvAIZzlFn5pfZZHoR5Z9e8f9qIUHP08APVwx5CGPmFVGYRAlvu7eIMh9D4=
+  - ADB_INSTALL_TIMEOUT=8 # Timeout changed from 2 min (default) to 8
+
 android:
   components:
   - build-tools-23.0.1
   - android-23
-  - sys-img-armeabi-v7a-android-23
+  - sys-img-armeabi-v7a-android-21
   - extra-android-m2repository
   licenses:
   - android-sdk-license-5be876d5
 
 jdk:
 - oraclejdk7
-- oraclejdk8
+
+# Workaround for not being able to detect tests: http://stackoverflow.com/questions/27084948/com-android-builder-testing-connecteddevice-hasteststestavd-5-0-failed
+before_script:
+  - echo no | android create avd --force -n test -t android-21 --abi armeabi-v7a
+  - emulator -avd test -no-skin -no-audio -no-window &
+  - android-wait-for-emulator
+  - adb shell input keyevent 82 &
+
+script:
+  - ./gradlew build
+  - adb devices
+  - ./gradlew connectedAndroidTest
 
 after_success:
-- ".buildscript/deploy_snapshot.sh"
+  - ".buildscript/deploy_snapshot.sh"
 
 branches:
   except:
@@ -23,13 +40,10 @@ branches:
 notifications:
   email: false
 
+# Required for Docker support
 sudo: false
 
 cache:
   directories:
   - "$HOME/.m2"
 
-env:
-  global:
-  - secure: MC2otmh1gHKEzF8PCoU2Intm7HO0zyEoDtfyEzgRPh9IRzjMn8vqLi4S01y3bm9zk3G3EmEFCE6Cr1BbsX0Pv0Mex6vJMjjZmD6wTC6G+fmd2zIvVxAuWLNxve7boADGSvPRFh5pXl/MUrJ0mfcIarmzq40yFMQBfyfcCH3mKV//RjvuqcKS5J0dc+Qddrh4FkOD4a/y4jWn917RU6PvuNRFghHfDFr6iZYxPIP2Y5pTy0xS/ZLrsKM5rybjXTG9Ob7h8eZe/o046Im1RqOuxm7HEoblHgUFyWAsA7RXAoM9vNPAmANUQIl5n/GZ3lwAnyf6HptG5/f7GbPz4s/o6t7FMnYHMG47NT8K6IehFNzPXICmbEuPkQmJsh4nIh5seUh21aKwqkxT4ZRCu/nPWnD+290lOFIIXaN097XmAJX5L4i7mFmH1ykxafcfmp6VaygUQEv3KMJIWwU8ksdtzhaSLHSU63+3DaLnGuAOrSqPDXbyhLqiCbDWRYo9c+rUK8XenkaL/uCQaGGDwrdAiTtTu+mNAWWG+rY63aNtI7fkWYrTSCBHxWe8fi+H+k4cQcr+fHOZNyxsgZJJL8NNJ+LrRj7/M4/tiLwtjRtIK1Bdzat2KI/FBbOMhPRG+yF/rx7z+x3gDCNeFp0V1PMKA+v/mtqDPBIouuj5YGm/15M=
-  - secure: XlmiVL+Ur5rOmTF9jctoSm2Vq37kBn4MvAtr785aEB5qjDamXppzrPcyScSN1Sdw+8y0pRmEu84xbuDiMIzPQgpIjQF+w0e6vwEUfQ+UNjJXbwxIdDfwa+49Q3PJbLOPRO+pvIn8fYRNwWQeFyodIFVQNMZY39xmvouCrwUYr8ue0vXkUHnSm7XwFis7Dhuab09W9i7Mkag9koD+q8JYgVunbwBIsWcYBdTQCyY1Zpcg2no5aHSSI/7oiX8C7icdK6pluUoZGamCyZUS1qaknkxsj70mw2Q11fP4pKB9I1ck40/93iXY9jYSs2Y6R1gh3FDyBzX2097+AmiGCdJvcJSyFgPWc/FDkBg08EgxVx2pSKyf34Di8mb+x6OjtA9h9LS8JaNE+OKKuUcsLhrAhwid2OhyIPoy6ZsTI+web3/kMVvdcVjBZJEiJ/SuVZlXGJ1vOanC6xZC+m/2C/oQXv0bi0E8oejO1TyMwgp6VCHlVoexLINb02QzXrLcpcOx8AZBYzHnljn3wfD9RXprWg8LPsg8brTBhCsL2mwG5vr43ZkXVq6tboS57tLgeKMl0ZpgGP2pe5sEUd1lgZIqDBla11JZNF4VCgLmQfVxDhSFGcIwMyvAIZzlFn5pfZZHoR5Z9e8f9qIUHP08APVwx5CGPmFVGYRAlvu7eIMh9D4=
