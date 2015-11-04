@@ -5,7 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Class for adding custom configuration of a Gauge run.
+ * Class for adding custom configuration of a Spanner run.
  */
 public class SpannerConfig {
 
@@ -16,7 +16,7 @@ public class SpannerConfig {
     private final URL uploadUrl;
     private final String apiKey;
     private final boolean uploadResults;
-    private double baselineFailure;
+    private float baselineFailure;
 
     private SpannerConfig(Builder builder) {
         this.resultsFolder = builder.resultsFolder;
@@ -37,11 +37,11 @@ public class SpannerConfig {
         return baseLineFile;
     }
 
-    public boolean shouldWarnIfWrongTestGranularity() {
+    public boolean warnIfWrongTestGranularity() {
         return warnIfWrongTestGranularity;
     }
 
-    public boolean shouldCreateBaseline() {
+    public boolean createBaseline() {
         return createBaseLine;
     }
 
@@ -57,22 +57,22 @@ public class SpannerConfig {
         return uploadResults;
     }
 
-    public double getBaselineFailure() {
+    public float getBaselineFailure() {
         return baselineFailure;
     }
 
     /**
-     * Builder for fluent construction of a GaugeConfig object.
+     * Builder for fluent construction of a SpannerConfig object.
      */
     public static class Builder {
         private File resultsFolder = null;
         private File baseLineFile = null;
-        private boolean warnIfWrongTestGranularity = false;
+        private boolean warnIfWrongTestGranularity = true;
         private boolean createBaseline = false;
         private boolean uploadResults = false;
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
-        private  double baselineFailure = 20.0; // If change from baseline is bigger, fail experiment
+        private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
 
         public Builder() {
         }
@@ -92,6 +92,7 @@ public class SpannerConfig {
          */
         public Builder resultsFolder(File dir) {
             checkNotNull(dir, "Results folder was null.");
+            if (!dir.isDirectory() || !dir.canWrite())
             this.resultsFolder = dir;
             return this;
         }
@@ -104,14 +105,14 @@ public class SpannerConfig {
          * @param file Reference to the baseline file (see .
          * @return Builder object.
          */
-        public Builder baseline(File file) {
+        public Builder baselineFile(File file) {
             checkNotNull(file, "Baseline file was null");
             this.baseLineFile = file;
             return this;
         }
 
         /**
-         * Setting this will cause Gauge to verify that the granularity of the tests are set correctly or will
+         * Setting this will cause Spanner to verify that the granularity of the tests are set correctly or will
          * @return
          */
         public Builder warnIfWrongTestGranularity() {
@@ -144,11 +145,13 @@ public class SpannerConfig {
             return this;
         }
 
-        public Builder baselineFailure(double percentage) {
-            if (percentage < 0 || percentage > 100) {
-                throw new IllegalArgumentException("Percentage must be [0,100]. Yours was: " + percentage);
-            }
-            baselineFailure = percentage;
+        /**
+         * The difference in percent from the baseline allowed before the experiment will be a failure.
+         * @param percentage [0-1.0] for [0-100%]
+         * @return the Builder.
+         */
+        public Builder baselineFailure(float percentage) {
+            baselineFailure = Math.abs(percentage);
             return this;
         }
 
