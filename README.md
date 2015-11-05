@@ -5,6 +5,8 @@ Spanner is a micro benchmarking framework designed to run on the Android platfor
 
 It is a fork of the original Caliper project for Java started by Google: code.google.com/p/caliper
 
+WARNING: This dust is still settling and any API might change at any point (05-11-2015).
+
 # Getting started
 
 ## Download
