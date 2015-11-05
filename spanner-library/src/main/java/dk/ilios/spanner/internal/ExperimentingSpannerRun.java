@@ -133,12 +133,6 @@ public final class ExperimentingSpannerRun implements SpannerRun {
         stdout.println("  Selection type:    " + selector.selectionType());
         stdout.println();
 
-        if (allExperiments.isEmpty()) {
-            throw new InvalidBenchmarkException(
-                    "There were no experiments to be performed for the class %s using the instruments %s",
-                    selector.benchmarkClass().getSimpleName(), instruments);
-        }
-
         stdout.format("This selection yields %s experiments.%n", allExperiments.size());
         stdout.flush();
 

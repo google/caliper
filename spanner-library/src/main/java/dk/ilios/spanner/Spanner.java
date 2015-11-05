@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2015 Christian Melchior.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package dk.ilios.spanner;
 
 import com.google.common.collect.ImmutableSet;
@@ -16,7 +32,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +65,8 @@ import dk.ilios.spanner.util.NanoTimeGranularityTester;
 import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.util.Util;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * Main class for starting a benchmark.
  */
@@ -61,29 +78,32 @@ public class Spanner {
     private final Callback callback;
     private SpannerConfig benchmarkConfig;
 
-    public static void runBenchmark(Class benchmarkClass, Method method) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass, method), null).start();
+    public static void runBenchmarks(Class benchmarkClass, ArrayList<Method> methods) {
+        runBenchmarks(benchmarkClass, methods, new RethrowCallback());
     }
 
-    public static void runBenchmark(Class benchmarkClass, Method method, Callback callback) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass, Arrays.asList(method)), callback).start();
+    public static void runBenchmarks(Class benchmarkClass, List<Method> methods, Callback callback) {
+        new Spanner(benchmarkClass, methods, callback).start();
     }
 
-    public static void runBenchmarks(Class benchmarkClass, ArrayList<Method> methods) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass, methods), null).start();
+    public static void runAllBenchmarks(Class benchmarkClass) {
+        runAllBenchmarks(benchmarkClass, new RethrowCallback());
     }
 
-    public static void runBenchmarks(Class benchmarkClass, List<Method> methods, Callback callback) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass, methods), callback).start();
+    public static void runAllBenchmarks(Class benchmarkClass, Callback callback) {
+        new Spanner(benchmarkClass, null, callback).start();
     }
 
-    public static void runAllBenchmarks(Class benchmarkClass) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass), null).start();
+    private Spanner(Class benchmarkClass, List<Method> benchmarkMethods, Callback callback) {
+        checkNotNull(callback);
+        this.callback = callback;
+        try {
+            this.benchmarkClass = new BenchmarkClass(benchmarkClass, benchmarkMethods);
+        } catch (InvalidBenchmarkException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
-    public static void runAllBenchmarks(Class benchmarkClass, Callback callback) throws InvalidBenchmarkException {
-        new Spanner(new BenchmarkClass(benchmarkClass), callback).start();
-    }
 
     private Spanner(BenchmarkClass benchmarkClass, Callback callback) {
         this.benchmarkClass = benchmarkClass;
@@ -92,7 +112,7 @@ public class Spanner {
 
     public void start() {
         try {
-
+            callback.onStart();
             benchmarkConfig = benchmarkClass.getConfiguration();
             File baseline = benchmarkConfig.getBaseLineFile();
 
@@ -142,8 +162,10 @@ public class Spanner {
             }
 
             Set<ResultProcessor> processors = new HashSet<>();
-            OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig);
-            processors.add(dumper);
+            if (benchmarkConfig.getResultsFolder() != null) {
+                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig);
+                processors.add(dumper);
+            }
             if (benchmarkConfig.isUploadResults()) {
                 HttpUploader uploader = new HttpUploader(stdOut, gson, benchmarkConfig);
                 processors.add(uploader);
@@ -166,13 +188,13 @@ public class Spanner {
 
             // Run benchmark
             run.run();
-
+            callback.onComplete();
         } catch (InvalidBenchmarkException e) {
-            throw new RuntimeException(e);
+            callback.onError(e);
         } catch (InvalidCommandException e) {
-            throw new RuntimeException(e);
+            callback.onError(e);
         } catch (InvalidConfigurationException e) {
-            throw new RuntimeException(e);
+            callback.onError(e);
         }
     }
 
@@ -208,15 +230,13 @@ public class Spanner {
                 instrument.setOptions(config.properties());
                 builder.add(instrument);
             } catch (ClassNotFoundException e) {
-                throw new InvalidCommandException("Cannot find instrument class '%s'", className);
-//                } catch (ProvisionException e) {
-//                    throw new InvalidInstrumentException("Could not create the instrument %s", className);
+                callback.onError(new InvalidCommandException("Cannot find instrument class '%s'", className));
             } catch (InstantiationException e) {
-                throw new RuntimeException(e);
+                callback.onError(e);
             } catch (IllegalAccessException e) {
-                throw new RuntimeException(e);
+                callback.onError(e);
             } catch (InvocationTargetException e) {
-                throw new RuntimeException(e);
+                callback.onError(e);
             }
         }
         return builder.build();
@@ -226,9 +246,19 @@ public class Spanner {
      * Callback for outside listeners to get notified on the progress of the Benchmarks running.
      */
     public interface Callback {
+        void onStart();
         void trialStarted(Trial trial);
         void trialSuccess(Trial trial, Trial.Result result);
         void trialFailure(Trial trial, Throwable error);
         void trialEnded(Trial trial);
+        void onComplete();
+        void onError(Exception exception);
+    }
+
+    private static class RethrowCallback extends SpannerCallbackAdapter {
+        @Override
+        public void onError(Exception error) {
+            throw new RuntimeException(error);
+        }
     }
 }

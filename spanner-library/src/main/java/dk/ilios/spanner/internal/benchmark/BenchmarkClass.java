@@ -29,6 +29,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -46,7 +47,7 @@ import dk.ilios.spanner.exception.UserCodeException;
 import dk.ilios.spanner.util.Reflection;
 
 /**
- * An instance of this type represents a user-provided class benchmark class. It manages creating, setting up and
+ * An instance of this type represents a user-provided Benchmark class. It manages creating, setting up and
  * destroying instances of that class.
  */
 public final class BenchmarkClass {
@@ -85,7 +86,7 @@ public final class BenchmarkClass {
      * @param methods
      * @throws InvalidBenchmarkException If the class or methods are .
      */
-    public BenchmarkClass(Class<?> benchmarkClass, List<Method> methods) throws InvalidBenchmarkException {
+    public BenchmarkClass(Class<?> benchmarkClass, Collection<Method> methods) throws InvalidBenchmarkException {
 
         // Initialize Benchmark class
         this.classReference = checkNotNull(benchmarkClass);
@@ -102,9 +103,9 @@ public final class BenchmarkClass {
         if (methods == null) {
             this.benchmarkMethods = findAllBenchmarkMethods(classReference);
         } else {
-            validateBenchmarkMethods(methods);
-            this.benchmarkMethods = methods;
+            this.benchmarkMethods = new ArrayList<>(methods);
         }
+        validateBenchmarkMethods(benchmarkMethods);
 
         // Initialize benchmark parameters
         this.userParameters = ParameterSet.create(classReference, Param.class);
@@ -112,10 +113,34 @@ public final class BenchmarkClass {
 
     private void validateBenchmarkMethods(List<Method> methods) throws InvalidBenchmarkException {
         for (Method method : methods) {
+
+            // Verify annotations
             if (!method.isAnnotationPresent(Benchmark.class)) {
-                throw new InvalidBenchmarkException(String.format("Method %s isn't a benchmark method.",
-                        method.getName()));
+                throw new InvalidBenchmarkException(String.format("Method %s isn't a benchmark method. " +
+                                "It is missing @Benchmark.", method.getName()));
             }
+
+            // Verify modifiers
+            int modifiers = method.getModifiers();
+            if (modifiers != Modifier.PUBLIC) {
+                throw new InvalidBenchmarkException("Benchmark methods must only be public: " + method.getName());
+            }
+
+            // Verify parameter types
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            if (parameterTypes.length > 1) {
+                throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
+            }
+
+            for (Class<?> parameterClass : parameterTypes) {
+                if (!parameterClass.equals(int.class) || !parameterClass.equals(long.class)) {
+                    throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
+                }
+            }
+
+            // Verify return type
+            // Right now we just ignore any return type.
+            // TODO Check return type when adding back support for ArbitraryMeasurements
         }
     }
 
@@ -125,7 +150,6 @@ public final class BenchmarkClass {
             if (method.isAnnotationPresent(Benchmark.class)) {
                 benchmarkMethods.add(method);
             }
-
         }
         return benchmarkMethods;
     }
@@ -135,10 +159,6 @@ public final class BenchmarkClass {
             throw new InvalidBenchmarkException(
                     "%s must not extend any class other than %s. Prefer composition.",
                     benchmarkClass, Object.class);
-        }
-
-        if (Modifier.isAbstract(benchmarkClass.getModifiers())) {
-            throw new InvalidBenchmarkException("Class '%s' must not be abstract", benchmarkClass);
         }
     }
 
