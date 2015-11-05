@@ -1,0 +1,237 @@
+<?xml version="1.0"?>
+
+<project name="Caliper" default="build" basedir=".">
+
+    <property file="build.properties"/>
+
+    <import file="${gae.sdk}/config/user/ant-macros.xml"/>
+
+    <path id="project.classpath">
+        <pathelement path="war/WEB-INF/classes"/>
+        <fileset dir="war/WEB-INF/lib" includes="**/*.jar"/>
+        <fileset dir="${gae.sdk}">
+            <include name="lib/shared/**/*.jar"/>
+        </fileset>
+        <fileset dir="${gwt.sdk}">
+            <include name="gwt-user.jar"/>
+            <include name="gwt-dev*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="copyjars"
+            description="Copies the GWT and App Engine JARs to the WAR.">
+        <mkdir dir="war/WEB-INF/lib"/>
+        <copy todir="war/WEB-INF/lib" flatten="true">
+            <fileset dir="${gae.sdk}">
+                <include name="lib/user/**/*.jar"/>
+            </fileset>
+            <fileset dir="${gwt.sdk}">
+                <include name="gwt-servlet.jar"/>
+            </fileset>
+            <fileset dir="lib">
+                <include name="*.jar"/>
+            </fileset>
+        </copy>
+    </target>
+
+    <target name="javac" depends="copyjars"
+            description="Compiles Java source and copies other source files to the WAR.">
+        <mkdir dir="war/WEB-INF/classes"/>
+        <copy todir="war/WEB-INF/classes">
+            <fileset dir="src">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
+        <javac
+                srcdir="src"
+                includes="**"
+                encoding="utf-8"
+                destdir="war/WEB-INF/classes"
+                source="1.5"
+                target="1.5"
+                classpathref="project.classpath"
+                nowarn="true"
+                debug="true"
+                debuglevel="lines,vars,source"
+                includeantruntime="false"/>
+    </target>
+
+    <target name="gwtc" depends="javac" description="GWT compile to JavaScript">
+        <java failonerror="true" fork="true"
+              classname="com.google.gwt.dev.Compiler">
+            <classpath>
+                <pathelement location="src"/>
+                <pathelement location="lib/caliper-0.0.jar"/>
+                <pathelement location="lib/gwt-incubator-20091216-r1739.jar"/>
+                <path refid="project.classpath"/>
+            </classpath>
+            <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+            <jvmarg value="-Xmx256M"/>
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg value="com.google.caliper.cloud.Caliper"/>
+        </java>
+    </target>
+
+    <target name="gwtc-pretty" depends="javac" description="GWT compile to JavaScript">
+        <java failonerror="true" fork="true"
+              classname="com.google.gwt.dev.Compiler">
+            <classpath>
+                <pathelement location="src"/>
+                <pathelement location="lib/caliper-0.0.jar"/>
+                <pathelement location="lib/gwt-incubator-20091216-r1739.jar"/>
+                <path refid="project.classpath"/>
+            </classpath>
+            <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+            <jvmarg value="-Xmx256M"/>
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg  value="-style"/><arg value="PRETTY"/>
+            <arg value="com.google.caliper.cloud.Caliper"/>
+        </java>
+    </target>
+
+    <target name="datanucleusenhance" depends="javac"
+            description="Performs JDO enhancement on compiled data classes.">
+        <enhance_war war="war"/>
+    </target>
+
+    <target name="build" depends="javac,gwtc,datanucleusenhance"/>
+
+    <target name="build-debug" depends="javac,gwtc-pretty,datanucleusenhance"/>
+
+    <target name="devmode" depends="javac,datanucleusenhance"
+            description="Run GWT development mode">
+        <echo>Debugger can be attached on port 9999.</echo>
+        <java failonerror="true" fork="true"
+              classname="com.google.gwt.dev.DevMode">
+            <classpath>
+                <pathelement location="src"/>
+                <pathelement location="${gae.sdk}/lib/appengine-tools-api.jar"/>
+                <path refid="project.classpath"/>
+            </classpath>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9999"/>
+            <jvmarg value="-Xmx256M"/>
+            <jvmarg value="-javaagent:${gae.sdk}/lib/agent/appengine-agent.jar"/>
+            <jvmarg value="-Xdebug"/>
+            <jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9999"/>
+
+            <arg value="-server"/><arg value="com.google.appengine.tools.development.gwt.AppEngineLauncher"/>
+            <arg value="-startupUrl"/><arg value="/"/>
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg value="com.google.caliper.cloud.Caliper"/>
+        </java>
+    </target>
+
+    <target name="runserver" depends="build"
+            description="Starts the development server.">
+        <echo>Debugger can be attached on port 9999.</echo>
+        <dev_appserver war="war">
+          <options>
+            <arg value="--jvm_flag=-Xdebug"/>
+            <arg value="--jvm_flag=-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=9999"/>
+          </options>
+        </dev_appserver>
+    </target>
+
+    <target name="update" depends="build"
+            description="Uploads the application to App Engine.">
+        <appcfg action="update" war="war"/>
+    </target>
+
+    <target name="update-debug" depends="build-debug"
+            description="Uploads the application to App Engine.">
+        <appcfg action="update" war="war"/>
+    </target>
+
+    <target name="update_indexes" depends="build"
+            description="Uploads just the datastore index configuration to App Engine.">
+        <appcfg action="update_indexes" war="war"/>
+    </target>
+
+    <target name="rollback" depends="build"
+            description="Rolls back an interrupted application update.">
+        <appcfg action="rollback" war="war"/>
+    </target>
+
+    <target name="request_logs"
+            description="Downloads log data from App Engine for the application.">
+        <appcfg action="request_logs" war="war">
+            <options>
+                <arg value="--num_days=5"/>
+            </options>
+            <args>
+                <arg value="logs.txt"/>
+            </args>
+        </appcfg>
+    </target>
+
+    <target name="clean" description="Cleans this project">
+        <delete dir="war/WEB-INF/classes" failonerror="false"/>
+        <delete dir="war/WEB-INF/lib" failonerror="false"/>
+        <delete dir="war/WEB-INF/appengine-generated" failonerror="false"/>
+        <delete dir="war/caliper" failonerror="false"/>
+    </target>
+
+    <!--
+    Test targets suppressed because -junit argument was not specified when running webAppCreator.
+
+      <target name="javac.tests" depends="build" description="Compiles test code">
+        <javac srcdir="test" includes="**" encoding="utf-8"
+          source="1.5" target="1.5" nowarn="true"
+          debug="true" debuglevel="lines,vars,source">
+          <classpath location="path_to_the_junit_jar"/>
+          <classpath refid="project.classpath"/>
+        </javac>
+      </target>
+
+      <target name="test.dev" depends="javac.tests" description="Run development mode tests">
+        <mkdir dir="reports/htmlunit.dev" />
+        <junit fork="yes" printsummary="yes" haltonfailure="yes">
+          <jvmarg line="-Xmx256m" />
+          <sysproperty key="gwt.args" value="-logLevel WARN" />
+          <sysproperty key="java.awt.headless" value="true" />
+          <classpath>
+            <pathelement location="src" />
+            <pathelement location="test" />
+            <path refid="project.classpath" />
+            <pathelement location="path_to_the_junit_jar" />
+          </classpath>
+          <batchtest todir="reports/htmlunit.dev" >
+            <fileset dir="test" >
+              <include name="**/*Test.java" />
+            </fileset>
+          </batchtest>
+          <formatter type="plain" />
+          <formatter type="xml" />
+        </junit>
+      </target>
+
+      <target name="test.prod" depends="javac.tests" description="Run production mode tests">
+        <mkdir dir="reports/htmlunit.prod" />
+        <junit fork="yes" printsummary="yes" haltonfailure="yes">
+          <jvmarg line="-Xmx256m" />
+          <sysproperty key="gwt.args" value="-prod -logLevel WARN -out www-test" />
+          <sysproperty key="java.awt.headless" value="true" />
+          <classpath>
+            <pathelement location="src" />
+            <pathelement location="test" />
+            <path refid="project.classpath" />
+            <pathelement location="path_to_the_junit_jar" />
+          </classpath>
+          <batchtest todir="reports/htmlunit.prod" >
+            <fileset dir="test" >
+              <include name="**/*Test.java" />
+            </fileset>
+          </batchtest>
+          <formatter type="plain" />
+          <formatter type="xml" />
+        </junit>
+      </target>
+
+      <target name="test" description="Run development and production mode tests">
+        <antcall target="test.dev" />
+        <antcall target="test.prod" />
+      </target>
+    -->
+
+</project>

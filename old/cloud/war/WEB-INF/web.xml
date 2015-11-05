@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<web-app xmlns="http://java.sun.com/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+         version="2.5">
+    <servlet>
+        <servlet-name>UserDashboardServlet</servlet-name>
+        <servlet-class>com.google.caliper.cloud.server.UserDashboardServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>UserDashboardServlet</servlet-name>
+        <url-pattern>/user/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>run</servlet-name>
+        <servlet-class>com.google.caliper.cloud.server.RunServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>run</servlet-name>
+        <url-pattern>/run/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>apikey</servlet-name>
+        <servlet-class>com.google.caliper.cloud.server.WelcomeServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>apikey</servlet-name>
+        <url-pattern>/</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+      <servlet-name>benchmarkServlet</servlet-name>
+      <servlet-class>com.google.caliper.cloud.server.BenchmarkServiceImpl</servlet-class>
+    </servlet>
+    <servlet-mapping>
+      <servlet-name>benchmarkServlet</servlet-name>
+      <url-pattern>/caliper/benchmark</url-pattern>
+    </servlet-mapping>
+
+    <mime-mapping>
+        <extension>ico</extension>
+        <mime-type>image/x-icon</mime-type>
+    </mime-mapping>    
+</web-app>

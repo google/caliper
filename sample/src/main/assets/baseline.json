@@ -1,0 +1,758 @@
+[
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "directComparison",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.util.Date"
+      }
+    },
+    "id": "8a1acb25-92f5-4334-adc3-dfbf434fb23c",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.2245507E7,
+          "unit": "ns"
+        },
+        "weight": 7742816.0
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.40804845E9,
+          "unit": "ns"
+        },
+        "weight": 8.89596996E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.333890049E9,
+          "unit": "ns"
+        },
+        "weight": 8.24748158E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.8339481E8,
+          "unit": "ns"
+        },
+        "weight": 6.51756627E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.468428454E9,
+          "unit": "ns"
+        },
+        "weight": 9.13007466E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.38771881E8,
+          "unit": "ns"
+        },
+        "weight": 5.37607059E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.66446029E8,
+          "unit": "ns"
+        },
+        "weight": 5.57929912E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.251908959E9,
+          "unit": "ns"
+        },
+        "weight": 8.04435042E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.15872714E9,
+          "unit": "ns"
+        },
+        "weight": 7.38918916E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "directComparison",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  },
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "directComparison",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.lang.Object"
+      }
+    },
+    "id": "25a3cf2e-9395-48ea-b850-3462b548434b",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 3.9625213E7,
+          "unit": "ns"
+        },
+        "weight": 2.542561E7
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 6.89460776E8,
+          "unit": "ns"
+        },
+        "weight": 4.79728881E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.236952687E9,
+          "unit": "ns"
+        },
+        "weight": 8.67612607E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.48468017E8,
+          "unit": "ns"
+        },
+        "weight": 6.47431664E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 5.65531639E8,
+          "unit": "ns"
+        },
+        "weight": 3.89806264E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.063771385E9,
+          "unit": "ns"
+        },
+        "weight": 7.47548478E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.442214315E9,
+          "unit": "ns"
+        },
+        "weight": 1.000429563E9
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.268566849E9,
+          "unit": "ns"
+        },
+        "weight": 9.00548978E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.252555484E9,
+          "unit": "ns"
+        },
+        "weight": 8.75530566E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "directComparison",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  },
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "equalsTo",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.util.Date"
+      }
+    },
+    "id": "632ccbbf-99b6-4b51-8b6c-06008d390196",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 5.1702638E7,
+          "unit": "ns"
+        },
+        "weight": 1.3155132E7
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.021369159E9,
+          "unit": "ns"
+        },
+        "weight": 2.6418894E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.022700317E9,
+          "unit": "ns"
+        },
+        "weight": 2.62211191E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.266571615E9,
+          "unit": "ns"
+        },
+        "weight": 3.2818688E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.65918449E8,
+          "unit": "ns"
+        },
+        "weight": 2.21077046E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.166394206E9,
+          "unit": "ns"
+        },
+        "weight": 2.97950186E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.58480608E8,
+          "unit": "ns"
+        },
+        "weight": 2.18489888E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.4045795E8,
+          "unit": "ns"
+        },
+        "weight": 2.41980896E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.073154673E9,
+          "unit": "ns"
+        },
+        "weight": 2.74357887E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "equalsTo",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  },
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "equalsTo",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.lang.Object"
+      }
+    },
+    "id": "4a5ea0b7-ce47-4791-b571-c6a300749511",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 5.6222944E7,
+          "unit": "ns"
+        },
+        "weight": 1.4739353E7
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.373561136E9,
+          "unit": "ns"
+        },
+        "weight": 3.68865844E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 4.8452204E8,
+          "unit": "ns"
+        },
+        "weight": 1.2794889E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.038626926E9,
+          "unit": "ns"
+        },
+        "weight": 2.79462544E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.67050286E8,
+          "unit": "ns"
+        },
+        "weight": 2.55348114E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.00306078E8,
+          "unit": "ns"
+        },
+        "weight": 2.4063542E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.85095335E8,
+          "unit": "ns"
+        },
+        "weight": 2.64153588E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 7.28863463E8,
+          "unit": "ns"
+        },
+        "weight": 1.95194971E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.0048484E8,
+          "unit": "ns"
+        },
+        "weight": 2.48788017E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "equalsTo",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  },
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "instanceOf",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.util.Date"
+      }
+    },
+    "id": "8b519aad-b2f3-45d5-94d6-6b43927cca72",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.31394809E8,
+          "unit": "ns"
+        },
+        "weight": 2.0734746E7
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.022829504E9,
+          "unit": "ns"
+        },
+        "weight": 1.60099428E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 7.97163626E8,
+          "unit": "ns"
+        },
+        "weight": 1.23245217E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.52237724E8,
+          "unit": "ns"
+        },
+        "weight": 1.31591786E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.281177392E9,
+          "unit": "ns"
+        },
+        "weight": 1.93593265E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.129478029E9,
+          "unit": "ns"
+        },
+        "weight": 1.7298876E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.098908635E9,
+          "unit": "ns"
+        },
+        "weight": 1.76866337E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.36893189E8,
+          "unit": "ns"
+        },
+        "weight": 1.46080548E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.199145673E9,
+          "unit": "ns"
+        },
+        "weight": 1.87514467E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "instanceOf",
+        "parameters": {
+          "value": "java.util.Date"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  },
+  {
+    "experiment": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "instanceOf",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "instrumentation": {},
+      "userParameters": {
+        "value": "java.lang.Object"
+      }
+    },
+    "id": "50da9de7-ae81-4eea-9ed2-8584707a91c9",
+    "instrumentSpec": {
+      "className": "dk.ilios.spanner.internal.RuntimeInstrument",
+      "options": {}
+    },
+    "measurements": [
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.0371094E7,
+          "unit": "ns"
+        },
+        "weight": 1458867.0
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.60652656E8,
+          "unit": "ns"
+        },
+        "weight": 1.51413657E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.79263456E8,
+          "unit": "ns"
+        },
+        "weight": 1.49616304E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.270612078E9,
+          "unit": "ns"
+        },
+        "weight": 1.55870595E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 1.588044323E9,
+          "unit": "ns"
+        },
+        "weight": 1.65658505E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 9.52572787E8,
+          "unit": "ns"
+        },
+        "weight": 1.50977956E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.44132423E8,
+          "unit": "ns"
+        },
+        "weight": 1.36337294E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 6.93475365E8,
+          "unit": "ns"
+        },
+        "weight": 1.09710226E8
+      },
+      {
+        "description": "runtime",
+        "id": 0,
+        "value": {
+          "magnitude": 8.0940327E8,
+          "unit": "ns"
+        },
+        "weight": 1.29883829E8
+      }
+    ],
+    "messages": [],
+    "run": {
+      "id": "509b937d-ce10-4675-9b7c-697749524a2e",
+      "label": "Gauge benchmark test",
+      "startTime": "2015-11-04T21:34:43.604Z"
+    },
+    "scenario": {
+      "benchmarkSpec": {
+        "className": "dk.ilios.spanner.UnitTestBenchmarks",
+        "id": 0,
+        "methodName": "instanceOf",
+        "parameters": {
+          "value": "java.lang.Object"
+        }
+      },
+      "hash": 0,
+      "host": {
+        "id": 0,
+        "properties": {}
+      },
+      "id": 0
+    }
+  }
+]
