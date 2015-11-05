@@ -49,27 +49,33 @@ import dk.ilios.spanner.model.Trial;
  */
 public final class OutputFileDumper implements ResultProcessor {
 
-    public static final String RESULTS_DIR = "results";
-
     private static final Logger logger = Logger.getLogger(OutputFileDumper.class.getName());
 
     private final Run run;
     private final Gson gson;
     private final File resultFile;
     private final File workFile;
-
     private Optional<JsonWriter> writer = Optional.absent();
+
+    /**
+     * Creates a ResultProcessor that saves the output of the benchmark to a file to a directory.
+     * Each benchmark file gets an auto-generated filename.
+     */
+    public OutputFileDumper(Run run,
+                            BenchmarkClass benchmarkClass,
+                            Gson gson,
+                            File outputDir) throws InvalidConfigurationException {
+        this(run ,benchmarkClass, gson, outputDir, null);
+    }
 
     public OutputFileDumper(Run run,
                             BenchmarkClass benchmarkClass,
                             Gson gson,
-                            SpannerConfig spannerConfig) throws InvalidConfigurationException {
+                            File outputDir,
+                            String overrideFileName) throws InvalidConfigurationException {
         this.run = run;
-        if (spannerConfig.getResultsFolder() == null) {
-            throw new IllegalStateException("Result folder must be specified");
-        }
-
-        this.resultFile = new File(new File(spannerConfig.getResultsFolder(), RESULTS_DIR), createFileName(benchmarkClass.name()));
+        String fileName = overrideFileName != null ? overrideFileName : createFileName(benchmarkClass.name());
+        this.resultFile = new File(outputDir, fileName);
 //        logger.fine("found no configuration");
 
 //        ResultProcessorConfig config = spannerConfig.getResultProcessorConfig(OutputFileDumper.class);

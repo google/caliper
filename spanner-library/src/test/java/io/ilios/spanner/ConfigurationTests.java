@@ -39,12 +39,12 @@ public class ConfigurationTests {
 
         SpannerConfig.Builder builder = new SpannerConfig.Builder();
         try {
-            builder.resultsFolder(nullFolder);
+            builder.saveResults(nullFolder);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            builder.resultsFolder(readonlyFolder);
+            builder.saveResults(readonlyFolder);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
@@ -57,12 +57,12 @@ public class ConfigurationTests {
 
         SpannerConfig.Builder builder = new SpannerConfig.Builder();
         try {
-            builder.baselineFile(nullFile);
+            builder.useBaseline(nullFile);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            builder.resultsFolder(folder);
+            builder.saveResults(folder);
             fail();
         } catch (IllegalArgumentException ignored) {
         }

@@ -151,7 +151,7 @@ public class SpannerRunner extends Runner {
                     if (absChange > benchmarkConfiguration.getBaselineFailure()) {
                         runNotifier.fireTestFailure(new Failure(spec,
                                 new TrialFailureException(String.format("Change from baseline was to big: %.2f%%. Limit is %.2f%%",
-                                        absChange, benchmarkConfiguration.getBaselineFailure()))));
+                                        absChange * 100, benchmarkConfiguration.getBaselineFailure() * 100))));
                     }
                 }
                 runNotifier.fireTestFinished(spec);
@@ -234,7 +234,7 @@ public class SpannerRunner extends Runner {
     }
 
     private String formatBenchmarkChange(Trial trial) {
-        Double change = trial.getChangeFromBaseline();
+        Double change = trial.getChangeFromBaseline() * 100;
         if (change == null) return "";
         return String.format("[%s%.2f%%]", change > 0 ? "+" : "", change);
     }

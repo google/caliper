@@ -1,6 +1,5 @@
 package dk.ilios.spanner;
 
-import android.annotation.SuppressLint;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.runner.RunWith;
@@ -8,7 +7,6 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 import dk.ilios.spanner.example.Utils;
-import dk.ilios.spanner.config.SpannerConfiguration;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
@@ -20,8 +18,9 @@ public class UnitTestBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .resultsFolder(resultsDir)
-            .baselineFile(baseLineFile)
+            .saveResults(resultsDir)
+            .createBaseline(resultsDir)
+            .useBaseline(baseLineFile)
             .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
             .build();

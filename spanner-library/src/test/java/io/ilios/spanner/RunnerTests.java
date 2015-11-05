@@ -37,7 +37,6 @@ public class RunnerTests {
         Spanner.runAllBenchmarks(InvalidParameterBenchmark.class, new SpannerCallbackAdapter());
     }
 
-
     @Test
     public void testEmptyBenchmarkClass() {
         final CountDownLatch benchmarkLatch = new CountDownLatch(1);

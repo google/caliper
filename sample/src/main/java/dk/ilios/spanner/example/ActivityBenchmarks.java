@@ -1,7 +1,5 @@
 package dk.ilios.spanner.example;
 
-import android.annotation.SuppressLint;
-
 import java.io.File;
 
 import dk.ilios.spanner.AfterExperiment;
@@ -19,8 +17,8 @@ public class ActivityBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .resultsFolder(resultsDir)
-            .baselineFile(baseLineFile)
+            .saveResults(resultsDir)
+            .useBaseline(baseLineFile)
             .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
             .build();

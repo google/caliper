@@ -133,7 +133,7 @@ public final class BenchmarkClass {
             }
 
             for (Class<?> parameterClass : parameterTypes) {
-                if (!parameterClass.equals(int.class) || !parameterClass.equals(long.class)) {
+                if (!parameterClass.equals(int.class) && !parameterClass.equals(long.class)) {
                     throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
                 }
             }

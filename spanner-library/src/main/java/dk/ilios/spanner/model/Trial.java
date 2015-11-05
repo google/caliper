@@ -189,7 +189,7 @@ public final class Trial {
 
     /**
      * Returns changes from baseline or {@code null} if no baseline exists.
-     * @return Change in percent from baseline.
+     * @return Change in percent from baseline. {@code 1.0} is 100%.
      */
     public Double getChangeFromBaseline() {
         checkResultsCalculated(true);
@@ -198,7 +198,7 @@ public final class Trial {
         double newMedian = getMedian();
         double oldMedian = experiment.getBaseline().getMedian();
 
-        return (oldMedian - newMedian) * 100 / oldMedian;
+        return (oldMedian - newMedian) / oldMedian;
     }
 
     public TimeUnit getUnit() {

@@ -12,7 +12,7 @@ public class SpannerConfig {
     private final File resultsFolder;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
-    private final boolean createBaseLine;
+    private final File baselineOutputFile;
     private final URL uploadUrl;
     private final String apiKey;
     private final boolean uploadResults;
@@ -22,7 +22,7 @@ public class SpannerConfig {
         this.resultsFolder = builder.resultsFolder;
         this.baseLineFile = builder.baseLineFile;
         this.warnIfWrongTestGranularity = builder.warnIfWrongTestGranularity;
-        this.createBaseLine = builder.createBaseline;
+        this.baselineOutputFile = builder.baselineOutputFile;
         this.uploadResults = builder.uploadResults;
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
@@ -41,8 +41,8 @@ public class SpannerConfig {
         return warnIfWrongTestGranularity;
     }
 
-    public boolean createBaseline() {
-        return createBaseLine;
+    public File getBaselineOutputFile() {
+        return baselineOutputFile;
     }
 
     public URL getUploadUrl() {
@@ -68,7 +68,7 @@ public class SpannerConfig {
         private File resultsFolder = null;
         private File baseLineFile = null;
         private boolean warnIfWrongTestGranularity = true;
-        private boolean createBaseline = false;
+        private File baselineOutputFile = null;
         private boolean uploadResults = false;
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
@@ -90,9 +90,8 @@ public class SpannerConfig {
          * @param dir Reference to folder.
          * @return Builder object.
          */
-        public Builder resultsFolder(File dir) {
-            checkNotNull(dir, "Results folder was null.");
-            if (!dir.isDirectory() || !dir.canWrite())
+        public Builder saveResults(File dir) {
+            checkValidWritableFolder(dir);
             this.resultsFolder = dir;
             return this;
         }
@@ -105,15 +104,15 @@ public class SpannerConfig {
          * @param file Reference to the baseline file (see .
          * @return Builder object.
          */
-        public Builder baselineFile(File file) {
+        public Builder useBaseline(File file) {
             checkNotNull(file, "Baseline file was null");
             this.baseLineFile = file;
             return this;
         }
 
         /**
-         * Setting this will cause Spanner to verify that the granularity of the tests are set correctly or will
-         * @return
+         * Setting this will cause Spanner to verify that the granularity of the tests are set correctly.
+         * Otherwise it will throw an error.
          */
         public Builder warnIfWrongTestGranularity() {
             this.warnIfWrongTestGranularity = true;
@@ -121,11 +120,12 @@ public class SpannerConfig {
         }
 
         /**
-         * Setting this will cause the benchmarks results to be saved in a new baseline file in the results folder.
-         * @return
+         * Save the result of this of benchmark as a new baseline file called {@code baseline.json}.
+         * @param dir Folder to save the new baseline file in.
          */
-        public Builder createBaseline() {
-            this.createBaseline = true;
+        public Builder createBaseline(File dir) {
+            checkValidWritableFolder(dir);
+            this.baselineOutputFile = new File(dir, "baseline.json");
             return this;
         }
 
@@ -166,6 +166,13 @@ public class SpannerConfig {
                 return new URL(url);
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
+            }
+        }
+
+        private void checkValidWritableFolder(File dir) {
+            checkNotNull(dir, "Non-null results folder required.");
+            if (!dir.isDirectory() || !dir.canWrite()) {
+                throw new IllegalArgumentException("Results folder is either not a directory or not writable.");
             }
         }
     }

@@ -7,6 +7,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import dk.ilios.spanner.Spanner;
+import dk.ilios.spanner.SpannerCallbackAdapter;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
 import dk.ilios.spanner.model.Trial;
 
@@ -29,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void startBenchmark() throws InvalidBenchmarkException {
-        Spanner.runAllBenchmarks(ActivityBenchmarks.class, new Spanner.Callback() {
+        Spanner.runAllBenchmarks(ActivityBenchmarks.class, new SpannerCallbackAdapter() {
             @Override
             public void trialStarted(Trial trial) {
                 addStatus("Start: " + getDescription(trial));
@@ -56,8 +57,13 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void trialEnded(Trial trial) {
-                // Ignore
+            public void onComplete() {
+                addStatus("Benchmarks completed");
+            }
+
+            @Override
+            public void onError(Exception error) {
+                addStatus(error.getMessage());
             }
         });
     }

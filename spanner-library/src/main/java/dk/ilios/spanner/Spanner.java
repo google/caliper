@@ -163,7 +163,11 @@ public class Spanner {
 
             Set<ResultProcessor> processors = new HashSet<>();
             if (benchmarkConfig.getResultsFolder() != null) {
-                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig);
+                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig.getResultsFolder());
+                processors.add(dumper);
+            }
+            if (benchmarkConfig.getBaselineOutputFile() != null) {
+                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig.getBaselineOutputFile());
                 processors.add(dumper);
             }
             if (benchmarkConfig.isUploadResults()) {
