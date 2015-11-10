@@ -17,12 +17,15 @@
 package com.google.caliper.runner;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.annotation.Nullable;
 
@@ -33,11 +36,21 @@ import javax.annotation.Nullable;
 final class EffectiveClassPath {
   private EffectiveClassPath() {}
 
+  private static final String PATH_SEPARATOR = System.getProperty("path.separator");
+  private static final String JAVA_CLASS_PATH = System.getProperty("java.class.path");
+
   static String getClassPathForClassLoader(ClassLoader classLoader) {
-    return Joiner.on(System.getProperty("path.separator")).join(getClassPathFiles(classLoader));
+    // Order of JAR files may have some significance. Try to preserve it.
+    LinkedHashSet<File> files = new LinkedHashSet<File>();
+    for (String entry : Splitter.on(PATH_SEPARATOR).split(JAVA_CLASS_PATH)) {
+      files.add(new File(entry));
+    }
+    files.addAll(getClassPathFiles(classLoader));
+
+    return Joiner.on(PATH_SEPARATOR).join(files);
   }
 
-  private static ImmutableSet<File> getClassPathFiles(ClassLoader classLoader) {
+  private static Set<File> getClassPathFiles(ClassLoader classLoader) {
     ImmutableSet.Builder<File> files = ImmutableSet.builder();
     @Nullable ClassLoader parent = classLoader.getParent();
     if (parent != null) {
