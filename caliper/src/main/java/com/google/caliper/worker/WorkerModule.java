@@ -36,7 +36,7 @@ import javax.inject.Provider;
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link Param parameters}
  * from the {@link WorkerSpec} into the benchmark.
- * 
+ *
  * <p>TODO(gak): Ensure that each worker only has bindings for the objects it needs and not the
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
  * worker).
