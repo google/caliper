@@ -15,6 +15,11 @@
 package com.google.caliper.options;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
@@ -25,8 +30,8 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
 
-import junit.framework.TestCase;
-
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -36,15 +41,15 @@ import java.io.IOException;
 
 @RunWith(JUnit4.class)
 
-public class ParsedOptionsTest extends TestCase {
+public class ParsedOptionsTest {
   private File tempDir;
 
-  @Override protected void setUp() throws IOException {
+  @Before public void setUp() throws IOException {
     tempDir = Files.createTempDir();
     makeTestVmTree(tempDir);
   }
 
-  @Override protected void tearDown() throws IOException {
+  @After public void tearDown() throws IOException {
     if (tempDir != null) {
       Runtime.getRuntime().exec(new String[] {"rm", "-rf", tempDir.getCanonicalPath()});
     }
@@ -57,27 +62,57 @@ public class ParsedOptionsTest extends TestCase {
     Files.touch(java);
   }
 
-  @Test public void testNoOptions() {
+  @Test public void testNoOptions_RequireBenchmarkClassName() {
     try {
-      ParsedOptions.from(new String[] {});
+      ParsedOptions.from(new String[] {}, true);
       fail();
     } catch (InvalidCommandException expected) {
       assertEquals("No benchmark class specified", expected.getMessage());
     }
   }
 
+  @Test public void testTooManyArguments_RequireBenchmarkClassName() {
+    try {
+      ParsedOptions.from(new String[] {"a", "b"}, true);
+      fail();
+    } catch (InvalidCommandException expected) {
+      assertEquals("Extra stuff, expected only class name: [a, b]", expected.getMessage());
+    }
+  }
+
+  @Test public void testTooManyArguments_DoNotRequireBenchmarkClassName() {
+    try {
+      ParsedOptions.from(new String[] {"a", "b"}, false);
+      fail();
+    } catch (InvalidCommandException expected) {
+      assertEquals("Extra stuff, did not expect non-option arguments: [a, b]",
+          expected.getMessage());
+    }
+  }
+
   @Test public void testHelp() throws InvalidCommandException {
     try {
-      ParsedOptions.from(new String[] {"--help"});
+      ParsedOptions.from(new String[] {"--help"}, true);
       fail();
     } catch (DisplayUsageException expected) {
     }
   }
 
-  @Test public void testDefaults() throws InvalidCommandException {
-    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME});
+  @Test public void testDefaults_RequireBenchmarkClassName() throws InvalidCommandException {
+    CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, true);
 
     assertEquals(CLASS_NAME, options.benchmarkClassName());
+    checkDefaults(options);
+  }
+
+  @Test public void testDefaults_DoNotRequireBenchmarkClassName() throws InvalidCommandException {
+    CaliperOptions options = ParsedOptions.from(new String[] {}, false);
+
+    assertNull(options.benchmarkClassName());
+    checkDefaults(options);
+  }
+
+  private void checkDefaults(CaliperOptions options) {
     assertTrue(options.benchmarkMethodNames().isEmpty());
     assertFalse(options.dryRun());
     ImmutableSet<String> expectedInstruments = new ImmutableSet.Builder<String>()
@@ -109,7 +144,7 @@ public class ParsedOptionsTest extends TestCase {
         "--delimiter=;",
         CLASS_NAME,
     };
-    CaliperOptions options = ParsedOptions.from(args);
+    CaliperOptions options = ParsedOptions.from(args, true);
 
     assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkMethodNames());

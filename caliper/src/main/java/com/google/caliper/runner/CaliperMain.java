@@ -101,7 +101,7 @@ public final class CaliperMain {
     }
     try {
       MainComponent mainComponent = DaggerMainComponent.builder()
-          .optionsModule(new OptionsModule(args))
+          .optionsModule(OptionsModule.withBenchmarkClass(args))
           .outputModule(new OutputModule(stdout, stderr))
           .build();
       CaliperOptions options = mainComponent.getCaliperOptions();

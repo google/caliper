@@ -17,10 +17,12 @@
 package com.google.caliper.options;
 
 import com.google.caliper.util.InvalidCommandException;
+
 import dagger.Module;
 import dagger.Provides;
 
 import java.io.File;
+
 import javax.inject.Singleton;
 
 /**
@@ -28,16 +30,51 @@ import javax.inject.Singleton;
  */
 @Module
 public final class OptionsModule {
+
+  private static final String[] EMPTY_ARGS = new String[] {};
+
   private final String[] args;
 
-  public OptionsModule(String[] args) {
+  private boolean requireBenchmarkClassName;
+
+  /**
+   * Return a module that will provide access to configuration options and the name of the
+   * benchmark class.
+   *
+   * @param args the arguments from which the configuration options and the benchmark class name
+   *     are parsed; must have one non-option value that is the benchmark class name.
+   */
+  public static OptionsModule withBenchmarkClass(String [] args) {
+    return new OptionsModule(args, true);
+  }
+
+  /**
+   * Return a module that will provide access to configuration options without the name of the
+   * benchmark class.
+   *
+   * @param args the arguments from which the configuration options are parsed; it must have no
+   *     non-option values.
+   */
+  public static OptionsModule withoutBenchmarkClass(String [] args) {
+    return new OptionsModule(args, false);
+  }
+
+  /**
+   * Return a module that will provide access to the default configuration options.
+   */
+  public static OptionsModule defaultOptionsModule() {
+    return new OptionsModule(EMPTY_ARGS, false);
+  }
+
+  public OptionsModule(String[] args, boolean requireBenchmarkClassName) {
     this.args = args.clone(); // defensive copy, just in case
+    this.requireBenchmarkClassName = requireBenchmarkClassName;
   }
 
   @Provides
   @Singleton
   CaliperOptions provideOptions() throws InvalidCommandException {
-    return ParsedOptions.from(args);
+    return ParsedOptions.from(args, requireBenchmarkClassName);
   }
 
   @Provides @CaliperDirectory static File provideCaliperDirectory(CaliperOptions options) {

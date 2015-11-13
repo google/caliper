@@ -39,8 +39,10 @@ import java.util.List;
 import java.util.Map;
 
 final class ParsedOptions implements CaliperOptions {
-  public static ParsedOptions from(String[] args) throws InvalidCommandException {
-    ParsedOptions options = new ParsedOptions();
+
+  public static ParsedOptions from(String[] args, boolean requireBenchmarkClassName)
+      throws InvalidCommandException {
+    ParsedOptions options = new ParsedOptions(requireBenchmarkClassName);
 
     CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
     try {
@@ -52,7 +54,13 @@ final class ParsedOptions implements CaliperOptions {
     return options;
   }
 
-  private ParsedOptions() {
+  /**
+   * True if the benchmark class name is expected as the last argument, false if it is not allowed.
+   */
+  private final boolean requireBenchmarkClassName;
+
+  private ParsedOptions(boolean requireBenchmarkClassName) {
+    this.requireBenchmarkClassName = requireBenchmarkClassName;
   }
 
   // --------------------------------------------------------------------------
@@ -294,13 +302,20 @@ final class ParsedOptions implements CaliperOptions {
 
   @Leftovers
   private void setLeftovers(ImmutableList<String> leftovers) throws InvalidCommandException {
-    if (leftovers.isEmpty()) {
-      throw new InvalidCommandException("No benchmark class specified");
+    if (requireBenchmarkClassName) {
+      if (leftovers.isEmpty()) {
+        throw new InvalidCommandException("No benchmark class specified");
+      }
+      if (leftovers.size() > 1) {
+        throw new InvalidCommandException("Extra stuff, expected only class name: " + leftovers);
+      }
+      this.benchmarkClassName = leftovers.get(0);
+    } else {
+      if (!leftovers.isEmpty()) {
+        throw new InvalidCommandException(
+            "Extra stuff, did not expect non-option arguments: " + leftovers);
+      }
     }
-    if (leftovers.size() > 1) {
-      throw new InvalidCommandException("Extra stuff, expected only class name: " + leftovers);
-    }
-    this.benchmarkClassName = leftovers.get(0);
   }
 
   @Override public String benchmarkClassName() {
