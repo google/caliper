@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.platform.jvm;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

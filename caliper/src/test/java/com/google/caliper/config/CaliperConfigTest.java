@@ -21,6 +21,8 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,11 +45,13 @@ import java.lang.management.ManagementFactory;
 public class CaliperConfigTest {
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
+  private Platform platform = new JvmPlatform();
+
   @Test public void getDefaultVmConfig() throws Exception {
     CaliperConfig configuration = new CaliperConfig(
         ImmutableMap.of("vm.args", "-very -special=args"));
-    VmConfig defaultVmConfig = configuration.getDefaultVmConfig();
-    assertEquals(new File(System.getProperty("java.home")), defaultVmConfig.javaHome());
+    VmConfig defaultVmConfig = configuration.getDefaultVmConfig(platform);
+    assertEquals(new File(System.getProperty("java.home")), defaultVmConfig.vmHome());
     ImmutableList<String> expectedArgs = new ImmutableList.Builder<String>()
         .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
         .add("-very")
@@ -62,8 +66,8 @@ public class CaliperConfigTest {
     jdkHome.mkdir();
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
         "vm.baseDirectory", tempBaseDir.getAbsolutePath()));
-    assertEquals(new VmConfig.Builder(jdkHome).build(),
-        configuration.getVmConfig("test"));
+    assertEquals(new VmConfig.Builder(platform, jdkHome).build(),
+        configuration.getVmConfig(platform, "test"));
   }
 
   @Test public void getVmConfig_baseDirectoryAndHome() throws Exception {
@@ -73,8 +77,8 @@ public class CaliperConfigTest {
     CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
         "vm.baseDirectory", tempBaseDir.getAbsolutePath(),
         "vm.test.home", "test-home"));
-    assertEquals(new VmConfig.Builder(jdkHome).build(),
-        configuration.getVmConfig("test"));
+    assertEquals(new VmConfig.Builder(platform, jdkHome).build(),
+        configuration.getVmConfig(platform, "test"));
   }
 
   @Test public void getVmConfig() throws Exception {
@@ -84,14 +88,14 @@ public class CaliperConfigTest {
         "vm.test.home", jdkHome.getAbsolutePath(),
         "vm.test.args", " -d     -e     "));
     assertEquals(
-        new VmConfig.Builder(jdkHome)
+        new VmConfig.Builder(platform, jdkHome)
             .addOption("-a")
             .addOption("-b")
             .addOption("-c")
             .addOption("-d")
             .addOption("-e")
             .build(),
-        configuration.getVmConfig("test"));
+        configuration.getVmConfig(platform, "test"));
   }
 
   @Test public void getVmConfig_escapedSpacesInArgs() throws Exception {
@@ -100,12 +104,12 @@ public class CaliperConfigTest {
         "vm.args", "-a=string\\ with\\ spa\\ces -b -c",
         "vm.test.home", jdkHome.getAbsolutePath()));
     assertEquals(
-        new VmConfig.Builder(jdkHome)
+        new VmConfig.Builder(platform, jdkHome)
         .addOption("-a=string with spaces")
         .addOption("-b")
         .addOption("-c")
         .build(),
-        configuration.getVmConfig("test"));
+        configuration.getVmConfig(platform, "test"));
   }
 
   @Test public void getInstrumentConfig() throws Exception {

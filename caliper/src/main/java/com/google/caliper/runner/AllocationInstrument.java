@@ -23,6 +23,9 @@ import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.config.VmConfig;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.worker.MacrobenchmarkAllocationWorker;
 import com.google.caliper.worker.MicrobenchmarkAllocationWorker;
 import com.google.caliper.worker.Worker;
@@ -49,6 +52,7 @@ import java.util.logging.Logger;
  * <p>Note that the allocation instruments reports a "worst case" for allocation in that it reports
  * the bytes and objects allocated in interpreted mode (no JIT).
  */
+@SupportedPlatform(Platform.Type.JVM)
 public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
   /**
@@ -56,7 +60,7 @@ public final class AllocationInstrument extends Instrument {
    * logged.  This will also increase the detail of certain error messages.
    */
   private static final String TRACK_ALLOCATIONS_OPTION = "trackAllocations";
-  private static final Logger logger = Logger.getLogger(AllocationInstrumenter.class.getName());
+  private static final Logger logger = Logger.getLogger(AllocationInstrument.class.getName());
 
   @Override
   public boolean isBenchmarkMethod(Method method) {
@@ -193,7 +197,7 @@ public final class AllocationInstrument extends Instrument {
    * This instrument's worker requires the allocationinstrumenter agent jar, specified
    * on the worker VM's command line with "-javaagent:[jarfile]".
    */
-  @Override ImmutableSet<String> getExtraCommandLineArgs() {
+  @Override ImmutableSet<String> getExtraCommandLineArgs(VmConfig vmConfig) {
     String agentJar = options.get(ALLOCATION_AGENT_JAR_OPTION);
     if (Strings.isNullOrEmpty(agentJar)) {
       try {
@@ -212,7 +216,7 @@ public final class AllocationInstrument extends Instrument {
     }
     // Add microbenchmark args to minimize differences in the output
     return new ImmutableSet.Builder<String>()
-        .addAll(super.getExtraCommandLineArgs())
+        .addAll(super.getExtraCommandLineArgs(vmConfig))
         // we just run in interpreted mode to ensure that intrinsics don't break the instrumentation
         .add("-Xint")
         .add("-javaagent:" + agentJar)

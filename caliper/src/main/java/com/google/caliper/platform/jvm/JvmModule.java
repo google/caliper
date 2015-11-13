@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.platform.jvm;
 
-import dagger.Component;
+import dagger.Module;
+import dagger.Provides;
 
 /**
- * Component to use to inject values into an {@link Instrument}.
+ * Provider of the default {@link JvmPlatform}, this is assumed to always be available.
  */
-@Component(modules = InstrumentInjectorModule.class)
-interface InstrumentComponent {
+@Module
+public final class JvmModule {
 
-  void injectInstrument(Instrument instrument);
+  @Provides
+  public static JvmPlatform provideJvmPlatform() {
+    return new JvmPlatform();
+  }
 }

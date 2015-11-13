@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.platform;
 
-import dagger.Component;
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 
 /**
- * Component to use to inject values into an {@link Instrument}.
+ * Indicates the platforms supported by the annotated type.
  */
-@Component(modules = InstrumentInjectorModule.class)
-interface InstrumentComponent {
-
-  void injectInstrument(Instrument instrument);
+@Target(TYPE)
+@Retention(RUNTIME)
+@Documented
+public @interface SupportedPlatform {
+  Platform.Type[] value();
 }

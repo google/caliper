@@ -24,6 +24,7 @@ import static org.junit.Assert.fail;
 import com.google.caliper.Benchmark;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.caliper.worker.WorkerMain;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -74,11 +75,15 @@ public class WorkerProcessTest {
     Method method = TestBenchmark.class.getDeclaredMethods()[0];
     AllocationInstrument allocationInstrument = new AllocationInstrument();
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
+    VmConfig vmConfig = new VmConfig(
+        new File("foo"),
+        Arrays.asList("--doTheHustle"),
+        new File("java"),
+        new JvmPlatform());
     Experiment experiment = new Experiment(
         allocationInstrument.createInstrumentation(method),
         ImmutableMap.<String, String>of(),
-        new VirtualMachine("foo-jvm",
-            new VmConfig(new File("foo"), Arrays.asList("--doTheHustle"), new File("java"))));
+        new VirtualMachine("foo-jvm", vmConfig));
     BenchmarkSpec spec = new BenchmarkSpec.Builder()
         .className(TestBenchmark.class.getName())
         .methodName(method.getName())
@@ -89,7 +94,8 @@ public class WorkerProcessTest {
     assertEquals("--doTheHustle", commandLine.get(1));  // vm specific flags come next
     assertEquals("-cp", commandLine.get(2));  // then the classpath
     // should we assert on classpath contents?
-    ImmutableSet<String> extraCommandLineArgs = allocationInstrument.getExtraCommandLineArgs();
+    ImmutableSet<String> extraCommandLineArgs =
+        allocationInstrument.getExtraCommandLineArgs(vmConfig);
     assertEquals(extraCommandLineArgs.asList(),
         commandLine.subList(4, 4 + extraCommandLineArgs.size()));
     int index = 4 + extraCommandLineArgs.size();

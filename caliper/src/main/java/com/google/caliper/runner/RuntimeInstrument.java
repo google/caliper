@@ -38,6 +38,8 @@ import com.google.caliper.bridge.HotspotLogMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.MacrobenchmarkWorker;
 import com.google.caliper.worker.RuntimeWorker;
@@ -60,6 +62,7 @@ import javax.inject.Inject;
 /**
  * The instrument responsible for measuring the runtime of {@link Benchmark} methods.
  */
+@SupportedPlatform({Platform.Type.JVM, Platform.Type.DALVIK})
 class RuntimeInstrument extends Instrument {
   private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
   private static final String TIMING_INTERVAL_OPTION = "timingInterval";

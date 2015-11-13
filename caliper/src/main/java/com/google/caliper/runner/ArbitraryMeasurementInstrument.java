@@ -24,6 +24,8 @@ import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.util.Util;
 import com.google.caliper.worker.ArbitraryMeasurementWorker;
 import com.google.caliper.worker.Worker;
@@ -40,6 +42,7 @@ import java.lang.reflect.Method;
  * Instrument for taking an arbitrary measurement. When using this instrument, the benchmark code
  * itself returns the value. See {@link ArbitraryMeasurement}.
  */
+@SupportedPlatform(Platform.Type.JVM)
 public final class ArbitraryMeasurementInstrument extends Instrument {
   @Override public boolean isBenchmarkMethod(Method method) {
     return method.isAnnotationPresent(ArbitraryMeasurement.class);

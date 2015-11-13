@@ -16,11 +16,10 @@
 
 package com.google.caliper.runner;
 
-import static java.lang.Thread.currentThread;
-
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.worker.WorkerMain;
@@ -140,7 +139,7 @@ import javax.inject.Inject;
     }
     return worker;
   }
-
+  
   @VisibleForTesting static ProcessBuilder buildProcess(
       UUID trialId,
       Experiment experiment,
@@ -162,51 +161,49 @@ import javax.inject.Inject;
 
     List<String> args = processBuilder.command();
 
-    args.addAll(getJvmArgs(experiment.vm(), benchmarkClass));
+    VirtualMachine vm = experiment.vm();
+    VmConfig vmConfig = vm.config;
+    args.addAll(getJvmArgs(vm, benchmarkClass));
 
-    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs();
-    Iterables.addAll(args, instrumentJvmOptions);
+    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs(vmConfig);
     logger.fine(String.format("Instrument(%s) Java args: %s", instrument.getClass().getName(),
         instrumentJvmOptions));
+    Iterables.addAll(args, instrumentJvmOptions);
 
     // last to ensure that they're always applied
-    args.add("-XX:+PrintFlagsFinal");
-    args.add("-XX:+PrintCompilation");
-    args.add("-XX:+PrintGC");
+    args.addAll(vmConfig.workerProcessArgs());
 
     args.add(WorkerMain.class.getName());
     args.add(CommandLineSerializer.render(request));
 
-    logger.finest(String.format("Full JVM (%s) args: %s", experiment.vm().name, args));
+    logger.finest(String.format("Full JVM (%s) args: %s", vm.name, args));
     return processBuilder;
   }
-
-  @VisibleForTesting static List<String> getJvmArgs(VirtualMachine vm,
+  
+  @VisibleForTesting static List<String> getJvmArgs(
+      VirtualMachine vm,
       BenchmarkClass benchmarkClass) {
+
+    VmConfig vmConfig = vm.config;
+    String platformName = vmConfig.platformName();
+
     List<String> args = Lists.newArrayList();
-    String jdkPath = vm.config.javaExecutable().getAbsolutePath();
+    String jdkPath = vmConfig.vmExecutable().getAbsolutePath();
     args.add(jdkPath);
-    logger.fine(String.format("Java(%s) Path: %s", vm.name, jdkPath));
+    logger.fine(String.format("%s(%s) Path: %s", platformName, vm.name, jdkPath));
 
-    ImmutableList<String> jvmOptions = vm.config.options();
+    ImmutableList<String> jvmOptions = vmConfig.options();
     args.addAll(jvmOptions);
-    logger.fine(String.format("Java(%s) args: %s", vm.name, jvmOptions));
-
+    logger.fine(String.format("%s(%s) args: %s", platformName, vm.name, jvmOptions));
+    
     ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
     args.addAll(benchmarkJvmOptions);
-    logger.fine(String.format("Benchmark(%s) Java args: %s", benchmarkClass.name(),
+    logger.fine(String.format("Benchmark(%s) %s args: %s", benchmarkClass.name(), platformName,
         benchmarkJvmOptions));
 
-    String classPath = getClassPath();
+    String classPath = vmConfig.workerClassPath();
     Collections.addAll(args, "-cp", classPath);
     logger.finer(String.format("Class path: %s", classPath));
     return args;
-  }
-
-  private static String getClassPath() {
-    // Use the effective class path in case this is being invoked in an isolated class loader
-    String classpath =
-        EffectiveClassPath.getClassPathForClassLoader(currentThread().getContextClassLoader());
-    return classpath;
   }
 }

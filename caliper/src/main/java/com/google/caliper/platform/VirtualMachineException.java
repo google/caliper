@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
-
-import dagger.Component;
+package com.google.caliper.platform;
 
 /**
- * Component to use to inject values into an {@link Instrument}.
+ * Thrown when a problem was found with a custom VM configuration.
  */
-@Component(modules = InstrumentInjectorModule.class)
-interface InstrumentComponent {
+public class VirtualMachineException extends Exception {
 
-  void injectInstrument(Instrument instrument);
+  public VirtualMachineException(String message) {
+    super(message);
+  }
 }

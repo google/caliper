@@ -18,8 +18,11 @@ import static org.junit.Assert.assertEquals;
 
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
+import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -49,13 +52,16 @@ public class AllocationInstrumentTest {
     fakeJar.deleteOnExit();
     instrument.setOptions(ImmutableMap.of("allocationAgentJar", fakeJar.getAbsolutePath()));
     ImmutableSet<String> expected = new ImmutableSet.Builder<String>()
-        .addAll(Instrument.JVM_ARGS)
+        .addAll(JvmPlatform.INSTRUMENT_JVM_ARGS)
         .add("-Xint")
         .add("-javaagent:" + fakeJar.getAbsolutePath())
         .add("-Xbootclasspath/a:" + fakeJar.getAbsolutePath())
         .add("-Dsun.reflect.inflationThreshold=0")
         .build();
-    assertEquals(expected, instrument.getExtraCommandLineArgs());
+    Platform platform = new JvmPlatform();
+    VmConfig vmConfig = new VmConfig.Builder(platform, new File(System.getProperty("java.home")))
+        .build();
+    assertEquals(expected, instrument.getExtraCommandLineArgs(vmConfig));
     fakeJar.delete();
   }
 

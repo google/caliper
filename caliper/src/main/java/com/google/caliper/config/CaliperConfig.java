@@ -16,19 +16,19 @@
 
 package com.google.caliper.config;
 
+import static com.google.caliper.util.Util.subgroupMap;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.api.ResultProcessor;
-import com.google.caliper.config.VmConfig.Builder;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.VirtualMachineException;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.BiMap;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
@@ -36,7 +36,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import java.io.File;
-import java.lang.management.ManagementFactory;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -105,32 +104,29 @@ public final class CaliperConfig {
   }
 
   /**
-   * Returns the configuration of the current host JVM (including the flags used to create it). Any
+   * Returns the configuration of the current host VM (including the flags used to create it). Any
    * args specified using {@code vm.args} will also be applied
    */
-  public VmConfig getDefaultVmConfig() {
-    return new Builder(new File(System.getProperty("java.home")))
-        .addAllOptions(Collections2.filter(ManagementFactory.getRuntimeMXBean().getInputArguments(),
-            new Predicate<String>() {
-              @Override public boolean apply(@Nullable String input) {
-                // Exclude the -agentlib:jdwp param which configures the socket debugging protocol.
-                // If this is set in the parent VM we do not want it to be inherited by the child 
-                // VM.  If it is, the child will die immediately on startup because it will fail to
-                // bind to the debug port (because the parent VM is already bound to it).
-                return !input.startsWith("-agentlib:jdwp");
-              }
-            }))
+  public VmConfig getDefaultVmConfig(Platform platform) {
+    return new VmConfig.Builder(platform, platform.defaultVmHomeDir())
+        .addAllOptions(platform.inputArguments())
         // still incorporate vm.args
         .addAllOptions(getArgs(subgroupMap(properties, "vm")))
         .build();
   }
 
-  public VmConfig getVmConfig(String name) throws InvalidConfigurationException {
+  public VmConfig getVmConfig(Platform platform, String name)
+      throws InvalidConfigurationException {
     checkNotNull(name);
     ImmutableMap<String, String> vmGroupMap = subgroupMap(properties, "vm");
     ImmutableMap<String, String> vmMap = subgroupMap(vmGroupMap, name);
-    File homeDir = getJdkHomeDir(vmGroupMap.get("baseDirectory"), vmMap.get("home"), name);
-    return new VmConfig.Builder(homeDir)
+    File homeDir;
+    try {
+      homeDir = platform.customVmHomeDir(vmGroupMap, name);
+    } catch (VirtualMachineException e) {
+      throw new InvalidConfigurationException(e);
+    }
+    return new VmConfig.Builder(platform, homeDir)
         .addAllOptions(getArgs(vmGroupMap))
         .addAllOptions(getArgs(vmMap))
         .build();
@@ -185,11 +181,6 @@ public final class CaliperConfig {
         .toString();
   }
 
-  private static final ImmutableMap<String, String> subgroupMap(ImmutableMap<String, String> map,
-      String groupName) {
-    return Util.prefixedSubmap(map, groupName + ".");
-  }
-
   private static List<String> getArgs(Map<String, String> properties) {
     String argsString = Strings.nullToEmpty(properties.get("args"));
     ImmutableList.Builder<String> args = ImmutableList.builder();
@@ -217,55 +208,4 @@ public final class CaliperConfig {
     return args.build();
   }
 
-  // TODO(gak): check that the directory seems to be a jdk home (with a java binary and all of that)
-  // TODO(gak): make this work with different directory layouts.  I'm looking at you OS X...
-  private static File getJdkHomeDir(@Nullable String baseDirectoryPath,
-      @Nullable String homeDirPath, String vmConfigName)
-          throws InvalidConfigurationException {
-    if (homeDirPath == null) {
-      File baseDirectory = getBaseDirectory(baseDirectoryPath);
-      File homeDir = new File(baseDirectory, vmConfigName);
-      checkConfiguration(homeDir.isDirectory(), "%s is not a directory", homeDir);
-      return homeDir;
-    } else {
-      File potentialHomeDir = new File(homeDirPath);
-      if (potentialHomeDir.isAbsolute()) {
-        checkConfiguration(potentialHomeDir.isDirectory(), "%s is not a directory",
-            potentialHomeDir);
-        return potentialHomeDir;
-      } else {
-        File baseDirectory = getBaseDirectory(baseDirectoryPath);
-        File homeDir = new File(baseDirectory, homeDirPath);
-        checkConfiguration(homeDir.isDirectory(), "%s is not a directory", potentialHomeDir);
-        return homeDir;
-      }
-    }
-  }
-
-  private static File getBaseDirectory(@Nullable String baseDirectoryPath)
-      throws InvalidConfigurationException {
-    if (baseDirectoryPath == null) {
-      throw new InvalidConfigurationException(
-          "must set either a home directory or a base directory");
-    } else {
-      File baseDirectory = new File(baseDirectoryPath);
-      checkConfiguration(baseDirectory.isAbsolute(), "base directory cannot be a relative path");
-      checkConfiguration(baseDirectory.isDirectory(), "base directory must be a directory");
-      return baseDirectory;
-    }
-  }
-
-  private static void checkConfiguration(boolean check, String message)
-      throws InvalidConfigurationException {
-    if (!check) {
-      throw new InvalidConfigurationException(message);
-    }
-  }
-
-  private static void checkConfiguration(boolean check, String messageFormat, Object... args)
-      throws InvalidConfigurationException {
-    if (!check) {
-      throw new InvalidConfigurationException(String.format(messageFormat, args));
-    }
-  }
 }

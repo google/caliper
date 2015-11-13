@@ -19,6 +19,8 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
@@ -49,8 +51,9 @@ final class FakeWorkers {
   private static synchronized VirtualMachine init() {
     if (jvm == null) {
       try {
+        Platform platform = new JvmPlatform();
         jvm = new VirtualMachine("default", 
-            new CaliperConfig(ImmutableMap.<String, String>of()).getDefaultVmConfig());
+            new CaliperConfig(ImmutableMap.<String, String>of()).getDefaultVmConfig(platform));
       } catch (InvalidConfigurationException e) {
         throw new RuntimeException();
       }

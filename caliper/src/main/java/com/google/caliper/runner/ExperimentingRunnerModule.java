@@ -21,9 +21,11 @@ import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InstrumentConfig;
 import com.google.caliper.model.Host;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.platform.Platform;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
+import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Util;
 import com.google.common.base.Function;
 import com.google.common.collect.ImmutableSet;
@@ -33,11 +35,13 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
+
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Provides.Type;
 
+import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Map;
@@ -146,8 +150,7 @@ final class ExperimentingRunnerModule {
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available
-   * {@link Instrument instruments} passed to
-   * {@link #provideInstruments(MainComponent, CaliperOptions, CaliperConfig, Map)},
+   * {@link Instrument instruments} passed to {@link #provideInstruments},
    */
   @MapKey(unwrapValue = true)
   public @interface InstrumentClassKey {
@@ -175,10 +178,11 @@ final class ExperimentingRunnerModule {
 
   @Provides
   static ImmutableSet<Instrument> provideInstruments(
-      MainComponent mainComponent,
       CaliperOptions options,
       final CaliperConfig config,
-      Map<Class<? extends Instrument>, Provider<Instrument>> availableInstruments)
+      Map<Class<? extends Instrument>, Provider<Instrument>> availableInstruments,
+      Platform platform,
+      @Stderr PrintWriter stderr)
       throws InvalidCommandException {
 
     ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
@@ -198,13 +202,21 @@ final class ExperimentingRunnerModule {
         if (instrumentProvider == null) {
           throw new InvalidInstrumentException("Instrument %s not supported", className);
         }
-        Instrument instrument = instrumentProvider.get();
-        InstrumentInjectorModule injectorModule =
-            new InstrumentInjectorModule(instrumentConfig, instrumentName);
-        InstrumentComponent instrumentComponent =
-            mainComponent.newInstrumentComponent(injectorModule);
-        instrumentComponent.injectInstrument(instrument);
-        builder.add(instrument);
+
+        // Make sure that the instrument is supported on the platform.
+        if (platform.supports(clazz)) {
+          Instrument instrument = instrumentProvider.get();
+          InstrumentInjectorModule injectorModule =
+              new InstrumentInjectorModule(instrumentConfig, instrumentName);
+          InstrumentComponent instrumentComponent = DaggerInstrumentComponent.builder()
+              .instrumentInjectorModule(injectorModule)
+              .build();
+          instrumentComponent.injectInstrument(instrument);
+          builder.add(instrument);
+        } else {
+          stderr.format("Instrument %s not supported on %s, ignoring\n",
+              className, platform.name());
+        }
       } catch (ClassNotFoundException e) {
         throw new InvalidCommandException("Cannot find instrument class '%s'", className);
       }

@@ -82,7 +82,7 @@ public final class Util {
     return Resources.asByteSource(c.getResource(name));
   }
 
-  public static <T> ImmutableMap<String, T> prefixedSubmap(
+  private static <T> ImmutableMap<String, T> prefixedSubmap(
       Map<String, T> props, String prefix) {
     ImmutableMap.Builder<String, T> submapBuilder = ImmutableMap.builder();
     for (Map.Entry<String, T> entry : props.entrySet()) {
@@ -92,6 +92,19 @@ public final class Util {
       }
     }
     return submapBuilder.build();
+  }
+
+  /**
+   * Returns a map containing only those entries whose key starts with {@code <groupName>.}.
+   *
+   * <p>The keys in the returned map have had their {@code <groupName>.} prefix removed.
+   *
+   * <p>e.g. If given a map that contained {@code group.key1 -> value1, key2 -> value2} and a
+   * {@code groupName} of {@code group} it would produce a map containing {@code key1 -> value1}.
+   */
+  public static ImmutableMap<String, String> subgroupMap(
+          Map<String, String> map, String groupName) {
+    return prefixedSubmap(map, groupName + ".");
   }
 
   public static boolean isPublic(Member member) {

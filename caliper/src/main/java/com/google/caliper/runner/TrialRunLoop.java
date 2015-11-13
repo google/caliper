@@ -56,7 +56,7 @@ import javax.inject.Inject;
 
   // TODO(lukes): The VmDataCollectingVisitor should be able to tell us when it has collected all
   // its data.
-  private final VmDataCollectingVisitor dataCollectingVisitor = new VmDataCollectingVisitor();
+  private final VmDataCollectingVisitor dataCollectingVisitor;
   private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
   private final MeasurementCollectingVisitor measurementCollectingVisitor;
   private final TrialOutputLogger trialOutput;
@@ -66,12 +66,14 @@ import javax.inject.Inject;
       CaliperOptions options,
       TrialResultFactory trialFactory,
       TrialOutputLogger trialOutput,
-      StreamService streamService) {
+      StreamService streamService,
+      VmDataCollectingVisitor dataCollectingVisitor) {
     this.options = options;
     this.trialFactory = trialFactory;
     this.streamService = streamService;
     this.measurementCollectingVisitor = measurementCollectingVisitor; 
     this.trialOutput = trialOutput;
+    this.dataCollectingVisitor = dataCollectingVisitor;
   }
 
   @Override public TrialResult call() throws TrialFailureException, IOException {

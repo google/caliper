@@ -21,11 +21,16 @@ import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.platform.Platform;
 import com.google.common.collect.ImmutableSet;
+
 import dagger.Module;
 import dagger.Provides;
+
 import org.joda.time.Instant;
+
 import java.util.UUID;
+
 import javax.inject.Singleton;
 
 /**
@@ -34,15 +39,19 @@ import javax.inject.Singleton;
 // TODO(gak): throwing providers for all of the things that throw
 @Module
 final class RunnerModule {
-  @Provides static ImmutableSet<VirtualMachine> provideVirtualMachines(CaliperOptions options,
-      CaliperConfig config) throws InvalidConfigurationException {
+  @Provides
+  static ImmutableSet<VirtualMachine> provideVirtualMachines(
+      CaliperOptions options,
+      CaliperConfig config,
+      Platform platform)
+      throws InvalidConfigurationException {
     ImmutableSet<String> vmNames = options.vmNames();
     ImmutableSet.Builder<VirtualMachine> builder = ImmutableSet.builder();
     if (vmNames.isEmpty()) {
-      builder.add(new VirtualMachine("default", config.getDefaultVmConfig()));
+      builder.add(new VirtualMachine("default", config.getDefaultVmConfig(platform)));
     } else {
       for (String vmName : vmNames) {
-        VmConfig vmConfig = config.getVmConfig(vmName);
+        VmConfig vmConfig = config.getVmConfig(platform, vmName);
         builder.add(new VirtualMachine(vmName, vmConfig));
       }
     }

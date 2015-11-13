@@ -23,6 +23,8 @@ import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.platform.Platform;
+import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableSet;
@@ -115,6 +117,7 @@ public class ExperimentingRunnerModuleTest {
     @Benchmark void c() {}
   }
 
+  @SupportedPlatform(Platform.Type.JVM)
   static final class FakeInstrument extends Instrument {
     @Override public boolean isBenchmarkMethod(Method method) {
       return true;

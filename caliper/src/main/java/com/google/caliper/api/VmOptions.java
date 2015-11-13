@@ -29,6 +29,7 @@ import java.lang.annotation.Target;
  *
  * <p>This API is likely to change.
  */
+// TODO(gak): Support platform (e.g. Android and Jvm) specific options.
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Beta

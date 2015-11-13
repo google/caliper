@@ -16,22 +16,28 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.VmSpec;
+import com.google.caliper.platform.Platform;
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
+import javax.inject.Inject;
+
 /** An {@link AbstractLogMessageVisitor} that collects data about JVM properties and options. */
+@TrialScoped
 final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
   private final ImmutableMap.Builder<String, String> vmOptionsBuilder = ImmutableMap.builder();
+  private final Platform platform;
   private Optional<ImmutableMap<String, String>> vmProperties = Optional.absent();
+
+  @Inject VmDataCollectingVisitor(Platform platform) {
+    this.platform = platform;
+  }
 
   /**
    * Returns a {@link VmSpec} based on the data gathered by this visitor.
@@ -39,8 +45,8 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
    * @throws IllegalStateException if not all the data has been gathered.
    */
   VmSpec vmSpec() {
-     ImmutableMap<String, String> options = vmOptionsBuilder.build();
-    checkState(!options.isEmpty());
+    ImmutableMap<String, String> options = vmOptionsBuilder.build();
+    platform.checkVmProperties(options);
     return new VmSpec.Builder()
         .addAllProperties(vmProperties.get())
         .addAllOptions(options)
@@ -57,20 +63,9 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
     vmOptionsBuilder.put(logMessage.name(), logMessage.value());
   }
 
-  static final Predicate<String> PROPERTIES_TO_RETAIN = new Predicate<String>() {
-    @Override public boolean apply(String input) {
-      return input.startsWith("java.vm")
-          || input.startsWith("java.runtime")
-          || input.equals("java.version")
-          || input.equals("java.vendor")
-          || input.equals("sun.reflect.noInflation")
-          || input.equals("sun.reflect.inflationThreshold");
-    }
-  };
-
   @Override
   public void visit(VmPropertiesLogMessage logMessage) {
     vmProperties = Optional.of(ImmutableMap.copyOf(
-        Maps.filterKeys(logMessage.properties(), PROPERTIES_TO_RETAIN)));
+        Maps.filterKeys(logMessage.properties(), platform.vmPropertiesToRetain())));
   }
 }

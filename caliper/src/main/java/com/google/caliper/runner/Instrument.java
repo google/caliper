@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
+import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.worker.Worker;
@@ -149,24 +150,13 @@ public abstract class Instrument {
   }
 
   /**
-   * Some default JVM args to keep worker VMs somewhat predictable.
-   */
-  static final ImmutableSet<String> JVM_ARGS = ImmutableSet.of(
-      // do compilation serially
-      "-Xbatch",
-      // make sure compilation doesn't run in parallel with itself
-      "-XX:CICompilerCount=1",
-      // ensure the parallel garbage collector
-      "-XX:+UseParallelGC",
-      // generate classes or don't, but do it immediately
-      "-Dsun.reflect.inflationThreshold=0");
-
-  /**
    * Returns some arguments that should be added to the command line when invoking
    * this instrument's worker.
+   *
+   * @param vmConfig the configuration for the VM on which this is running.
    */
-  ImmutableSet<String> getExtraCommandLineArgs() {
-    return JVM_ARGS;
+  ImmutableSet<String> getExtraCommandLineArgs(VmConfig vmConfig) {
+    return vmConfig.commonInstrumentVmArgs();
   }
 
   interface MeasurementCollectingVisitor extends LogMessageVisitor {

@@ -24,7 +24,9 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ServiceManager;
+
 import dagger.Component;
+
 import javax.inject.Singleton;
 
 /**
@@ -40,6 +42,7 @@ import javax.inject.Singleton;
     MainModule.class,
     OptionsModule.class,
     OutputModule.class,
+    PlatformModule.class,
     RunnerModule.class,
     ServiceModule.class,
 })
@@ -58,6 +61,4 @@ interface MainComponent {
   TrialScopeComponent newTrialComponent(TrialModule trialModule);
 
   ExperimentComponent newExperimentComponent(ExperimentModule experimentModule);
-
-  InstrumentComponent newInstrumentComponent(InstrumentInjectorModule instrumentInjectorModule);
 }
