@@ -19,8 +19,6 @@ package com.google.caliper.model;
 import static com.google.caliper.model.PersistentHashing.getPersistentHashFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static javax.persistence.AccessType.FIELD;
-import static org.hibernate.annotations.SortType.NATURAL;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
@@ -28,51 +26,27 @@ import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
 
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Sort;
 
 import java.io.Serializable;
 import java.util.Map;
 import java.util.SortedMap;
 
-import javax.persistence.Access;
-import javax.persistence.Basic;
-import javax.persistence.Cacheable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.QueryHint;
 
 /**
  * A specification by which a benchmark method invocation can be uniquely identified.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
-@NamedQuery(
-    name = "listBenchmarkSpecsForHash",
-    query = "SELECT b FROM BenchmarkSpec b WHERE hash = :hash",
-    hints = {
-        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
 public final class BenchmarkSpec implements Serializable {
   private static final long serialVersionUID = 1L;
 
   static final BenchmarkSpec DEFAULT = new BenchmarkSpec();
 
-  @Id @GeneratedValue @ExcludeFromJson private int id;
-  @Basic(optional = false) private String className;
-  @Basic(optional = false) private String methodName;
-  @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> parameters;
-  @ExcludeFromJson @Index(name = "hash_index") private int hash;
+  @ExcludeFromJson private int id;
+  private String className;
+  private String methodName;
+  private SortedMap<String, String> parameters;
+  private int hash;
 
   private BenchmarkSpec() {
     this.className = "";
@@ -111,8 +85,6 @@ public final class BenchmarkSpec implements Serializable {
     }
   }
 
-  @PrePersist
-  @PreUpdate
   private void initHash() {
     if (hash == 0) {
       this.hash = getPersistentHashFunction()

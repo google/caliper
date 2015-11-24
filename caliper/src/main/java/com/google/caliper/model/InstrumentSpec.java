@@ -19,61 +19,29 @@ package com.google.caliper.model;
 import static com.google.caliper.model.PersistentHashing.getPersistentHashFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static javax.persistence.AccessType.FIELD;
-import static org.hibernate.annotations.SortType.NATURAL;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Sort;
 
 import java.util.Map;
 import java.util.SortedMap;
 
-import javax.persistence.Access;
-import javax.persistence.Basic;
-import javax.persistence.Cacheable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.QueryHint;
 
 /**
  * A specification by which the application of an instrument can be uniquely identified.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
-@NamedQuery(
-    name = "listInstrumentSpecsForHash",
-    query = "SELECT i FROM InstrumentSpec i WHERE hash = :hash",
-    hints = {
-        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
 public final class InstrumentSpec {
   static final InstrumentSpec DEFAULT = new InstrumentSpec();
 
-  @Id
-  @GeneratedValue
   @ExcludeFromJson
   private int id;
-  @Basic(optional = false)
   private String className;
-  @ElementCollection
-  @Sort(type = NATURAL)
   private SortedMap<String, String> options;
   @ExcludeFromJson
-  @Index(name = "hash_index")
   private int hash;
 
   private InstrumentSpec() {
@@ -106,8 +74,6 @@ public final class InstrumentSpec {
     }
   }
 
-  @PrePersist
-  @PreUpdate
   private void initHash() {
     if (hash == 0) {
       this.hash = getPersistentHashFunction()

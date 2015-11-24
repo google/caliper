@@ -18,8 +18,6 @@ package com.google.caliper.model;
 
 import static com.google.caliper.model.PersistentHashing.getPersistentHashFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.persistence.AccessType.FIELD;
-import static org.hibernate.annotations.SortType.NATURAL;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -29,47 +27,24 @@ import com.google.common.hash.Funnel;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.PrimitiveSink;
 
-import org.hibernate.annotations.Immutable;
-import org.hibernate.annotations.Index;
-import org.hibernate.annotations.Sort;
 
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.logging.Logger;
 
-import javax.persistence.Access;
-import javax.persistence.Cacheable;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.PrePersist;
-import javax.persistence.PreUpdate;
-import javax.persistence.QueryHint;
 
 /**
  * The performance-informing properties of the host on which a benchmark is run.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
-@NamedQuery(
-    name = "listHostsForHash",
-    query = "SELECT h FROM Host h WHERE hash = :hash",
-    hints = {
-        @QueryHint(name = "org.hibernate.cacheable", value = "true"),
-        @QueryHint(name = "org.hibernate.readOnly", value = "true")})
 public final class Host {
   static final Host DEFAULT = new Host();
   private static final Logger logger = Logger.getLogger(Host.class.getName());
 
-  @Id @GeneratedValue @ExcludeFromJson private int id;
-  @ElementCollection @Sort(type = NATURAL) private SortedMap<String, String> properties;
-  @ExcludeFromJson @Index(name = "hash_index") private int hash;
+  @ExcludeFromJson private int id;
+  private SortedMap<String, String> properties;
+  @ExcludeFromJson private int hash;
 
   private Host() {
     this.properties = Maps.newTreeMap();
@@ -102,8 +77,6 @@ public final class Host {
     }
   }
 
-  @PrePersist
-  @PreUpdate
   private void initHash() {
     initHash(getPersistentHashFunction());
   }

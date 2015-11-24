@@ -18,7 +18,6 @@ package com.google.caliper.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static javax.persistence.AccessType.FIELD;
 
 import com.google.common.base.Function;
 import com.google.common.base.MoreObjects;
@@ -26,27 +25,15 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
 
-import org.hibernate.annotations.Immutable;
 
 import java.io.Serializable;
 
-import javax.persistence.Access;
-import javax.persistence.Basic;
-import javax.persistence.Cacheable;
-import javax.persistence.Embedded;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
 
 /**
  * A single, weighted measurement.
  *
  * @author gak@google.com (Gregory Kick)
  */
-@Entity
-@Access(FIELD)
-@Immutable
-@Cacheable
 public class Measurement implements Serializable {
   private static final long serialVersionUID = 1L;
 
@@ -59,14 +46,10 @@ public class Measurement implements Serializable {
     });
   }
 
-  @Id
-  @GeneratedValue
   @ExcludeFromJson
   private int id;
-  @Embedded
   private Value value;
   private double weight;
-  @Basic(optional = false)
   private String description;
 
   private Measurement() {
