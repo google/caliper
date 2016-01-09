@@ -30,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.AsyncFunction;
-import com.google.common.util.concurrent.FutureFallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -58,12 +57,15 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private static final Logger logger = Logger.getLogger(ExperimentingCaliperRun.class.getName());
 
-  private static final FutureFallback<Object> FALLBACK_TO_NULL = new FutureFallback<Object>() {
-    final ListenableFuture<Object> nullFuture = Futures.immediateFuture(null);
-    @Override public ListenableFuture<Object> create(Throwable t) throws Exception {
-      return nullFuture;
-    }
-  };
+  private static final AsyncFunction<Throwable, Object> FALLBACK_TO_NULL =
+      new AsyncFunction<Throwable, Object>() {
+        final ListenableFuture<Object> nullFuture = Futures.immediateFuture(null);
+
+        @Override
+        public ListenableFuture<Object> apply(Throwable t) throws Exception {
+          return nullFuture;
+        }
+      };
 
   private final MainComponent mainComponent;
   private final CaliperOptions options;
@@ -229,7 +231,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
               });
       pendingTrials.add(current);
       // ignore failure of the prior task.
-      previous = Futures.withFallback(current, FALLBACK_TO_NULL);
+      previous = Futures.catchingAsync(current, Throwable.class, FALLBACK_TO_NULL);
     }
     return pendingTrials;
   }
