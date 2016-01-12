@@ -111,7 +111,12 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>18.0</version>
+      <!--
+        TODO(cpovirk): Figure out what we need to do to actually compile against 19.0. Currently we
+        get an older version through dagger-compiler:
+        https://github.com/google/dagger/issues/228#issuecomment-170975227
+        -->
+      <version>19.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
