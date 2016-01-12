@@ -222,7 +222,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       // each of these trials can only start after all prior trials have finished, so we use
       // Futures.transform to force the sequencing.
       ListenableFuture<TrialResult> current =
-          Futures.transform(
+          Futures.transformAsync(
               previous,
               new AsyncFunction<Object, TrialResult>() {
                 @Override public ListenableFuture<TrialResult> apply(Object ignored) {
