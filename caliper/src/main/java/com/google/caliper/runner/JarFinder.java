@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.reflect.ClassPath;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,7 +41,7 @@ import javax.annotation.Nullable;
 
 /**
  * Scans the source of a {@link ClassLoader} and finds all jar files.  This is a modified version
- * of {@link ClassPath} that finds jars instead of resources.
+ * of {@link com.google.common.reflect.ClassPath} that finds jars instead of resources.
  */
 final class JarFinder {
   private static final Logger logger = Logger.getLogger(JarFinder.class.getName());
