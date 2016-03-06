@@ -1,8 +1,15 @@
+# Caliper
+
 To build this project with Maven:
 
-1. cd caliper
+```sh
+cd caliper
 mvn eclipse:configure-workspace eclipse:eclipse install
+```
 
-2. To build examples
+To build examples:
+
+```sh
 cd examples
 mvn eclipse:configure-workspace eclipse:eclipse install
+```
