@@ -21,10 +21,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.bind.TypeAdapters;
+
 import dagger.Module;
 import dagger.Provides;
-import dagger.Provides.Type;
+import dagger.multibindings.IntoSet;
+
 import org.joda.time.Instant;
+
 import java.util.Set;
 
 /**
@@ -34,22 +37,26 @@ import java.util.Set;
 @Module
 public final class GsonModule {
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static TypeAdapterFactory provideImmutableListTypeAdapterFactory() {
     return new ImmutableListTypeAdatperFactory();
   }
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static TypeAdapterFactory provideImmutableMapTypeAdapterFactory() {
     return new ImmutableMapTypeAdapterFactory();
   }
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static TypeAdapterFactory provideNaturallySortedMapTypeAdapterFactory() {
     return new NaturallySortedMapTypeAdapterFactory();
   }
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static TypeAdapterFactory provideImmutableMultimapTypeAdapterFactory() {
     return new ImmutableMultimapTypeAdapterFactory();
   }
@@ -59,9 +66,9 @@ public final class GsonModule {
     return new AnnotationExclusionStrategy();
   }
 
-  @Provides(type = Type.SET)
-  static TypeAdapterFactory provideTypeAdapterFactoryForInstant(
-      InstantTypeAdapter typeAdapter) {
+  @Provides
+  @IntoSet
+  static TypeAdapterFactory provideTypeAdapterFactoryForInstant(InstantTypeAdapter typeAdapter) {
     return TypeAdapters.newFactory(Instant.class, typeAdapter);
   }
 
