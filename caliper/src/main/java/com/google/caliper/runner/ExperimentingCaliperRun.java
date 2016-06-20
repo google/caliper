@@ -100,6 +100,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   public void run() throws InvalidBenchmarkException {
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
     // TODO(lukes): move this standard-out handling into the ConsoleOutput class?
+    // if the user specified a run name, print it first.
+    if (!options.runName().isEmpty()) {
+      stdout.println("Run: " + options.runName());
+    }
     stdout.println("Experiment selection: ");
     stdout.println("  Benchmark Methods:   " + FluentIterable.from(allExperiments)
         .transform(new Function<Experiment, String>() {
