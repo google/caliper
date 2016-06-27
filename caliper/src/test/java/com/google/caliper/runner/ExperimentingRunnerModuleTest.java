@@ -42,7 +42,6 @@ import java.lang.reflect.Method;
  */
 @RunWith(MockitoJUnitRunner.class)
 public class ExperimentingRunnerModuleTest {
-  private ExperimentingRunnerModule module = new ExperimentingRunnerModule();
   private Instrument instrumentA = new FakeInstrument();
   private Instrument instrumentB = new FakeInstrument();
 
@@ -69,7 +68,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        module.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
@@ -83,7 +82,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentA.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodB))
             .build(),
-        module.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
@@ -93,7 +92,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodA))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        module.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
@@ -102,7 +101,7 @@ public class ExperimentingRunnerModuleTest {
     when(options.benchmarkMethodNames()).thenReturn(
         ImmutableSet.of("a", "c", "bad"));
     try {
-      module.provideInstrumentations(options,
+      ExperimentingRunnerModule.provideInstrumentations(options,
           BenchmarkClass.forClass(TestBenchmark.class),
           ImmutableSet.of(instrumentA, instrumentB));
       fail("should have thrown for invalid benchmark method name");

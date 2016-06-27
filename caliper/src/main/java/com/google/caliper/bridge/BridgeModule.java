@@ -17,15 +17,15 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.util.Parser;
+
+import dagger.Binds;
 import dagger.Module;
-import dagger.Provides;
 
 /**
  * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
  */
 @Module
-public final class BridgeModule {
-  @Provides static Parser<LogMessage> provideLogMessageParser(LogMessageParser parser) {
-    return parser;
-  }
+public abstract class BridgeModule {
+  @Binds
+  abstract Parser<LogMessage> provideLogMessageParser(LogMessageParser parser);
 }
