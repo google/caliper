@@ -36,6 +36,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 
+import dagger.Binds;
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
@@ -58,7 +59,7 @@ import javax.inject.Singleton;
  * Configures a {@link CaliperRun} that performs experiments.
  */
 @Module
-final class ExperimentingRunnerModule {
+abstract class ExperimentingRunnerModule {
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
 
   @Provides
@@ -73,15 +74,11 @@ final class ExperimentingRunnerModule {
     return impl;
   }
 
-  @Provides
-  static TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl) {
-    return impl;
-  }
+  @Binds
+  abstract TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl);
 
-  @Provides
-  static ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl) {
-    return impl;
-  }
+  @Binds
+  abstract ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl);
 
   @Provides
   static ListeningExecutorService provideExecutorService(CaliperConfig config) {
