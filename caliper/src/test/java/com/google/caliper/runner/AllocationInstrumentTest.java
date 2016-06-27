@@ -16,8 +16,11 @@ package com.google.caliper.runner;
 
 import static org.junit.Assert.assertEquals;
 
+import com.google.caliper.AfterExperiment;
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
+import com.google.caliper.api.AfterRep;
+import com.google.caliper.api.BeforeRep;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;
@@ -92,6 +95,38 @@ public class AllocationInstrumentTest {
       int hashCode = list.hashCode();
       list.clear();
       return hashCode;
+    }
+  }
+
+  public static class TestMacroBenchmark {
+    int beforeRepCalls = 0;
+    int afterRepCalls = 0;
+    int repCalls = 0;
+    int hashCode = 0;
+
+    @BeforeRep
+    public void beforeRep() {
+      beforeRepCalls++;
+    }
+
+    @Benchmark
+    public void benchmark() {
+      repCalls++;
+      assertEquals(beforeRepCalls, afterRepCalls + 1);
+      assertEquals(beforeRepCalls, repCalls);
+      Object o = new Object();
+      hashCode = o.hashCode();
+    }
+
+    @AfterRep
+    public void afterRep() {
+      afterRepCalls++;
+    }
+
+    @AfterExperiment
+    public void afterExperiment() {
+      assertEquals(repCalls, afterRepCalls);
+      assertEquals(afterRepCalls, beforeRepCalls);
     }
   }
 
