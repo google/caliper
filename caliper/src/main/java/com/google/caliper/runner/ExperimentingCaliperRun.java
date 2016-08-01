@@ -19,15 +19,19 @@ import static java.util.logging.Level.WARNING;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.Stdout;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
 import com.google.common.util.concurrent.AsyncFunction;
 import com.google.common.util.concurrent.Futures;
@@ -39,7 +43,9 @@ import com.google.common.util.concurrent.Uninterruptibles;
 
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -157,7 +163,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
     Stopwatch stopwatch = Stopwatch.createStarted();
     List<ScheduledTrial> trials = createScheduledTrials(experimentsToRun, totalTrials);
-
+    Multimap<Instrumentation, TrialResult> resultsByInstrumentation = HashMultimap.create();
     final ListeningExecutorService executor = executorProvider.get();
     List<ListenableFuture<TrialResult>> pendingTrials = scheduleTrials(trials, executor);
     ConsoleOutput output = new ConsoleOutput(stdout, totalTrials, stopwatch);
@@ -170,6 +176,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           for (ResultProcessor resultProcessor : resultProcessors) {
             resultProcessor.processTrial(result.getTrial());
           }
+          resultsByInstrumentation.put(
+              result.getExperiment().instrumentation(),
+              result);
         } catch (ExecutionException e) {
           if (e.getCause() instanceof TrialFailureException) {
             output.processFailedTrial((TrialFailureException) e.getCause());
@@ -186,6 +195,18 @@ public final class ExperimentingCaliperRun implements CaliperRun {
             toCancel.cancel(true);
           }
           throw new RuntimeException(e);
+        }
+      }
+      // Allow our instruments to do validation across all trials for a given benchmark
+      for (Map.Entry<Instrumentation, Collection<TrialResult>> entry :
+          resultsByInstrumentation.asMap().entrySet()) {
+        Instrumentation instrumentation = entry.getKey();
+        Optional<String> message = instrumentation.validateMeasurements(entry.getValue());
+        if (message.isPresent()) {
+          stdout.printf("For %s (%s)%n  %s",
+              instrumentation.benchmarkMethod().getName(),
+              instrumentation.instrument().name(),
+              message.get());
         }
       }
     } finally {
