@@ -44,6 +44,7 @@ import com.google.caliper.util.ShortDuration;
 import com.google.caliper.worker.MacrobenchmarkWorker;
 import com.google.caliper.worker.RuntimeWorker;
 import com.google.caliper.worker.Worker;
+import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -204,8 +205,35 @@ class RuntimeInstrument extends Instrument {
           getMeasurementsPerTrial(),
           ShortDuration.valueOf(options.get(WARMUP_OPTION)),
           ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)),
-          Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION)),
           nanoTimeGranularity);
+    }
+
+    @Override Optional<String> validateMeasurements(Iterable<TrialResult> trialResults) {
+      if (!Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION))) {
+        return Optional.absent();
+      }
+      boolean hasResults = false;
+      // if any measurement takes less than this much time, then the benchmark shouldn't be promoted
+      // so a MacroBenchmark.
+      ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
+      for (TrialResult result : trialResults) {
+        for (Measurement measurement : result.getTrial().measurements()) {
+          hasResults = true;
+          double nanos = measurement.value().magnitude() / measurement.weight();
+          if (nanos < reasonableUpperBound.to(NANOSECONDS)) {
+            // At least one measurement was faster than the upper bound, so don't warn
+            return Optional.absent();
+          }
+        }
+      }
+      // If for some reason there are no measurements, don't issue a warning
+      if (hasResults) {
+        return Optional.of(
+            String.format("This benchmark does not require a microbenchmark. "
+                + "The granularity of the timer (%s) is less than 0.1%% of the fastest measured "
+                + "runtime across all experiments.", nanoTimeGranularity));
+      }
+      return Optional.absent();
     }
   }
 
@@ -312,7 +340,6 @@ class RuntimeInstrument extends Instrument {
           checkArgument("ns".equals(measurement.value().unit()));
           elapsedWarmup = elapsedWarmup.plus(
               ShortDuration.of(BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
-          validateMeasurement(measurement);
         }
       } else {
         if (!measuredWarmupDurationReached()) {
@@ -332,8 +359,6 @@ class RuntimeInstrument extends Instrument {
       invalidateMeasurements = false;
       measuring = false;
     }
-
-    abstract void validateMeasurement(Measurement measurement);
 
     @Override
     public ImmutableList<Measurement> getMeasurements() {
@@ -367,17 +392,12 @@ class RuntimeInstrument extends Instrument {
   }
 
   private static final class RepBasedMeasurementCollector extends RuntimeMeasurementCollector {
-    final boolean suggestGranularity;
-    boolean notifiedAboutGranularity = false;
-
     RepBasedMeasurementCollector(
         int measurementsPerTrial,
         ShortDuration warmup,
         ShortDuration maxWarmupWallTime,
-        boolean suggestGranularity,
         ShortDuration nanoTimeGranularity) {
       super(measurementsPerTrial, warmup, maxWarmupWallTime, nanoTimeGranularity);
-      this.suggestGranularity = suggestGranularity;
     }
 
     @Override
@@ -399,22 +419,6 @@ class RuntimeInstrument extends Instrument {
       messages.add(
           "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
                 + "Results may be affected. Run with --verbose to see which method was compiled.");
-    }
-
-    @Override
-    void validateMeasurement(Measurement measurement) {
-      if (suggestGranularity) {
-        double nanos = measurement.value().magnitude() / measurement.weight();
-        if (!notifiedAboutGranularity && ((nanos / 1000) > nanoTimeGranularity.to(NANOSECONDS))) {
-          notifiedAboutGranularity = true;
-          ShortDuration reasonableUpperBound = nanoTimeGranularity.times(1000);
-          messages.add(String.format("INFO: This experiment does not require a microbenchmark. "
-              + "The granularity of the timer (%s) is less than 0.1%% of the measured runtime. "
-              + "If all experiments for this benchmark have runtimes greater than %s, "
-              + "consider the macrobenchmark instrument.", nanoTimeGranularity,
-              reasonableUpperBound));
-        }
-      }
     }
   }
 
@@ -449,20 +453,6 @@ class RuntimeInstrument extends Instrument {
           "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
               + "Depending on the scope of the benchmark, this might significantly impact results. "
               + "Consider running with a longer warmup.");
-    }
-
-    @Override
-    void validateMeasurement(Measurement measurement) {
-      double nanos = measurement.value().magnitude() / measurement.weight();
-      if ((nanos / 1000) < nanoTimeGranularity.to(NANOSECONDS)) {
-        ShortDuration runtime = ShortDuration.of(BigDecimal.valueOf(nanos), NANOSECONDS);
-        throw new TrialFailureException(String.format(
-            "This experiment requires a microbenchmark. "
-            + "The granularity of the timer (%s) "
-            + "is greater than 0.1%% of the measured runtime (%s). "
-            + "Use the microbenchmark instrument for accurate measurements.",
-            nanoTimeGranularity, runtime));
-      }
     }
   }
 }
