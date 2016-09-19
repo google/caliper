@@ -23,10 +23,11 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
+
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
-import dagger.Provides.Type;
+import dagger.multibindings.IntoMap;
 
 import java.util.Map;
 import java.util.Random;
@@ -80,37 +81,43 @@ final class WorkerModule {
     Class<? extends Worker> value();
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(ArbitraryMeasurementWorker.class)
   static Worker provideArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(MicrobenchmarkAllocationWorker.class)
   static Worker provideMicrobenchmarkAllocationWorker(MicrobenchmarkAllocationWorker impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(MacrobenchmarkWorker.class)
   static Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(MacrobenchmarkAllocationWorker.class)
   static Worker provideMacrobenchmarkAllocationWorker(MacrobenchmarkAllocationWorker impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(RuntimeWorker.Micro.class)
   static Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @WorkerClassKey(RuntimeWorker.Pico.class)
   static Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl) {
     return impl;

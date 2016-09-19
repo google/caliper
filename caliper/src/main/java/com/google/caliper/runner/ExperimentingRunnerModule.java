@@ -36,10 +36,12 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 
+import dagger.Binds;
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
-import dagger.Provides.Type;
+import dagger.multibindings.IntoMap;
+import dagger.multibindings.IntoSet;
 
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
@@ -57,28 +59,26 @@ import javax.inject.Singleton;
  * Configures a {@link CaliperRun} that performs experiments.
  */
 @Module
-final class ExperimentingRunnerModule {
+abstract class ExperimentingRunnerModule {
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static Service provideServerSocketService(ServerSocketService impl) {
     return impl;
   }
 
-  @Provides(type = Type.SET)
+  @Provides
+  @IntoSet
   static Service provideTrialOutputFactoryService(TrialOutputFactoryService impl) {
     return impl;
   }
 
-  @Provides
-  static TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl) {
-    return impl;
-  }
+  @Binds
+  abstract TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl);
 
-  @Provides
-  static ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl) {
-    return impl;
-  }
+  @Binds
+  abstract ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl);
 
   @Provides
   static ListeningExecutorService provideExecutorService(CaliperConfig config) {
@@ -102,13 +102,15 @@ final class ExperimentingRunnerModule {
     Class<? extends ResultProcessor> value();
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @ResultProcessorClassKey(OutputFileDumper.class)
   static ResultProcessor provideOutputFileDumper(OutputFileDumper impl) {
     return impl;
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @ResultProcessorClassKey(HttpUploader.class)
   static ResultProcessor provideHttpUploader(HttpUploader impl) {
     return impl;
@@ -157,19 +159,22 @@ final class ExperimentingRunnerModule {
     Class<? extends Instrument> value();
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @InstrumentClassKey(ArbitraryMeasurementInstrument.class)
   static Instrument provideArbitraryMeasurementInstrument() {
     return new ArbitraryMeasurementInstrument();
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @InstrumentClassKey(AllocationInstrument.class)
   static Instrument provideAllocationInstrument() {
     return new AllocationInstrument();
   }
 
-  @Provides(type = Type.MAP)
+  @Provides
+  @IntoMap
   @InstrumentClassKey(RuntimeInstrument.class)
   static Instrument provideRuntimeInstrument(
       @NanoTimeGranularity ShortDuration nanoTimeGranularity) {

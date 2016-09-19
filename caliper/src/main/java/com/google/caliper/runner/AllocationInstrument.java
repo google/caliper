@@ -16,12 +16,16 @@
 
 package com.google.caliper.runner;
 
+import static com.google.caliper.util.Reflection.getAnnotatedMethods;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.api.AfterRep;
+import com.google.caliper.api.BeforeRep;
+import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.platform.Platform;
@@ -64,7 +68,9 @@ public final class AllocationInstrument extends Instrument {
 
   @Override
   public boolean isBenchmarkMethod(Method method) {
-    return method.isAnnotationPresent(Benchmark.class) || BenchmarkMethods.isTimeMethod(method);
+    return method.isAnnotationPresent(Benchmark.class)
+        || BenchmarkMethods.isTimeMethod(method)
+        || method.isAnnotationPresent(Macrobenchmark.class);
   }
 
   @Override
@@ -138,10 +144,23 @@ public final class AllocationInstrument extends Instrument {
     public void dryRun(Object benchmark) throws InvalidBenchmarkException {
       // execute the benchmark method, but don't try to take any measurements, because this JVM
       // may not have the allocation instrumenter agent.
+      ImmutableSet<Method> beforeRepMethods =
+          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), BeforeRep.class);
+      ImmutableSet<Method> afterRepMethods =
+          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), AfterRep.class);
       try {
-        benchmarkMethod.invoke(benchmark);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
+        for (Method beforeRepMethod : beforeRepMethods) {
+          beforeRepMethod.invoke(benchmark);
+        }
+        try {
+          benchmarkMethod.invoke(benchmark);
+        } finally {
+          for (Method afterRepMethod : afterRepMethods) {
+            afterRepMethod.invoke(benchmark);
+          }
+        }
+      } catch (IllegalAccessException e) {
+        throw new AssertionError(e);
       } catch (InvocationTargetException e) {
         Throwable userException = e.getCause();
         propagateIfInstanceOf(userException, SkipThisScenarioException.class);
