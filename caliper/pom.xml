@@ -74,7 +74,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <gpg.skip>true</gpg.skip>
-    <dagger.version>2.4</dagger.version>
+    <dagger.version>2.7</dagger.version>
   </properties>
 
   <dependencies>
