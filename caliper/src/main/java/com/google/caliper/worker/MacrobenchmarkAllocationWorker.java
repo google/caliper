@@ -16,10 +16,15 @@
 
 package com.google.caliper.worker;
 
+import static com.google.caliper.util.Reflection.getAnnotatedMethods;
+
+import com.google.caliper.api.AfterRep;
+import com.google.caliper.api.BeforeRep;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 
 import java.lang.reflect.Method;
 
@@ -32,25 +37,47 @@ import javax.inject.Inject;
  */
 public final class MacrobenchmarkAllocationWorker extends Worker {
   private final AllocationRecorder recorder;
+  private final ImmutableSet<Method> beforeRepMethods;
+  private final ImmutableSet<Method> afterRepMethods;
 
-  @Inject MacrobenchmarkAllocationWorker(@Benchmark Object benchmark, 
-      @BenchmarkMethod Method method, AllocationRecorder recorder) {
+  @Inject
+  MacrobenchmarkAllocationWorker(
+      @Benchmark Object benchmark, @BenchmarkMethod Method method, AllocationRecorder recorder) {
     super(benchmark, method);
     this.recorder = recorder;
+    this.beforeRepMethods = getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
+    this.afterRepMethods = getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
   }
 
   @Override public void bootstrap() throws Exception {
     // do one initial measurement and throw away its results
+    preMeasure(true);
     measureAllocations(benchmark, benchmarkMethod);
+    postMeasure();
   }
-  
+
+  @Override
+  public void preMeasure(boolean inWarmup) throws Exception {
+    for (Method beforeRepMethod : beforeRepMethods) {
+      beforeRepMethod.invoke(benchmark);
+    }
+  }
+
   @Override public ImmutableList<Measurement> measure() throws Exception {
     return measureAllocations(benchmark, benchmarkMethod).toMeasurements();
   }
 
+  @Override
+  public void postMeasure() throws Exception {
+    for (Method afterRepMethod : afterRepMethods) {
+      afterRepMethod.invoke(benchmark);
+    }
+  }
+
   private AllocationStats measureAllocations(Object benchmark, Method method) throws Exception {
     recorder.startRecording();
-    method.invoke(benchmark);
+    // Pass null to avoid auto-allocation of a varargs array.
+    method.invoke(benchmark, (Object[]) null);
     return recorder.stopRecording(1);
   }
 }

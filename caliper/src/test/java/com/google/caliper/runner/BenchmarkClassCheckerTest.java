@@ -10,7 +10,6 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.Arrays;
 import java.util.Collections;
 
 /**
@@ -40,12 +39,6 @@ public class BenchmarkClassCheckerTest {
   @Test
   public void testMacroBenchmarkAnnotatedMethod() {
     assertTrue(benchmarkClassChecker.isBenchmark(MacroBenchmarkAnnotatedMethod.class));
-  }
-
-  @Test
-  public void testMacroBenchmarkAnnotatedMethod_NoSuitableInstrument() {
-    benchmarkClassChecker = BenchmarkClassChecker.create(Arrays.asList("-i", "allocation"));
-    assertFalse(benchmarkClassChecker.isBenchmark(MacroBenchmarkAnnotatedMethod.class));
   }
 
   public static class MacroBenchmarkAnnotatedMethod {

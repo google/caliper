@@ -28,6 +28,7 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.worker.Worker;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
@@ -128,6 +129,16 @@ public abstract class Instrument {
     }
 
     abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
+
+    /**
+     * Subclasses can override this to validate results across all trials for a given
+     * instrumentation.
+     *
+     * @return an optional warning message to be printed to the console.
+     */
+    Optional<String> validateMeasurements(Iterable<TrialResult> results) {
+      return Optional.absent();
+    }
   }
 
   public final ImmutableMap<String, String> options() {
