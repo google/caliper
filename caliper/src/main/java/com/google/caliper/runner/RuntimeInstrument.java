@@ -50,19 +50,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-/**
- * The instrument responsible for measuring the runtime of {@link Benchmark} methods.
- */
+/** The instrument responsible for measuring the runtime of {@link Benchmark} methods. */
 @SupportedPlatform({Platform.Type.JVM, Platform.Type.DALVIK})
 class RuntimeInstrument extends Instrument {
   private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
@@ -88,8 +84,12 @@ class RuntimeInstrument extends Instrument {
   @Override
   protected ImmutableSet<String> instrumentOptions() {
     return ImmutableSet.of(
-        WARMUP_OPTION, MAX_WARMUP_WALL_TIME_OPTION, TIMING_INTERVAL_OPTION, MEASUREMENTS_OPTION,
-        GC_BEFORE_EACH_OPTION, SUGGEST_GRANULARITY_OPTION);
+        WARMUP_OPTION,
+        MAX_WARMUP_WALL_TIME_OPTION,
+        TIMING_INTERVAL_OPTION,
+        MEASUREMENTS_OPTION,
+        GC_BEFORE_EACH_OPTION,
+        SUGGEST_GRANULARITY_OPTION);
   }
 
   @Override
@@ -98,8 +98,8 @@ class RuntimeInstrument extends Instrument {
     checkNotNull(benchmarkMethod);
     checkArgument(isBenchmarkMethod(benchmarkMethod));
     if (isStatic(benchmarkMethod)) {
-      throw new InvalidBenchmarkException("Benchmark methods must not be static: %s",
-          benchmarkMethod.getName());
+      throw new InvalidBenchmarkException(
+          "Benchmark methods must not be static: %s", benchmarkMethod.getName());
     }
     try {
       switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
@@ -113,8 +113,10 @@ class RuntimeInstrument extends Instrument {
           throw new AssertionError("unknown type");
       }
     } catch (IllegalArgumentException e) {
-      throw new InvalidBenchmarkException("Benchmark methods must have no arguments or accept "
-          + "a single int or long parameter: %s", benchmarkMethod.getName());
+      throw new InvalidBenchmarkException(
+          "Benchmark methods must have no arguments or accept "
+              + "a single int or long parameter: %s",
+          benchmarkMethod.getName());
     }
   }
 
@@ -164,7 +166,8 @@ class RuntimeInstrument extends Instrument {
     }
   }
 
-  @Override public TrialSchedulingPolicy schedulingPolicy() {
+  @Override
+  public TrialSchedulingPolicy schedulingPolicy() {
     // Runtime measurements are currently believed to be too sensitive to system performance to
     // allow parallel runners.
     // TODO(lukes): investigate this, on a multicore system it seems like we should be able to
@@ -177,7 +180,8 @@ class RuntimeInstrument extends Instrument {
       super(method);
     }
 
-    @Override public void dryRun(Object benchmark) throws UserCodeException {
+    @Override
+    public void dryRun(Object benchmark) throws UserCodeException {
       try {
         benchmarkMethod.invoke(benchmark, DRY_RUN_REPS);
       } catch (IllegalAccessException impossible) {
@@ -189,18 +193,21 @@ class RuntimeInstrument extends Instrument {
       }
     }
 
-    @Override public ImmutableMap<String, String> workerOptions() {
+    @Override
+    public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(
-          TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION),
-          GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
+          TIMING_INTERVAL_OPTION + "Nanos",
+          toNanosString(TIMING_INTERVAL_OPTION),
+          GC_BEFORE_EACH_OPTION,
+          options.get(GC_BEFORE_EACH_OPTION));
     }
 
     private String toNanosString(String optionName) {
-      return String.valueOf(
-          ShortDuration.valueOf(options.get(optionName)).to(NANOSECONDS));
+      return String.valueOf(ShortDuration.valueOf(options.get(optionName)).to(NANOSECONDS));
     }
 
-    @Override MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+    @Override
+    MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
       return new RepBasedMeasurementCollector(
           getMeasurementsPerTrial(),
           ShortDuration.valueOf(options.get(WARMUP_OPTION)),
@@ -208,7 +215,8 @@ class RuntimeInstrument extends Instrument {
           nanoTimeGranularity);
     }
 
-    @Override Optional<String> validateMeasurements(Iterable<TrialResult> trialResults) {
+    @Override
+    Optional<String> validateMeasurements(Iterable<TrialResult> trialResults) {
       if (!Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION))) {
         return Optional.absent();
       }
@@ -229,9 +237,11 @@ class RuntimeInstrument extends Instrument {
       // If for some reason there are no measurements, don't issue a warning
       if (hasResults) {
         return Optional.of(
-            String.format("This benchmark does not require a microbenchmark. "
-                + "The granularity of the timer (%s) is less than 0.1%% of the fastest measured "
-                + "runtime across all experiments.", nanoTimeGranularity));
+            String.format(
+                "This benchmark does not require a microbenchmark. "
+                    + "The granularity of the timer (%s) is less than 0.1%% of the fastest "
+                    + "measured runtime across all experiments.",
+                nanoTimeGranularity));
       }
       return Optional.absent();
     }
@@ -242,14 +252,14 @@ class RuntimeInstrument extends Instrument {
       super(benchmarkMethod);
     }
 
-    @Override public Class<? extends Worker> workerClass() {
+    @Override
+    public Class<? extends Worker> workerClass() {
       return RuntimeWorker.Micro.class;
     }
   }
 
   private int getMeasurementsPerTrial() {
-    @Nullable
-    String measurementsString = options.get(MEASUREMENTS_OPTION);
+    @Nullable String measurementsString = options.get(MEASUREMENTS_OPTION);
     int measurementsPerTrial =
         (measurementsString == null) ? 1 : Integer.parseInt(measurementsString);
     // TODO(gak): fail faster
@@ -262,7 +272,8 @@ class RuntimeInstrument extends Instrument {
       super(benchmarkMethod);
     }
 
-    @Override public Class<? extends Worker> workerClass() {
+    @Override
+    public Class<? extends Worker> workerClass() {
       return RuntimeWorker.Pico.class;
     }
   }
@@ -338,16 +349,19 @@ class RuntimeInstrument extends Instrument {
         for (Measurement measurement : newMeasurements) {
           // TODO(gak): eventually we will need to resolve different units
           checkArgument("ns".equals(measurement.value().unit()));
-          elapsedWarmup = elapsedWarmup.plus(
-              ShortDuration.of(BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
+          elapsedWarmup =
+              elapsedWarmup.plus(
+                  ShortDuration.of(
+                      BigDecimal.valueOf(measurement.value().magnitude()), NANOSECONDS));
         }
       } else {
         if (!measuredWarmupDurationReached()) {
-          messages.add(String.format(
-              "WARNING: Warmup was interrupted because it took longer than %s of wall-clock time. "
-                  + "%s was spent in the benchmark method for warmup "
-                  + "(normal warmup duration should be %s).",
-              maxWarmupWallTime, elapsedWarmup, warmup));
+          messages.add(
+              String.format(
+                  "WARNING: Warmup was interrupted because it took longer than %s of wall-clock "
+                      + "time. %s was spent in the benchmark method for warmup (normal warmup "
+                      + "duration should be %s).",
+                  maxWarmupWallTime, elapsedWarmup, warmup));
         }
 
         if (invalidateMeasurements) {
@@ -418,7 +432,7 @@ class RuntimeInstrument extends Instrument {
     void hotspotWhileNotMeasuring() {
       messages.add(
           "WARNING: Hotspot compilation occurred after warmup, but outside of timing. "
-                + "Results may be affected. Run with --verbose to see which method was compiled.");
+              + "Results may be affected. Run with --verbose to see which method was compiled.");
     }
   }
 
@@ -435,16 +449,18 @@ class RuntimeInstrument extends Instrument {
 
     @Override
     void gcWhileMeasuring() {
-      messages.add("WARNING: GC occurred during timing. "
-          + "Depending on the scope of the benchmark, this might significantly impact results. "
-          + "Consider running with a larger heap size.");
+      messages.add(
+          "WARNING: GC occurred during timing. "
+              + "Depending on the scope of the benchmark, this might significantly impact results. "
+              + "Consider running with a larger heap size.");
     }
 
     @Override
     void hotspotWhileMeasuring() {
-      messages.add("WARNING: Hotspot compilation occurred during timing. "
-          + "Depending on the scope of the benchmark, this might significantly impact results. "
-          + "Consider running with a longer warmup.");
+      messages.add(
+          "WARNING: Hotspot compilation occurred during timing. "
+              + "Depending on the scope of the benchmark, this might significantly impact results. "
+              + "Consider running with a longer warmup.");
     }
 
     @Override
@@ -456,4 +472,3 @@ class RuntimeInstrument extends Instrument {
     }
   }
 }
-

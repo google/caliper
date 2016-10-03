@@ -24,16 +24,13 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ServiceManager;
-
 import dagger.Component;
-
 import javax.inject.Singleton;
 
-/**
- * The main component used when running caliper.
- */
+/** The main component used when running caliper. */
 @Singleton
-@Component(modules = {
+@Component(
+  modules = {
     BenchmarkClassModule.class,
     BridgeModule.class,
     ConfigModule.class,
@@ -45,7 +42,8 @@ import javax.inject.Singleton;
     PlatformModule.class,
     RunnerModule.class,
     ServiceModule.class,
-})
+  }
+)
 interface MainComponent {
 
   BenchmarkClass getBenchmarkClass();

@@ -30,12 +30,9 @@ import com.google.caliper.util.Parser;
 import com.google.common.util.concurrent.ListenableFuture;
 import dagger.Module;
 import dagger.Provides;
-
 import java.util.UUID;
 
-/**
- * Configuration for a {@link TrialRunLoop}.
- */
+/** Configuration for a {@link TrialRunLoop}. */
 @Module
 final class TrialModule {
 
@@ -82,8 +79,7 @@ final class TrialModule {
   @Provides
   @TrialScoped
   static ListenableFuture<OpenedSocket> provideTrialSocket(
-      @TrialId UUID trialId,
-      ServerSocketService serverSocketService) {
+      @TrialId UUID trialId, ServerSocketService serverSocketService) {
     return serverSocketService.getConnection(trialId);
   }
 
@@ -101,9 +97,7 @@ final class TrialModule {
   @Provides
   @TrialScoped
   static StreamService provideStreamService(
-      WorkerProcess worker,
-      Parser<LogMessage> logMessageParser,
-      TrialOutputLogger trialOutput) {
+      WorkerProcess worker, Parser<LogMessage> logMessageParser, TrialOutputLogger trialOutput) {
     return new StreamService(worker, logMessageParser, trialOutput);
   }
 
@@ -114,14 +108,16 @@ final class TrialModule {
     return new RuntimeShutdownHookRegistrar();
   }
 
-  @Provides static TrialResultFactory provideTrialFactory(
+  @Provides
+  static TrialResultFactory provideTrialFactory(
       @TrialId final UUID trialId,
       final Run run,
       final Host host,
       final Experiment experiment,
       final BenchmarkSpec benchmarkSpec) {
     return new TrialResultFactory() {
-      @Override public TrialResult newTrialResult(
+      @Override
+      public TrialResult newTrialResult(
           VmDataCollectingVisitor dataCollectingVisitor,
           MeasurementCollectingVisitor measurementCollectingVisitor) {
         checkState(measurementCollectingVisitor.isDoneCollecting());
@@ -131,10 +127,11 @@ final class TrialModule {
             new Trial.Builder(trialId)
                 .run(run)
                 .instrumentSpec(experiment.instrumentation().instrument().getSpec())
-                .scenario(new Scenario.Builder()
-                    .host(host)
-                    .vmSpec(dataCollectingVisitor.vmSpec())
-                    .benchmarkSpec(benchmarkSpec))
+                .scenario(
+                    new Scenario.Builder()
+                        .host(host)
+                        .vmSpec(dataCollectingVisitor.vmSpec())
+                        .benchmarkSpec(benchmarkSpec))
                 .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
                 .build(),
             experiment,

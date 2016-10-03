@@ -31,48 +31,44 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
+import java.io.File;
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.File;
-import java.util.List;
-
-/**
- * Tests {@link AllocationInstrument}.
- */
+/** Tests {@link AllocationInstrument}. */
 
 @RunWith(JUnit4.class)
 public class AllocationInstrumentTest {
 
   @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
 
-  @Test public void getExtraCommandLineArgs() throws Exception {
+  @Test
+  public void getExtraCommandLineArgs() throws Exception {
     AllocationInstrument instrument = new AllocationInstrument();
     File fakeJar = File.createTempFile("fake", "jar");
     fakeJar.deleteOnExit();
     instrument.setOptions(ImmutableMap.of("allocationAgentJar", fakeJar.getAbsolutePath()));
-    ImmutableSet<String> expected = new ImmutableSet.Builder<String>()
-        .addAll(JvmPlatform.INSTRUMENT_JVM_ARGS)
-        .add("-Xint")
-        .add("-javaagent:" + fakeJar.getAbsolutePath())
-        .add("-Xbootclasspath/a:" + fakeJar.getAbsolutePath())
-        .add("-Dsun.reflect.inflationThreshold=0")
-        .build();
+    ImmutableSet<String> expected =
+        new ImmutableSet.Builder<String>()
+            .addAll(JvmPlatform.INSTRUMENT_JVM_ARGS)
+            .add("-Xint")
+            .add("-javaagent:" + fakeJar.getAbsolutePath())
+            .add("-Xbootclasspath/a:" + fakeJar.getAbsolutePath())
+            .add("-Dsun.reflect.inflationThreshold=0")
+            .build();
     Platform platform = new JvmPlatform();
-    VmConfig vmConfig = new VmConfig.Builder(platform, new File(System.getProperty("java.home")))
-        .build();
+    VmConfig vmConfig =
+        new VmConfig.Builder(platform, new File(System.getProperty("java.home"))).build();
     assertEquals(expected, instrument.getExtraCommandLineArgs(vmConfig));
     fakeJar.delete();
   }
 
   @Test
   public void intrinsics() throws Exception {
-    runner.forBenchmark(ArrayListGrowthBenchmark.class)
-        .instrument("allocation")
-        .run();
+    runner.forBenchmark(ArrayListGrowthBenchmark.class).instrument("allocation").run();
     Trial trial = Iterables.getOnlyElement(runner.trials());
     ImmutableListMultimap<String, Measurement> measurementsByDescription =
         Measurement.indexByDescription(trial.measurements());
@@ -88,7 +84,9 @@ public class AllocationInstrumentTest {
 
   public static class TestBenchmark {
     List<Object> list = Lists.newLinkedList();
-    @Benchmark public int compressionSize(int reps) {
+
+    @Benchmark
+    public int compressionSize(int reps) {
       for (int i = 0; i < reps; i++) {
         list.add(new Object());
       }
@@ -131,12 +129,14 @@ public class AllocationInstrumentTest {
   }
 
   public static class ArrayListGrowthBenchmark {
-    @BeforeExperiment void warmUp() {
+    @BeforeExperiment
+    void warmUp() {
       // ensure that hotspot has compiled this code
       benchmarkGrowth(100000);
     }
 
-    @Benchmark void benchmarkGrowth(int reps) {
+    @Benchmark
+    void benchmarkGrowth(int reps) {
       for (int i = 0; i < reps; i++) {
         List<String> list = Lists.newArrayListWithCapacity(1);
         for (int j = 0; j < 100; j++) {

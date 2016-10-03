@@ -23,15 +23,13 @@ import com.google.caliper.model.InstrumentSpec;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Map;
-
 import javax.annotation.concurrent.Immutable;
 
 /**
- * This is the configuration passed to the instrument by the user. This differs from the
- * {@link InstrumentSpec} in that any number of configurations can yield the same spec
- * (due to default option values).
+ * This is the configuration passed to the instrument by the user. This differs from the {@link
+ * InstrumentSpec} in that any number of configurations can yield the same spec (due to default
+ * option values).
  *
  * @author gak@google.com (Gregory Kick)
  */
@@ -53,23 +51,25 @@ public final class InstrumentConfig {
     return options;
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof InstrumentConfig) {
       InstrumentConfig that = (InstrumentConfig) obj;
-      return this.className.equals(that.className)
-          && this.options.equals(that.options);
+      return this.className.equals(that.className) && this.options.equals(that.options);
     } else {
       return false;
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(className, options);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("className", className)
         .add("options", options)

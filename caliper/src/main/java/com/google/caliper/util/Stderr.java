@@ -21,7 +21,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import javax.inject.Qualifier;
 
 /** A binding annotation for standard err. */

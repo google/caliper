@@ -19,9 +19,7 @@ package com.google.caliper.model;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 
-/**
- * A utility class for standardizing the hash function that we're using for persistence.
- */
+/** A utility class for standardizing the hash function that we're using for persistence. */
 final class PersistentHashing {
   private PersistentHashing() {}
 

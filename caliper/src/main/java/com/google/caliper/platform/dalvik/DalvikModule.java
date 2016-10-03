@@ -17,10 +17,8 @@
 package com.google.caliper.platform.dalvik;
 
 import com.google.common.base.Optional;
-
 import dagger.Module;
 import dagger.Provides;
-
 import javax.inject.Singleton;
 
 /**

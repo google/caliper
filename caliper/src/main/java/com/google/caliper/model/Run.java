@@ -21,11 +21,8 @@ import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-
-import org.joda.time.Instant;
-
 import java.util.UUID;
-
+import org.joda.time.Instant;
 
 /**
  * A single invocation of caliper.
@@ -63,7 +60,8 @@ public final class Run {
     return startTime;
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Run) {
@@ -76,11 +74,13 @@ public final class Run {
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(id, label, startTime);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("label", label)

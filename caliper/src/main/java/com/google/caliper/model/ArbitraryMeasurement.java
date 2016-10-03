@@ -29,13 +29,9 @@ import java.lang.annotation.Target;
 @Target(ElementType.METHOD)
 public @interface ArbitraryMeasurement {
 
-  /**
-   * The units for the value returned by this measurement method.
-   */
+  /** The units for the value returned by this measurement method. */
   String units() default "";
 
-  /**
-   * Text description of the quantity measured by this measurement method.
-   */
+  /** Text description of the quantity measured by this measurement method. */
   String description() default "";
 }

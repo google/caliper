@@ -23,9 +23,7 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * Indicates the platforms supported by the annotated type.
- */
+/** Indicates the platforms supported by the annotated type. */
 @Target(TYPE)
 @Retention(RUNTIME)
 @Documented

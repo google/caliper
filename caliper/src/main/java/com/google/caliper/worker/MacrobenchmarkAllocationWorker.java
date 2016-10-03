@@ -25,13 +25,11 @@ import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.reflect.Method;
-
 import javax.inject.Inject;
 
 /**
- * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method
+ * The {@link Worker} for the {@code AllocationInstrument}. This class invokes the benchmark method
  * a few times, with varying numbers of reps, and computes the number of object allocations and the
  * total size of those allocations.
  */
@@ -49,7 +47,8 @@ public final class MacrobenchmarkAllocationWorker extends Worker {
     this.afterRepMethods = getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
   }
 
-  @Override public void bootstrap() throws Exception {
+  @Override
+  public void bootstrap() throws Exception {
     // do one initial measurement and throw away its results
     preMeasure(true);
     measureAllocations(benchmark, benchmarkMethod);
@@ -63,7 +62,8 @@ public final class MacrobenchmarkAllocationWorker extends Worker {
     }
   }
 
-  @Override public ImmutableList<Measurement> measure() throws Exception {
+  @Override
+  public ImmutableList<Measurement> measure() throws Exception {
     return measureAllocations(benchmark, benchmarkMethod).toMeasurements();
   }
 

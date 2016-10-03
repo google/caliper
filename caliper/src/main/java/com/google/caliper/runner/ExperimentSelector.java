@@ -21,7 +21,9 @@ import com.google.common.collect.ImmutableSetMultimap;
 
 public interface ExperimentSelector {
   ImmutableSet<Instrument> instruments();
+
   ImmutableSet<VirtualMachine> vms();
+
   ImmutableSetMultimap<String, String> userParameters();
 
   // The important method

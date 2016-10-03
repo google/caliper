@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Map;
@@ -37,8 +36,7 @@ public final class ParameterSet {
   public static ParameterSet create(Class<?> theClass, Class<? extends Annotation> annotationClass)
       throws InvalidBenchmarkException {
     // deterministic order, not reflection order
-    ImmutableMap.Builder<String, Parameter> parametersBuilder =
-        ImmutableSortedMap.naturalOrder();
+    ImmutableMap.Builder<String, Parameter> parametersBuilder = ImmutableSortedMap.naturalOrder();
 
     for (Field field : theClass.getDeclaredFields()) {
       if (field.isAnnotationPresent(annotationClass)) {
@@ -71,9 +69,8 @@ public final class ParameterSet {
     // given at the command line are treated as errors; for VM parameters this is not the case.
     for (String name : Sets.union(map.keySet(), explicitValues.keySet())) {
       Parameter parameter = map.get(name);
-      ImmutableCollection<String> values = explicitValues.containsKey(name)
-          ? explicitValues.get(name)
-          : parameter.defaults();
+      ImmutableCollection<String> values =
+          explicitValues.containsKey(name) ? explicitValues.get(name) : parameter.defaults();
 
       combined.putAll(name, values);
       if (values.isEmpty()) {

@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Primitives;
-
 import java.lang.reflect.Field;
 import java.text.ParseException;
 
@@ -44,11 +43,12 @@ public final class Parameter {
 
   public Parameter(Field field) throws InvalidBenchmarkException {
     if (Util.isStatic(field)) {
-      throw new InvalidBenchmarkException("Parameter field '%s' must not be static",
-          field.getName());
+      throw new InvalidBenchmarkException(
+          "Parameter field '%s' must not be static", field.getName());
     }
     if (RESERVED_NAMES.contains(field.getName())) {
-      throw new InvalidBenchmarkException("Class '%s' uses reserved parameter name '%s'",
+      throw new InvalidBenchmarkException(
+          "Class '%s' uses reserved parameter name '%s'",
           field.getDeclaringClass(), field.getName());
     }
 
@@ -59,8 +59,10 @@ public final class Parameter {
     try {
       this.parser = Parsers.conventionalParser(type);
     } catch (NoSuchMethodException e) {
-      throw new InvalidBenchmarkException("Type '%s' of parameter field '%s' has no recognized "
-          + "String-converting method; see <TODO> for details", type, field.getName());
+      throw new InvalidBenchmarkException(
+          "Type '%s' of parameter field '%s' has no recognized "
+              + "String-converting method; see <TODO> for details",
+          type, field.getName());
     }
 
     this.defaults = findDefaults(field);
@@ -79,14 +81,15 @@ public final class Parameter {
     }
   }
 
-  static final ImmutableSet<String> RESERVED_NAMES = ImmutableSet.of(
-      "benchmark",
-      "environment",
-      "instrument",
-      "measurement", // e.g. runtime, allocation, etc.
-      "run",
-      "trial", // currently unused, but we might need it
-      "vm");
+  static final ImmutableSet<String> RESERVED_NAMES =
+      ImmutableSet.of(
+          "benchmark",
+          "environment",
+          "instrument",
+          "measurement", // e.g. runtime, allocation, etc.
+          "run",
+          "trial", // currently unused, but we might need it
+          "vm");
 
   String name() {
     return field.getName();

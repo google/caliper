@@ -19,14 +19,12 @@ package com.google.caliper.platform.jvm;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.LinkedHashSet;
 import java.util.Set;
-
 import javax.annotation.Nullable;
 
 /**

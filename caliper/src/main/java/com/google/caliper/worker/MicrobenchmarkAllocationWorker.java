@@ -19,16 +19,14 @@ package com.google.caliper.worker;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-
 import javax.inject.Inject;
 
 /**
- * The {@link Worker} for the {@code AllocationInstrument}.  This class invokes the benchmark method
+ * The {@link Worker} for the {@code AllocationInstrument}. This class invokes the benchmark method
  * a few times, with varying numbers of reps, and computes the number of object allocations and the
  * total size of those allocations.
  */
@@ -54,14 +52,19 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
   private final Random random;
   private final AllocationRecorder recorder;
 
-  @Inject MicrobenchmarkAllocationWorker(@Benchmark Object benchmark,
-      @BenchmarkMethod Method method, AllocationRecorder recorder, Random random) {
+  @Inject
+  MicrobenchmarkAllocationWorker(
+      @Benchmark Object benchmark,
+      @BenchmarkMethod Method method,
+      AllocationRecorder recorder,
+      Random random) {
     super(benchmark, method);
     this.random = random;
     this.recorder = recorder;
   }
 
-  @Override public void bootstrap() throws Exception {
+  @Override
+  public void bootstrap() throws Exception {
     // do some initial measurements and throw away the results. this warms up the bootstrap method
     // itself and also the method invocation path for calling that method.
 
@@ -80,8 +83,8 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
    * measured. The invocations performed by this method should be sufficient to cause the JVM to
    * settle on a single path for invoking the benchmark method and so cause identical allocations
    * for each subsequent invocation. If tests start to fail with lots of non-deterministic
-   * allocation errors then it's possible that additional invocations are required in which case
-   * the value of {@link #DETERMINISTIC_BENCHMARK_THRESHOLD} should be increased.
+   * allocation errors then it's possible that additional invocations are required in which case the
+   * value of {@link #DETERMINISTIC_BENCHMARK_THRESHOLD} should be increased.
    */
   private void verifyBenchmarkIsDeterministic() throws Exception {
     // keep track of all the statistics generated while warming up the method invocation path.
@@ -117,14 +120,16 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
       }
       previous = allocationStats;
     }
-    throw new IllegalStateException(String.format(
-        "Your benchmark appears to have non-deterministic allocation behavior. "
-        + "During the warm up process there was no consecutive sequence of %d runs with"
-        + " identical allocations. The allocation history is:%s",
-        DETERMINISTIC_BENCHMARK_THRESHOLD, builder));
+    throw new IllegalStateException(
+        String.format(
+            "Your benchmark appears to have non-deterministic allocation behavior. "
+                + "During the warm up process there was no consecutive sequence of %d runs with"
+                + " identical allocations. The allocation history is:%s",
+            DETERMINISTIC_BENCHMARK_THRESHOLD, builder));
   }
 
-  @Override public Iterable<Measurement> measure() throws Exception {
+  @Override
+  public Iterable<Measurement> measure() throws Exception {
     AllocationStats baseline = measureAllocations(benchmark, benchmarkMethod, 0);
     // [1, MAX_REPS]
     int measurementReps = random.nextInt(MAX_REPS) + 1;
@@ -132,8 +137,8 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
     return measurement.minus(baseline).toMeasurements();
   }
 
-  private AllocationStats measureAllocations(
-      Object benchmark, Method method, int reps) throws Exception {
+  private AllocationStats measureAllocations(Object benchmark, Method method, int reps)
+      throws Exception {
     // do the Integer boxing and the creation of the Object[] outside of the record block, so that
     // our internal allocations aren't counted in the benchmark's allocations.
     Object[] args = {reps};

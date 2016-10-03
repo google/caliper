@@ -34,19 +34,17 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 /**
- * Represents caliper configuration.  By default, {@code ~/.caliper/config.properties} and
- * {@code global-config.properties}.
+ * Represents caliper configuration. By default, {@code ~/.caliper/config.properties} and {@code
+ * global-config.properties}.
  *
  * @author gak@google.com (Gregory Kick)
  */
@@ -66,7 +64,7 @@ public final class CaliperConfig {
 
   private static <T> ImmutableBiMap<String, Class<? extends T>> mapGroupNamesToClasses(
       ImmutableMap<String, String> groupProperties, Class<T> type)
-          throws InvalidConfigurationException {
+      throws InvalidConfigurationException {
     BiMap<String, Class<? extends T>> namesToClasses = HashBiMap.create();
     for (Entry<String, String> entry : groupProperties.entrySet()) {
       Matcher matcher = CLASS_PROPERTY_PATTERN.matcher(entry.getKey());
@@ -78,8 +76,8 @@ public final class CaliperConfig {
           Class<? extends T> verifiedClass = (Class<? extends T>) someClass;
           namesToClasses.put(matcher.group(1), verifiedClass);
         } catch (ClassNotFoundException e) {
-          throw new InvalidConfigurationException("Cannot find result processor class: "
-              + entry.getValue());
+          throw new InvalidConfigurationException(
+              "Cannot find result processor class: " + entry.getValue());
         }
       }
     }
@@ -115,8 +113,7 @@ public final class CaliperConfig {
         .build();
   }
 
-  public VmConfig getVmConfig(Platform platform, String name)
-      throws InvalidConfigurationException {
+  public VmConfig getVmConfig(Platform platform, String name) throws InvalidConfigurationException {
     checkNotNull(name);
     ImmutableMap<String, String> vmGroupMap = subgroupMap(properties, "vm");
     ImmutableMap<String, String> vmMap = subgroupMap(vmGroupMap, name);
@@ -175,10 +172,9 @@ public final class CaliperConfig {
         .build();
   }
 
-  @Override public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("properties", properties)
-        .toString();
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("properties", properties).toString();
   }
 
   private static List<String> getArgs(Map<String, String> properties) {
@@ -207,5 +203,4 @@ public final class CaliperConfig {
     }
     return args.build();
   }
-
 }

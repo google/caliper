@@ -20,16 +20,13 @@ import com.google.caliper.api.ResultProcessor;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-/**
- * Responsible for creating instances of configured {@link ResultProcessor}.
- */
+/** Responsible for creating instances of configured {@link ResultProcessor}. */
 final class ResultProcessorCreator {
 
   public static final String NO_PUBLIC_DEFAULT_CONSTRUCTOR =
       "ResultProcessor %s not supported as it does not have a public default constructor";
 
-  private ResultProcessorCreator() {
-  }
+  private ResultProcessorCreator() {}
 
   static ResultProcessor createResultProcessor(Class<? extends ResultProcessor> processorClass) {
     ResultProcessor resultProcessor;

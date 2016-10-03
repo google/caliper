@@ -19,37 +19,38 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.model.ArbitraryMeasurement;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.zip.Deflater;
 
-/**
- * Example "arbitrary measurement" benchmark.
- */
+/** Example "arbitrary measurement" benchmark. */
 public class CompressionSizeBenchmark {
 
   @Param({
-      "this string will compress badly",
-      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-      "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf"})
+    "this string will compress badly",
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "asdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdfasdf"
+  })
   private String toCompress;
+
   @Param({"bestCompression", "bestSpeed", "noCompression", "huffmanOnly"})
   private String compressionLevel;
 
   private double compressionRatio;
 
   public static final Map<String, Integer> compressionLevelMap = new HashMap<String, Integer>();
+
   static {
-      compressionLevelMap.put("bestCompression", Deflater.BEST_COMPRESSION);
-      compressionLevelMap.put("bestSpeed", Deflater.BEST_SPEED);
-      compressionLevelMap.put("noCompression", Deflater.NO_COMPRESSION);
-      compressionLevelMap.put("huffmanOnly", Deflater.HUFFMAN_ONLY);
+    compressionLevelMap.put("bestCompression", Deflater.BEST_COMPRESSION);
+    compressionLevelMap.put("bestSpeed", Deflater.BEST_SPEED);
+    compressionLevelMap.put("noCompression", Deflater.NO_COMPRESSION);
+    compressionLevelMap.put("huffmanOnly", Deflater.HUFFMAN_ONLY);
   }
 
-  @Benchmark long simpleCompression(int reps) {
+  @Benchmark
+  long simpleCompression(int reps) {
     long dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += compress(toCompress.getBytes()).length;

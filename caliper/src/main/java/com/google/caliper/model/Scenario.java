@@ -25,8 +25,6 @@ import com.google.caliper.model.Host.HostFunnel;
 import com.google.caliper.model.VmSpec.VmSpecFunnel;
 import com.google.common.base.MoreObjects;
 
-
-
 /**
  * The combination of properties whose combination, when measured with a particular instrument,
  * should produce a repeatable result
@@ -36,12 +34,14 @@ import com.google.common.base.MoreObjects;
 public final class Scenario {
   static final Scenario DEFAULT = new Scenario();
 
-  @ExcludeFromJson private int id;
+  @ExcludeFromJson
+  private int id;
   private Host host;
   private VmSpec vmSpec;
   private BenchmarkSpec benchmarkSpec;
   // TODO(gak): include data about caliper itself and the code being benchmarked
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson
+  private int hash;
 
   private Scenario() {
     this.host = Host.DEFAULT;
@@ -67,7 +67,8 @@ public final class Scenario {
     return benchmarkSpec;
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Scenario) {
@@ -82,21 +83,25 @@ public final class Scenario {
 
   private void initHash() {
     if (hash == 0) {
-      this.hash = getPersistentHashFunction()
-          .newHasher()
-          .putObject(host, HostFunnel.INSTANCE)
-          .putObject(vmSpec, VmSpecFunnel.INSTANCE)
-          .putObject(benchmarkSpec, BenchmarkSpecFunnel.INSTANCE)
-          .hash().asInt();
+      this.hash =
+          getPersistentHashFunction()
+              .newHasher()
+              .putObject(host, HostFunnel.INSTANCE)
+              .putObject(vmSpec, VmSpecFunnel.INSTANCE)
+              .putObject(benchmarkSpec, BenchmarkSpecFunnel.INSTANCE)
+              .hash()
+              .asInt();
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     initHash();
     return hash;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("environment", host)
         .add("vmSpec", vmSpec)

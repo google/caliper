@@ -29,27 +29,27 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.io.Files;
-
+import java.io.File;
+import java.io.IOException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.File;
-import java.io.IOException;
-
 @RunWith(JUnit4.class)
 
 public class ParsedOptionsTest {
   private File tempDir;
 
-  @Before public void setUp() throws IOException {
+  @Before
+  public void setUp() throws IOException {
     tempDir = Files.createTempDir();
     makeTestVmTree(tempDir);
   }
 
-  @After public void tearDown() throws IOException {
+  @After
+  public void tearDown() throws IOException {
     if (tempDir != null) {
       Runtime.getRuntime().exec(new String[] {"rm", "-rf", tempDir.getCanonicalPath()});
     }
@@ -62,7 +62,8 @@ public class ParsedOptionsTest {
     Files.touch(java);
   }
 
-  @Test public void testNoOptions_RequireBenchmarkClassName() {
+  @Test
+  public void testNoOptions_RequireBenchmarkClassName() {
     try {
       ParsedOptions.from(new String[] {}, true);
       fail();
@@ -71,7 +72,8 @@ public class ParsedOptionsTest {
     }
   }
 
-  @Test public void testTooManyArguments_RequireBenchmarkClassName() {
+  @Test
+  public void testTooManyArguments_RequireBenchmarkClassName() {
     try {
       ParsedOptions.from(new String[] {"a", "b"}, true);
       fail();
@@ -80,17 +82,19 @@ public class ParsedOptionsTest {
     }
   }
 
-  @Test public void testTooManyArguments_DoNotRequireBenchmarkClassName() {
+  @Test
+  public void testTooManyArguments_DoNotRequireBenchmarkClassName() {
     try {
       ParsedOptions.from(new String[] {"a", "b"}, false);
       fail();
     } catch (InvalidCommandException expected) {
-      assertEquals("Extra stuff, did not expect non-option arguments: [a, b]",
-          expected.getMessage());
+      assertEquals(
+          "Extra stuff, did not expect non-option arguments: [a, b]", expected.getMessage());
     }
   }
 
-  @Test public void testHelp() throws InvalidCommandException {
+  @Test
+  public void testHelp() throws InvalidCommandException {
     try {
       ParsedOptions.from(new String[] {"--help"}, true);
       fail();
@@ -98,14 +102,16 @@ public class ParsedOptionsTest {
     }
   }
 
-  @Test public void testDefaults_RequireBenchmarkClassName() throws InvalidCommandException {
+  @Test
+  public void testDefaults_RequireBenchmarkClassName() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, true);
 
     assertEquals(CLASS_NAME, options.benchmarkClassName());
     checkDefaults(options);
   }
 
-  @Test public void testDefaults_DoNotRequireBenchmarkClassName() throws InvalidCommandException {
+  @Test
+  public void testDefaults_DoNotRequireBenchmarkClassName() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {}, false);
 
     assertNull(options.benchmarkClassName());
@@ -115,10 +121,11 @@ public class ParsedOptionsTest {
   private void checkDefaults(CaliperOptions options) {
     assertTrue(options.benchmarkMethodNames().isEmpty());
     assertFalse(options.dryRun());
-    ImmutableSet<String> expectedInstruments = new ImmutableSet.Builder<String>()
-        .add("allocation")
-        .add("runtime")
-        .build();
+    ImmutableSet<String> expectedInstruments =
+        new ImmutableSet.Builder<String>()
+            .add("allocation")
+            .add("runtime")
+            .build();
     assertEquals(expectedInstruments, options.instrumentNames());
     assertEquals(1, options.trialsPerScenario());
     assertTrue(options.userParameters().isEmpty());
@@ -127,22 +134,23 @@ public class ParsedOptionsTest {
     assertEquals(0, options.vmNames().size());
   }
 
-  @Test public void testKitchenSink() throws InvalidCommandException {
+  @Test
+  public void testKitchenSink() throws InvalidCommandException {
     String[] args = {
-        "--benchmark=foo;bar;qux",
-        "--instrument=testInstrument",
-        "--directory=/path/to/some/dir",
-        "--trials=2",
-        "--time-limit=15s",
-        "-Dx=a;b;c",
-        "-Dy=b;d",
-        "-Csome.property=value",
-        "-Csome.other.property=other-value",
-        "--print-config",
-        "-JmemoryMax=-Xmx32m;-Xmx64m",
-        "--vm=testVm",
-        "--delimiter=;",
-        CLASS_NAME,
+      "--benchmark=foo;bar;qux",
+      "--instrument=testInstrument",
+      "--directory=/path/to/some/dir",
+      "--trials=2",
+      "--time-limit=15s",
+      "-Dx=a;b;c",
+      "-Dy=b;d",
+      "-Csome.property=value",
+      "-Csome.other.property=other-value",
+      "--print-config",
+      "-JmemoryMax=-Xmx32m;-Xmx64m",
+      "--vm=testVm",
+      "--delimiter=;",
+      CLASS_NAME,
     };
     CaliperOptions options = ParsedOptions.from(args, true);
 
@@ -153,12 +161,15 @@ public class ParsedOptionsTest {
     assertEquals(new File("/path/to/some/dir"), options.caliperDirectory());
     assertEquals(2, options.trialsPerScenario());
     assertEquals(ShortDuration.of(15, SECONDS), options.timeLimit());
-    assertEquals(ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
+    assertEquals(
+        ImmutableSetMultimap.of("x", "a", "x", "b", "x", "c", "y", "b", "y", "d"),
         options.userParameters());
-    assertEquals(ImmutableMap.of("some.property", "value", "some.other.property", "other-value"),
+    assertEquals(
+        ImmutableMap.of("some.property", "value", "some.other.property", "other-value"),
         options.configProperties());
     assertTrue(options.printConfiguration());
-    assertEquals(ImmutableSetMultimap.of("memoryMax", "-Xmx32m", "memoryMax", "-Xmx64m"),
+    assertEquals(
+        ImmutableSetMultimap.of("memoryMax", "-Xmx32m", "memoryMax", "-Xmx64m"),
         options.vmArguments());
 
     String vmName = Iterables.getOnlyElement(options.vmNames());

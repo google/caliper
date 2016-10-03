@@ -28,18 +28,14 @@ import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableSet;
-
+import java.lang.reflect.Method;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.lang.reflect.Method;
-
-/**
- * Tests {@link ExperimentingRunnerModule}.
- */
+/** Tests {@link ExperimentingRunnerModule}. */
 @RunWith(MockitoJUnitRunner.class)
 public class ExperimentingRunnerModuleTest {
   private Instrument instrumentA = new FakeInstrument();
@@ -51,13 +47,15 @@ public class ExperimentingRunnerModuleTest {
   private Method methodB;
   private Method methodC;
 
-  @Before public void setUp() throws Exception {
+  @Before
+  public void setUp() throws Exception {
     methodA = TestBenchmark.class.getDeclaredMethod("a");
     methodB = TestBenchmark.class.getDeclaredMethod("b");
     methodC = TestBenchmark.class.getDeclaredMethod("c");
   }
 
-  @Test public void provideInstrumentations_noNames() throws Exception {
+  @Test
+  public void provideInstrumentations_noNames() throws Exception {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.<String>of());
     assertEquals(
         new ImmutableSet.Builder<Instrumentation>()
@@ -68,21 +66,24 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(
+            options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
   @SuppressWarnings("unchecked")
-  @Test public void provideInstrumentations_withNames() throws Exception {
-    when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("b"),
-        ImmutableSet.of("a", "c"));
+  @Test
+  public void provideInstrumentations_withNames() throws Exception {
+    when(options.benchmarkMethodNames())
+        .thenReturn(ImmutableSet.of("b"), ImmutableSet.of("a", "c"));
     assertEquals(
         new ImmutableSet.Builder<Instrumentation>()
             .add(instrumentA.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodB))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(
+            options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
@@ -92,16 +93,18 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodA))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(options,
+        ExperimentingRunnerModule.provideInstrumentations(
+            options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
-  @Test public void provideInstrumentations_withInvalidName() {
-    when(options.benchmarkMethodNames()).thenReturn(
-        ImmutableSet.of("a", "c", "bad"));
+  @Test
+  public void provideInstrumentations_withInvalidName() {
+    when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("a", "c", "bad"));
     try {
-      ExperimentingRunnerModule.provideInstrumentations(options,
+      ExperimentingRunnerModule.provideInstrumentations(
+          options,
           BenchmarkClass.forClass(TestBenchmark.class),
           ImmutableSet.of(instrumentA, instrumentB));
       fail("should have thrown for invalid benchmark method name");
@@ -111,14 +114,20 @@ public class ExperimentingRunnerModuleTest {
   }
 
   static final class TestBenchmark {
-    @Benchmark void a() {}
-    @Benchmark void b() {}
-    @Benchmark void c() {}
+    @Benchmark
+    void a() {}
+
+    @Benchmark
+    void b() {}
+
+    @Benchmark
+    void c() {}
   }
 
   @SupportedPlatform(Platform.Type.JVM)
   static final class FakeInstrument extends Instrument {
-    @Override public boolean isBenchmarkMethod(Method method) {
+    @Override
+    public boolean isBenchmarkMethod(Method method) {
       return true;
     }
 
@@ -141,7 +150,8 @@ public class ExperimentingRunnerModuleTest {
       };
     }
 
-    @Override public TrialSchedulingPolicy schedulingPolicy() {
+    @Override
+    public TrialSchedulingPolicy schedulingPolicy() {
       return TrialSchedulingPolicy.SERIAL;
     }
   }

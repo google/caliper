@@ -21,13 +21,10 @@ import com.google.caliper.runner.Running.BeforeExperimentMethods;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-
 import java.lang.reflect.Method;
 import javax.inject.Singleton;
 
-/**
- * Binds objects related to a benchmark class.
- */
+/** Binds objects related to a benchmark class. */
 // TODO(gak): move more of benchmark class into this module
 @Module
 public final class BenchmarkClassModule {
@@ -41,15 +38,13 @@ public final class BenchmarkClassModule {
 
   @Provides
   @BeforeExperimentMethods
-  static ImmutableSet<Method> provideBeforeExperimentMethods(
-      BenchmarkClass benchmarkClass) {
+  static ImmutableSet<Method> provideBeforeExperimentMethods(BenchmarkClass benchmarkClass) {
     return benchmarkClass.beforeExperimentMethods();
   }
 
   @Provides
   @AfterExperimentMethods
-  static ImmutableSet<Method> provideAfterExperimentMethods(
-      BenchmarkClass benchmarkClass) {
+  static ImmutableSet<Method> provideAfterExperimentMethods(BenchmarkClass benchmarkClass) {
     return benchmarkClass.afterExperimentMethods();
   }
 }

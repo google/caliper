@@ -35,14 +35,12 @@ import com.google.common.collect.Ordering;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
-
 import dagger.Binds;
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import dagger.multibindings.IntoSet;
-
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.HashSet;
@@ -51,13 +49,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.concurrent.Executors;
-
 import javax.inject.Provider;
 import javax.inject.Singleton;
 
-/**
- * Configures a {@link CaliperRun} that performs experiments.
- */
+/** Configures a {@link CaliperRun} that performs experiments. */
 @Module
 abstract class ExperimentingRunnerModule {
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
@@ -93,9 +88,9 @@ abstract class ExperimentingRunnerModule {
   }
 
   /**
-   * Specifies the {@link Class} object to use as a key in the map of available
-   * {@link ResultProcessor result processors} passed to
-   * {@link #provideResultProcessors(CaliperConfig, Map)}.
+   * Specifies the {@link Class} object to use as a key in the map of available {@link
+   * ResultProcessor result processors} passed to {@link #provideResultProcessors(CaliperConfig,
+   * Map)}.
    */
   @MapKey(unwrapValue = true)
   public @interface ResultProcessorClassKey {
@@ -116,43 +111,49 @@ abstract class ExperimentingRunnerModule {
     return impl;
   }
 
-  @Provides static ImmutableSet<ResultProcessor> provideResultProcessors(
+  @Provides
+  static ImmutableSet<ResultProcessor> provideResultProcessors(
       CaliperConfig config,
       Map<Class<? extends ResultProcessor>, Provider<ResultProcessor>> availableProcessors) {
     ImmutableSet.Builder<ResultProcessor> builder = ImmutableSet.builder();
     for (Class<? extends ResultProcessor> processorClass : config.getConfiguredResultProcessors()) {
       Provider<ResultProcessor> resultProcessorProvider = availableProcessors.get(processorClass);
-      ResultProcessor resultProcessor = resultProcessorProvider == null
-          ? ResultProcessorCreator.createResultProcessor(processorClass)
-          : resultProcessorProvider.get();
+      ResultProcessor resultProcessor =
+          resultProcessorProvider == null
+              ? ResultProcessorCreator.createResultProcessor(processorClass)
+              : resultProcessorProvider.get();
       builder.add(resultProcessor);
     }
     return builder.build();
   }
 
-  @Provides static UUID provideUuid() {
+  @Provides
+  static UUID provideUuid() {
     return UUID.randomUUID();
   }
 
-  @Provides @BenchmarkParameters
+  @Provides
+  @BenchmarkParameters
   static ImmutableSetMultimap<String, String> provideBenchmarkParameters(
       BenchmarkClass benchmarkClass, CaliperOptions options) throws InvalidBenchmarkException {
     return benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
   }
 
-  @Provides @Singleton
+  @Provides
+  @Singleton
   static Host provideHost(EnvironmentGetter environmentGetter) {
     return environmentGetter.getHost();
   }
 
-  @Provides @Singleton
+  @Provides
+  @Singleton
   static EnvironmentGetter provideEnvironmentGetter() {
     return new EnvironmentGetter();
   }
 
   /**
-   * Specifies the {@link Class} object to use as a key in the map of available
-   * {@link Instrument instruments} passed to {@link #provideInstruments},
+   * Specifies the {@link Class} object to use as a key in the map of available {@link Instrument
+   * instruments} passed to {@link #provideInstruments},
    */
   @MapKey(unwrapValue = true)
   public @interface InstrumentClassKey {
@@ -194,8 +195,9 @@ abstract class ExperimentingRunnerModule {
     ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
     for (final String instrumentName : options.instrumentNames()) {
       if (!configuredInstruments.contains(instrumentName)) {
-        throw new InvalidCommandException("%s is not a configured instrument (%s). "
-            + "use --print-config to see the configured instruments.",
+        throw new InvalidCommandException(
+            "%s is not a configured instrument (%s). "
+                + "use --print-config to see the configured instruments.",
             instrumentName, configuredInstruments);
       }
       final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
@@ -213,14 +215,13 @@ abstract class ExperimentingRunnerModule {
           Instrument instrument = instrumentProvider.get();
           InstrumentInjectorModule injectorModule =
               new InstrumentInjectorModule(instrumentConfig, instrumentName);
-          InstrumentComponent instrumentComponent = DaggerInstrumentComponent.builder()
-              .instrumentInjectorModule(injectorModule)
-              .build();
+          InstrumentComponent instrumentComponent =
+              DaggerInstrumentComponent.builder().instrumentInjectorModule(injectorModule).build();
           instrumentComponent.injectInstrument(instrument);
           builder.add(instrument);
         } else {
-          stderr.format("Instrument %s not supported on %s, ignoring\n",
-              className, platform.name());
+          stderr.format(
+              "Instrument %s not supported on %s, ignoring\n", className, platform.name());
         }
       } catch (ClassNotFoundException e) {
         throw new InvalidCommandException("Cannot find instrument class '%s'", className);
@@ -229,18 +230,23 @@ abstract class ExperimentingRunnerModule {
     return builder.build();
   }
 
-  @Provides @Singleton static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
+  @Provides
+  @Singleton
+  static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
     return new NanoTimeGranularityTester();
   }
 
-  @Provides @Singleton @NanoTimeGranularity static ShortDuration provideNanoTimeGranularity(
-      NanoTimeGranularityTester tester) {
+  @Provides
+  @Singleton
+  @NanoTimeGranularity
+  static ShortDuration provideNanoTimeGranularity(NanoTimeGranularityTester tester) {
     return tester.testNanoTimeGranularity();
   }
 
-  @Provides static ImmutableSet<Instrumentation> provideInstrumentations(CaliperOptions options,
-      BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
-          throws InvalidBenchmarkException {
+  @Provides
+  static ImmutableSet<Instrumentation> provideInstrumentations(
+      CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
+      throws InvalidBenchmarkException {
     ImmutableSet.Builder<Instrumentation> builder = ImmutableSet.builder();
     ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
     Set<String> unusedBenchmarkNames = new HashSet<String>(benchmarkMethodNames);
@@ -259,14 +265,18 @@ abstract class ExperimentingRunnerModule {
     return builder.build();
   }
 
-  private static ImmutableSortedSet<Method> findAllBenchmarkMethods(Class<?> benchmarkClass,
-      Instrument instrument) throws InvalidBenchmarkException {
-    ImmutableSortedSet.Builder<Method> result = ImmutableSortedSet.orderedBy(
-        Ordering.natural().onResultOf(new Function<Method, String>() {
-          @Override public String apply(Method method) {
-            return method.getName();
-          }
-        }));
+  private static ImmutableSortedSet<Method> findAllBenchmarkMethods(
+      Class<?> benchmarkClass, Instrument instrument) throws InvalidBenchmarkException {
+    ImmutableSortedSet.Builder<Method> result =
+        ImmutableSortedSet.orderedBy(
+            Ordering.natural()
+                .onResultOf(
+                    new Function<Method, String>() {
+                      @Override
+                      public String apply(Method method) {
+                        return method.getName();
+                      }
+                    }));
     Set<String> benchmarkMethodNames = new HashSet<String>();
     Set<String> overloadedMethodNames = new TreeSet<String>();
     for (Method method : benchmarkClass.getDeclaredMethods()) {
@@ -281,8 +291,7 @@ abstract class ExperimentingRunnerModule {
     if (!overloadedMethodNames.isEmpty()) {
       throw new InvalidBenchmarkException(
           "Overloads are disallowed for benchmark methods, found overloads of %s in benchmark %s",
-          overloadedMethodNames,
-          benchmarkClass);
+          overloadedMethodNames, benchmarkClass);
     }
     return result.build();
   }

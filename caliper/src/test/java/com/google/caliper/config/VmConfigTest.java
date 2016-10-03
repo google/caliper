@@ -19,12 +19,10 @@ package com.google.caliper.config;
 import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.platform.jvm.JvmPlatform;
-
+import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.File;
 
 /**
  * Tests {@link VmConfig}.
@@ -39,8 +37,8 @@ public class VmConfigTest {
   public void testExecutable() {
     File javaExecutable =
         new VmConfig.Builder(new JvmPlatform(), new File(System.getProperty("java.home")))
-        .build()
-        .vmExecutable();
+            .build()
+            .vmExecutable();
     assertTrue("Could not find: " + javaExecutable, javaExecutable.exists());
     assertTrue(javaExecutable + " is not a file", javaExecutable.isFile());
   }

@@ -28,49 +28,43 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Collection;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 
-/**
- * An abstraction of a standard Java Virtual Machine platform.
- */
+/** An abstraction of a standard Java Virtual Machine platform. */
 public final class JvmPlatform extends Platform {
 
-  /**
-   * Some default JVM args to keep worker VMs somewhat predictable.
-   */
+  /** Some default JVM args to keep worker VMs somewhat predictable. */
   @VisibleForTesting
-  public static final ImmutableSet<String> INSTRUMENT_JVM_ARGS = ImmutableSet.of(
-      // do compilation serially
-      "-Xbatch",
-      // make sure compilation doesn't run in parallel with itself
-      "-XX:CICompilerCount=1",
-      // ensure the parallel garbage collector
-      "-XX:+UseParallelGC",
-      // generate classes or don't, but do it immediately
-      "-Dsun.reflect.inflationThreshold=0");
+  public static final ImmutableSet<String> INSTRUMENT_JVM_ARGS =
+      ImmutableSet.of(
+          // do compilation serially
+          "-Xbatch",
+          // make sure compilation doesn't run in parallel with itself
+          "-XX:CICompilerCount=1",
+          // ensure the parallel garbage collector
+          "-XX:+UseParallelGC",
+          // generate classes or don't, but do it immediately
+          "-Dsun.reflect.inflationThreshold=0");
 
-  private static final ImmutableSet<String> WORKER_PROCESS_ARGS = ImmutableSet.of(
-      "-XX:+PrintFlagsFinal",
-      "-XX:+PrintCompilation",
-      "-XX:+PrintGC");
+  private static final ImmutableSet<String> WORKER_PROCESS_ARGS =
+      ImmutableSet.of("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
 
-
-  private static final Predicate<String> PROPERTIES_TO_RETAIN = new Predicate<String>() {
-    @Override public boolean apply(String input) {
-      return input.startsWith("java.vm")
-          || input.startsWith("java.runtime")
-          || input.equals("java.version")
-          || input.equals("java.vendor")
-          || input.equals("sun.reflect.noInflation")
-          || input.equals("sun.reflect.inflationThreshold");
-    }
-  };
+  private static final Predicate<String> PROPERTIES_TO_RETAIN =
+      new Predicate<String>() {
+        @Override
+        public boolean apply(String input) {
+          return input.startsWith("java.vm")
+              || input.startsWith("java.runtime")
+              || input.equals("java.version")
+              || input.equals("java.vendor")
+              || input.equals("sun.reflect.noInflation")
+              || input.equals("sun.reflect.inflationThreshold");
+        }
+      };
 
   public JvmPlatform() {
     super(Type.JVM);
@@ -81,8 +75,8 @@ public final class JvmPlatform extends Platform {
     // TODO(gak): support other platforms. This currently supports finding the java executable on
     // standard configurations of unix systems and windows.
     File bin = new File(javaHome, "bin");
-    Preconditions.checkState(bin.exists() && bin.isDirectory(),
-        "Could not find %s under java home %s", bin, javaHome);
+    Preconditions.checkState(
+        bin.exists() && bin.isDirectory(), "Could not find %s under java home %s", bin, javaHome);
     File jvm = new File(bin, "java");
     if (!jvm.exists() || jvm.isDirectory()) {
       jvm = new File(bin, "java.exe");
@@ -119,7 +113,8 @@ public final class JvmPlatform extends Platform {
 
   @Override
   public Collection<String> inputArguments() {
-    return Collections2.filter(ManagementFactory.getRuntimeMXBean().getInputArguments(),
+    return Collections2.filter(
+        ManagementFactory.getRuntimeMXBean().getInputArguments(),
         new Predicate<String>() {
           @Override
           public boolean apply(String input) {
@@ -144,7 +139,7 @@ public final class JvmPlatform extends Platform {
 
   @Override
   public File customVmHomeDir(Map<String, String> vmGroupMap, String vmConfigName)
-          throws VirtualMachineException {
+      throws VirtualMachineException {
     // Configuration can either be:
     //   vm.<vmConfigName>.home = <homeDir>
     // or
@@ -156,9 +151,9 @@ public final class JvmPlatform extends Platform {
 
   // TODO(gak): check that the directory seems to be a jdk home (with a java binary and all of that)
   // TODO(gak): make this work with different directory layouts.  I'm looking at you OS X...
-  public static File getJdkHomeDir(@Nullable String baseDirectoryPath,
-          @Nullable String homeDirPath, String vmConfigName)
-          throws VirtualMachineException {
+  public static File getJdkHomeDir(
+      @Nullable String baseDirectoryPath, @Nullable String homeDirPath, String vmConfigName)
+      throws VirtualMachineException {
     if (homeDirPath == null) {
       File baseDirectory = getBaseDirectory(baseDirectoryPath);
       File homeDir = new File(baseDirectory, vmConfigName);
@@ -167,8 +162,8 @@ public final class JvmPlatform extends Platform {
     } else {
       File potentialHomeDir = new File(homeDirPath);
       if (potentialHomeDir.isAbsolute()) {
-        checkConfiguration(potentialHomeDir.isDirectory(), "%s is not a directory",
-                potentialHomeDir);
+        checkConfiguration(
+            potentialHomeDir.isDirectory(), "%s is not a directory", potentialHomeDir);
         return potentialHomeDir;
       } else {
         File baseDirectory = getBaseDirectory(baseDirectoryPath);
@@ -180,10 +175,9 @@ public final class JvmPlatform extends Platform {
   }
 
   private static File getBaseDirectory(@Nullable String baseDirectoryPath)
-          throws VirtualMachineException {
+      throws VirtualMachineException {
     if (baseDirectoryPath == null) {
-      throw new VirtualMachineException(
-              "must set either a home directory or a base directory");
+      throw new VirtualMachineException("must set either a home directory or a base directory");
     } else {
       File baseDirectory = new File(baseDirectoryPath);
       checkConfiguration(baseDirectory.isAbsolute(), "base directory cannot be a relative path");
@@ -193,14 +187,14 @@ public final class JvmPlatform extends Platform {
   }
 
   private static void checkConfiguration(boolean check, String message)
-          throws VirtualMachineException {
+      throws VirtualMachineException {
     if (!check) {
       throw new VirtualMachineException(message);
     }
   }
 
   private static void checkConfiguration(boolean check, String messageFormat, Object... args)
-          throws VirtualMachineException {
+      throws VirtualMachineException {
     if (!check) {
       throw new VirtualMachineException(String.format(messageFormat, args));
     }

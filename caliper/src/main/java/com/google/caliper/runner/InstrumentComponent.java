@@ -18,9 +18,7 @@ package com.google.caliper.runner;
 
 import dagger.Component;
 
-/**
- * Component to use to inject values into an {@link Instrument}.
- */
+/** Component to use to inject values into an {@link Instrument}. */
 @Component(modules = InstrumentInjectorModule.class)
 interface InstrumentComponent {
 

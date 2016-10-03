@@ -24,7 +24,6 @@ import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
-
 import java.io.Closeable;
 import java.io.IOException;
 import java.util.UUID;
@@ -66,8 +65,8 @@ final class WorkerEventLog implements Closeable {
    * from the runner, which lets us know whether to continue measuring and whether we're in the
    * warmup or measurement phase.
    */
-  ShouldContinueMessage notifyMeasurementEnding(Iterable<Measurement> measurements) throws
-      IOException {
+  ShouldContinueMessage notifyMeasurementEnding(Iterable<Measurement> measurements)
+      throws IOException {
     writer.write(new StopMeasurementLogMessage(measurements));
     writer.flush();
     return (ShouldContinueMessage) reader.read();
@@ -78,7 +77,8 @@ final class WorkerEventLog implements Closeable {
     writer.flush();
   }
 
-  @Override public void close() throws IOException {
+  @Override
+  public void close() throws IOException {
     try {
       reader.close();
     } finally {

@@ -18,18 +18,18 @@ package com.google.caliper.bridge;
 
 import java.io.Serializable;
 
-/**
- * A message signaling that the timing interval has started in the worker.
- */
+/** A message signaling that the timing interval has started in the worker. */
 // TODO(gak): rename in terms of measurement
 public class StartMeasurementLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  @Override public void accept(LogMessageVisitor visitor) {
+  @Override
+  public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return StartMeasurementLogMessage.class.hashCode();
   }
 

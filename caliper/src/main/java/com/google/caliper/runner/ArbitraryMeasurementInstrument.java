@@ -34,7 +34,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
@@ -44,7 +43,8 @@ import java.lang.reflect.Method;
  */
 @SupportedPlatform(Platform.Type.JVM)
 public final class ArbitraryMeasurementInstrument extends Instrument {
-  @Override public boolean isBenchmarkMethod(Method method) {
+  @Override
+  public boolean isBenchmarkMethod(Method method) {
     return method.isAnnotationPresent(ArbitraryMeasurement.class);
   }
 
@@ -76,7 +76,8 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     return new ArbitraryMeasurementInstrumentation(benchmarkMethod);
   }
 
-  @Override public TrialSchedulingPolicy schedulingPolicy() {
+  @Override
+  public TrialSchedulingPolicy schedulingPolicy() {
     // We could allow it here but in general it would depend on the particular measurement so it
     // should probably be configured by the user.  For now we just disable it.
     return TrialSchedulingPolicy.SERIAL;
@@ -105,7 +106,8 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
       return ArbitraryMeasurementWorker.class;
     }
 
-    @Override public ImmutableMap<String, String> workerOptions() {
+    @Override
+    public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(GC_BEFORE_EACH_OPTION, options.get(GC_BEFORE_EACH_OPTION));
     }
 
@@ -144,7 +146,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
       this.measurement = Optional.of(Iterables.getOnlyElement(logMessage.measurements()));
     }
 
-    @Override 
+    @Override
     public ImmutableList<String> getMessages() {
       return ImmutableList.of();
     }

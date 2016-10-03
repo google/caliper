@@ -22,15 +22,12 @@ import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
 import com.google.common.collect.Iterables;
-
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Integration tests for the {@link ArbitraryMeasurementInstrument}
- */
+/** Integration tests for the {@link ArbitraryMeasurementInstrument} */
 @RunWith(JUnit4.class)
 public class ArbitraryMeasurmentInstrumentTest {
   @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
@@ -38,16 +35,15 @@ public class ArbitraryMeasurmentInstrumentTest {
   @Test
 
   public void testSuccess() throws Exception {
-    runner.forBenchmark(TestBenchmark.class)
-        .instrument("arbitrary")
-        .run();
-    Measurement measurement = Iterables.getOnlyElement(
-        Iterables.getOnlyElement(runner.trials()).measurements());
-    Measurement expected = new Measurement.Builder()
-        .description("fake measurment")
-        .weight(1)
-        .value(Value.create(1.0, "hz"))
-        .build();
+    runner.forBenchmark(TestBenchmark.class).instrument("arbitrary").run();
+    Measurement measurement =
+        Iterables.getOnlyElement(Iterables.getOnlyElement(runner.trials()).measurements());
+    Measurement expected =
+        new Measurement.Builder()
+            .description("fake measurment")
+            .weight(1)
+            .value(Value.create(1.0, "hz"))
+            .build();
     assertEquals(expected, measurement);
   }
 

@@ -22,16 +22,16 @@ import com.google.caliper.runner.ExperimentModule;
 import dagger.Component;
 import javax.inject.Singleton;
 
-/**
- * Creates {@link Worker} for an {@link com.google.caliper.runner.Experiment}.
- */
+/** Creates {@link Worker} for an {@link com.google.caliper.runner.Experiment}. */
 @Singleton
-@Component(modules = {
+@Component(
+  modules = {
     BenchmarkClassModule.class,
     BridgeModule.class,
     ExperimentModule.class,
     WorkerModule.class
-})
+  }
+)
 interface WorkerComponent {
   Worker getWorker();
 }

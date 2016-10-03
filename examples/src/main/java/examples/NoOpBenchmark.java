@@ -18,11 +18,10 @@ package examples;
 
 import com.google.caliper.Benchmark;
 
-/**
- * This is the absolute minimal benchmark. It does nothing but time the rep loop.
- */
+/** This is the absolute minimal benchmark. It does nothing but time the rep loop. */
 public class NoOpBenchmark {
-  @Benchmark long increment(long reps) {
+  @Benchmark
+  long increment(long reps) {
     long result = 0;
     for (; result < reps; result++) {}
     return result;

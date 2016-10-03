@@ -38,7 +38,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
@@ -48,10 +47,10 @@ import java.util.jar.Manifest;
 import java.util.logging.Logger;
 
 /**
- * {@link Instrument} that watches the memory allocations in an invocation of the
- * benchmark method and reports some statistic. The benchmark method must accept a
- * single int argument 'reps', which is the number of times to execute the guts of
- * the benchmark method, and it must be public and non-static.
+ * {@link Instrument} that watches the memory allocations in an invocation of the benchmark method
+ * and reports some statistic. The benchmark method must accept a single int argument 'reps', which
+ * is the number of times to execute the guts of the benchmark method, and it must be public and
+ * non-static.
  *
  * <p>Note that the allocation instruments reports a "worst case" for allocation in that it reports
  * the bytes and objects allocated in interpreted mode (no JIT).
@@ -61,9 +60,10 @@ public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
   /**
    * If this option is set to {@code true} then every individual allocation will be tracked and
-   * logged.  This will also increase the detail of certain error messages.
+   * logged. This will also increase the detail of certain error messages.
    */
   private static final String TRACK_ALLOCATIONS_OPTION = "trackAllocations";
+
   private static final Logger logger = Logger.getLogger(AllocationInstrument.class.getName());
 
   @Override
@@ -89,8 +89,10 @@ public final class AllocationInstrument extends Instrument {
           throw new AssertionError("unknown type");
       }
     } catch (IllegalArgumentException e) {
-      throw new InvalidBenchmarkException("Benchmark methods must have no arguments or accept "
-          + "a single int or long parameter: %s", benchmarkMethod.getName());
+      throw new InvalidBenchmarkException(
+          "Benchmark methods must have no arguments or accept "
+              + "a single int or long parameter: %s",
+          benchmarkMethod.getName());
     }
   }
 
@@ -114,7 +116,8 @@ public final class AllocationInstrument extends Instrument {
       }
     }
 
-    @Override public ImmutableMap<String, String> workerOptions() {
+    @Override
+    public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(TRACK_ALLOCATIONS_OPTION, options.get(TRACK_ALLOCATIONS_OPTION));
     }
 
@@ -130,7 +133,8 @@ public final class AllocationInstrument extends Instrument {
     }
   }
 
-  @Override public TrialSchedulingPolicy schedulingPolicy() {
+  @Override
+  public TrialSchedulingPolicy schedulingPolicy() {
     // Assuming there is enough memory it should be fine to run these in parallel.
     return TrialSchedulingPolicy.PARALLEL;
   }
@@ -168,7 +172,8 @@ public final class AllocationInstrument extends Instrument {
       }
     }
 
-    @Override public ImmutableMap<String, String> workerOptions() {
+    @Override
+    public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(TRACK_ALLOCATIONS_OPTION, options.get(TRACK_ALLOCATIONS_OPTION));
     }
 
@@ -190,17 +195,18 @@ public final class AllocationInstrument extends Instrument {
   }
 
   private static Optional<File> findAllocationInstrumentJarOnClasspath() throws IOException {
-    ImmutableSet<File> jarFiles = JarFinder.findJarFiles(
-        Thread.currentThread().getContextClassLoader(),
-        ClassLoader.getSystemClassLoader());
+    ImmutableSet<File> jarFiles =
+        JarFinder.findJarFiles(
+            Thread.currentThread().getContextClassLoader(), ClassLoader.getSystemClassLoader());
     for (File file : jarFiles) {
       JarFile jarFile = null;
       try {
         jarFile = new JarFile(file);
         Manifest manifest = jarFile.getManifest();
         if ((manifest != null)
-            && AllocationInstrumenter.class.getName().equals(
-                manifest.getMainAttributes().getValue("Premain-Class"))) {
+            && AllocationInstrumenter.class
+                .getName()
+                .equals(manifest.getMainAttributes().getValue("Premain-Class"))) {
           return Optional.of(file);
         }
       } finally {
@@ -213,10 +219,11 @@ public final class AllocationInstrument extends Instrument {
   }
 
   /**
-   * This instrument's worker requires the allocationinstrumenter agent jar, specified
-   * on the worker VM's command line with "-javaagent:[jarfile]".
+   * This instrument's worker requires the allocationinstrumenter agent jar, specified on the worker
+   * VM's command line with "-javaagent:[jarfile]".
    */
-  @Override ImmutableSet<String> getExtraCommandLineArgs(VmConfig vmConfig) {
+  @Override
+  ImmutableSet<String> getExtraCommandLineArgs(VmConfig vmConfig) {
     String agentJar = options.get(ALLOCATION_AGENT_JAR_OPTION);
     if (Strings.isNullOrEmpty(agentJar)) {
       try {
@@ -226,8 +233,10 @@ public final class AllocationInstrument extends Instrument {
           agentJar = instrumentJar.get().getAbsolutePath();
         }
       } catch (IOException e) {
-        logger.log(SEVERE,
-            "An exception occurred trying to locate the allocation agent jar on the classpath", e);
+        logger.log(
+            SEVERE,
+            "An exception occurred trying to locate the allocation agent jar on the classpath",
+            e);
       }
     }
     if (Strings.isNullOrEmpty(agentJar) || !new File(agentJar).exists()) {

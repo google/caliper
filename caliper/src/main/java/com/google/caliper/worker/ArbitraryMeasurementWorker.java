@@ -23,22 +23,19 @@ import com.google.caliper.runner.Running.Benchmark;
 import com.google.caliper.runner.Running.BenchmarkMethod;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.reflect.Method;
 import java.util.Map;
-
 import javax.inject.Inject;
 
-/**
- * Worker for arbitrary measurements.
- */
+/** Worker for arbitrary measurements. */
 public final class ArbitraryMeasurementWorker extends Worker {
   private final Options options;
   private final String unit;
   private final String description;
 
-  @Inject ArbitraryMeasurementWorker(
-      @Benchmark Object benchmark, 
+  @Inject
+  ArbitraryMeasurementWorker(
+      @Benchmark Object benchmark,
       @BenchmarkMethod Method method,
       @WorkerOptions Map<String, String> workerOptions) {
     super(benchmark, method);
@@ -48,19 +45,22 @@ public final class ArbitraryMeasurementWorker extends Worker {
     this.description = annotation.description();
   }
 
-  @Override public void preMeasure(boolean inWarmup) throws Exception {
+  @Override
+  public void preMeasure(boolean inWarmup) throws Exception {
     if (options.gcBeforeEach && !inWarmup) {
       Util.forceGc();
     }
   }
-  
-  @Override public Iterable<Measurement> measure() throws Exception {
+
+  @Override
+  public Iterable<Measurement> measure() throws Exception {
     double measured = (Double) benchmarkMethod.invoke(benchmark);
-    return ImmutableSet.of(new Measurement.Builder()
-        .value(Value.create(measured, unit))
-        .weight(1)
-        .description(description)
-        .build());
+    return ImmutableSet.of(
+        new Measurement.Builder()
+            .value(Value.create(measured, unit))
+            .weight(1)
+            .description(description)
+            .build());
   }
 
   private static class Options {

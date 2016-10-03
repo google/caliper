@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (C) 2009 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -32,18 +32,16 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.Sets;
-
-import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
-import org.apache.commons.math.stat.descriptive.rank.Percentile;
-
 import java.io.Closeable;
 import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.Map.Entry;
 import java.util.Set;
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
+import org.apache.commons.math.stat.descriptive.rank.Percentile;
 
 /**
- * Prints a brief summary of the results collected.  It does not contain the measurements themselves
+ * Prints a brief summary of the results collected. It does not contain the measurements themselves
  * as that is the responsibility of the webapp.
  */
 final class ConsoleOutput implements Closeable {
@@ -57,32 +55,29 @@ final class ConsoleOutput implements Closeable {
   private final int numberOfTrials;
   private final Stopwatch stopwatch;
 
-
   ConsoleOutput(@Stdout PrintWriter stdout, int numberOfTrials, Stopwatch stopwatch) {
     this.stdout = stdout;
     this.numberOfTrials = numberOfTrials;
     this.stopwatch = stopwatch;
   }
 
-  /**
-   * Prints a short message when we observe a trial failure.
-   */  
+  /** Prints a short message when we observe a trial failure. */
   void processFailedTrial(TrialFailureException e) {
     trialsCompleted++;
     // TODO(lukes): it would be nice to print which trial failed.  Consider adding Experiment data
     // to the TrialFailureException.
     stdout.println(
         "ERROR: Trial failed to complete (its results will not be included in the run):\n"
-            + "  " + e.getMessage());
+            + "  "
+            + e.getMessage());
     stdout.flush();
   }
-  
-  /**
-   * Prints a summary of a successful trial result.
-   */
+
+  /** Prints a summary of a successful trial result. */
   void processTrial(TrialResult result) {
     trialsCompleted++;
-    stdout.printf("Trial Report (%d of %d):%n  Experiment %s%n", 
+    stdout.printf(
+        "Trial Report (%d of %d):%n  Experiment %s%n",
         trialsCompleted, numberOfTrials, result.getExperiment());
     if (!result.getTrialMessages().isEmpty()) {
       stdout.println("  Messages:");
@@ -95,21 +90,29 @@ final class ConsoleOutput implements Closeable {
     ImmutableListMultimap<String, Measurement> measurementsIndex =
         new ImmutableListMultimap.Builder<String, Measurement>()
             .orderKeysBy(Ordering.natural())
-            .putAll(Multimaps.index(trial.measurements(), new Function<Measurement, String>() {
-              @Override public String apply(Measurement input) {
-                return input.description();
-              }
-            }))
+            .putAll(
+                Multimaps.index(
+                    trial.measurements(),
+                    new Function<Measurement, String>() {
+                      @Override
+                      public String apply(Measurement input) {
+                        return input.description();
+                      }
+                    }))
             .build();
     stdout.println("  Results:");
     for (Entry<String, Collection<Measurement>> entry : measurementsIndex.asMap().entrySet()) {
       Collection<Measurement> measurements = entry.getValue();
-      ImmutableSet<String> units = FluentIterable.from(measurements)
-          .transform(new Function<Measurement, String>() {
-            @Override public String apply(Measurement input) {
-              return input.value().unit();
-            }
-          }).toSet();
+      ImmutableSet<String> units =
+          FluentIterable.from(measurements)
+              .transform(
+                  new Function<Measurement, String>() {
+                    @Override
+                    public String apply(Measurement input) {
+                      return input.value().unit();
+                    }
+                  })
+              .toSet();
       double[] weightedValues = new double[measurements.size()];
       int i = 0;
       for (Measurement measurement : measurements) {
@@ -122,12 +125,16 @@ final class ConsoleOutput implements Closeable {
       String unit = Iterables.getOnlyElement(units);
       stdout.printf(
           "    %s%s: min=%.2f, 1st qu.=%.2f, median=%.2f, mean=%.2f, 3rd qu.=%.2f, max=%.2f%n",
-          entry.getKey(), unit.isEmpty() ? "" : "(" + unit + ")",
-          descriptiveStatistics.getMin(), percentile.evaluate(25),
-          percentile.evaluate(50), descriptiveStatistics.getMean(),
-          percentile.evaluate(75), descriptiveStatistics.getMax());
+          entry.getKey(),
+          unit.isEmpty() ? "" : "(" + unit + ")",
+          descriptiveStatistics.getMin(),
+          percentile.evaluate(25),
+          percentile.evaluate(50),
+          descriptiveStatistics.getMean(),
+          percentile.evaluate(75),
+          descriptiveStatistics.getMax());
     }
-    
+
     instrumentSpecs.add(trial.instrumentSpec());
     Scenario scenario = trial.scenario();
     vmSpecs.add(scenario.vmSpec());
@@ -135,8 +142,9 @@ final class ConsoleOutput implements Closeable {
     numMeasurements += trial.measurements().size();
   }
 
-  @Override public void close() {
-    if (trialsCompleted == numberOfTrials) {  // if we finished all the trials
+  @Override
+  public void close() {
+    if (trialsCompleted == numberOfTrials) { // if we finished all the trials
       stdout.printf("Collected %d measurements from:%n", numMeasurements);
       stdout.printf("  %d instrument(s)%n", instrumentSpecs.size());
       stdout.printf("  %d virtual machine(s)%n", vmSpecs.size());

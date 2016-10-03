@@ -16,9 +16,7 @@
 
 package com.google.caliper.runner;
 
-/**
- * Instrument option identifiers shared between instruments.
- */
+/** Instrument option identifiers shared between instruments. */
 final class CommonInstrumentOptions {
   private CommonInstrumentOptions() {}
 

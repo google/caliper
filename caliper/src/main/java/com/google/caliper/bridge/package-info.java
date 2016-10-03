@@ -14,7 +14,5 @@
  * limitations under the License.
  */
 
-/**
- * Bridges between the runner and the worker.
- */
+/** Bridges between the runner and the worker. */
 package com.google.caliper.bridge;

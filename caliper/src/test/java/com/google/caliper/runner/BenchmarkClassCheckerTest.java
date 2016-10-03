@@ -5,16 +5,12 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.Macrobenchmark;
-
+import java.util.Collections;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.Collections;
-
-/**
- * Tests {@link BenchmarkClassChecker}.
- */
+/** Tests {@link BenchmarkClassChecker}. */
 
 @RunWith(JUnit4.class)
 public class BenchmarkClassCheckerTest {
@@ -33,7 +29,8 @@ public class BenchmarkClassCheckerTest {
   }
 
   public static class BenchmarkAnnotatedMethod {
-    @Benchmark void benchmarkMethod() {}
+    @Benchmark
+    void benchmarkMethod() {}
   }
 
   @Test
@@ -42,7 +39,8 @@ public class BenchmarkClassCheckerTest {
   }
 
   public static class MacroBenchmarkAnnotatedMethod {
-    @Macrobenchmark void macrobenchmarkMethod() {}
+    @Macrobenchmark
+    void macrobenchmarkMethod() {}
   }
 
   @Test

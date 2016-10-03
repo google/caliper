@@ -26,15 +26,13 @@ import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-
+import java.io.File;
+import java.lang.management.ManagementFactory;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import java.io.File;
-import java.lang.management.ManagementFactory;
 
 /**
  * Tests {@link CaliperConfig}.
@@ -47,46 +45,56 @@ public class CaliperConfigTest {
 
   private Platform platform = new JvmPlatform();
 
-  @Test public void getDefaultVmConfig() throws Exception {
-    CaliperConfig configuration = new CaliperConfig(
-        ImmutableMap.of("vm.args", "-very -special=args"));
+  @Test
+  public void getDefaultVmConfig() throws Exception {
+    CaliperConfig configuration =
+        new CaliperConfig(ImmutableMap.of("vm.args", "-very -special=args"));
     VmConfig defaultVmConfig = configuration.getDefaultVmConfig(platform);
     assertEquals(new File(System.getProperty("java.home")), defaultVmConfig.vmHome());
-    ImmutableList<String> expectedArgs = new ImmutableList.Builder<String>()
-        .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
-        .add("-very")
-        .add("-special=args")
-        .build();
+    ImmutableList<String> expectedArgs =
+        new ImmutableList.Builder<String>()
+            .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
+            .add("-very")
+            .add("-special=args")
+            .build();
     assertEquals(expectedArgs, defaultVmConfig.options());
   }
 
-  @Test public void getVmConfig_baseDirectoryAndName() throws Exception {
+  @Test
+  public void getVmConfig_baseDirectoryAndName() throws Exception {
     File tempBaseDir = folder.newFolder();
     File jdkHome = new File(tempBaseDir, "test");
     jdkHome.mkdir();
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "vm.baseDirectory", tempBaseDir.getAbsolutePath()));
-    assertEquals(new VmConfig.Builder(platform, jdkHome).build(),
+    CaliperConfig configuration =
+        new CaliperConfig(ImmutableMap.of("vm.baseDirectory", tempBaseDir.getAbsolutePath()));
+    assertEquals(
+        new VmConfig.Builder(platform, jdkHome).build(),
         configuration.getVmConfig(platform, "test"));
   }
 
-  @Test public void getVmConfig_baseDirectoryAndHome() throws Exception {
+  @Test
+  public void getVmConfig_baseDirectoryAndHome() throws Exception {
     File tempBaseDir = folder.newFolder();
     File jdkHome = new File(tempBaseDir, "test-home");
     jdkHome.mkdir();
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "vm.baseDirectory", tempBaseDir.getAbsolutePath(),
-        "vm.test.home", "test-home"));
-    assertEquals(new VmConfig.Builder(platform, jdkHome).build(),
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "vm.baseDirectory", tempBaseDir.getAbsolutePath(), "vm.test.home", "test-home"));
+    assertEquals(
+        new VmConfig.Builder(platform, jdkHome).build(),
         configuration.getVmConfig(platform, "test"));
   }
 
-  @Test public void getVmConfig() throws Exception {
+  @Test
+  public void getVmConfig() throws Exception {
     File jdkHome = folder.newFolder();
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "vm.args", "-a -b   -c",
-        "vm.test.home", jdkHome.getAbsolutePath(),
-        "vm.test.args", " -d     -e     "));
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "vm.args", "-a -b   -c",
+                "vm.test.home", jdkHome.getAbsolutePath(),
+                "vm.test.args", " -d     -e     "));
     assertEquals(
         new VmConfig.Builder(platform, jdkHome)
             .addOption("-a")
@@ -98,25 +106,33 @@ public class CaliperConfigTest {
         configuration.getVmConfig(platform, "test"));
   }
 
-  @Test public void getVmConfig_escapedSpacesInArgs() throws Exception {
+  @Test
+  public void getVmConfig_escapedSpacesInArgs() throws Exception {
     File jdkHome = folder.newFolder();
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "vm.args", "-a=string\\ with\\ spa\\ces -b -c",
-        "vm.test.home", jdkHome.getAbsolutePath()));
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "vm.args",
+                "-a=string\\ with\\ spa\\ces -b -c",
+                "vm.test.home",
+                jdkHome.getAbsolutePath()));
     assertEquals(
         new VmConfig.Builder(platform, jdkHome)
-        .addOption("-a=string with spaces")
-        .addOption("-b")
-        .addOption("-c")
-        .build(),
+            .addOption("-a=string with spaces")
+            .addOption("-b")
+            .addOption("-c")
+            .build(),
         configuration.getVmConfig(platform, "test"));
   }
 
-  @Test public void getInstrumentConfig() throws Exception {
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "instrument.test.class", "test.ClassName",
-        "instrument.test.options.a", "1",
-        "instrument.test.options.b", "excited b b excited"));
+  @Test
+  public void getInstrumentConfig() throws Exception {
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "instrument.test.class", "test.ClassName",
+                "instrument.test.options.a", "1",
+                "instrument.test.options.b", "excited b b excited"));
     assertEquals(
         new InstrumentConfig.Builder()
             .className("test.ClassName")
@@ -126,41 +142,54 @@ public class CaliperConfigTest {
         configuration.getInstrumentConfig("test"));
   }
 
-  @Test public void getInstrumentConfig_notConfigured() throws Exception {
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "instrument.test.options.a", "1",
-        "instrument.test.options.b", "excited b b excited"));
+  @Test
+  public void getInstrumentConfig_notConfigured() throws Exception {
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "instrument.test.options.a", "1",
+                "instrument.test.options.b", "excited b b excited"));
     try {
       configuration.getInstrumentConfig("test");
       fail();
-    } catch (IllegalArgumentException expected) {}
+    } catch (IllegalArgumentException expected) {
+    }
   }
 
-  @Test public void getConfiguredInstruments() throws Exception {
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "instrument.test.class", "test.ClassName",
-        "instrument.test2.class", "test.ClassName",
-        "instrument.test3.options.a", "1",
-        "instrument.test4.class", "test.ClassName",
-        "instrument.test4.options.b", "excited b b excited"));
-    assertEquals(ImmutableSet.of("test", "test2", "test4"),
-        configuration.getConfiguredInstruments());
+  @Test
+  public void getConfiguredInstruments() throws Exception {
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "instrument.test.class", "test.ClassName",
+                "instrument.test2.class", "test.ClassName",
+                "instrument.test3.options.a", "1",
+                "instrument.test4.class", "test.ClassName",
+                "instrument.test4.options.b", "excited b b excited"));
+    assertEquals(
+        ImmutableSet.of("test", "test2", "test4"), configuration.getConfiguredInstruments());
   }
 
-  @Test public void getConfiguredResultProcessors() throws Exception {
-    assertEquals(ImmutableSet.of(),
+  @Test
+  public void getConfiguredResultProcessors() throws Exception {
+    assertEquals(
+        ImmutableSet.of(),
         new CaliperConfig(ImmutableMap.<String, String>of()).getConfiguredResultProcessors());
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "results.test.class", TestResultProcessor.class.getName()));
-    assertEquals(ImmutableSet.of(TestResultProcessor.class),
-        configuration.getConfiguredResultProcessors());
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of("results.test.class", TestResultProcessor.class.getName()));
+    assertEquals(
+        ImmutableSet.of(TestResultProcessor.class), configuration.getConfiguredResultProcessors());
   }
 
-  @Test public void getResultProcessorConfig() throws Exception {
-    CaliperConfig configuration = new CaliperConfig(ImmutableMap.of(
-        "results.test.class", TestResultProcessor.class.getName(),
-        "results.test.options.g", "ak",
-        "results.test.options.c", "aliper"));
+  @Test
+  public void getResultProcessorConfig() throws Exception {
+    CaliperConfig configuration =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "results.test.class", TestResultProcessor.class.getName(),
+                "results.test.options.g", "ak",
+                "results.test.options.c", "aliper"));
     assertEquals(
         new ResultProcessorConfig.Builder()
             .className(TestResultProcessor.class.getName())
@@ -171,8 +200,10 @@ public class CaliperConfigTest {
   }
 
   private static final class TestResultProcessor implements ResultProcessor {
-    @Override public void close() {}
+    @Override
+    public void close() {}
 
-    @Override public void processTrial(Trial trial) {}
+    @Override
+    public void processTrial(Trial trial) {}
   }
 }

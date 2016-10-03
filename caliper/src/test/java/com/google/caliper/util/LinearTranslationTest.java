@@ -26,7 +26,8 @@ import org.junit.runners.JUnit4;
 public class LinearTranslationTest {
   private static final double CLOSE_ENOUGH = 1.0E-13;
 
-  @Test public void linearTranslation() {
+  @Test
+  public void linearTranslation() {
     LinearTranslation ctof = new LinearTranslation(0, 32, 100, 212);
     assertEquals(32, ctof.translate(0), CLOSE_ENOUGH);
     assertEquals(212, ctof.translate(100), CLOSE_ENOUGH);

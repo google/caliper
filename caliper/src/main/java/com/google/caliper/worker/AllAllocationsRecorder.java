@@ -21,12 +21,11 @@ import static java.util.Arrays.asList;
 import com.google.caliper.runner.Running;
 import com.google.common.collect.ConcurrentHashMultiset;
 import com.google.monitoring.runtime.instrumentation.Sampler;
-
 import javax.inject.Inject;
 
 /**
  * An {@link AllocationRecorder} that records every allocation and its location.
- * 
+ *
  * <p>This recorder is enabled via the {@code trackAllocations} worker option.
  */
 final class AllAllocationsRecorder extends AllocationRecorder {
@@ -34,55 +33,61 @@ final class AllAllocationsRecorder extends AllocationRecorder {
   private final String benchmarkMethodName;
   private volatile boolean recording = false;
   private final ConcurrentHashMultiset<Allocation> allocations = ConcurrentHashMultiset.create();
-  
-  private final Sampler sampler = new Sampler() {
-    @Override public void sampleAllocation(int arrayCount, String desc, Object newObj, 
-        long size) {
-      if (recording) {
-        if (arrayCount != -1) {
-          desc = desc + "[" + arrayCount + "]";
-        }
-        // The first item is this line, the second is in AllocationRecorder and the
-        // one before that is the allocating line, so we start at index 2.
-        // We want to grab all lines until we get into the benchmark method.
-        StackTraceElement[] stackTrace = new Exception().getStackTrace();
-        int startIndex = 2;
-        int endIndex = 2;
-        for (int i = startIndex; i < stackTrace.length; i++) {
-          StackTraceElement element = stackTrace[i];
-          if (element.getClassName().startsWith(
-              AllAllocationsRecorder.class.getPackage().getName())) {
-            // Don't track locations up into the worker code, or originating within the worker 
-            // code.
-            break;
+
+  private final Sampler sampler =
+      new Sampler() {
+        @Override
+        public void sampleAllocation(int arrayCount, String desc, Object newObj, long size) {
+          if (recording) {
+            if (arrayCount != -1) {
+              desc = desc + "[" + arrayCount + "]";
+            }
+            // The first item is this line, the second is in AllocationRecorder and the
+            // one before that is the allocating line, so we start at index 2.
+            // We want to grab all lines until we get into the benchmark method.
+            StackTraceElement[] stackTrace = new Exception().getStackTrace();
+            int startIndex = 2;
+            int endIndex = 2;
+            for (int i = startIndex; i < stackTrace.length; i++) {
+              StackTraceElement element = stackTrace[i];
+              if (element
+                  .getClassName()
+                  .startsWith(AllAllocationsRecorder.class.getPackage().getName())) {
+                // Don't track locations up into the worker code, or originating within the worker
+                // code.
+                break;
+              }
+              endIndex = i;
+              if (element.getClassName().equals(benchmarkClass.getName())
+                  && element.getMethodName().equals(benchmarkMethodName)) {
+                // stop logging at the method under test
+                break;
+              }
+            }
+            allocations.add(
+                new Allocation(desc, size, asList(stackTrace).subList(startIndex, endIndex + 1)));
           }
-          endIndex = i;
-          if (element.getClassName().equals(benchmarkClass.getName()) 
-              && element.getMethodName().equals(benchmarkMethodName)) {
-            // stop logging at the method under test
-            break;
-          }
         }
-        allocations.add(
-            new Allocation(desc, size, asList(stackTrace).subList(startIndex, endIndex + 1)));
-      }
-    }
-  };
-  
-  @Inject AllAllocationsRecorder(@Running.BenchmarkClass Class<?> benchmarkClass, 
+      };
+
+  @Inject
+  AllAllocationsRecorder(
+      @Running.BenchmarkClass Class<?> benchmarkClass,
       @Running.BenchmarkMethod String benchmarkMethodName) {
     this.benchmarkClass = benchmarkClass;
     this.benchmarkMethodName = benchmarkMethodName;
     com.google.monitoring.runtime.instrumentation.AllocationRecorder.addSampler(sampler);
   }
-  
-  @Override protected void doStartRecording() {
+
+  @Override
+  protected void doStartRecording() {
     checkState(!recording, "startRecording called, but we were already recording.");
     allocations.clear();
     recording = true;
   }
-  
-  @Override public AllocationStats stopRecording(int reps) {
+
+  @Override
+  public AllocationStats stopRecording(int reps) {
     checkState(recording, "stopRecording called, but we were not recording.");
     recording = false;
     return new AllocationStats(allocations, reps);

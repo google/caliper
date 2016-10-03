@@ -24,7 +24,6 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Longs;
-
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -33,13 +32,12 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.annotation.Nullable;
 
 /**
- * Represents a nonnegative duration from 0 to 100 days, with picosecond precision.
- * Contrast with Joda-Time's duration class, which has only millisecond precision but can
- * represent durations of millions of years.
+ * Represents a nonnegative duration from 0 to 100 days, with picosecond precision. Contrast with
+ * Joda-Time's duration class, which has only millisecond precision but can represent durations of
+ * millions of years.
  */
 public abstract class ShortDuration implements Comparable<ShortDuration> {
   // Factories
@@ -49,8 +47,8 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
       return ZERO;
     }
     checkArgument(duration >= 0, "negative duration: %s", duration);
-    checkArgument(duration <= MAXES.get(unit),
-        "ShortDuration cannot exceed 100 days: %s %s", duration, unit);
+    checkArgument(
+        duration <= MAXES.get(unit), "ShortDuration cannot exceed 100 days: %s %s", duration, unit);
     long nanos = TimeUnit.NANOSECONDS.convert(duration, unit);
     return new PositiveShortDuration(nanos * 1000);
   }
@@ -114,21 +112,18 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
    * will come from there, so they won't have to be defined here.
    */
 
-  /**
-   * Returns an instance of this type that represents the sum of this value and {@code
-   * addend}.
-   */
+  /** Returns an instance of this type that represents the sum of this value and {@code addend}. */
   public abstract ShortDuration plus(ShortDuration addend);
 
   /**
-   * Returns an instance of this type that represents the difference of this value and
-   * {@code subtrahend}.
+   * Returns an instance of this type that represents the difference of this value and {@code
+   * subtrahend}.
    */
   public abstract ShortDuration minus(ShortDuration subtrahend);
 
   /**
-   * Returns an instance of this type that represents the product of this value and the
-   * integral value {@code multiplicand}.
+   * Returns an instance of this type that represents the product of this value and the integral
+   * value {@code multiplicand}.
    */
   public abstract ShortDuration times(long multiplicand);
 
@@ -142,8 +137,8 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
   public abstract ShortDuration times(BigDecimal multiplicand, RoundingMode roundingMode);
 
   /**
-   * Returns an instance of this type that represents this value divided by the integral
-   * value {@code divisor}, rounded according to {@code roundingMode} if necessary.
+   * Returns an instance of this type that represents this value divided by the integral value
+   * {@code divisor}, rounded according to {@code roundingMode} if necessary.
    *
    * <p>If this class represents an amount that is "continuous" rather than discrete, the
    * implementation of this method may simply ignore the rounding mode.
@@ -151,8 +146,8 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
   public abstract ShortDuration dividedBy(long divisor, RoundingMode roundingMode);
 
   /**
-   * Returns an instance of this type that represents this value divided by {@code
-   * divisor}, rounded according to {@code roundingMode} if necessary.
+   * Returns an instance of this type that represents this value divided by {@code divisor}, rounded
+   * according to {@code roundingMode} if necessary.
    *
    * <p>If this class represents an amount that is "continuous" rather than discrete, the
    * implementation of this method may simply ignore the rounding mode.
@@ -161,47 +156,69 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
 
   // Zero
 
-  private static ShortDuration ZERO = new ShortDuration(0) {
-    @Override public long to(TimeUnit unit, RoundingMode roundingMode) {
-      return 0;
-    }
-    @Override public ShortDuration plus(ShortDuration addend) {
-      return addend;
-    }
-    @Override public ShortDuration minus(ShortDuration subtrahend) {
-      checkArgument(this == subtrahend);
-      return this;
-    }
-    @Override public ShortDuration times(long multiplicand) {
-      return this;
-    }
-    @Override public ShortDuration times(BigDecimal multiplicand, RoundingMode roundingMode) {
-      return this;
-    }
-    @Override public ShortDuration dividedBy(long divisor, RoundingMode roundingMode) {
-      return dividedBy(new BigDecimal(divisor), roundingMode);
-    }
-    @Override public ShortDuration dividedBy(BigDecimal divisor, RoundingMode roundingMode) {
-      checkArgument(divisor.compareTo(BigDecimal.ZERO) != 0);
-      return this;
-    }
-    @Override public int compareTo(ShortDuration that) {
-      if (this == that) {
-        return 0;
-      }
-      checkNotNull(that);
-      return -1;
-    }
-    @Override public boolean equals(@Nullable Object that) {
-      return this == that;
-    }
-    @Override public int hashCode() {
-      return 0;
-    }
-    @Override public String toString() {
-      return "0s";
-    }
-  };
+  private static final ShortDuration ZERO =
+      new ShortDuration(0) {
+        @Override
+        public long to(TimeUnit unit, RoundingMode roundingMode) {
+          return 0;
+        }
+
+        @Override
+        public ShortDuration plus(ShortDuration addend) {
+          return addend;
+        }
+
+        @Override
+        public ShortDuration minus(ShortDuration subtrahend) {
+          checkArgument(this == subtrahend);
+          return this;
+        }
+
+        @Override
+        public ShortDuration times(long multiplicand) {
+          return this;
+        }
+
+        @Override
+        public ShortDuration times(BigDecimal multiplicand, RoundingMode roundingMode) {
+          return this;
+        }
+
+        @Override
+        public ShortDuration dividedBy(long divisor, RoundingMode roundingMode) {
+          return dividedBy(new BigDecimal(divisor), roundingMode);
+        }
+
+        @Override
+        public ShortDuration dividedBy(BigDecimal divisor, RoundingMode roundingMode) {
+          checkArgument(divisor.compareTo(BigDecimal.ZERO) != 0);
+          return this;
+        }
+
+        @Override
+        public int compareTo(ShortDuration that) {
+          if (this == that) {
+            return 0;
+          }
+          checkNotNull(that);
+          return -1;
+        }
+
+        @Override
+        public boolean equals(@Nullable Object that) {
+          return this == that;
+        }
+
+        @Override
+        public int hashCode() {
+          return 0;
+        }
+
+        @Override
+        public String toString() {
+          return "0s";
+        }
+      };
 
   // Non-zero
 
@@ -211,48 +228,60 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
       checkArgument(picos > 0);
     }
 
-    @Override public long to(TimeUnit unit, RoundingMode roundingMode) {
+    @Override
+    public long to(TimeUnit unit, RoundingMode roundingMode) {
       BigDecimal divisor = ONE_IN_PICOS.get(unit);
       return toLong(new BigDecimal(picos).divide(divisor), roundingMode);
     }
 
-    @Override public ShortDuration plus(ShortDuration addend) {
+    @Override
+    public ShortDuration plus(ShortDuration addend) {
       return new PositiveShortDuration(picos + addend.picos);
     }
 
-    @Override public ShortDuration minus(ShortDuration subtrahend) {
+    @Override
+    public ShortDuration minus(ShortDuration subtrahend) {
       return ofPicos(picos - subtrahend.picos);
     }
 
-    @Override public ShortDuration times(long multiplicand) {
+    @Override
+    public ShortDuration times(long multiplicand) {
       if (multiplicand == 0) {
         return ZERO;
       }
       checkArgument(multiplicand >= 0, "negative multiplicand: %s", multiplicand);
-      checkArgument(multiplicand <= Long.MAX_VALUE / picos,
-          "product of %s and %s would overflow", this, multiplicand);
+      checkArgument(
+          multiplicand <= Long.MAX_VALUE / picos,
+          "product of %s and %s would overflow",
+          this,
+          multiplicand);
       return new PositiveShortDuration(picos * multiplicand);
     }
 
-    @Override public ShortDuration times(BigDecimal multiplicand, RoundingMode roundingMode) {
+    @Override
+    public ShortDuration times(BigDecimal multiplicand, RoundingMode roundingMode) {
       BigDecimal product = BigDecimal.valueOf(picos).multiply(multiplicand);
       return ofPicos(toLong(product, roundingMode));
     }
 
-    @Override public ShortDuration dividedBy(long divisor, RoundingMode roundingMode) {
+    @Override
+    public ShortDuration dividedBy(long divisor, RoundingMode roundingMode) {
       return dividedBy(new BigDecimal(divisor), roundingMode);
     }
 
-    @Override public ShortDuration dividedBy(BigDecimal divisor, RoundingMode roundingMode) {
+    @Override
+    public ShortDuration dividedBy(BigDecimal divisor, RoundingMode roundingMode) {
       BigDecimal product = BigDecimal.valueOf(picos).divide(divisor, roundingMode);
       return ofPicos(product.longValueExact());
     }
 
-    @Override public int compareTo(ShortDuration that) {
+    @Override
+    public int compareTo(ShortDuration that) {
       return Longs.compare(this.picos, that.picos);
     }
 
-    @Override public boolean equals(Object object) {
+    @Override
+    public boolean equals(Object object) {
       if (object instanceof PositiveShortDuration) {
         PositiveShortDuration that = (PositiveShortDuration) object;
         return this.picos == that.picos;
@@ -260,11 +289,13 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
       return false;
     }
 
-    @Override public int hashCode() {
+    @Override
+    public int hashCode() {
       return Longs.hashCode(picos);
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       TimeUnit bestUnit = TimeUnit.NANOSECONDS;
       for (TimeUnit unit : TimeUnit.values()) {
         if (picosIn(unit) > picos) {

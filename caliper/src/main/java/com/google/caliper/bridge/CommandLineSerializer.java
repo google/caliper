@@ -19,7 +19,6 @@ package com.google.caliper.bridge;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.common.io.BaseEncoding;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,8 +30,8 @@ import java.io.ObjectOutputStream;
  * command line to the worker.
  *
  * <p>Java serialization is a appropriate in this usecase because there are no compatibility
- * concerns.  The messages encoded/decoded by this class are only used to communicate with another
- * JVM that is running with the same version of the java classes.  Also, it should be lighter weight
+ * concerns. The messages encoded/decoded by this class are only used to communicate with another
+ * JVM that is running with the same version of the java classes. Also, it should be lighter weight
  * and faster than other common serialization solutions.
  */
 public final class CommandLineSerializer {
@@ -58,11 +57,10 @@ public final class CommandLineSerializer {
       ObjectInputStream in = new ObjectInputStream(bais);
       WorkerSpec instance = (WorkerSpec) in.readObject();
       in.close();
-      checkState(bais.read() == -1,
-          "Message %s contains more than one object.", arg);
+      checkState(bais.read() == -1, "Message %s contains more than one object.", arg);
       return instance;
     } catch (IOException e) {
-      throw new RuntimeException(e);  // assertion error?
+      throw new RuntimeException(e); // assertion error?
     } catch (ClassNotFoundException e) {
       throw new RuntimeException("cannot decode message", e);
     }

@@ -23,15 +23,12 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableMap;
-
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
-
 import java.util.Map;
 import java.util.Random;
-
 import javax.inject.Provider;
 
 /**
@@ -66,15 +63,15 @@ final class WorkerModule {
   Worker provideWorker(Map<Class<? extends Worker>, Provider<Worker>> availableWorkers) {
     Provider<Worker> workerProvider = availableWorkers.get(workerClass);
     if (workerProvider == null) {
-      throw new InvalidCommandException("%s is not a supported worker (%s).",
-          workerClass, availableWorkers);
+      throw new InvalidCommandException(
+          "%s is not a supported worker (%s).", workerClass, availableWorkers);
     }
     return workerProvider.get();
   }
 
   /**
-   * Specifies the {@link Class} object to use as a key in the map of available
-   * {@link Worker workers} passed to {@link #provideWorker(Map)}.
+   * Specifies the {@link Class} object to use as a key in the map of available {@link Worker
+   * workers} passed to {@link #provideWorker(Map)}.
    */
   @MapKey(unwrapValue = true)
   public @interface WorkerClassKey {

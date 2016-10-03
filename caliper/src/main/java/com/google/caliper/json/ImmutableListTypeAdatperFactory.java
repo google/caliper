@@ -24,7 +24,6 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -37,10 +36,10 @@ import java.util.List;
  */
 final class ImmutableListTypeAdatperFactory implements TypeAdapterFactory {
   @SuppressWarnings("unchecked")
-  @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+  @Override
+  public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
     Type type = typeToken.getType();
-    if (typeToken.getRawType() != ImmutableList.class
-        || !(type instanceof ParameterizedType)) {
+    if (typeToken.getRawType() != ImmutableList.class || !(type instanceof ParameterizedType)) {
       return null;
     }
 
@@ -48,16 +47,19 @@ final class ImmutableListTypeAdatperFactory implements TypeAdapterFactory {
         (com.google.common.reflect.TypeToken<ImmutableList<?>>)
             com.google.common.reflect.TypeToken.of(typeToken.getType());
     final TypeAdapter<ArrayList<?>> arrayListAdapter =
-        (TypeAdapter<ArrayList<?>>) gson.getAdapter(
-            TypeToken.get(betterToken.getSupertype(List.class).getSubtype(ArrayList.class)
-                .getType()));
+        (TypeAdapter<ArrayList<?>>)
+            gson.getAdapter(
+                TypeToken.get(
+                    betterToken.getSupertype(List.class).getSubtype(ArrayList.class).getType()));
     return new TypeAdapter<T>() {
-      @Override public void write(JsonWriter out, T value) throws IOException {
+      @Override
+      public void write(JsonWriter out, T value) throws IOException {
         ArrayList<?> arrayList = Lists.newArrayList((List<?>) value);
         arrayListAdapter.write(out, arrayList);
       }
 
-      @Override public T read(JsonReader in) throws IOException {
+      @Override
+      public T read(JsonReader in) throws IOException {
         ArrayList<?> arrayList = arrayListAdapter.read(in);
         return (T) ImmutableList.copyOf(arrayList);
       }

@@ -36,21 +36,21 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
-
 import java.lang.reflect.Method;
-
 import javax.inject.Inject;
 
 public abstract class Instrument {
   protected ImmutableMap<String, String> options;
   private String name = getClass().getSimpleName();
 
-  @Inject void setOptions(@InstrumentOptions ImmutableMap<String, String> options) {
-    this.options = ImmutableMap.copyOf(
-        Maps.filterKeys(options, Predicates.in(instrumentOptions())));
+  @Inject
+  void setOptions(@InstrumentOptions ImmutableMap<String, String> options) {
+    this.options =
+        ImmutableMap.copyOf(Maps.filterKeys(options, Predicates.in(instrumentOptions())));
   }
 
-  @Inject void setInstrumentName(@InstrumentName String name) {
+  @Inject
+  void setInstrumentName(@InstrumentName String name) {
     this.name = name;
   }
 
@@ -58,7 +58,8 @@ public abstract class Instrument {
     return name;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return name();
   }
 
@@ -67,14 +68,10 @@ public abstract class Instrument {
   public abstract Instrumentation createInstrumentation(Method benchmarkMethod)
       throws InvalidBenchmarkException;
 
-  /**
-   * Indicates that trials using this instrument can be run in parallel with other trials.
-   */
+  /** Indicates that trials using this instrument can be run in parallel with other trials. */
   public abstract TrialSchedulingPolicy schedulingPolicy();
 
-  /**
-   * The application of an instrument to a particular benchmark method.
-   */
+  /** The application of an instrument to a particular benchmark method. */
   // TODO(gak): consider passing in Instrument explicitly for DI
   public abstract class Instrumentation {
     protected Method benchmarkMethod;
@@ -161,8 +158,8 @@ public abstract class Instrument {
   }
 
   /**
-   * Returns some arguments that should be added to the command line when invoking
-   * this instrument's worker.
+   * Returns some arguments that should be added to the command line when invoking this instrument's
+   * worker.
    *
    * @param vmConfig the configuration for the VM on which this is running.
    */
@@ -172,15 +169,17 @@ public abstract class Instrument {
 
   interface MeasurementCollectingVisitor extends LogMessageVisitor {
     boolean isDoneCollecting();
+
     boolean isWarmupComplete();
+
     ImmutableList<Measurement> getMeasurements();
     /**
      * Returns all the messages created while collecting measurments.
-     * 
+     *
      * <p>A message is some piece of user visible data that should be displayed to the user along
      * with the trial results.
-     * 
-     * <p>TODO(lukes): should we model these as anything more than strings.  These messages already
+     *
+     * <p>TODO(lukes): should we model these as anything more than strings. These messages already
      * have a concept of 'level' based on the prefix.
      */
     ImmutableList<String> getMessages();
@@ -190,8 +189,8 @@ public abstract class Instrument {
    * A default implementation of {@link MeasurementCollectingVisitor} that collects measurements for
    * pre-specified descriptions.
    */
-  protected static final class DefaultMeasurementCollectingVisitor
-      extends AbstractLogMessageVisitor implements MeasurementCollectingVisitor {
+  protected static final class DefaultMeasurementCollectingVisitor extends AbstractLogMessageVisitor
+      implements MeasurementCollectingVisitor {
     static final int DEFAULT_NUMBER_OF_MEASUREMENTS = 9;
     final ImmutableSet<String> requiredDescriptions;
     final ListMultimap<String, Measurement> measurementsByDescription;
@@ -201,8 +200,8 @@ public abstract class Instrument {
       this(requiredDescriptions, DEFAULT_NUMBER_OF_MEASUREMENTS);
     }
 
-    DefaultMeasurementCollectingVisitor(ImmutableSet<String> requiredDescriptions,
-        int requiredMeasurements) {
+    DefaultMeasurementCollectingVisitor(
+        ImmutableSet<String> requiredDescriptions, int requiredMeasurements) {
       this.requiredDescriptions = requiredDescriptions;
       checkArgument(!requiredDescriptions.isEmpty());
       this.requiredMeasurements = requiredMeasurements;
@@ -211,13 +210,15 @@ public abstract class Instrument {
           ArrayListMultimap.create(requiredDescriptions.size(), requiredMeasurements);
     }
 
-    @Override public void visit(StopMeasurementLogMessage logMessage) {
+    @Override
+    public void visit(StopMeasurementLogMessage logMessage) {
       for (Measurement measurement : logMessage.measurements()) {
         measurementsByDescription.put(measurement.description(), measurement);
       }
     }
 
-    @Override public boolean isDoneCollecting() {
+    @Override
+    public boolean isDoneCollecting() {
       for (String description : requiredDescriptions) {
         if (measurementsByDescription.get(description).size() < requiredMeasurements) {
           return false;
@@ -231,11 +232,13 @@ public abstract class Instrument {
       return true;
     }
 
-    @Override public ImmutableList<Measurement> getMeasurements() {
+    @Override
+    public ImmutableList<Measurement> getMeasurements() {
       return ImmutableList.copyOf(measurementsByDescription.values());
     }
 
-    @Override public ImmutableList<String> getMessages() {
+    @Override
+    public ImmutableList<String> getMessages() {
       return ImmutableList.of();
     }
   }

@@ -26,11 +26,13 @@ public final class DisplayUsageException extends InvalidCommandException {
     super("(User asked for --help. This message should not appear anywhere.)");
   }
 
-  @Override public void display(PrintWriter writer) {
+  @Override
+  public void display(PrintWriter writer) {
     displayUsage(writer);
   }
 
-  @Override public int exitCode() {
+  @Override
+  public int exitCode() {
     return 0;
   }
 }

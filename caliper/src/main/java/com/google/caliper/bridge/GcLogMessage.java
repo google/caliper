@@ -22,13 +22,10 @@ import com.google.caliper.util.ShortDuration;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-/**
- * A message representing output produced by the JVM when {@code -XX:+PrintGC} is enabled.
- */
+/** A message representing output produced by the JVM when {@code -XX:+PrintGC} is enabled. */
 public final class GcLogMessage extends LogMessage {
-  /**
-   * The type of the garbage collection performed.
-   */
+
+  /** The type of the garbage collection performed. */
   public static enum Type {
     FULL,
     INCREMENTAL,
@@ -66,8 +63,7 @@ public final class GcLogMessage extends LogMessage {
       return true;
     } else if (obj instanceof GcLogMessage) {
       GcLogMessage that = (GcLogMessage) obj;
-      return this.type == that.type
-          && this.duration.equals(that.duration);
+      return this.type == that.type && this.duration.equals(that.duration);
     } else {
       return false;
     }

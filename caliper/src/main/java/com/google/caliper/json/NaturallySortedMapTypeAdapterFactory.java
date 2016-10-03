@@ -24,7 +24,6 @@ import com.google.gson.TypeAdapterFactory;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
 import java.io.IOException;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -42,10 +41,10 @@ final class NaturallySortedMapTypeAdapterFactory implements TypeAdapterFactory {
       ImmutableSet.of(SortedMap.class, TreeMap.class);
 
   @SuppressWarnings("unchecked")
-  @Override public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
+  @Override
+  public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {
     Type type = typeToken.getType();
-    if (!CLASSES.contains(typeToken.getRawType())
-        || !(type instanceof ParameterizedType)) {
+    if (!CLASSES.contains(typeToken.getRawType()) || !(type instanceof ParameterizedType)) {
       return null;
     }
 
@@ -53,16 +52,18 @@ final class NaturallySortedMapTypeAdapterFactory implements TypeAdapterFactory {
         (com.google.common.reflect.TypeToken<SortedMap<?, ?>>)
             com.google.common.reflect.TypeToken.of(typeToken.getType());
     final TypeAdapter<Map<?, ?>> mapAdapter =
-        (TypeAdapter<Map<?, ?>>) gson.getAdapter(
-            TypeToken.get(betterToken.getSupertype(Map.class).getType()));
+        (TypeAdapter<Map<?, ?>>)
+            gson.getAdapter(TypeToken.get(betterToken.getSupertype(Map.class).getType()));
     return new TypeAdapter<T>() {
-      @Override public void write(JsonWriter out, T value) throws IOException {
+      @Override
+      public void write(JsonWriter out, T value) throws IOException {
         TreeMap<?, ?> treeMap = Maps.newTreeMap((SortedMap<?, ?>) value);
         mapAdapter.write(out, treeMap);
       }
 
       @SuppressWarnings("rawtypes")
-      @Override public T read(JsonReader in) throws IOException {
+      @Override
+      public T read(JsonReader in) throws IOException {
         TreeMap treeMap = Maps.newTreeMap();
         treeMap.putAll(mapAdapter.read(in));
         return (T) treeMap;

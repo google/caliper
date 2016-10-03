@@ -22,17 +22,15 @@ import static org.junit.Assert.fail;
 import com.google.caliper.AfterExperiment;
 import com.google.caliper.BeforeExperiment;
 import com.google.common.collect.ImmutableSet;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Tests {@link BenchmarkClass}.
- */
+/** Tests {@link BenchmarkClass}. */
 @RunWith(JUnit4.class)
 public class BenchmarkClassTest {
-  @Test public void beforeMeasurementMethods_AnnotatedBenchmark() throws Exception {
+  @Test
+  public void beforeMeasurementMethods_AnnotatedBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(
             MyBenchmark.class.getDeclaredMethod("before1"),
@@ -40,7 +38,8 @@ public class BenchmarkClassTest {
         BenchmarkClass.forClass(MyBenchmark.class).beforeExperimentMethods());
   }
 
-  @Test public void afterMeasurementMethods_AnnotatedBenchmark() throws Exception {
+  @Test
+  public void afterMeasurementMethods_AnnotatedBenchmark() throws Exception {
     assertEquals(
         ImmutableSet.of(
             MyBenchmark.class.getDeclaredMethod("after1"),
@@ -48,18 +47,27 @@ public class BenchmarkClassTest {
         BenchmarkClass.forClass(MyBenchmark.class).afterExperimentMethods());
   }
 
-  @Test public void forClass_inheritenceThrows() throws Exception {
+  @Test
+  public void forClass_inheritenceThrows() throws Exception {
     try {
       BenchmarkClass.forClass(MalformedBenhcmark.class);
       fail();
-    } catch (InvalidBenchmarkException expected) {}
+    } catch (InvalidBenchmarkException expected) {
+    }
   }
 
   static class MyBenchmark {
-    @BeforeExperiment void before1() {}
-    @BeforeExperiment void before2() {}
-    @AfterExperiment void after1() {}
-    @AfterExperiment void after2() {}
+    @BeforeExperiment
+    void before1() {}
+
+    @BeforeExperiment
+    void before2() {}
+
+    @AfterExperiment
+    void after1() {}
+
+    @AfterExperiment
+    void after2() {}
   }
 
   static class MalformedBenhcmark extends MyBenchmark {}

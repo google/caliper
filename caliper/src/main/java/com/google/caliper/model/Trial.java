@@ -24,11 +24,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
-
-
 import java.util.List;
 import java.util.UUID;
-
 
 /**
  * An invocation of a single scenario measured with a single instrument and the results thereof.
@@ -80,7 +77,8 @@ public final class Trial { // used to be Result
     return ImmutableList.copyOf(measurements);
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Trial) {
@@ -95,11 +93,13 @@ public final class Trial { // used to be Result
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(id, run, instrumentSpec, scenario, measurements);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("id", id)
         .add("run", run)

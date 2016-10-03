@@ -18,7 +18,6 @@ package com.google.caliper.util;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.primitives.Primitives;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -26,17 +25,20 @@ import java.text.ParseException;
 import java.util.List;
 
 public class Parsers {
-  public static final Parser<String> IDENTITY = new Parser<String>() {
-    @Override public String parse(CharSequence in) {
-      return in.toString();
-    }
-  };
+  public static final Parser<String> IDENTITY =
+      new Parser<String>() {
+        @Override
+        public String parse(CharSequence in) {
+          return in.toString();
+        }
+      };
 
   private static final List<String> CONVERSION_METHOD_NAMES =
       ImmutableList.of("fromString", "decode", "valueOf");
 
   /**
    * Parser that tries, in this order:
+   *
    * <ul>
    * <li>ResultType.fromString(String)
    * <li>ResultType.decode(String)
@@ -44,8 +46,7 @@ public class Parsers {
    * <li>new ResultType(String)
    * </ul>
    */
-  public static <T> Parser<T> conventionalParser(Class<T> resultType)
-      throws NoSuchMethodException {
+  public static <T> Parser<T> conventionalParser(Class<T> resultType) throws NoSuchMethodException {
     if (resultType == String.class) {
       @SuppressWarnings("unchecked") // T == String
       Parser<T> identity = (Parser<T>) IDENTITY;
@@ -61,7 +62,8 @@ public class Parsers {
         if (Util.isStatic(method) && wrappedResultType.isAssignableFrom(method.getReturnType())) {
           method.setAccessible(true); // to permit inner enums, etc.
           return new InvokingParser<T>() {
-            @Override protected T invoke(String input) throws Exception {
+            @Override
+            protected T invoke(String input) throws Exception {
               return wrappedResultType.cast(method.invoke(null, input));
             }
           };
@@ -73,14 +75,16 @@ public class Parsers {
     final Constructor<T> constr = wrappedResultType.getDeclaredConstructor(String.class);
     constr.setAccessible(true);
     return new InvokingParser<T>() {
-      @Override protected T invoke(String input) throws Exception {
+      @Override
+      protected T invoke(String input) throws Exception {
         return wrappedResultType.cast(constr.newInstance(input));
       }
     };
   }
 
   abstract static class InvokingParser<T> implements Parser<T> {
-    @Override public T parse(CharSequence input) throws ParseException {
+    @Override
+    public T parse(CharSequence input) throws ParseException {
       try {
         return invoke(input.toString());
       } catch (InvocationTargetException e) {

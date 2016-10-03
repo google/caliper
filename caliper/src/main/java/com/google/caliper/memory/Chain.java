@@ -17,18 +17,16 @@
 package com.google.caliper.memory;
 
 import com.google.common.base.Preconditions;
-
 import java.lang.reflect.Field;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.Iterator;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * A chain of references, which starts at a root object and leads to a
- * particular value (either an object or a primitive).
+ * A chain of references, which starts at a root object and leads to a particular value (either an
+ * object or a primitive).
  */
 public abstract class Chain {
   private final Object value;
@@ -57,8 +55,8 @@ public abstract class Chain {
   }
 
   /**
-   * Returns whether this chain has a parent. This returns false only when
-   * this chain represents the root object itself.
+   * Returns whether this chain has a parent. This returns false only when this chain represents the
+   * root object itself.
    */
   public boolean hasParent() {
     return parent != null;
@@ -66,6 +64,7 @@ public abstract class Chain {
 
   /**
    * Returns the parent chain, from which this chain was created.
+   *
    * @throws IllegalStateException if {@code !hasParent()}, then an
    */
   public @Nonnull Chain getParent() {
@@ -74,8 +73,8 @@ public abstract class Chain {
   }
 
   /**
-   * Returns the value that this chain leads to. If the value is a primitive,
-   * a wrapper object is returned instead.
+   * Returns the value that this chain leads to. If the value is a primitive, a wrapper object is
+   * returned instead.
    */
   public @Nullable Object getValue() {
     return value;
@@ -84,32 +83,27 @@ public abstract class Chain {
   public abstract @Nonnull Class<?> getValueType();
 
   /**
-   * Returns whether the connection of the parent chain and this chain is
-   * through a field (of the getParent().getValue().getClass() class).
+   * Returns whether the connection of the parent chain and this chain is through a field (of the
+   * getParent().getValue().getClass() class).
    */
   public boolean isThroughField() {
     return false;
   }
 
   /**
-   * Returns whether the connection of the parent chain and this chain is
-   * through an array index, i.e. the parent leads to an array, and this
-   * chain leads to an element of that array.
+   * Returns whether the connection of the parent chain and this chain is through an array index,
+   * i.e. the parent leads to an array, and this chain leads to an element of that array.
    */
   public boolean isThroughArrayIndex() {
     return false;
   }
 
-  /**
-   * Returns whether the value of this chain represents a primitive.
-   */
+  /** Returns whether the value of this chain represents a primitive. */
   public boolean isPrimitive() {
     return getValueType().isPrimitive();
   }
 
-  /**
-   * Returns the root object of this chain.
-   */
+  /** Returns the root object of this chain. */
   public @Nonnull Object getRoot() {
     Chain current = this;
     while (current.hasParent()) {
@@ -129,7 +123,8 @@ public abstract class Chain {
     return reverseChain;
   }
 
-  @Override public final String toString() {
+  @Override
+  public final String toString() {
     StringBuilder sb = new StringBuilder(32);
 
     Iterator<Chain> it = reverse().iterator();
@@ -138,9 +133,9 @@ public abstract class Chain {
       sb.append("->");
       Chain current = it.next();
       if (current.isThroughField()) {
-        sb.append(((FieldChain)current).getField().getName());
+        sb.append(((FieldChain) current).getField().getName());
       } else if (current.isThroughArrayIndex()) {
-        sb.append("[").append(((ArrayIndexChain)current).getArrayIndex()).append("]");
+        sb.append("[").append(((ArrayIndexChain) current).getArrayIndex()).append("]");
       }
     }
     return sb.toString();

@@ -21,11 +21,8 @@ import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.util.Stdout;
 import com.google.gson.Gson;
-
 import com.sun.jersey.api.client.Client;
-
 import java.io.PrintWriter;
-
 import javax.inject.Inject;
 
 /**
@@ -33,7 +30,8 @@ import javax.inject.Inject;
  * request.
  */
 public class HttpUploader extends ResultsUploader {
-  @Inject HttpUploader(@Stdout PrintWriter stdout, Gson gson, CaliperConfig config)
+  @Inject
+  HttpUploader(@Stdout PrintWriter stdout, Gson gson, CaliperConfig config)
       throws InvalidConfigurationException {
     super(stdout, gson, Client.create(), config.getResultProcessorConfig(HttpUploader.class));
   }

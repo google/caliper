@@ -23,11 +23,8 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
-
-
 import java.util.Map;
 import java.util.SortedMap;
-
 
 /**
  * A configuration of a virtual machine.
@@ -37,10 +34,12 @@ import java.util.SortedMap;
 public final class VmSpec {
   static final VmSpec DEFAULT = new VmSpec();
 
-  @ExcludeFromJson private int id;
+  @ExcludeFromJson
+  private int id;
   private SortedMap<String, String> properties;
   private SortedMap<String, String> options;
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson
+  private int hash;
 
   private VmSpec() {
     this.properties = Maps.newTreeMap();
@@ -60,13 +59,13 @@ public final class VmSpec {
     return ImmutableSortedMap.copyOf(properties);
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof VmSpec) {
       VmSpec that = (VmSpec) obj;
-      return this.properties.equals(that.properties)
-          && this.options.equals(that.options);
+      return this.properties.equals(that.properties) && this.options.equals(that.options);
     } else {
       return false;
     }
@@ -78,12 +77,14 @@ public final class VmSpec {
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     initHash();
     return hash;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("properties", properties)
         .add("options", options)
@@ -93,7 +94,8 @@ public final class VmSpec {
   enum VmSpecFunnel implements Funnel<VmSpec> {
     INSTANCE;
 
-    @Override public void funnel(VmSpec from, PrimitiveSink into) {
+    @Override
+    public void funnel(VmSpec from, PrimitiveSink into) {
       StringMapFunnel.INSTANCE.funnel(from.properties, into);
       StringMapFunnel.INSTANCE.funnel(from.options, into);
     }

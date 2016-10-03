@@ -23,7 +23,6 @@ import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Closer;
 import com.google.common.io.Resources;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Member;
@@ -82,8 +81,7 @@ public final class Util {
     return Resources.asByteSource(c.getResource(name));
   }
 
-  private static <T> ImmutableMap<String, T> prefixedSubmap(
-      Map<String, T> props, String prefix) {
+  private static <T> ImmutableMap<String, T> prefixedSubmap(Map<String, T> props, String prefix) {
     ImmutableMap.Builder<String, T> submapBuilder = ImmutableMap.builder();
     for (Map.Entry<String, T> entry : props.entrySet()) {
       String name = entry.getKey();
@@ -99,11 +97,11 @@ public final class Util {
    *
    * <p>The keys in the returned map have had their {@code <groupName>.} prefix removed.
    *
-   * <p>e.g. If given a map that contained {@code group.key1 -> value1, key2 -> value2} and a
-   * {@code groupName} of {@code group} it would produce a map containing {@code key1 -> value1}.
+   * <p>e.g. If given a map that contained {@code group.key1 -> value1, key2 -> value2} and a {@code
+   * groupName} of {@code group} it would produce a map containing {@code key1 -> value1}.
    */
   public static ImmutableMap<String, String> subgroupMap(
-          Map<String, String> map, String groupName) {
+      Map<String, String> map, String groupName) {
     return prefixedSubmap(map, groupName + ".");
   }
 
@@ -122,7 +120,8 @@ public final class Util {
     System.runFinalization();
     final CountDownLatch latch = new CountDownLatch(1);
     new Object() {
-      @Override protected void finalize() {
+      @Override
+      protected void finalize() {
         latch.countDown();
       }
     };

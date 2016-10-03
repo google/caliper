@@ -19,7 +19,7 @@ package com.google.caliper.bridge;
 import java.io.Serializable;
 
 /**
- * A message sent from the runner to the worker to indicate whether or not measuring should 
+ * A message sent from the runner to the worker to indicate whether or not measuring should
  * continue.
  */
 public class ShouldContinueMessage implements Serializable {
@@ -32,17 +32,19 @@ public class ShouldContinueMessage implements Serializable {
     this.shouldContinue = shouldContinue;
     this.warmupComplete = warmupComplete;
   }
-  
+
   public boolean shouldContinue() {
     return shouldContinue;
   }
-  
-  @Override public int hashCode() {
+
+  @Override
+  public int hashCode() {
     return Boolean.valueOf(shouldContinue).hashCode();
   }
 
-  @Override public boolean equals(Object obj) {
-    return obj instanceof ShouldContinueMessage 
+  @Override
+  public boolean equals(Object obj) {
+    return obj instanceof ShouldContinueMessage
         && shouldContinue == ((ShouldContinueMessage) obj).shouldContinue;
   }
 

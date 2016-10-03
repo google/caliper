@@ -22,26 +22,21 @@ import com.google.caliper.platform.dalvik.DalvikPlatform;
 import com.google.caliper.platform.jvm.JvmModule;
 import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.base.Optional;
-
 import dagger.Module;
 import dagger.Provides;
-
 import javax.inject.Provider;
 
-/**
- * Provider of a {@link Platform} instance appropriate for the current platform.
- */
+/** Provider of a {@link Platform} instance appropriate for the current platform. */
 @Module(includes = {JvmModule.class, DalvikModule.class})
 public final class PlatformModule {
 
   /**
-   * Chooses the {@link DalvikPlatform} if available, otherwise uses the default
-   * {@link JvmPlatform}.
+   * Chooses the {@link DalvikPlatform} if available, otherwise uses the default {@link
+   * JvmPlatform}.
    */
   @Provides
   static Platform providePlatform(
-      Optional<DalvikPlatform> optionalDalvikPlatform,
-      Provider<JvmPlatform> jvmPlatformProvider) {
+      Optional<DalvikPlatform> optionalDalvikPlatform, Provider<JvmPlatform> jvmPlatformProvider) {
     if (optionalDalvikPlatform.isPresent()) {
       return optionalDalvikPlatform.get();
     } else {

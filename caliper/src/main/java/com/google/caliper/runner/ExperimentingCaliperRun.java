@@ -40,7 +40,6 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
-
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -51,13 +50,10 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Logger;
-
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-/**
- * An execution of each {@link Experiment} for the configured number of trials.
- */
+/** An execution of each {@link Experiment} for the configured number of trials. */
 @VisibleForTesting
 public final class ExperimentingCaliperRun implements CaliperRun {
 
@@ -82,7 +78,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ExperimentSelector selector;
   private final Provider<ListeningExecutorService> executorProvider;
 
-  @Inject @VisibleForTesting
+  @Inject
+  @VisibleForTesting
   public ExperimentingCaliperRun(
       MainComponent mainComponent,
       CaliperOptions options,
@@ -111,26 +108,38 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       stdout.println("Run: " + options.runName());
     }
     stdout.println("Experiment selection: ");
-    stdout.println("  Benchmark Methods:   " + FluentIterable.from(allExperiments)
-        .transform(new Function<Experiment, String>() {
-          @Override public String apply(Experiment experiment) {
-            return experiment.instrumentation().benchmarkMethod().getName();
-          }
-        }).toSet());
-    stdout.println("  Instruments:   " + FluentIterable.from(selector.instruments())
-        .transform(new Function<Instrument, String>() {
-              @Override public String apply(Instrument instrument) {
-                return instrument.name();
-              }
-            }));
+    stdout.println(
+        "  Benchmark Methods:   "
+            + FluentIterable.from(allExperiments)
+                .transform(
+                    new Function<Experiment, String>() {
+                      @Override
+                      public String apply(Experiment experiment) {
+                        return experiment.instrumentation().benchmarkMethod().getName();
+                      }
+                    })
+                .toSet());
+    stdout.println(
+        "  Instruments:   "
+            + FluentIterable.from(selector.instruments())
+                .transform(
+                    new Function<Instrument, String>() {
+                      @Override
+                      public String apply(Instrument instrument) {
+                        return instrument.name();
+                      }
+                    }));
     stdout.println("  User parameters:   " + selector.userParameters());
-    stdout.println("  Virtual machines:  " + FluentIterable.from(selector.vms())
-        .transform(
-            new Function<VirtualMachine, String>() {
-              @Override public String apply(VirtualMachine vm) {
-                return vm.name;
-              }
-            }));
+    stdout.println(
+        "  Virtual machines:  "
+            + FluentIterable.from(selector.vms())
+                .transform(
+                    new Function<VirtualMachine, String>() {
+                      @Override
+                      public String apply(VirtualMachine vm) {
+                        return vm.name;
+                      }
+                    }));
     stdout.println("  Selection type:    " + selector.selectionType());
     stdout.println();
 
@@ -146,8 +155,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     // always dry run first.
     ImmutableSet<Experiment> experimentsToRun = dryRun(allExperiments);
     if (experimentsToRun.size() != allExperiments.size()) {
-      stdout.format("%d experiments were skipped.%n",
-          allExperiments.size() - experimentsToRun.size());
+      stdout.format(
+          "%d experiments were skipped.%n", allExperiments.size() - experimentsToRun.size());
     }
 
     if (experimentsToRun.isEmpty()) {
@@ -176,9 +185,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           for (ResultProcessor resultProcessor : resultProcessors) {
             resultProcessor.processTrial(result.getTrial());
           }
-          resultsByInstrumentation.put(
-              result.getExperiment().instrumentation(),
-              result);
+          resultsByInstrumentation.put(result.getExperiment().instrumentation(), result);
         } catch (ExecutionException e) {
           if (e.getCause() instanceof TrialFailureException) {
             output.processFailedTrial((TrialFailureException) e.getCause());
@@ -203,7 +210,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         Instrumentation instrumentation = entry.getKey();
         Optional<String> message = instrumentation.validateMeasurements(entry.getValue());
         if (message.isPresent()) {
-          stdout.printf("For %s (%s)%n  %s",
+          stdout.printf(
+              "For %s (%s)%n  %s",
               instrumentation.benchmarkMethod().getName(),
               instrumentation.instrument().name(),
               message.get());
@@ -227,10 +235,10 @@ public final class ExperimentingCaliperRun implements CaliperRun {
    * Schedule all the trials.
    *
    * <p>This method arranges all the {@link ScheduledTrial trials} to run according to their
-   * scheduling criteria.  The executor instance is responsible for enforcing max parallelism.
+   * scheduling criteria. The executor instance is responsible for enforcing max parallelism.
    */
-  private List<ListenableFuture<TrialResult>> scheduleTrials(List<ScheduledTrial> trials,
-      final ListeningExecutorService executor) {
+  private List<ListenableFuture<TrialResult>> scheduleTrials(
+      List<ScheduledTrial> trials, final ListeningExecutorService executor) {
     List<ListenableFuture<TrialResult>> pendingTrials = Lists.newArrayList();
     List<ScheduledTrial> serialTrials = Lists.newArrayList();
     for (final ScheduledTrial scheduledTrial : trials) {
@@ -250,7 +258,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           Futures.transformAsync(
               previous,
               new AsyncFunction<Object, TrialResult>() {
-                @Override public ListenableFuture<TrialResult> apply(Object ignored) {
+                @Override
+                public ListenableFuture<TrialResult> apply(Object ignored) {
                   return executor.submit(scheduledTrial.trialTask());
                 }
               });
@@ -262,16 +271,17 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   }
 
   /** Returns all the ScheduledTrials for this run. */
-  private List<ScheduledTrial> createScheduledTrials(ImmutableSet<Experiment> experimentsToRun,
-      int totalTrials) {
+  private List<ScheduledTrial> createScheduledTrials(
+      ImmutableSet<Experiment> experimentsToRun, int totalTrials) {
     List<ScheduledTrial> trials = Lists.newArrayListWithCapacity(totalTrials);
-    /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
+    /** This is 1-indexed because it's only used for display to users. E.g. "Trial 1 of 27" */
     int trialNumber = 1;
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
         try {
-          TrialScopeComponent trialScopeComponent = mainComponent.newTrialComponent(
-              new TrialModule(UUID.randomUUID(), trialNumber, experiment));
+          TrialScopeComponent trialScopeComponent =
+              mainComponent.newTrialComponent(
+                  new TrialModule(UUID.randomUUID(), trialNumber, experiment));
 
           trials.add(trialScopeComponent.getScheduledTrial());
         } finally {
@@ -302,7 +312,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           // discard 'benchmark' now; the worker will have to instantiate its own anyway
           benchmarkClass.cleanup(benchmark);
         }
-      } catch (SkipThisScenarioException innocuous) {}
+      } catch (SkipThisScenarioException innocuous) {
+      }
     }
     return builder.build();
   }
@@ -315,18 +326,21 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       SettableFuture<T> delegate = SettableFuture.create();
       // Must make sure to add the delegate to the queue first in case the future is already done
       delegates.add(delegate);
-      future.addListener(new Runnable() {
-        @Override public void run() {
-          SettableFuture<T> delegate = delegates.remove();
-          try {
-            delegate.set(Uninterruptibles.getUninterruptibly(future));
-          } catch (ExecutionException e) {
-            delegate.setException(e.getCause());
-          } catch (CancellationException e) {
-            delegate.cancel(true);
-          }
-        }
-      }, MoreExecutors.directExecutor());
+      future.addListener(
+          new Runnable() {
+            @Override
+            public void run() {
+              SettableFuture<T> delegate = delegates.remove();
+              try {
+                delegate.set(Uninterruptibles.getUninterruptibly(future));
+              } catch (ExecutionException e) {
+                delegate.setException(e.getCause());
+              } catch (CancellationException e) {
+                delegate.cancel(true);
+              }
+            }
+          },
+          MoreExecutors.directExecutor());
       listBuilder.add(delegate);
     }
     return listBuilder.build();

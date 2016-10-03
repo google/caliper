@@ -30,18 +30,16 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests {@link WorkerProcess}.
@@ -56,10 +54,14 @@ public class WorkerProcessTest {
 
   private static class MockRegistrar implements ShutdownHookRegistrar {
     Set<Thread> hooks = Sets.newHashSet();
-    @Override public void addShutdownHook(Thread hook) {
+
+    @Override
+    public void addShutdownHook(Thread hook) {
       hooks.add(hook);
     }
-    @Override public boolean removeShutdownHook(Thread hook) {
+
+    @Override
+    public boolean removeShutdownHook(Thread hook) {
       return hooks.remove(hook);
     }
   }
@@ -67,37 +69,39 @@ public class WorkerProcessTest {
   private final MockRegistrar registrar = new MockRegistrar();
   private BenchmarkClass benchmarkClass;
 
-  @Before public void setUp() throws InvalidBenchmarkException {
+  @Before
+  public void setUp() throws InvalidBenchmarkException {
     benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
   }
 
-  @Test public void simpleArgsTest() throws Exception {
+  @Test
+  public void simpleArgsTest() throws Exception {
     Method method = TestBenchmark.class.getDeclaredMethods()[0];
     AllocationInstrument allocationInstrument = new AllocationInstrument();
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
-    VmConfig vmConfig = new VmConfig(
-        new File("foo"),
-        Arrays.asList("--doTheHustle"),
-        new File("java"),
-        new JvmPlatform());
-    Experiment experiment = new Experiment(
-        allocationInstrument.createInstrumentation(method),
-        ImmutableMap.<String, String>of(),
-        new VirtualMachine("foo-jvm", vmConfig));
-    BenchmarkSpec spec = new BenchmarkSpec.Builder()
-        .className(TestBenchmark.class.getName())
-        .methodName(method.getName())
-        .build();
+    VmConfig vmConfig =
+        new VmConfig(
+            new File("foo"), Arrays.asList("--doTheHustle"), new File("java"), new JvmPlatform());
+    Experiment experiment =
+        new Experiment(
+            allocationInstrument.createInstrumentation(method),
+            ImmutableMap.<String, String>of(),
+            new VirtualMachine("foo-jvm", vmConfig));
+    BenchmarkSpec spec =
+        new BenchmarkSpec.Builder()
+            .className(TestBenchmark.class.getName())
+            .methodName(method.getName())
+            .build();
     ProcessBuilder builder = createProcess(experiment, spec);
     List<String> commandLine = builder.command();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
-    assertEquals("--doTheHustle", commandLine.get(1));  // vm specific flags come next
-    assertEquals("-cp", commandLine.get(2));  // then the classpath
+    assertEquals("--doTheHustle", commandLine.get(1)); // vm specific flags come next
+    assertEquals("-cp", commandLine.get(2)); // then the classpath
     // should we assert on classpath contents?
     ImmutableSet<String> extraCommandLineArgs =
         allocationInstrument.getExtraCommandLineArgs(vmConfig);
-    assertEquals(extraCommandLineArgs.asList(),
-        commandLine.subList(4, 4 + extraCommandLineArgs.size()));
+    assertEquals(
+        extraCommandLineArgs.asList(), commandLine.subList(4, 4 + extraCommandLineArgs.size()));
     int index = 4 + extraCommandLineArgs.size();
     assertEquals("-XX:+PrintFlagsFinal", commandLine.get(index));
     assertEquals("-XX:+PrintCompilation", commandLine.get(++index));
@@ -106,31 +110,36 @@ public class WorkerProcessTest {
     // followed by worker args...
   }
 
-  @Test public void shutdownHook_waitFor() throws Exception {
+  @Test
+  public void shutdownHook_waitFor() throws Exception {
     Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
-    assertEquals("worker-shutdown-hook-" + TRIAL_ID,
-        Iterables.getOnlyElement(registrar.hooks).getName());
+    assertEquals(
+        "worker-shutdown-hook-" + TRIAL_ID, Iterables.getOnlyElement(registrar.hooks).getName());
     worker.waitFor();
     assertTrue(registrar.hooks.isEmpty());
   }
 
-  @Test public void shutdownHook_exitValueThrows() throws Exception {
-    Process worker = createWorkerProcess(
-        FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1))).startWorker();
+  @Test
+  public void shutdownHook_exitValueThrows() throws Exception {
+    Process worker =
+        createWorkerProcess(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)))
+            .startWorker();
     try {
       Thread hook = Iterables.getOnlyElement(registrar.hooks);
       assertEquals("worker-shutdown-hook-" + TRIAL_ID, hook.getName());
       try {
         worker.exitValue();
         fail();
-      } catch (IllegalThreadStateException expected) {}
+      } catch (IllegalThreadStateException expected) {
+      }
       assertTrue(registrar.hooks.contains(hook));
     } finally {
       worker.destroy(); // clean up
     }
   }
 
-  @Test public void shutdownHook_exitValue() throws Exception {
+  @Test
+  public void shutdownHook_exitValue() throws Exception {
     Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
     while (true) {
       try {
@@ -138,20 +147,23 @@ public class WorkerProcessTest {
         assertTrue(registrar.hooks.isEmpty());
         break;
       } catch (IllegalThreadStateException e) {
-        Thread.sleep(10);  // keep polling
+        Thread.sleep(10); // keep polling
       }
     }
   }
 
-  @Test public void shutdownHook_destroy() throws Exception {
-    Process worker = createWorkerProcess(
-        FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1))).startWorker();
+  @Test
+  public void shutdownHook_destroy() throws Exception {
+    Process worker =
+        createWorkerProcess(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)))
+            .startWorker();
     worker.destroy();
     assertTrue(registrar.hooks.isEmpty());
   }
 
   static final class TestBenchmark {
-    @Benchmark long thing(long reps) {
+    @Benchmark
+    long thing(long reps) {
       long dummy = 0;
       for (long i = 0; i < reps; i++) {
         dummy += new Long(dummy).hashCode();
@@ -161,14 +173,12 @@ public class WorkerProcessTest {
   }
 
   private ProcessBuilder createProcess(Experiment experiment, BenchmarkSpec benchmarkSpec) {
-    return WorkerProcess.buildProcess(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER,
-        benchmarkClass);
+    return WorkerProcess.buildProcess(
+        TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, benchmarkClass);
   }
 
-  private WorkerProcess createWorkerProcess(Class<?> main, String ...args) {
-    return new WorkerProcess(FakeWorkers.createProcessBuilder(main, args),
-        TRIAL_ID,
-        null,
-        registrar);
+  private WorkerProcess createWorkerProcess(Class<?> main, String... args) {
+    return new WorkerProcess(
+        FakeWorkers.createProcessBuilder(main, args), TRIAL_ID, null, registrar);
   }
 }

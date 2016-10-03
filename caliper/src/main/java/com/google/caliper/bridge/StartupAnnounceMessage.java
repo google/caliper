@@ -22,8 +22,8 @@ import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * A message sent from the worker to the runner immediately after startup to identify the trial
- * that it is performing.
+ * A message sent from the worker to the runner immediately after startup to identify the trial that
+ * it is performing.
  */
 public final class StartupAnnounceMessage implements Serializable {
   private static final long serialVersionUID = 1L;
@@ -38,11 +38,13 @@ public final class StartupAnnounceMessage implements Serializable {
     return trialId;
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return trialId.hashCode();
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     return obj instanceof StartupAnnounceMessage
         && trialId.equals(((StartupAnnounceMessage) obj).trialId);
   }

@@ -26,39 +26,38 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.Multisets;
-
-import java.text.DecimalFormat;
 import java.util.Collection;
 
-/**
- * A set of statistics about the allocations performed by a benchmark method.
- */
+/** A set of statistics about the allocations performed by a benchmark method. */
 final class AllocationStats {
   private final int allocationCount;
   private final long allocationSize;
   private final int reps;
   private final ImmutableMultiset<Allocation> allocations;
-  
+
   /**
-   * Constructs a new {@link AllocationStats} with the given number of allocations 
-   * ({@code allocationCount}), cumulative size of the allocations ({@code allocationSize}) and the
-   * number of {@code reps} passed to the benchmark method.
+   * Constructs a new {@link AllocationStats} with the given number of allocations ({@code
+   * allocationCount}), cumulative size of the allocations ({@code allocationSize}) and the number
+   * of {@code reps} passed to the benchmark method.
    */
   AllocationStats(int allocationCount, long allocationSize, int reps) {
     this(allocationCount, allocationSize, reps, ImmutableMultiset.<Allocation>of());
   }
-  
+
   /**
-   * Constructs a new {@link AllocationStats} with the given allocations and the number of 
-   * {@code reps} passed to the benchmark method.
+   * Constructs a new {@link AllocationStats} with the given allocations and the number of {@code
+   * reps} passed to the benchmark method.
    */
   AllocationStats(Collection<Allocation> allocations, int reps) {
-    this(allocations.size(), Allocation.getTotalSize(allocations), reps, 
+    this(
+        allocations.size(),
+        Allocation.getTotalSize(allocations),
+        reps,
         ImmutableMultiset.copyOf(allocations));
   }
 
-  private AllocationStats(int allocationCount, long allocationSize, int reps, 
-      Multiset<Allocation> allocations) {
+  private AllocationStats(
+      int allocationCount, long allocationSize, int reps, Multiset<Allocation> allocations) {
     checkArgument(allocationCount >= 0, "allocationCount (%s) was negative", allocationCount);
     this.allocationCount = allocationCount;
     checkArgument(allocationSize >= 0, "allocationSize (%s) was negative", allocationSize);
@@ -67,51 +66,53 @@ final class AllocationStats {
     this.reps = reps;
     this.allocations = Multisets.copyHighestCountFirst(allocations);
   }
-  
+
   int getAllocationCount() {
     return allocationCount;
   }
-  
+
   long getAllocationSize() {
     return allocationSize;
   }
-  
+
   /**
-   * Computes and returns the difference between this measurement and the given 
-   * {@code baseline} measurement. The {@code baseline} measurement must have a lower weight 
-   * (fewer reps) than this measurement.
+   * Computes and returns the difference between this measurement and the given {@code baseline}
+   * measurement. The {@code baseline} measurement must have a lower weight (fewer reps) than this
+   * measurement.
    */
   AllocationStats minus(AllocationStats baseline) {
     for (Entry<Allocation> entry : baseline.allocations.entrySet()) {
       int superCount = allocations.count(entry.getElement());
       if (superCount < entry.getCount()) {
         throw new IllegalStateException(
-            String.format("Your benchmark appears to have non-deterministic allocation behavior. "
-                + "Observed %d instance(s) of %s in the baseline but only %d in the actual "
-                + "measurement", 
-                entry.getCount(),
-                entry.getElement(), 
-                superCount));
+            String.format(
+                "Your benchmark appears to have non-deterministic allocation behavior. "
+                    + "Observed %d instance(s) of %s in the baseline but only %d in the actual "
+                    + "measurement",
+                entry.getCount(), entry.getElement(), superCount));
       }
     }
     try {
-      return new AllocationStats(allocationCount - baseline.allocationCount,
-            allocationSize - baseline.allocationSize,
-            reps - baseline.reps,
-            Multisets.difference(allocations, baseline.allocations));
+      return new AllocationStats(
+          allocationCount - baseline.allocationCount,
+          allocationSize - baseline.allocationSize,
+          reps - baseline.reps,
+          Multisets.difference(allocations, baseline.allocations));
     } catch (IllegalArgumentException e) {
-      throw new IllegalStateException(String.format(
-          "Your benchmark appears to have non-deterministic allocation behavior. The difference "
-          + "between the baseline %s and the measurement %s is invalid. Consider enabling "
-          + "instrument.allocation.options.trackAllocations to get a more specific error message.", 
-          baseline, this), e);
+      throw new IllegalStateException(
+          String.format(
+              "Your benchmark appears to have non-deterministic allocation behavior. The difference "
+                  + "between the baseline %s and the measurement %s is invalid. Consider enabling "
+                  + "instrument.allocation.options.trackAllocations to get a more specific error message.",
+              baseline, this),
+          e);
     }
   }
 
   /**
-   * Computes and returns the difference between this measurement and the given
-   * {@code baseline} measurement. Unlike {@link #minus(AllocationStats)} this does not have to
-   * be a super set of the baseline.
+   * Computes and returns the difference between this measurement and the given {@code baseline}
+   * measurement. Unlike {@link #minus(AllocationStats)} this does not have to be a super set of the
+   * baseline.
    */
   public Delta delta(AllocationStats baseline) {
     return new Delta(
@@ -122,9 +123,7 @@ final class AllocationStats {
         Multisets.difference(baseline.allocations, allocations));
   }
 
-  /**
-   * Returns a list of {@link Measurement measurements} based on this collection of stats.
-   */
+  /** Returns a list of {@link Measurement measurements} based on this collection of stats. */
   ImmutableList<Measurement> toMeasurements() {
     for (Entry<Allocation> entry : allocations.entrySet()) {
       double allocsPerRep = ((double) entry.getCount()) / reps;
@@ -163,7 +162,8 @@ final class AllocationStats {
     return Objects.hashCode(allocationCount, allocationSize, reps, allocations);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("allocationCount", allocationCount)
         .add("allocationSize", allocationSize)
@@ -172,9 +172,7 @@ final class AllocationStats {
         .toString();
   }
 
-  /**
-   * The delta between two different sets of statistics.
-   */
+  /** The delta between two different sets of statistics. */
   static final class Delta {
     private final int count;
     private final long size;
@@ -195,14 +193,13 @@ final class AllocationStats {
       this.removals = removals;
     }
 
-    /**
-     * Returns the long formatted with a leading +/- sign
-     */
+    /** Returns the long formatted with a leading +/- sign */
     private static String formatWithLeadingSign(long n) {
       return n > 0 ? "+" + n : "" + n;
     }
 
-    @Override public String toString() {
+    @Override
+    public String toString() {
       return MoreObjects.toStringHelper(this)
           .add("count", formatWithLeadingSign(count))
           .add("size", formatWithLeadingSign(size))

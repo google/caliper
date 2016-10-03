@@ -19,13 +19,12 @@ package com.google.caliper.bridge;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-
 import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child
- * does not do it, it will not get its allowance this week.
+ * This object is sent from the parent process to the child to tell it what to do. If the child does
+ * not do it, it will not get its allowance this week.
  */
 public final class WorkerSpec implements Serializable {
   private static final long serialVersionUID = 1L;
@@ -36,10 +35,9 @@ public final class WorkerSpec implements Serializable {
   public final ImmutableMap<String, String> workerOptions;
   public final BenchmarkSpec benchmarkSpec;
 
-  /**
-   * The names of the benchmark method parameters so that the method can be uniquely identified.
-   */
+  /** The names of the benchmark method parameters so that the method can be uniquely identified. */
   public final ImmutableList<Class<?>> methodParameterClasses;
+
   public final int port;
 
   public WorkerSpec(

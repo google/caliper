@@ -24,12 +24,10 @@ import com.google.caliper.util.OutputModule;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.util.concurrent.ServiceManager;
-
 import java.io.PrintWriter;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import javax.annotation.Nullable;
 
 /**
@@ -40,11 +38,13 @@ import javax.annotation.Nullable;
  */
 public final class CaliperMain {
   /**
-   * Your benchmark classes can implement main() like this: <pre>   {@code
+   * Your benchmark classes can implement main() like this:
    *
-   *   public static void main(String[] args) {
-   *     CaliperMain.main(MyBenchmark.class, args);
-   *   }}</pre>
+   * <pre>{@code
+   * public static void main(String[] args) {
+   *   CaliperMain.main(MyBenchmark.class, args);
+   * }
+   * }</pre>
    *
    * Note that this method does invoke {@link System#exit} when it finishes. Consider {@link
    * #exitlessMain} if you don't want that.
@@ -100,10 +100,11 @@ public final class CaliperMain {
       System.err.println("Legacy Caliper is no more. " + LEGACY_ENV + " has no effect.");
     }
     try {
-      MainComponent mainComponent = DaggerMainComponent.builder()
-          .optionsModule(OptionsModule.withBenchmarkClass(args))
-          .outputModule(new OutputModule(stdout, stderr))
-          .build();
+      MainComponent mainComponent =
+          DaggerMainComponent.builder()
+              .optionsModule(OptionsModule.withBenchmarkClass(args))
+              .outputModule(new OutputModule(stdout, stderr))
+              .build();
       CaliperOptions options = mainComponent.getCaliperOptions();
       if (options.printConfiguration()) {
         stdout.println("Configuration:");

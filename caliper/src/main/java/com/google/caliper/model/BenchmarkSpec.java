@@ -25,12 +25,9 @@ import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
-
-
 import java.io.Serializable;
 import java.util.Map;
 import java.util.SortedMap;
-
 
 /**
  * A specification by which a benchmark method invocation can be uniquely identified.
@@ -42,7 +39,8 @@ public final class BenchmarkSpec implements Serializable {
 
   static final BenchmarkSpec DEFAULT = new BenchmarkSpec();
 
-  @ExcludeFromJson private int id;
+  @ExcludeFromJson
+  private int id;
   private String className;
   private String methodName;
   private SortedMap<String, String> parameters;
@@ -72,7 +70,8 @@ public final class BenchmarkSpec implements Serializable {
     return ImmutableSortedMap.copyOf(parameters);
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof BenchmarkSpec) {
@@ -87,17 +86,19 @@ public final class BenchmarkSpec implements Serializable {
 
   private void initHash() {
     if (hash == 0) {
-      this.hash = getPersistentHashFunction()
-          .hashObject(this, BenchmarkSpecFunnel.INSTANCE).asInt();
+      this.hash =
+          getPersistentHashFunction().hashObject(this, BenchmarkSpecFunnel.INSTANCE).asInt();
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     initHash();
     return hash;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("className", className)
         .add("methodName", methodName)
@@ -108,9 +109,9 @@ public final class BenchmarkSpec implements Serializable {
   enum BenchmarkSpecFunnel implements Funnel<BenchmarkSpec> {
     INSTANCE;
 
-    @Override public void funnel(BenchmarkSpec from, PrimitiveSink into) {
-      into.putUnencodedChars(from.className)
-          .putUnencodedChars(from.methodName);
+    @Override
+    public void funnel(BenchmarkSpec from, PrimitiveSink into) {
+      into.putUnencodedChars(from.className).putUnencodedChars(from.methodName);
       StringMapFunnel.INSTANCE.funnel(from.parameters, into);
     }
   }

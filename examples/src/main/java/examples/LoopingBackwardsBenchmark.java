@@ -19,13 +19,13 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-/**
- * Testing the old canard that looping backwards is faster.
- */
+/** Testing the old canard that looping backwards is faster. */
 public class LoopingBackwardsBenchmark {
-  @Param({"2", "20", "2000", "20000000"}) int max;
+  @Param({"2", "20", "2000", "20000000"})
+  int max;
 
-  @Benchmark int forwards(int reps) {
+  @Benchmark
+  int forwards(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (int j = 0; j < max; j++) {
@@ -35,7 +35,8 @@ public class LoopingBackwardsBenchmark {
     return dummy;
   }
 
-  @Benchmark int backwards(int reps) {
+  @Benchmark
+  int backwards(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (int j = max - 1; j >= 0; j--) {

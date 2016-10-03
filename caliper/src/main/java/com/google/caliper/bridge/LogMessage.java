@@ -16,9 +16,7 @@
 
 package com.google.caliper.bridge;
 
-/**
- * A single line of output produced by a {@code Worker}.
- */
+/** A single line of output produced by a {@code Worker}. */
 public abstract class LogMessage {
   public abstract void accept(LogMessageVisitor visitor);
 }

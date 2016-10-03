@@ -23,9 +23,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/**
- * Indicates that a field or type should not be serialized to JSON.
- */
+/** Indicates that a field or type should not be serialized to JSON. */
 @Target({FIELD, TYPE})
 @Retention(RUNTIME)
 public @interface ExcludeFromJson {}

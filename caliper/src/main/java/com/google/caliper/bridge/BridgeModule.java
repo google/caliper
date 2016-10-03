@@ -17,13 +17,10 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.util.Parser;
-
 import dagger.Binds;
 import dagger.Module;
 
-/**
- * Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes.
- */
+/** Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes. */
 @Module
 public abstract class BridgeModule {
   @Binds

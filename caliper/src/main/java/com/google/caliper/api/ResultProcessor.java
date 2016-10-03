@@ -17,12 +17,11 @@
 package com.google.caliper.api;
 
 import com.google.caliper.model.Trial;
-
 import java.io.Closeable;
 
 /**
- * Interface for processing results as they complete. Callers must invoke {@link #close()} after
- * all trials have been {@linkplain #processTrial processed}.
+ * Interface for processing results as they complete. Callers must invoke {@link #close()} after all
+ * trials have been {@linkplain #processTrial processed}.
  *
  * <p>Implementations must have a public no argument constructor.
  */

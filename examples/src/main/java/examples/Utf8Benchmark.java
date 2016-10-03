@@ -19,28 +19,24 @@ package examples;
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-
 import java.nio.charset.Charset;
 import java.util.Random;
 
-/**
- * Benchmark for operations with the UTF-8 charset.
- */
+/** Benchmark for operations with the UTF-8 charset. */
 public class Utf8Benchmark {
 
   static final Charset UTF_8 = Charset.forName("UTF-8");
 
   /**
-   * The maximum code point used in generated text.  Different values
-   * provide reasonable models of different real-world human text.
+   * The maximum code point used in generated text. Different values provide reasonable models of
+   * different real-world human text.
    */
   static class MaxCodePoint {
     final int value;
 
     /**
-     * Convert the input string to a code point.  Accepts regular
-     * decimal numerals, hex strings, and some symbolic names
-     * meaningful to humans.
+     * Convert the input string to a code point. Accepts regular decimal numerals, hex strings, and
+     * some symbolic names meaningful to humans.
      */
     private static int decode(String userFriendly) {
       try {
@@ -81,21 +77,24 @@ public class Utf8Benchmark {
   }
 
   /**
-   * The default values of maxCodePoint below provide pretty good
-   * performance models of different kinds of common human text.
+   * The default values of maxCodePoint below provide pretty good performance models of different
+   * kinds of common human text.
+   *
    * @see MaxCodePoint#decode
    */
-  @Param({"0x80", "0x100", "0x800", "0x10000", "0x10ffff"}) MaxCodePoint maxCodePoint;
+  @Param({"0x80", "0x100", "0x800", "0x10000", "0x10ffff"})
+  MaxCodePoint maxCodePoint;
 
   static final int STRING_COUNT = 1 << 7;
 
-  @Param({"65536"}) int charCount;
+  @Param({"65536"})
+  int charCount;
+
   private String[] strings;
 
-  /**
-   * Computes arrays of valid unicode Strings.
-   */
-  @BeforeExperiment void setUp() {
+  /** Computes arrays of valid unicode Strings. */
+  @BeforeExperiment
+  void setUp() {
     final long seed = 99;
     final Random rnd = new Random(seed);
     strings = new String[STRING_COUNT];
@@ -116,12 +115,12 @@ public class Utf8Benchmark {
   }
 
   /**
-   * Benchmarks {@link String#getBytes} on valid strings containing
-   * pseudo-randomly-generated codePoints less than {@code
-   * maxCodePoint}.  A constant seed is used, so separate runs perform
+   * Benchmarks {@link String#getBytes} on valid strings containing pseudo-randomly-generated
+   * codePoints less than {@code maxCodePoint}. A constant seed is used, so separate runs perform
    * identical computations.
    */
-  @Benchmark void getBytes(int reps) {
+  @Benchmark
+  void getBytes(int reps) {
     final String[] strings = this.strings;
     final int mask = STRING_COUNT - 1;
     for (int i = 0; i < reps; i++) {
@@ -135,7 +134,6 @@ public class Utf8Benchmark {
 
   /** Character.isSurrogate was added in Java SE 7. */
   private boolean isSurrogate(int c) {
-    return (Character.MIN_HIGH_SURROGATE <= c &&
-            c <= Character.MAX_LOW_SURROGATE);
+    return (Character.MIN_HIGH_SURROGATE <= c && c <= Character.MAX_LOW_SURROGATE);
   }
 }

@@ -21,7 +21,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import java.io.Serializable;
 
 /**
@@ -45,7 +44,8 @@ public class VmPropertiesLogMessage extends LogMessage implements Serializable {
     return properties;
   }
 
-  @Override public void accept(LogMessageVisitor visitor) {
+  @Override
+  public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
   }
 

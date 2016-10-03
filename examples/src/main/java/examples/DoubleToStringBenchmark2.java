@@ -19,9 +19,7 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-/**
- * Measures the various ways the JDK converts doubles to strings.
- */
+/** Measures the various ways the JDK converts doubles to strings. */
 public class DoubleToStringBenchmark2 {
   @Param boolean useWrapper;
 
@@ -40,7 +38,8 @@ public class DoubleToStringBenchmark2 {
 
   @Param Value value;
 
-  @Benchmark int toString(int reps) {
+  @Benchmark
+  int toString(int reps) {
     int dummy = 0;
     if (useWrapper) {
       Double d = value.d;
@@ -56,7 +55,8 @@ public class DoubleToStringBenchmark2 {
     return dummy;
   }
 
-  @Benchmark int stringValueOf(int reps) {
+  @Benchmark
+  int stringValueOf(int reps) {
     int dummy = 0;
     if (useWrapper) {
       Double d = value.d;
@@ -72,7 +72,8 @@ public class DoubleToStringBenchmark2 {
     return dummy;
   }
 
-  @Benchmark int stringFormat(int reps) {
+  @Benchmark
+  int stringFormat(int reps) {
     int dummy = 0;
     if (useWrapper) {
       Double d = value.d;
@@ -88,7 +89,8 @@ public class DoubleToStringBenchmark2 {
     return dummy;
   }
 
-  @Benchmark int quoteTrick(int reps) {
+  @Benchmark
+  int quoteTrick(int reps) {
     int dummy = 0;
     if (useWrapper) {
       Double d = value.d;

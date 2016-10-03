@@ -19,21 +19,19 @@ package com.google.caliper.json;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-
+import java.io.IOException;
 import org.joda.time.Instant;
 import org.joda.time.format.ISODateTimeFormat;
 
-import java.io.IOException;
-
-/**
- * Serializes and deserializes {@link Instant} instances.
- */
+/** Serializes and deserializes {@link Instant} instances. */
 final class InstantTypeAdapter extends TypeAdapter<Instant> {
-  @Override public void write(JsonWriter out, Instant value) throws IOException {
+  @Override
+  public void write(JsonWriter out, Instant value) throws IOException {
     out.value(ISODateTimeFormat.dateTime().print(value));
   }
 
-  @Override public Instant read(JsonReader in) throws IOException {
+  @Override
+  public Instant read(JsonReader in) throws IOException {
     return ISODateTimeFormat.dateTime().parseDateTime(in.nextString()).toInstant();
   }
 }

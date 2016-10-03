@@ -19,20 +19,17 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.runner.TrialOutputFactory.FileAndWriter;
-
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.UUID;
-
 import javax.annotation.concurrent.GuardedBy;
 import javax.inject.Inject;
 
-/**
- * A logger to write trial output to a file.
- */
-@TrialScoped final class TrialOutputLogger implements Closeable {
+/** A logger to write trial output to a file. */
+@TrialScoped
+final class TrialOutputLogger implements Closeable {
   @GuardedBy("this")
   private File file;
 
@@ -44,14 +41,18 @@ import javax.inject.Inject;
   private final UUID trialId;
   private final TrialOutputFactory outputManager;
 
-  @Inject TrialOutputLogger(TrialOutputFactory outputManager, @TrialNumber int trialNumber,
-      @TrialId UUID trialId, Experiment experiment) {
+  @Inject
+  TrialOutputLogger(
+      TrialOutputFactory outputManager,
+      @TrialNumber int trialNumber,
+      @TrialId UUID trialId,
+      Experiment experiment) {
     this.outputManager = outputManager;
     this.trialNumber = trialNumber;
     this.trialId = trialId;
     this.experiment = experiment;
   }
-  
+
   /** Opens the trial output file. */
   synchronized void open() throws IOException {
     if (writer == null) {
@@ -60,8 +61,8 @@ import javax.inject.Inject;
       writer = fileAndWriter.writer;
     }
   }
-  
-  /** 
+
+  /**
    * Ensures that the writer has been opened. also creates a happens-before edge that ensures that
    * writer is visible (and non-null) after a non-exceptional return from this method.
    */
@@ -81,10 +82,10 @@ import javax.inject.Inject;
     writer.println("Experiment: " + experiment);
     writer.println();
   }
-  
-  /** 
+
+  /**
    * Logs a line of output to the logger.
-   * 
+   *
    * @param source The source of the line (e.g. 'stderr')
    * @param line The output
    */
@@ -92,8 +93,9 @@ import javax.inject.Inject;
     checkOpened();
     writer.printf("[%s] %s%n", source, line);
   }
-  
-  @Override public synchronized void close() {
+
+  @Override
+  public synchronized void close() {
     if (writer != null) {
       writer.close();
     }
@@ -104,7 +106,7 @@ import javax.inject.Inject;
     checkOpened();
     outputManager.persistFile(file);
   }
-  
+
   /** Returns the log file path. */
   synchronized File trialOutputFile() {
     checkOpened();

@@ -22,22 +22,18 @@ import static org.junit.Assert.fail;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.common.util.concurrent.ListenableFuture;
-
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.Socket;
+import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.util.UUID;
-import java.util.concurrent.ExecutionException;
-
-/**
- * Tests for {@link ServerSocketService}.
- */
+/** Tests for {@link ServerSocketService}. */
 @RunWith(JUnit4.class)
 
 public class ServerSocketServiceTest {
@@ -45,16 +41,19 @@ public class ServerSocketServiceTest {
   private final ServerSocketService service = new ServerSocketService();
   private int port;
 
-  @Before public void startService() {
+  @Before
+  public void startService() {
     service.startAsync().awaitRunning();
     port = service.getPort();
   }
 
-  @After public void stopService() {
+  @After
+  public void stopService() {
     service.stopAsync().awaitTerminated();
   }
 
-  @Test public void getConnectionId_requestComesInFirst() throws Exception {
+  @Test
+  public void getConnectionId_requestComesInFirst() throws Exception {
     UUID id = UUID.randomUUID();
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
     assertFalse(pendingServerConnection.isDone());
@@ -63,7 +62,8 @@ public class ServerSocketServiceTest {
     assertEndsConnected(clientSocket, pendingServerConnection.get());
   }
 
-  @Test public void getConnectionIdTwice_acceptComesFirst() throws Exception {
+  @Test
+  public void getConnectionIdTwice_acceptComesFirst() throws Exception {
     UUID id = UUID.randomUUID();
     OpenedSocket clientSocket = openConnectionAndIdentify(id);
 
@@ -75,10 +75,12 @@ public class ServerSocketServiceTest {
       // the second request is an error
       service.getConnection(id).get();
       fail();
-    } catch (IllegalStateException expected) {}
+    } catch (IllegalStateException expected) {
+    }
   }
 
-  @Test public void getConnectionStoppedService() throws Exception {
+  @Test
+  public void getConnectionStoppedService() throws Exception {
     UUID id = UUID.randomUUID();
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
     assertFalse(pendingServerConnection.isDone());
@@ -95,16 +97,15 @@ public class ServerSocketServiceTest {
     try {
       service.getConnection(UUID.randomUUID());
       fail();
-    } catch (IllegalStateException expected) {}
+    } catch (IllegalStateException expected) {
+    }
   }
 
   private OpenedSocket openClientConnection() throws IOException {
     return OpenedSocket.fromSocket(new Socket(InetAddress.getLoopbackAddress(), port));
   }
 
-  /**
-   * Opens a connection to the service and identifies itself using the id.
-   */
+  /** Opens a connection to the service and identifies itself using the id. */
   private OpenedSocket openConnectionAndIdentify(UUID id) throws IOException {
     OpenedSocket clientSocket = openClientConnection();
     OpenedSocket.Writer writer = clientSocket.writer();
@@ -116,11 +117,11 @@ public class ServerSocketServiceTest {
   private void assertEndsConnected(OpenedSocket clientSocket, OpenedSocket serverSocket)
       throws IOException {
     serverSocket.writer().write("hello client!");
-    serverSocket.writer().flush();  // necessary to prevent deadlock
+    serverSocket.writer().flush(); // necessary to prevent deadlock
     assertEquals("hello client!", clientSocket.reader().read());
 
     clientSocket.writer().write("hello server!");
-    clientSocket.writer().flush();  // ditto
+    clientSocket.writer().flush(); // ditto
     assertEquals("hello server!", serverSocket.reader().read());
   }
 }

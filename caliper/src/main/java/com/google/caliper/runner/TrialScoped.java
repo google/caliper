@@ -22,7 +22,6 @@ import static java.lang.annotation.ElementType.TYPE;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-
 import javax.inject.Scope;
 
 /**
@@ -30,7 +29,7 @@ import javax.inject.Scope;
  *
  * <p>Apply this to binding for which there can only be one per trial.
  */
-@Target({ TYPE, METHOD })
+@Target({TYPE, METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Scope
 @interface TrialScoped {}
