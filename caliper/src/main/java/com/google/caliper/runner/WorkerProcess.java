@@ -22,7 +22,6 @@ import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.Instrument.Instrumentation;
-import com.google.caliper.worker.WorkerMain;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -166,7 +165,7 @@ final class WorkerProcess {
     WorkerSpec request =
         new WorkerSpec(
             trialId,
-            instrumentation.workerClass(),
+            instrumentation.type(),
             instrumentation.workerOptions(),
             benchmarkSpec,
             ImmutableList.copyOf(instrumentation.benchmarkMethod.getParameterTypes()),
@@ -189,7 +188,7 @@ final class WorkerProcess {
     // last to ensure that they're always applied
     args.addAll(vmConfig.workerProcessArgs());
 
-    args.add(WorkerMain.class.getName());
+    args.add("com.google.caliper.worker.WorkerMain");
     args.add(CommandLineSerializer.render(request));
 
     logger.finest(String.format("Full JVM (%s) args: %s", vm.name, args));

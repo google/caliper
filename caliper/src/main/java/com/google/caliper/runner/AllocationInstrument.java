@@ -28,11 +28,9 @@ import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.config.VmConfig;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.SupportedPlatform;
-import com.google.caliper.worker.MacrobenchmarkAllocationWorker;
-import com.google.caliper.worker.MicrobenchmarkAllocationWorker;
-import com.google.caliper.worker.Worker;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -122,8 +120,8 @@ public final class AllocationInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return MicrobenchmarkAllocationWorker.class;
+    public InstrumentType type() {
+      return InstrumentType.ALLOCATION_MICRO;
     }
 
     @Override
@@ -178,8 +176,8 @@ public final class AllocationInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return MacrobenchmarkAllocationWorker.class;
+    public InstrumentType type() {
+      return InstrumentType.ALLOCATION_MACRO;
     }
 
     @Override

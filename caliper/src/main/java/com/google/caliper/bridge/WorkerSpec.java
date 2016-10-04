@@ -17,6 +17,7 @@
 package com.google.caliper.bridge;
 
 import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.model.InstrumentType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
@@ -30,8 +31,7 @@ public final class WorkerSpec implements Serializable {
   private static final long serialVersionUID = 1L;
 
   public final UUID trialId;
-  // Should be ? extends Worker but circular build deps prevent that.
-  public final Class<?> workerClass;
+  public final InstrumentType instrumentType;
   public final ImmutableMap<String, String> workerOptions;
   public final BenchmarkSpec benchmarkSpec;
 
@@ -42,13 +42,13 @@ public final class WorkerSpec implements Serializable {
 
   public WorkerSpec(
       UUID trialId,
-      Class<?> workerClass,
+      InstrumentType instrumentType,
       ImmutableMap<String, String> workerOptions,
       BenchmarkSpec benchmarkSpec,
       ImmutableList<Class<?>> methodParameterClasses,
       int port) {
     this.trialId = trialId;
-    this.workerClass = workerClass;
+    this.instrumentType = instrumentType;
     this.workerOptions = workerOptions;
     this.benchmarkSpec = benchmarkSpec;
     this.methodParameterClasses = methodParameterClasses;

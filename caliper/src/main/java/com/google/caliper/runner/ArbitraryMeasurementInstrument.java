@@ -23,12 +23,11 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.ArbitraryMeasurement;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.util.Util;
-import com.google.caliper.worker.ArbitraryMeasurementWorker;
-import com.google.caliper.worker.Worker;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -102,8 +101,8 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return ArbitraryMeasurementWorker.class;
+    public InstrumentType type() {
+      return InstrumentType.ARBITRARY_MEASUREMENT;
     }
 
     @Override

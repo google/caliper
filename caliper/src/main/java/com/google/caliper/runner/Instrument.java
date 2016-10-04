@@ -24,8 +24,8 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.InstrumentSpec;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.worker.Worker;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Optional;
@@ -115,7 +115,7 @@ public abstract class Instrument {
 
     public abstract void dryRun(Object benchmark) throws InvalidBenchmarkException;
 
-    public abstract Class<? extends Worker> workerClass();
+    public abstract InstrumentType type();
 
     /**
      * Return the subset of options (and possibly a transformation thereof) to be used in the

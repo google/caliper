@@ -25,7 +25,6 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.platform.jvm.JvmPlatform;
-import com.google.caliper.worker.WorkerMain;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -106,7 +105,7 @@ public class WorkerProcessTest {
     assertEquals("-XX:+PrintFlagsFinal", commandLine.get(index));
     assertEquals("-XX:+PrintCompilation", commandLine.get(++index));
     assertEquals("-XX:+PrintGC", commandLine.get(++index));
-    assertEquals(WorkerMain.class.getName(), commandLine.get(++index));
+    assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(++index));
     // followed by worker args...
   }
 

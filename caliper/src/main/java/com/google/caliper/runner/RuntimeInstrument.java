@@ -37,13 +37,11 @@ import com.google.caliper.bridge.GcLogMessage;
 import com.google.caliper.bridge.HotspotLogMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.util.ShortDuration;
-import com.google.caliper.worker.MacrobenchmarkWorker;
-import com.google.caliper.worker.RuntimeWorker;
-import com.google.caliper.worker.Worker;
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
 import com.google.common.collect.ImmutableList;
@@ -152,8 +150,8 @@ class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return MacrobenchmarkWorker.class;
+    public InstrumentType type() {
+      return InstrumentType.RUNTIME_MACRO;
     }
 
     @Override
@@ -253,8 +251,8 @@ class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return RuntimeWorker.Micro.class;
+    public InstrumentType type() {
+      return InstrumentType.RUNTIME_MICRO;
     }
   }
 
@@ -273,8 +271,8 @@ class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    public Class<? extends Worker> workerClass() {
-      return RuntimeWorker.Pico.class;
+    public InstrumentType type() {
+      return InstrumentType.RUNTIME_PICO;
     }
   }
 

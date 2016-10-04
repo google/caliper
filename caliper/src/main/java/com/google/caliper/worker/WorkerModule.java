@@ -18,6 +18,7 @@ package com.google.caliper.worker;
 
 import com.google.caliper.Param;
 import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.Running;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
@@ -41,13 +42,13 @@ import javax.inject.Provider;
  */
 @Module
 final class WorkerModule {
-  private final Class<? extends Worker> workerClass;
+  private final InstrumentType instrumentType;
   private final ImmutableMap<String, String> workerOptions;
 
   private final Class<?> benchmarkClassObject;
 
   WorkerModule(WorkerSpec workerSpec) throws ClassNotFoundException {
-    this.workerClass = workerSpec.workerClass.asSubclass(Worker.class);
+    this.instrumentType = workerSpec.instrumentType;
     this.workerOptions = workerSpec.workerOptions;
 
     benchmarkClassObject = Util.loadClass(workerSpec.benchmarkSpec.className());
@@ -60,62 +61,62 @@ final class WorkerModule {
   }
 
   @Provides
-  Worker provideWorker(Map<Class<? extends Worker>, Provider<Worker>> availableWorkers) {
-    Provider<Worker> workerProvider = availableWorkers.get(workerClass);
+  Worker provideWorker(Map<InstrumentType, Provider<Worker>> availableWorkers) {
+    Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
     if (workerProvider == null) {
       throw new InvalidCommandException(
-          "%s is not a supported worker (%s).", workerClass, availableWorkers);
+          "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
     }
     return workerProvider.get();
   }
 
   /**
-   * Specifies the {@link Class} object to use as a key in the map of available {@link Worker
-   * workers} passed to {@link #provideWorker(Map)}.
+   * Specifies the type of instrument to use as a key in the map of available {@link Worker workers}
+   * passed to {@link #provideWorker(Map)}.
    */
-  @MapKey(unwrapValue = true)
-  public @interface WorkerClassKey {
-    Class<? extends Worker> value();
+  @MapKey
+  @interface InstrumentTypeKey {
+    InstrumentType value();
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(ArbitraryMeasurementWorker.class)
+  @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
   static Worker provideArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl) {
     return impl;
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(MicrobenchmarkAllocationWorker.class)
+  @InstrumentTypeKey(InstrumentType.ALLOCATION_MICRO)
   static Worker provideMicrobenchmarkAllocationWorker(MicrobenchmarkAllocationWorker impl) {
     return impl;
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(MacrobenchmarkWorker.class)
+  @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
   static Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl) {
     return impl;
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(MacrobenchmarkAllocationWorker.class)
+  @InstrumentTypeKey(InstrumentType.ALLOCATION_MACRO)
   static Worker provideMacrobenchmarkAllocationWorker(MacrobenchmarkAllocationWorker impl) {
     return impl;
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(RuntimeWorker.Micro.class)
+  @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
   static Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl) {
     return impl;
   }
 
   @Provides
   @IntoMap
-  @WorkerClassKey(RuntimeWorker.Pico.class)
+  @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
   static Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl) {
     return impl;
   }

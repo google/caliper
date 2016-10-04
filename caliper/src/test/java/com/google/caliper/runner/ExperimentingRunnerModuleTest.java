@@ -22,11 +22,11 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.SupportedPlatform;
 import com.google.caliper.runner.Instrument.Instrumentation;
-import com.google.caliper.worker.Worker;
 import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;
 import org.junit.Before;
@@ -132,11 +132,10 @@ public class ExperimentingRunnerModuleTest {
     }
 
     @Override
-    public Instrumentation createInstrumentation(Method benchmarkMethod)
-        throws InvalidBenchmarkException {
+    public Instrumentation createInstrumentation(Method benchmarkMethod) {
       return new Instrumentation(benchmarkMethod) {
         @Override
-        public Class<? extends Worker> workerClass() {
+        public InstrumentType type() {
           throw new UnsupportedOperationException();
         }
 

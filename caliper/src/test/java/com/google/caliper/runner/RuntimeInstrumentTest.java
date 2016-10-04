@@ -25,10 +25,9 @@ import static org.junit.Assert.fail;
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
+import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.ShortDuration;
-import com.google.caliper.worker.MacrobenchmarkWorker;
-import com.google.caliper.worker.RuntimeWorker;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
@@ -83,7 +82,7 @@ public class RuntimeInstrumentTest {
     Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
     assertEquals(instrument, instrumentation.instrument());
-    assertEquals(MacrobenchmarkWorker.class, instrumentation.workerClass());
+    assertEquals(InstrumentType.RUNTIME_MACRO, instrumentation.type());
   }
 
   @Test
@@ -92,7 +91,7 @@ public class RuntimeInstrumentTest {
     Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
     assertEquals(instrument, instrumentation.instrument());
-    assertEquals(RuntimeWorker.Micro.class, instrumentation.workerClass());
+    assertEquals(InstrumentType.RUNTIME_MICRO, instrumentation.type());
   }
 
   @Test
@@ -101,7 +100,7 @@ public class RuntimeInstrumentTest {
     Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
     assertEquals(instrument, instrumentation.instrument());
-    assertEquals(RuntimeWorker.Pico.class, instrumentation.workerClass());
+    assertEquals(InstrumentType.RUNTIME_PICO, instrumentation.type());
   }
 
   @Test
