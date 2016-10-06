@@ -121,8 +121,8 @@
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
-      <artifactId>commons-math</artifactId>
-      <version>2.2</version>
+      <artifactId>commons-math3</artifactId>
+      <version>3.5</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.java-allocation-instrumenter</groupId>
