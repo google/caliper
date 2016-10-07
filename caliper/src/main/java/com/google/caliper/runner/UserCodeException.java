@@ -16,9 +16,7 @@ package com.google.caliper.runner;
 
 import java.io.PrintWriter;
 
-/**
- * Signifies that the user's benchmark code threw an exception.
- */
+/** Signifies that the user's benchmark code threw an exception. */
 @SuppressWarnings("serial")
 public class UserCodeException extends InvalidBenchmarkException {
   public UserCodeException(String message, Throwable cause) {
@@ -30,7 +28,8 @@ public class UserCodeException extends InvalidBenchmarkException {
     this("An exception was thrown from the benchmark code", cause);
   }
 
-  @Override public void display(PrintWriter writer) {
+  @Override
+  public void display(PrintWriter writer) {
     printStackTrace(writer);
   }
 }

@@ -23,33 +23,43 @@ import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.util.ShortDuration;
-
 import java.math.BigDecimal;
 
 @VmOptions("-server")
 public class DemoBenchmark {
-  @Param({"abc", "def", "xyz"}) String string;
-  @Param({"1", "2"}) int number;
+  @Param({"abc", "def", "xyz"})
+  String string;
+
+  @Param({"1", "2"})
+  int number;
+
   @Param Foo foo;
 
-  @Param({"0.00", "123.45"}) BigDecimal money;
-  @Param({"1ns", "2 minutes"}) ShortDuration duration;
+  @Param({"0.00", "123.45"})
+  BigDecimal money;
+
+  @Param({"1ns", "2 minutes"})
+  ShortDuration duration;
 
   enum Foo {
-    FOO, BAR, BAZ, QUX;
+    FOO,
+    BAR,
+    BAZ,
+    QUX;
   }
 
   DemoBenchmark() {
-//    System.out.println("I should not do this.");
   }
 
-  @BeforeExperiment void setUp() throws Exception {
+  @BeforeExperiment
+  void setUp() throws Exception {
     if (string.equals("abc") && number == 1) {
       throw new SkipThisScenarioException();
     }
   }
 
-  @Benchmark int something(int reps) {
+  @Benchmark
+  int something(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy += i;
@@ -57,7 +67,8 @@ public class DemoBenchmark {
     return dummy;
   }
 
-  @Benchmark int somethingElse(int reps) {
+  @Benchmark
+  int somethingElse(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       dummy -= i;
@@ -65,7 +76,7 @@ public class DemoBenchmark {
     return dummy;
   }
 
-  @AfterExperiment void tearDown() throws Exception {
-//    System.out.println("Hey, I'm tearing up the joint.");
+  @AfterExperiment
+  void tearDown() throws Exception {
   }
 }

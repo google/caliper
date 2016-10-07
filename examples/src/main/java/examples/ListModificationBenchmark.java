@@ -19,28 +19,28 @@ package examples;
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
-/**
- * Measures performance of list operations.
- */
+/** Measures performance of list operations. */
 public class ListModificationBenchmark {
 
   private enum Element {
     INSTANCE,
   }
+
   private enum ListImpl {
     Array {
-      @Override List<Element> create() {
+      @Override
+      List<Element> create() {
         return new ArrayList<Element>();
       }
     },
     Linked {
-      @Override List<Element> create() {
+      @Override
+      List<Element> create() {
         return new LinkedList<Element>();
       }
     };
@@ -56,14 +56,16 @@ public class ListModificationBenchmark {
 
   private List<Element> list;
 
-  @BeforeExperiment void setUp() throws Exception {
+  @BeforeExperiment
+  void setUp() throws Exception {
     list = implementation.create();
     for (int i = 0; i < size; i++) {
       list.add(Element.INSTANCE);
     }
   }
 
-  @Benchmark void populate(int reps) throws Exception {
+  @Benchmark
+  void populate(int reps) throws Exception {
     for (int rep = 0; rep < reps; rep++) {
       List<Element> list = implementation.create();
       for (int i = 0; i < size; i++) {
@@ -72,7 +74,8 @@ public class ListModificationBenchmark {
     }
   }
 
-  @Benchmark void iteration(int reps) {
+  @Benchmark
+  void iteration(int reps) {
     for (int rep = 0; rep < reps; rep++) {
       Iterator<Element> iterator = list.iterator();
       while (iterator.hasNext()) {
@@ -81,14 +84,16 @@ public class ListModificationBenchmark {
     }
   }
 
-  @Benchmark void headAddRemove(int reps) {
+  @Benchmark
+  void headAddRemove(int reps) {
     for (int rep = 0; rep < reps; rep++) {
       list.add(0, Element.INSTANCE);
       list.remove(0);
     }
   }
 
-  @Benchmark void middleAddRemove(int reps) {
+  @Benchmark
+  void middleAddRemove(int reps) {
     int index = size / 2;
     for (int rep = 0; rep < reps; rep++) {
       list.add(index, Element.INSTANCE);
@@ -96,7 +101,8 @@ public class ListModificationBenchmark {
     }
   }
 
-  @Benchmark void tailAddRemove(int reps) {
+  @Benchmark
+  void tailAddRemove(int reps) {
     int index = size - 1;
     for (int rep = 0; rep < reps; rep++) {
       list.add(Element.INSTANCE);

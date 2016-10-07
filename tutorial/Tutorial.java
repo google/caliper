@@ -21,8 +21,8 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
 /**
- * Caliper tutorial. To run the example benchmarks in this file:
- * {@code CLASSPATH=... [caliper_home]/caliper tutorial.Tutorial.Benchmark1}
+ * Caliper tutorial. To run the example benchmarks in this file: {@code CLASSPATH=...
+ * [caliper_home]/caliper tutorial.Tutorial.Benchmark1}
  */
 public class Tutorial {
 
@@ -50,7 +50,8 @@ public class Tutorial {
    *    NanoTime   233
    */
   public static class Benchmark1 {
-    @Benchmark void timeNanoTime(int reps) {
+    @Benchmark
+    void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
       }
@@ -71,12 +72,15 @@ public class Tutorial {
    *   CurrentTimeMillis  118
    */
   public static class Benchmark2 {
-    @Benchmark void timeNanoTime(int reps) {
+    @Benchmark
+    void timeNanoTime(int reps) {
       for (int i = 0; i < reps; i++) {
         System.nanoTime();
       }
     }
-    @Benchmark void timeCurrentTimeMillis(int reps) {
+
+    @Benchmark
+    void timeCurrentTimeMillis(int reps) {
       for (int i = 0; i < reps; i++) {
         System.currentTimeMillis();
       }
@@ -91,7 +95,8 @@ public class Tutorial {
     private final int[] array = new int[1000000];
 
     @SuppressWarnings("UnusedDeclaration") // IDEA tries to warn us!
-    @Benchmark void timeArrayIteration_BAD(int reps) {
+    @Benchmark
+    void timeArrayIteration_BAD(int reps) {
       for (int i = 0; i < reps; i++) {
         for (int ignoreMe : array) {}
       }
@@ -127,7 +132,8 @@ public class Tutorial {
   public static class Benchmark4 {
     private final int[] array = new int[1000000];
 
-    @Benchmark int timeArrayIteration_fixed(int reps) {
+    @Benchmark
+    int timeArrayIteration_fixed(int reps) {
       int dummy = 0;
       for (int i = 0; i < reps; i++) {
         for (int doNotIgnoreMe : array) {
@@ -170,12 +176,14 @@ public class Tutorial {
 
     private int[] array; // set by us, in setUp()
 
-    @BeforeExperiment void setUp() {
+    @BeforeExperiment
+    void setUp() {
       // @Param values are guaranteed to have been injected by now
       array = new int[size];
     }
 
-    @Benchmark int timeArrayIteration(int reps) {
+    @Benchmark
+    int timeArrayIteration(int reps) {
       int dummy = 0;
       for (int i = 0; i < reps; i++) {
         for (int doNotIgnoreMe : array) {

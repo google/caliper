@@ -33,7 +33,6 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Ordering;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -70,7 +69,8 @@ final class ParsedOptions implements CaliperOptions {
   @Option({"-n", "--dry-run"})
   private boolean dryRun;
 
-  @Override public boolean dryRun() {
+  @Override
+  public boolean dryRun() {
     return dryRun;
   }
 
@@ -103,7 +103,8 @@ final class ParsedOptions implements CaliperOptions {
     benchmarkNames = split(benchmarksString);
   }
 
-  @Override public ImmutableSet<String> benchmarkMethodNames() {
+  @Override
+  public ImmutableSet<String> benchmarkMethodNames() {
     return benchmarkNames;
   }
 
@@ -114,7 +115,8 @@ final class ParsedOptions implements CaliperOptions {
   @Option({"-p", "--print-config"})
   private boolean printConfiguration = false;
 
-  @Override public boolean printConfiguration() {
+  @Override
+  public boolean printConfiguration() {
     return printConfiguration;
   }
 
@@ -133,7 +135,8 @@ final class ParsedOptions implements CaliperOptions {
     this.trials = trials;
   }
 
-  @Override public int trialsPerScenario() {
+  @Override
+  public int trialsPerScenario() {
     return trials;
   }
 
@@ -152,7 +155,8 @@ final class ParsedOptions implements CaliperOptions {
     }
   }
 
-  @Override public ShortDuration timeLimit() {
+  @Override
+  public ShortDuration timeLimit() {
     return runTime;
   }
 
@@ -167,7 +171,8 @@ final class ParsedOptions implements CaliperOptions {
     this.runName = checkNotNull(runName);
   }
 
-  @Override public String runName() {
+  @Override
+  public String runName() {
     return runName;
   }
 
@@ -183,7 +188,8 @@ final class ParsedOptions implements CaliperOptions {
     vmNames = split(vmsString);
   }
 
-  @Override public ImmutableSet<String> vmNames() {
+  @Override
+  public ImmutableSet<String> vmNames() {
     return vmNames;
   }
 
@@ -193,9 +199,9 @@ final class ParsedOptions implements CaliperOptions {
 
   private static final ImmutableSet<String> DEFAULT_INSTRUMENT_NAMES =
       new ImmutableSet.Builder<String>()
-      .add("allocation")
-      .add("runtime")
-      .build();
+          .add("allocation")
+          .add("runtime")
+          .build();
 
   private ImmutableSet<String> instrumentNames = DEFAULT_INSTRUMENT_NAMES;
 
@@ -204,11 +210,12 @@ final class ParsedOptions implements CaliperOptions {
     instrumentNames = split(instrumentsString);
   }
 
-  @Override public ImmutableSet<String> instrumentNames() {
+  @Override
+  public ImmutableSet<String> instrumentNames() {
     return instrumentNames;
   }
 
-// --------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Benchmark parameters
   // --------------------------------------------------------------------------
 
@@ -219,7 +226,8 @@ final class ParsedOptions implements CaliperOptions {
     addToMultimap(nameAndValues, mutableUserParameters);
   }
 
-  @Override public ImmutableSetMultimap<String, String> userParameters() {
+  @Override
+  public ImmutableSetMultimap<String, String> userParameters() {
     // de-dup values, but keep in order
     return new ImmutableSetMultimap.Builder<String, String>()
         .orderKeysBy(Ordering.natural())
@@ -239,7 +247,8 @@ final class ParsedOptions implements CaliperOptions {
     addToMultimap(nameAndValues, mutableVmArguments);
   }
 
-  @Override public ImmutableSetMultimap<String, String> vmArguments() {
+  @Override
+  public ImmutableSetMultimap<String, String> vmArguments() {
     // de-dup values, but keep in order
     return new ImmutableSetMultimap.Builder<String, String>()
         .orderKeysBy(Ordering.natural())
@@ -259,7 +268,8 @@ final class ParsedOptions implements CaliperOptions {
     mutableConfigPropertes.put(tokens.get(0), tokens.get(1));
   }
 
-  @Override public ImmutableMap<String, String> configProperties() {
+  @Override
+  public ImmutableMap<String, String> configProperties() {
     return ImmutableMap.copyOf(mutableConfigPropertes);
   }
 
@@ -274,7 +284,8 @@ final class ParsedOptions implements CaliperOptions {
     caliperDirectory = new File(path);
   }
 
-  @Override public File caliperDirectory() {
+  @Override
+  public File caliperDirectory() {
     return caliperDirectory;
   }
 
@@ -289,7 +300,8 @@ final class ParsedOptions implements CaliperOptions {
     caliperConfigFile = Optional.of(new File(filename));
   }
 
-  @Override public File caliperConfigFile() {
+  @Override
+  public File caliperConfigFile() {
     return caliperConfigFile.or(new File(caliperDirectory, "config.properties"));
   }
 
@@ -318,7 +330,8 @@ final class ParsedOptions implements CaliperOptions {
     }
   }
 
-  @Override public String benchmarkClassName() {
+  @Override
+  public String benchmarkClassName() {
     return benchmarkClassName;
   }
 
@@ -346,7 +359,8 @@ final class ParsedOptions implements CaliperOptions {
     multimap.putAll(name, split(values));
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("benchmarkClassName", this.benchmarkClassName())
         .add("benchmarkMethodNames", this.benchmarkMethodNames())
@@ -368,50 +382,53 @@ final class ParsedOptions implements CaliperOptions {
 
   // TODO(kevinb): kinda nice if CommandLineParser could autogenerate most of this...
   // TODO(kevinb): a test could actually check that we don't exceed 79 columns.
-  private static final ImmutableList<String> USAGE = ImmutableList.of(
-      "Usage:",
-      " java com.google.caliper.runner.CaliperMain <benchmark_class_name> [options...]",
-      "",
-      "Options:",
-      " -h, --help         print this message",
-      " -n, --dry-run      instead of measuring, execute a single rep for each scenario",
-      "                    in-process",
-      " -b, --benchmark    comma-separated list of benchmark methods to run; 'foo' is",
-      "                    an alias for 'timeFoo' (default: all found in class)",
-      " -m, --vm           comma-separated list of VMs to test on; possible values are",
-      "                    configured in Caliper's configuration file (default:",
-      "                    whichever VM caliper itself is running in, only)",
-      " -i, --instrument   comma-separated list of measuring instruments to use; possible ",
-      "                    values are configured in Caliper's configuration file ",
-      "                    (default: \"" + Joiner.on(",").join(DEFAULT_INSTRUMENT_NAMES) + "\")",
-      " -t, --trials       number of independent trials to peform per benchmark scenario; ",
-      "                    a positive integer (default: 1)",
-      " -l, --time-limit   maximum length of time allowed for a single trial; use 0 to allow ",
-      "                    trials to run indefinitely. (default: 30s) ",
-      " -r, --run-name     a user-friendly string used to identify the run",
-      " -p, --print-config print the effective configuration that will be used by Caliper",
-      " -d, --delimiter    separator used in options that take multiple values (default: ',')",
-      " -c, --config       location of Caliper's configuration file (default:",
-      "                    $HOME/.caliper/config.properties)",
-      " --directory        location of Caliper's configuration and data directory ",
-      "                    (default: $HOME/.caliper)",
-      "",
-      " -Dparam=val1,val2,...",
-      "     Specifies the values to inject into the 'param' field of the benchmark",
-      "     class; if multiple values or parameters are specified in this way, caliper",
-      "     will try all possible combinations.",
-      "",
-      // commented out until this flag is fixed
-      // " -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'",
-      // "     Specifies alternate sets of VM arguments to pass. As with any variable,",
-      // "     caliper will test all possible combinations. Example:",
-      // "     -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'",
-      // "",
-      " -CconfigProperty=value",
-      "     Specifies a value for any property that could otherwise be specified in ",
-      "     $HOME/.caliper/config.properties. Properties specified on the command line",
-      "     will override those specified in the file.",
-      "",
-      "See http://code.google.com/p/caliper/wiki/CommandLineOptions for more details.",
-      "");
+  private static final ImmutableList<String> USAGE =
+      ImmutableList.of(
+          "Usage:",
+          " java com.google.caliper.runner.CaliperMain <benchmark_class_name> [options...]",
+          "",
+          "Options:",
+          " -h, --help         print this message",
+          " -n, --dry-run      instead of measuring, execute a single rep for each scenario",
+          "                    in-process",
+          " -b, --benchmark    comma-separated list of benchmark methods to run; 'foo' is",
+          "                    an alias for 'timeFoo' (default: all found in class)",
+          " -m, --vm           comma-separated list of VMs to test on; possible values are",
+          "                    configured in Caliper's configuration file (default:",
+          "                    whichever VM caliper itself is running in, only)",
+          " -i, --instrument   comma-separated list of measuring instruments to use; possible ",
+          "                    values are configured in Caliper's configuration file ",
+          "                    (default: \""
+              + Joiner.on(",").join(DEFAULT_INSTRUMENT_NAMES)
+              + "\")",
+          " -t, --trials       number of independent trials to peform per benchmark scenario; ",
+          "                    a positive integer (default: 1)",
+          " -l, --time-limit   maximum length of time allowed for a single trial; use 0 to allow ",
+          "                    trials to run indefinitely. (default: 30s) ",
+          " -r, --run-name     a user-friendly string used to identify the run",
+          " -p, --print-config print the effective configuration that will be used by Caliper",
+          " -d, --delimiter    separator used in options that take multiple values (default: ',')",
+          " -c, --config       location of Caliper's configuration file (default:",
+          "                    $HOME/.caliper/config.properties)",
+          " --directory        location of Caliper's configuration and data directory ",
+          "                    (default: $HOME/.caliper)",
+          "",
+          " -Dparam=val1,val2,...",
+          "     Specifies the values to inject into the 'param' field of the benchmark",
+          "     class; if multiple values or parameters are specified in this way, caliper",
+          "     will try all possible combinations.",
+          "",
+          // commented out until this flag is fixed
+          // " -JdisplayName='vm arg list choice 1,vm arg list choice 2,...'",
+          // "     Specifies alternate sets of VM arguments to pass. As with any variable,",
+          // "     caliper will test all possible combinations. Example:",
+          // "     -Jmemory='-Xms32m -Xmx32m,-Xms512m -Xmx512m'",
+          // "",
+          " -CconfigProperty=value",
+          "     Specifies a value for any property that could otherwise be specified in ",
+          "     $HOME/.caliper/config.properties. Properties specified on the command line",
+          "     will override those specified in the file.",
+          "",
+          "See http://code.google.com/p/caliper/wiki/CommandLineOptions for more details.",
+          "");
 }

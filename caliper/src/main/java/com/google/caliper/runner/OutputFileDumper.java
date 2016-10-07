@@ -30,23 +30,20 @@ import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
-
-import org.joda.time.format.ISODateTimeFormat;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
-
 import javax.inject.Inject;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * {@link ResultProcessor} that dumps the output data to a file in JSON format. By default, the
- * output will be dumped to a file called
- * {@code ~/.caliper/results/[benchmark classname].[timestamp].json}; if it exists and is a file,
- * the file will be overwritten.  The location can be overridden as either a file or a directory
- * using either the {@code file} or {@code dir} options respectively.
+ * output will be dumped to a file called {@code ~/.caliper/results/[benchmark
+ * classname].[timestamp].json}; if it exists and is a file, the file will be overwritten. The
+ * location can be overridden as either a file or a directory using either the {@code file} or
+ * {@code dir} options respectively.
  */
 final class OutputFileDumper implements ResultProcessor {
   private static final Logger logger = Logger.getLogger(OutputFileDumper.class.getName());
@@ -58,11 +55,14 @@ final class OutputFileDumper implements ResultProcessor {
 
   private Optional<JsonWriter> writer = Optional.absent();
 
-  @Inject OutputFileDumper(Run run,
+  @Inject
+  OutputFileDumper(
+      Run run,
       BenchmarkClass benchmarkClass,
       Gson gson,
       CaliperConfig caliperConfig,
-      @CaliperDirectory File caliperDirectory) throws InvalidConfigurationException {
+      @CaliperDirectory File caliperDirectory)
+      throws InvalidConfigurationException {
     this.run = run;
     ResultProcessorConfig config = caliperConfig.getResultProcessorConfig(OutputFileDumper.class);
     if (config.options().containsKey("file")) {
@@ -93,19 +93,23 @@ final class OutputFileDumper implements ResultProcessor {
     return ISODateTimeFormat.dateTimeNoMillis().print(run.startTime());
   }
 
-  @Override public void processTrial(Trial trial) {
+  @Override
+  public void processTrial(Trial trial) {
     if (!writer.isPresent()) {
       try {
         Files.createParentDirs(workFile);
         JsonWriter writer =
             new JsonWriter(new OutputStreamWriter(new FileOutputStream(workFile), Charsets.UTF_8));
-        writer.setIndent("  ");  // always pretty print
+        writer.setIndent("  "); // always pretty print
         writer.beginArray();
         this.writer = Optional.of(writer);
       } catch (IOException e) {
-        logger.log(SEVERE, String.format(
-            "An error occured writing trial %s. Results in %s will be incomplete.", trial.id(),
-            resultFile), e);
+        logger.log(
+            SEVERE,
+            String.format(
+                "An error occured writing trial %s. Results in %s will be incomplete.",
+                trial.id(), resultFile),
+            e);
       }
     }
     if (writer.isPresent()) {
@@ -113,7 +117,8 @@ final class OutputFileDumper implements ResultProcessor {
     }
   }
 
-  @Override public void close() throws IOException {
+  @Override
+  public void close() throws IOException {
     if (writer.isPresent()) {
       writer.get().endArray().close();
     }

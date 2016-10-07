@@ -20,15 +20,15 @@ import com.google.caliper.model.ExcludeFromJson;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 
-/**
- * An exclusion strategy that excludes elements annotated with {@link ExcludeFromJson}.
- */
+/** An exclusion strategy that excludes elements annotated with {@link ExcludeFromJson}. */
 final class AnnotationExclusionStrategy implements ExclusionStrategy {
-  @Override public boolean shouldSkipField(FieldAttributes f) {
+  @Override
+  public boolean shouldSkipField(FieldAttributes f) {
     return f.getAnnotation(ExcludeFromJson.class) != null;
   }
 
-  @Override public boolean shouldSkipClass(Class<?> clazz) {
+  @Override
+  public boolean shouldSkipClass(Class<?> clazz) {
     return clazz.getAnnotation(ExcludeFromJson.class) != null;
   }
 }

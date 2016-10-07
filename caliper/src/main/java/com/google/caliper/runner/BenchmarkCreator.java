@@ -20,17 +20,13 @@ import com.google.caliper.Param;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.common.collect.ImmutableSortedMap;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
-
 import javax.inject.Inject;
 
-/**
- * Responsible for creating instances of the benchmark class.
- */
+/** Responsible for creating instances of the benchmark class. */
 final class BenchmarkCreator {
 
   private static final String BENCHMARK_NO_PUBLIC_DEFAULT_CONSTRUCTOR =

@@ -23,7 +23,15 @@ import static org.mockito.Mockito.when;
 
 import com.google.caliper.model.Run;
 import com.google.common.io.Files;
-
+import java.io.File;
+import java.io.IOException;
+import java.util.UUID;
+import java.util.logging.FileHandler;
+import java.util.logging.Handler;
+import java.util.logging.LogManager;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 import org.joda.time.Instant;
 import org.joda.time.format.ISODateTimeFormat;
 import org.junit.Before;
@@ -36,19 +44,7 @@ import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.UUID;
-import java.util.logging.FileHandler;
-import java.util.logging.Handler;
-import java.util.logging.LogManager;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
-
-/**
- * Tests {@link LoggingConfigLoader}.
- */
+/** Tests {@link LoggingConfigLoader}. */
 
 @RunWith(MockitoJUnitRunner.class)
 public class LoggingConfigLoaderTest {
@@ -63,16 +59,18 @@ public class LoggingConfigLoaderTest {
   private Instant startTime = new Instant();
   private File caliperDirectory;
 
-  @Before public void setUp() throws IOException {
+  @Before
+  public void setUp() throws IOException {
     this.caliperDirectory = folder.newFolder();
-    this.loader = new LoggingConfigLoader(caliperDirectory, logManager, new Run.Builder(runId)
-        .label("fake run")
-        .startTime(startTime)
-        .build());
+    this.loader =
+        new LoggingConfigLoader(
+            caliperDirectory,
+            logManager,
+            new Run.Builder(runId).label("fake run").startTime(startTime).build());
   }
 
-  @Test public void testLoadDefaultLogConfiguration()
-      throws SecurityException, IOException {
+  @Test
+  public void testLoadDefaultLogConfiguration() throws SecurityException, IOException {
     when(logManager.getLogger("")).thenReturn(logger);
     loader.maybeLoadDefaultLogConfiguration(logManager);
     verify(logManager).reset();
@@ -81,8 +79,10 @@ public class LoggingConfigLoaderTest {
     assertEquals(UTF_8.name(), fileHandler.getEncoding());
     assertTrue(fileHandler.getFormatter() instanceof SimpleFormatter);
     fileHandler.publish(new LogRecord(INFO, "some message"));
-    File logFile = new File(new File(caliperDirectory, "log"),
-        ISODateTimeFormat.basicDateTimeNoMillis().print(startTime) + "." + runId + ".log");
+    File logFile =
+        new File(
+            new File(caliperDirectory, "log"),
+            ISODateTimeFormat.basicDateTimeNoMillis().print(startTime) + "." + runId + ".log");
     assertTrue(logFile.isFile());
     assertTrue(Files.toString(logFile, UTF_8).contains("some message"));
   }

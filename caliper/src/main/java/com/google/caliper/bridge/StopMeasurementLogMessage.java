@@ -19,12 +19,9 @@ package com.google.caliper.bridge;
 import com.google.caliper.model.Measurement;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-
 import java.io.Serializable;
 
-/**
- * A message signaling that the timing interval has ended in the worker.
- */
+/** A message signaling that the timing interval has ended in the worker. */
 public class StopMeasurementLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 
@@ -38,11 +35,13 @@ public class StopMeasurementLogMessage extends LogMessage implements Serializabl
     return measurements;
   }
 
-  @Override public void accept(LogMessageVisitor visitor) {
+  @Override
+  public void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(measurements);
   }
 

@@ -20,13 +20,12 @@ import static java.lang.annotation.ElementType.METHOD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import com.google.common.annotations.Beta;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 /**
- * Apply this annotation to any method without parameters to have it run after each rep of a
- * {@link Macrobenchmark}.
+ * Apply this annotation to any method without parameters to have it run after each rep of a {@link
+ * Macrobenchmark}.
  */
 @Retention(RUNTIME)
 @Target(METHOD)

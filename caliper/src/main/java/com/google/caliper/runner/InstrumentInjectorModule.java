@@ -21,9 +21,7 @@ import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;
 
-/**
- * The set of bindings available for injecting into {@link Instrument} instances.
- */
+/** The set of bindings available for injecting into {@link Instrument} instances. */
 @Module
 final class InstrumentInjectorModule {
 

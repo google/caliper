@@ -17,10 +17,8 @@
 package com.google.caliper.bridge;
 
 import com.sun.management.HotSpotDiagnosticMXBean;
-
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-
 import javax.management.MBeanServer;
 
 /**
@@ -38,8 +36,9 @@ public final class GcLogMessageGenerator {
 
   private static void checkGcLogging() throws IOException {
     MBeanServer server = ManagementFactory.getPlatformMBeanServer();
-    HotSpotDiagnosticMXBean bean = ManagementFactory.newPlatformMXBeanProxy(
-        server, HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
+    HotSpotDiagnosticMXBean bean =
+        ManagementFactory.newPlatformMXBeanProxy(
+            server, HOTSPOT_BEAN_NAME, HotSpotDiagnosticMXBean.class);
     if (!bean.getVMOption("PrintGC").getValue().equals(Boolean.TRUE.toString())) {
       System.err.println("This is only useful if you run with -XX:+PrintGC");
       System.exit(1);

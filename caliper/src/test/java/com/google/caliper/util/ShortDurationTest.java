@@ -19,15 +19,15 @@ package com.google.caliper.util;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
+import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.concurrent.TimeUnit;
-
 @RunWith(JUnit4.class)
 public class ShortDurationTest {
-  @Test public void valueOf() {
+  @Test
+  public void valueOf() {
     assertEquals(ShortDuration.zero(), ShortDuration.valueOf("0"));
     testIt(0, "0ns", "0s");
     testIt(0, "0 ns", "0s");
@@ -45,7 +45,8 @@ public class ShortDurationTest {
     // testIt(Long.MAX_VALUE, "106751.99116730064591 days", "106751.99d");
   }
 
-  @Test public void tooLongForALong() {
+  @Test
+  public void tooLongForALong() {
     try {
       ShortDuration.valueOf("106751.99116730064592 days");
       fail();

@@ -18,42 +18,42 @@ package com.google.caliper.worker;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.monitoring.runtime.instrumentation.Sampler;
-
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
-
 import javax.inject.Inject;
 
-/**
- * An {@link AllocationRecorder} that records the number and cumulative size of allocation.
- */
+/** An {@link AllocationRecorder} that records the number and cumulative size of allocation. */
 final class AggregateAllocationsRecorder extends AllocationRecorder {
   private final AtomicInteger allocationCount = new AtomicInteger();
   private final AtomicLong allocationSize = new AtomicLong();
   private volatile boolean recording = false;
-  
-  private final Sampler sampler = new Sampler() {
-    @Override public void sampleAllocation(int arrayCount, String desc, Object newObj, 
-        long size) {
-      if (recording) {
-        allocationCount.getAndIncrement();
-        allocationSize.getAndAdd(size);
-      }
-    }
-  };
-  
-  @Inject AggregateAllocationsRecorder() {
+
+  private final Sampler sampler =
+      new Sampler() {
+        @Override
+        public void sampleAllocation(int arrayCount, String desc, Object newObj, long size) {
+          if (recording) {
+            allocationCount.getAndIncrement();
+            allocationSize.getAndAdd(size);
+          }
+        }
+      };
+
+  @Inject
+  AggregateAllocationsRecorder() {
     com.google.monitoring.runtime.instrumentation.AllocationRecorder.addSampler(sampler);
   }
-  
-  @Override protected void doStartRecording() {
+
+  @Override
+  protected void doStartRecording() {
     checkState(!recording, "startRecording called, but we were already recording.");
     allocationCount.set(0);
     allocationSize.set(0);
     recording = true;
   }
-  
-  @Override public AllocationStats stopRecording(int reps) {
+
+  @Override
+  public AllocationStats stopRecording(int reps) {
     checkState(recording, "stopRecording called, but we were not recording.");
     recording = false;
     return new AllocationStats(allocationCount.get(), allocationSize.get(), reps);

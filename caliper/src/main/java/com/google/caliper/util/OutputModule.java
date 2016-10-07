@@ -18,12 +18,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import dagger.Module;
 import dagger.Provides;
-
 import java.io.PrintWriter;
 
-/**
- * A module that binds {@link PrintWriter} instances for {@link Stdout} and {@link Stderr}.
- */
+/** A module that binds {@link PrintWriter} instances for {@link Stdout} and {@link Stderr}. */
 @Module
 public final class OutputModule {
   public static OutputModule system() {
@@ -38,11 +35,15 @@ public final class OutputModule {
     this.stderr = checkNotNull(stderr);
   }
 
-  @Provides @Stdout PrintWriter provideStdoutWriter() {
+  @Provides
+  @Stdout
+  PrintWriter provideStdoutWriter() {
     return stdout;
   }
 
-  @Provides @Stderr PrintWriter provideStderr() {
+  @Provides
+  @Stderr
+  PrintWriter provideStderr() {
     return stderr;
   }
 }

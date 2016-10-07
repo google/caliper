@@ -27,18 +27,15 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 import com.google.gson.Gson;
-
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
-
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.UUID;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
 
 /**
@@ -58,8 +55,9 @@ abstract class ResultsUploader implements ResultProcessor {
   private Optional<UUID> runId = Optional.absent();
   private boolean failure = false;
 
-  ResultsUploader(PrintWriter stdout, Gson gson, Client client,
-      ResultProcessorConfig resultProcessorConfig) throws InvalidConfigurationException {
+  ResultsUploader(
+      PrintWriter stdout, Gson gson, Client client, ResultProcessorConfig resultProcessorConfig)
+      throws InvalidConfigurationException {
     this.stdout = stdout;
     this.client = client;
     this.gson = gson;
@@ -71,9 +69,10 @@ abstract class ResultsUploader implements ResultProcessor {
       try {
         apiKey = Optional.of(UUID.fromString(apiKeyString));
       } catch (IllegalArgumentException e) {
-        throw new InvalidConfigurationException(String.format(
-            "The specified API key (%s) is not valid. API keys are UUIDs and should look like %s.",
-                apiKeyString, new UUID(0L,  0L)));
+        throw new InvalidConfigurationException(
+            String.format(
+                "The specified API key (%s) is not valid. API keys are UUIDs and should look like %s.",
+                apiKeyString, new UUID(0L, 0L)));
       }
     }
     this.apiKey = apiKey;
@@ -91,7 +90,8 @@ abstract class ResultsUploader implements ResultProcessor {
     }
   }
 
-  @Override public final void processTrial(Trial trial) {
+  @Override
+  public final void processTrial(Trial trial) {
     if (uploadUri.isPresent()) {
       WebResource resource = client.resource(uploadUri.get());
       if (apiKey.isPresent()) {
@@ -116,14 +116,18 @@ abstract class ResultsUploader implements ResultProcessor {
   }
 
   private static void logUploadFailure(Trial trial, Exception e) {
-    logger.log(SEVERE, String.format(
-        "Could not upload trial %s. Consider uploading it manually.", trial.id()), e);
+    logger.log(
+        SEVERE,
+        String.format("Could not upload trial %s. Consider uploading it manually.", trial.id()),
+        e);
   }
 
-  @Override public final void close() {
+  @Override
+  public final void close() {
     if (uploadUri.isPresent()) {
       if (runId.isPresent()) {
-        stdout.printf("Results have been uploaded. View them at: %s%n",
+        stdout.printf(
+            "Results have been uploaded. View them at: %s%n",
             uploadUri.get().resolve(String.format(RESULTS_PATH_PATTERN, runId.get())));
       }
       if (failure) {

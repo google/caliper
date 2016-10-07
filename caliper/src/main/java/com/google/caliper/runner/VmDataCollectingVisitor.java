@@ -25,7 +25,6 @@ import com.google.caliper.platform.Platform;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-
 import javax.inject.Inject;
 
 /** An {@link AbstractLogMessageVisitor} that collects data about JVM properties and options. */
@@ -35,7 +34,8 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
   private final Platform platform;
   private Optional<ImmutableMap<String, String>> vmProperties = Optional.absent();
 
-  @Inject VmDataCollectingVisitor(Platform platform) {
+  @Inject
+  VmDataCollectingVisitor(Platform platform) {
     this.platform = platform;
   }
 
@@ -47,10 +47,7 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
   VmSpec vmSpec() {
     ImmutableMap<String, String> options = vmOptionsBuilder.build();
     platform.checkVmProperties(options);
-    return new VmSpec.Builder()
-        .addAllProperties(vmProperties.get())
-        .addAllOptions(options)
-        .build();
+    return new VmSpec.Builder().addAllProperties(vmProperties.get()).addAllOptions(options).build();
   }
 
   @Override
@@ -65,7 +62,9 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
 
   @Override
   public void visit(VmPropertiesLogMessage logMessage) {
-    vmProperties = Optional.of(ImmutableMap.copyOf(
-        Maps.filterKeys(logMessage.properties(), platform.vmPropertiesToRetain())));
+    vmProperties =
+        Optional.of(
+            ImmutableMap.copyOf(
+                Maps.filterKeys(logMessage.properties(), platform.vmPropertiesToRetain())));
   }
 }

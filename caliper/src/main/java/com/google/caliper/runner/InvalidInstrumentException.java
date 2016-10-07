@@ -16,9 +16,6 @@ package com.google.caliper.runner;
 
 import java.io.PrintWriter;
 
-/**
- *
- */
 @SuppressWarnings("serial")
 public class InvalidInstrumentException extends RuntimeException {
   public InvalidInstrumentException(String message, Object... args) {

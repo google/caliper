@@ -24,22 +24,19 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/**
- * Loads caliper configuration files and, if necessary, creates new versions from the defaults.
- */
+/** Loads caliper configuration files and, if necessary, creates new versions from the defaults. */
 @Singleton
 public final class CaliperConfigLoader {
   private final CaliperOptions options;
 
-  @Inject CaliperConfigLoader(CaliperOptions options) {
+  @Inject
+  CaliperConfigLoader(CaliperOptions options) {
     this.options = options;
   }
 
@@ -47,8 +44,9 @@ public final class CaliperConfigLoader {
     File configFile = options.caliperConfigFile();
     ImmutableMap<String, String> defaults;
     try {
-      defaults = Util.loadProperties(
-          Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
+      defaults =
+          Util.loadProperties(
+              Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
     } catch (IOException impossible) {
       throw new AssertionError(impossible);
     }
@@ -57,8 +55,7 @@ public final class CaliperConfigLoader {
 
     if (configFile.exists()) {
       try {
-        ImmutableMap<String, String> user =
-            Util.loadProperties(Files.asByteSource(configFile));
+        ImmutableMap<String, String> user = Util.loadProperties(Files.asByteSource(configFile));
         return new CaliperConfig(mergeProperties(options.configProperties(), user, defaults));
       } catch (IOException keepGoing) {
       }
@@ -76,9 +73,8 @@ public final class CaliperConfigLoader {
     return new CaliperConfig(mergeProperties(options.configProperties(), user, defaults));
   }
 
-  private static ImmutableMap<String, String> mergeProperties(Map<String, String> commandLine,
-      Map<String, String> user,
-      Map<String, String> defaults) {
+  private static ImmutableMap<String, String> mergeProperties(
+      Map<String, String> commandLine, Map<String, String> user, Map<String, String> defaults) {
     Map<String, String> map = Maps.newHashMap(defaults);
     map.putAll(user); // overwrite and augment
     map.putAll(commandLine); // overwrite and augment

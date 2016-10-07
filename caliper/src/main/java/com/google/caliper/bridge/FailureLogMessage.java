@@ -19,12 +19,9 @@ package com.google.caliper.bridge;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Throwables;
-
 import java.io.Serializable;
 
-/**
- * A message containing information on a failure encountered by the worker JVM.
- */
+/** A message containing information on a failure encountered by the worker JVM. */
 public class FailureLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 

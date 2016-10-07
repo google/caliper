@@ -22,22 +22,20 @@ import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.io.Files;
-
-import org.junit.rules.TestWatcher;
-import org.junit.runner.Description;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.List;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /**
  * A {@link TestWatcher} that can be used to configure a run of caliper.
- * 
+ *
  * <p>Provides common test configuration utilities and redirects output to a buffer and only dumps
  * it during a failure.
- * 
+ *
  * <p>TODO(lukes,gak): This is a bad name since it isn't just watching the tests, it is helping you
  * run the tests.
  */
@@ -55,26 +53,27 @@ public final class CaliperTestWatcher extends TestWatcher {
     this.benchmarkClass = benchmarkClass;
     return this;
   }
-  
+
   CaliperTestWatcher instrument(String instrument) {
     this.instrument = instrument;
     return this;
   }
-  
+
   CaliperTestWatcher options(String... extraOptions) {
     this.extraOptions = Arrays.asList(extraOptions);
     return this;
   }
-  
-  void run() throws InvalidCommandException, InvalidBenchmarkException, 
-      InvalidConfigurationException {
+
+  void run()
+      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
     checkState(benchmarkClass != null, "You must configure a benchmark!");
     workerOutput = Files.createTempDir();
     // configure a custom dir so the files aren't deleted when CaliperMain returns
-    List<String> options = Lists.newArrayList(
-        "-Cworker.output=" + workerOutput.getPath(),
-        "-Cresults.file.class=",
-        "-Cresults.upload.class=" + InMemoryResultsUploader.class.getName());
+    List<String> options =
+        Lists.newArrayList(
+            "-Cworker.output=" + workerOutput.getPath(),
+            "-Cresults.file.class=",
+            "-Cresults.upload.class=" + InMemoryResultsUploader.class.getName());
     if (instrument != null) {
       options.add("-i");
       options.add(instrument);
@@ -84,11 +83,12 @@ public final class CaliperTestWatcher extends TestWatcher {
     this.stdout = new StringWriter();
     CaliperMain.exitlessMain(
         options.toArray(new String[0]),
-        new PrintWriter(stdout,  true),
-        new PrintWriter(stderr,  true));
+        new PrintWriter(stdout, true),
+        new PrintWriter(stderr, true));
   }
 
-  @Override protected void finished(Description description) {
+  @Override
+  protected void finished(Description description) {
     if (workerOutput != null) {
       for (File f : workerOutput.listFiles()) {
         f.delete();
@@ -96,15 +96,19 @@ public final class CaliperTestWatcher extends TestWatcher {
       workerOutput.delete();
     }
   }
-  
-  @Override protected void failed(Throwable e, Description description) {
+
+  @Override
+  protected void failed(Throwable e, Description description) {
     // don't log if run was never called.
     if (stdout != null) {
-      System.err.println("Caliper failed with the following output (stdout):\n"
-          + stdout.toString() + "stderr:\n" + stderr.toString());
+      System.err.println(
+          "Caliper failed with the following output (stdout):\n"
+              + stdout.toString()
+              + "stderr:\n"
+              + stderr.toString());
     }
   }
-  
+
   ImmutableList<Trial> trials() {
     return InMemoryResultsUploader.trials();
   }
@@ -112,11 +116,11 @@ public final class CaliperTestWatcher extends TestWatcher {
   public StringWriter getStderr() {
     return stderr;
   }
-  
+
   public StringWriter getStdout() {
     return stdout;
   }
-  
+
   File workerOutputDirectory() {
     return workerOutput;
   }

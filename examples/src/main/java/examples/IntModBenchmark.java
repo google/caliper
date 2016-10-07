@@ -18,14 +18,13 @@ package examples;
 
 import com.google.caliper.Benchmark;
 
-/**
- * Measures several candidate implementations for mod().
- */
+/** Measures several candidate implementations for mod(). */
 @SuppressWarnings("SameParameterValue")
 public class IntModBenchmark {
   private static final int M = (1 << 16) - 1;
 
-  @Benchmark int conditional(int reps) {
+  @Benchmark
+  int conditional(int reps) {
     int dummy = 5;
     for (int i = 0; i < reps; i++) {
       dummy += Integer.MAX_VALUE + conditionalMod(dummy, M);
@@ -38,7 +37,8 @@ public class IntModBenchmark {
     return r < 0 ? r + m : r;
   }
 
-  @Benchmark int doubleRemainder(int reps) {
+  @Benchmark
+  int doubleRemainder(int reps) {
     int dummy = 5;
     for (int i = 0; i < reps; i++) {
       dummy += Integer.MAX_VALUE + doubleRemainderMod(dummy, M);
@@ -51,7 +51,8 @@ public class IntModBenchmark {
     return (int) ((a % m + (long) m) % m);
   }
 
-  @Benchmark int rightShiftingMod(int reps) {
+  @Benchmark
+  int rightShiftingMod(int reps) {
     int dummy = 5;
     for (int i = 0; i < reps; i++) {
       dummy += Integer.MAX_VALUE + rightShiftingMod(dummy, M);
@@ -61,11 +62,12 @@ public class IntModBenchmark {
 
   @SuppressWarnings("NumericCastThatLosesPrecision") // must be in int range
   private static int rightShiftingMod(int a, int m) {
-     long r = a % m;
-     return (int) (r + (r >> 63 & m));
+    long r = a % m;
+    return (int) (r + (r >> 63 & m));
   }
 
-  @Benchmark int leftShiftingMod(int reps) {
+  @Benchmark
+  int leftShiftingMod(int reps) {
     int dummy = 5;
     for (int i = 0; i < reps; i++) {
       dummy += Integer.MAX_VALUE + leftShiftingMod(dummy, M);
@@ -78,7 +80,8 @@ public class IntModBenchmark {
     return (int) ((a + ((long) m << 32)) % m);
   }
 
-  @Benchmark int wrongMod(int reps) {
+  @Benchmark
+  int wrongMod(int reps) {
     int dummy = 5;
     for (int i = 0; i < reps; i++) {
       dummy += Integer.MAX_VALUE + dummy % M;

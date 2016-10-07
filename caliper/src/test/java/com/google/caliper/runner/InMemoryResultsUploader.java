@@ -22,10 +22,8 @@ import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
 import java.io.IOException;
 import java.util.List;
-
 import javax.inject.Inject;
 
 /**
@@ -35,21 +33,24 @@ public class InMemoryResultsUploader implements ResultProcessor {
   static ImmutableList<Trial> trials() {
     return ImmutableList.copyOf(trials);
   }
-  
+
   private static List<Trial> trials;
   private boolean isClosed;
 
-  @Inject public InMemoryResultsUploader() {
+  @Inject
+  public InMemoryResultsUploader() {
     trials = Lists.newArrayList();
   }
 
-  @Override public void close() throws IOException {
+  @Override
+  public void close() throws IOException {
     checkState(!isClosed);
     isClosed = true;
   }
 
-  @Override public void processTrial(Trial trial) {
+  @Override
+  public void processTrial(Trial trial) {
     checkState(!isClosed);
-    trials.add(trial); 
+    trials.add(trial);
   }
 }

@@ -18,13 +18,10 @@ package com.google.caliper.model;
 
 import com.google.common.hash.Funnel;
 import com.google.common.hash.PrimitiveSink;
-
 import java.util.Map;
 import java.util.Map.Entry;
 
-/**
- * A simple funnel that inserts string map entries into a funnel in iteration order.
- */
+/** A simple funnel that inserts string map entries into a funnel in iteration order. */
 enum StringMapFunnel implements Funnel<Map<String, String>> {
   INSTANCE;
 

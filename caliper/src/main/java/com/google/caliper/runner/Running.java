@@ -23,12 +23,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
-
 import javax.inject.Qualifier;
 
-/**
- * A collection of annotations for bindings pertaining to the currently running experiment.
- */
+/** A collection of annotations for bindings pertaining to the currently running experiment. */
 public class Running {
   private Running() {}
 

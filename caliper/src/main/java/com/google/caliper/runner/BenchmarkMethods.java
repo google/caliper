@@ -20,13 +20,10 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.util.Util;
-
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-/**
- * Utilities for working with methods annotated by {@link Benchmark}.
- */
+/** Utilities for working with methods annotated by {@link Benchmark}. */
 final class BenchmarkMethods {
   private static final Class<?>[] MACROBENCHMARK_PARAMS = new Class<?>[] {};
   private static final Class<?>[] MICROBENCHMARK_PARAMS = new Class<?>[] {int.class};

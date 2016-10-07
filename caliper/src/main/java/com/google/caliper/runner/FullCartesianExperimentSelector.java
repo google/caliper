@@ -25,12 +25,10 @@ import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
 import javax.inject.Inject;
 
 /**
@@ -42,7 +40,8 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
   private final ImmutableSet<VirtualMachine> vms;
   private final ImmutableSetMultimap<String, String> userParameters;
 
-  @Inject FullCartesianExperimentSelector(
+  @Inject
+  FullCartesianExperimentSelector(
       ImmutableSet<Instrumentation> instrumentations,
       ImmutableSet<VirtualMachine> vms,
       @BenchmarkParameters ImmutableSetMultimap<String, String> userParameters) {
@@ -52,25 +51,31 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
   }
 
   // TODO(gak): put this someplace more sensible
-  @Override public ImmutableSet<Instrument> instruments() {
+  @Override
+  public ImmutableSet<Instrument> instruments() {
     return FluentIterable.from(instrumentations)
-        .transform(new Function<Instrumentation, Instrument>() {
-          @Override public Instrument apply(Instrumentation input) {
-            return input.instrument();
-          }
-        })
+        .transform(
+            new Function<Instrumentation, Instrument>() {
+              @Override
+              public Instrument apply(Instrumentation input) {
+                return input.instrument();
+              }
+            })
         .toSet();
   }
 
-  @Override public ImmutableSet<VirtualMachine> vms() {
+  @Override
+  public ImmutableSet<VirtualMachine> vms() {
     return vms;
   }
 
-  @Override public ImmutableSetMultimap<String, String> userParameters() {
+  @Override
+  public ImmutableSetMultimap<String, String> userParameters() {
     return userParameters;
   }
 
-  @Override public ImmutableSet<Experiment> selectExperiments() {
+  @Override
+  public ImmutableSet<Experiment> selectExperiments() {
     List<Experiment> experiments = Lists.newArrayList();
     for (Instrumentation instrumentation : instrumentations) {
       for (VirtualMachine vm : vms) {
@@ -106,7 +111,8 @@ public final class FullCartesianExperimentSelector implements ExperimentSelector
     return builder.build();
   }
 
-  @Override public String selectionType() {
+  @Override
+  public String selectionType() {
     return "Full cartesian product";
   }
 }

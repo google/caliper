@@ -17,9 +17,7 @@ package com.google.caliper.runner;
 import com.google.caliper.model.Trial;
 import com.google.common.collect.ImmutableList;
 
-/**
- * A simple tuple of the data
- */
+/** A simple tuple of the data */
 final class TrialResult {
   private final Trial trial;
   private final Experiment experiment;
@@ -30,7 +28,7 @@ final class TrialResult {
     this.experiment = experiment;
     this.trialMessages = trialMessages;
   }
-  
+
   Experiment getExperiment() {
     return experiment;
   }

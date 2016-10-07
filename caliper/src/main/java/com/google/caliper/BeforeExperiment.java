@@ -33,8 +33,8 @@ import java.lang.annotation.Target;
 public @interface BeforeExperiment {
   /**
    * A qualifier for which types of experiments this method should run. For example, annotating a
-   * method with {@code @BeforeExperiment(Benchmark.class)} will cause it to only run for
-   * {@link Benchmark} experiments. By default, annotated methods run for all experiments.
+   * method with {@code @BeforeExperiment(Benchmark.class)} will cause it to only run for {@link
+   * Benchmark} experiments. By default, annotated methods run for all experiments.
    */
   Class<? extends Annotation> value() default All.class;
 }

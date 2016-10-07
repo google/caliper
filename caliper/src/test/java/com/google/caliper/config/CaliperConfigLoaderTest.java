@@ -21,7 +21,10 @@ import static org.mockito.Mockito.when;
 
 import com.google.caliper.options.CaliperOptions;
 import com.google.common.collect.ImmutableMap;
-
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,14 +32,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.Properties;
-
-/**
- * Tests {@link CaliperConfigLoader}.
- */
+/** Tests {@link CaliperConfigLoader}. */
 @RunWith(MockitoJUnitRunner.class)
 
 public class CaliperConfigLoaderTest {
@@ -44,7 +40,8 @@ public class CaliperConfigLoaderTest {
 
   private File tempConfigFile;
 
-  @Before public void createTempUserProperties() throws IOException {
+  @Before
+  public void createTempUserProperties() throws IOException {
     tempConfigFile = File.createTempFile("caliper-config-test", "properties");
     tempConfigFile.deleteOnExit();
     Properties userProperties = new Properties();
@@ -54,11 +51,13 @@ public class CaliperConfigLoaderTest {
     fs.close();
   }
 
-  @After public void deleteTempUserProperties() {
+  @After
+  public void deleteTempUserProperties() {
     tempConfigFile.delete();
   }
 
-  @Test public void loadOrCreate_configFileExistsNoOverride() throws Exception {
+  @Test
+  public void loadOrCreate_configFileExistsNoOverride() throws Exception {
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.<String, String>of());
     CaliperConfigLoader loader = new CaliperConfigLoader(optionsMock);
@@ -66,10 +65,10 @@ public class CaliperConfigLoaderTest {
     assertEquals("franklin", config.properties.get("some.property"));
   }
 
-  @Test public void loadOrCreate_configFileExistsWithOverride() throws Exception {
+  @Test
+  public void loadOrCreate_configFileExistsWithOverride() throws Exception {
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
-    when(optionsMock.configProperties()).thenReturn(ImmutableMap.of(
-        "some.property", "tacos"));
+    when(optionsMock.configProperties()).thenReturn(ImmutableMap.of("some.property", "tacos"));
     CaliperConfigLoader loader = new CaliperConfigLoader(optionsMock);
     CaliperConfig config = loader.loadOrCreate();
     assertEquals("tacos", config.properties.get("some.property"));

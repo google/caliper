@@ -18,11 +18,11 @@ package com.google.caliper.runner;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 
-/** 
+/**
  * A factory for producing {@link TrialResult TrialResults} based on data collected from visitors.
  */
 interface TrialResultFactory {
   /** Returns a new {@link Trial}. */
-  TrialResult newTrialResult(VmDataCollectingVisitor vmData, 
-      MeasurementCollectingVisitor measurementData);
+  TrialResult newTrialResult(
+      VmDataCollectingVisitor vmData, MeasurementCollectingVisitor measurementData);
 }

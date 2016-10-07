@@ -20,17 +20,13 @@ import static org.junit.Assert.fail;
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
 import com.google.common.collect.Lists;
-
+import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import java.util.List;
-
-/**
- * Integration tests for misbehaving benchmarks.
- */
+/** Integration tests for misbehaving benchmarks. */
 @RunWith(JUnit4.class)
 public class BadUserCodeTest {
   @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
@@ -41,7 +37,8 @@ public class BadUserCodeTest {
     try {
       runner.forBenchmark(ExceptionInInitBenchmark.class).run();
       fail();
-    } catch (UserCodeException expected) {}
+    } catch (UserCodeException expected) {
+    }
   }
 
   private static void throwSomeUserException() {
@@ -53,7 +50,8 @@ public class BadUserCodeTest {
       throwSomeUserException();
     }
 
-    @Benchmark void timeSomething(int reps) {
+    @Benchmark
+    void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -64,7 +62,8 @@ public class BadUserCodeTest {
     try {
       runner.forBenchmark(ExceptionInConstructorBenchmark.class).run();
       fail();
-    } catch (UserCodeException expected) {}
+    } catch (UserCodeException expected) {
+    }
   }
 
   static class ExceptionInConstructorBenchmark {
@@ -72,7 +71,8 @@ public class BadUserCodeTest {
       throw new RuntimeException();
     }
 
-    @Benchmark void timeSomething(int reps) {
+    @Benchmark
+    void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -83,11 +83,13 @@ public class BadUserCodeTest {
     try {
       runner.forBenchmark(ExceptionInMethodBenchmark.class).run();
       fail();
-    } catch (UserCodeException expected) {}
+    } catch (UserCodeException expected) {
+    }
   }
 
   static class ExceptionInMethodBenchmark {
-    @Benchmark void timeSomething(@SuppressWarnings("unused") int reps) {
+    @Benchmark
+    void timeSomething(@SuppressWarnings("unused") int reps) {
       throw new RuntimeException();
     }
   }
@@ -104,7 +106,8 @@ public class BadUserCodeTest {
   }
 
   static class ExceptionLateInMethodBenchmark {
-    @Benchmark void timeSomething(int reps) {
+    @Benchmark
+    void timeSomething(int reps) {
       if (reps > 1) {
         throw new RuntimeException();
       }
@@ -117,15 +120,18 @@ public class BadUserCodeTest {
     try {
       runner.forBenchmark(ExceptionInSetUpBenchmark.class).run();
       fail();
-    } catch (UserCodeException expected) {}
+    } catch (UserCodeException expected) {
+    }
   }
 
   static class ExceptionInSetUpBenchmark {
-    @BeforeExperiment void setUp() {
+    @BeforeExperiment
+    void setUp() {
       throw new RuntimeException();
     }
 
-    @Benchmark void timeSomething(int reps) {
+    @Benchmark
+    void timeSomething(int reps) {
       fail("" + reps);
     }
   }
@@ -134,14 +140,16 @@ public class BadUserCodeTest {
 
   public void testNonDeterministicAllocation_noTrackAllocations() throws Exception {
     try {
-      runner.forBenchmark(NonDeterministicAllocationBenchmark.class)
+      runner
+          .forBenchmark(NonDeterministicAllocationBenchmark.class)
           .instrument("allocation")
           .options("-Cinstrument.allocation.options.trackAllocations=" + false)
           .run();
       fail();
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
-      assertTrue("Expected " + expected.getMessage() + " to contain " + message,
+      assertTrue(
+          "Expected " + expected.getMessage() + " to contain " + message,
           expected.getMessage().contains(message));
     }
   }
@@ -150,14 +158,16 @@ public class BadUserCodeTest {
 
   public void testNonDeterministicAllocation_trackAllocations() throws Exception {
     try {
-      runner.forBenchmark(NonDeterministicAllocationBenchmark.class)
+      runner
+          .forBenchmark(NonDeterministicAllocationBenchmark.class)
           .instrument("allocation")
           .options("-Cinstrument.allocation.options.trackAllocations=" + true)
           .run();
       fail();
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
-      assertTrue("Expected " + expected.getMessage() + " to contain " + message,
+      assertTrue(
+          "Expected " + expected.getMessage() + " to contain " + message,
           expected.getMessage().contains(message));
     }
   }
@@ -167,7 +177,9 @@ public class BadUserCodeTest {
     static int timeCount = 0;
     // We dump items into this list so the jit cannot remove the allocations
     static List<Object> list = Lists.newArrayList();
-    @Benchmark int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
+
+    @Benchmark
+    int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
       timeCount++;
       if (timeCount % 2 == 0) {
         list.add(new Object());
@@ -181,7 +193,8 @@ public class BadUserCodeTest {
 
   public void testComplexNonDeterministicAllocation_noTrackAllocations() throws Exception {
     // Without trackAllocations enabled this kind of non-determinism cannot be detected.
-    runner.forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
+    runner
+        .forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
         .instrument("allocation")
         .options("-Cinstrument.allocation.options.trackAllocations=" + false)
         .run();
@@ -191,13 +204,16 @@ public class BadUserCodeTest {
 
   public void testComplexNonDeterministicAllocation_trackAllocations() throws Exception {
     try {
-      runner.forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
+      runner
+          .forBenchmark(ComplexNonDeterministicAllocationBenchmark.class)
           .instrument("allocation")
           .options("-Cinstrument.allocation.options.trackAllocations=" + true)
           .run();
+      fail("Expected ProxyWorkerException");
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
-      assertTrue("Expected " + expected.getMessage() + " to contain " + message,
+      assertTrue(
+          "Expected " + expected.getMessage() + " to contain " + message,
           expected.getMessage().contains(message));
     }
   }
@@ -205,7 +221,9 @@ public class BadUserCodeTest {
   /** Benchmark allocates the same number of things each time but in a different way. */
   static class ComplexNonDeterministicAllocationBenchmark {
     static int timeCount = 0;
-    @Benchmark int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
+
+    @Benchmark
+    int timeSomethingFBZ(@SuppressWarnings("unused") int reps) {
       // We dump items into this list so the jit cannot remove the allocations
       List<Object> list = Lists.newArrayList();
       timeCount++;

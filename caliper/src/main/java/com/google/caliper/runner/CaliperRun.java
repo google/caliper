@@ -16,9 +16,7 @@
 
 package com.google.caliper.runner;
 
-/**
- * A single invocation of caliper.
- */
+/** A single invocation of caliper. */
 public interface CaliperRun {
   void run() throws InvalidBenchmarkException;
 }

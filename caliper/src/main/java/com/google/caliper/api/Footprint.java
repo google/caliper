@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
 @Target(METHOD)
 public @interface Footprint {
   /**
-   * Optionally ignore instances of the specified types (including subclasses) when measuring.  For
+   * Optionally ignore instances of the specified types (including subclasses) when measuring. For
    * example, {@code @Footprint(ignore = Element.class) public Set<Element> set() {...}} would
    * measure the size of the set while ignoring the size of the elements.
    */

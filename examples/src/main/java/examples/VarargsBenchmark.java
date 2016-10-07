@@ -20,7 +20,6 @@ import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
-
 import java.util.Random;
 
 /**
@@ -31,52 +30,65 @@ import java.util.Random;
 public final class VarargsBenchmark {
   enum Strategy {
     VARARGS {
-      @Override long one(long a) {
+      @Override
+      long one(long a) {
         return varargs(a);
       }
 
-      @Override long two(long a, long b) {
+      @Override
+      long two(long a, long b) {
         return varargs(a, b);
       }
 
-      @Override long three(long a, long b, long c) {
+      @Override
+      long three(long a, long b, long c) {
         return varargs(a, b, c);
       }
 
-      @Override long four(long a, long b, long c, long d) {
+      @Override
+      long four(long a, long b, long c, long d) {
         return varargs(a, b, c, d);
       }
 
-      @Override long five(long a, long b, long c, long d, long e) {
+      @Override
+      long five(long a, long b, long c, long d, long e) {
         return varargs(a, b, c, d);
       }
 
-      @Override long six(long a, long b, long c, long d, long e, long f) {
+      @Override
+      long six(long a, long b, long c, long d, long e, long f) {
         return varargs(a, b, c, d, e, f);
-      }},
+      }
+    },
     EXPANSION {
-      @Override long one(long a) {
+      @Override
+      long one(long a) {
         return VarargsBenchmark.one(a);
       }
 
-      @Override long two(long a, long b) {
+      @Override
+      long two(long a, long b) {
         return VarargsBenchmark.two(a, b);
       }
 
-      @Override long three(long a, long b, long c) {
+      @Override
+      long three(long a, long b, long c) {
         return VarargsBenchmark.three(a, b, c);
       }
 
-      @Override long four(long a, long b, long c, long d) {
+      @Override
+      long four(long a, long b, long c, long d) {
         return VarargsBenchmark.four(a, b, c, d);
       }
 
-      @Override long five(long a, long b, long c, long d, long e) {
+      @Override
+      long five(long a, long b, long c, long d, long e) {
         return VarargsBenchmark.five(a, b, c, d, e);
       }
 
-      @Override long six(long a, long b, long c, long d, long e, long f) {
-         return VarargsBenchmark.six(a, b, c, d, e, f);
+      @Override
+      long six(long a, long b, long c, long d, long e, long f) {
+        return VarargsBenchmark.six(a, b, c, d, e, f);
       }
     };
 
@@ -126,18 +138,22 @@ public final class VarargsBenchmark {
   }
 
   @Param private Strategy strategy;
-  @Param({"1", "2", "3", "4", "5", "6"}) private int arguments;
+
+  @Param({"1", "2", "3", "4", "5", "6"})
+  private int arguments;
 
   private long[] data = new long[2048];
 
-  @BeforeExperiment void setUp() {
+  @BeforeExperiment
+  void setUp() {
     Random random = new Random();
     for (int i = 0; i < data.length; i++) {
       data[i] = random.nextLong();
     }
   }
 
-  @Benchmark long invocation(int reps) {
+  @Benchmark
+  long invocation(int reps) {
     switch (arguments) {
       case 1:
         return oneArgument(reps);
@@ -181,10 +197,9 @@ public final class VarargsBenchmark {
     long[] data = this.data;
     int dataLength = data.length;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.three(
-          data[i % dataLength],
-          data[(i + 1) % dataLength],
-          data[(i + 2) % dataLength]);
+      dummy +=
+          strategy.three(
+              data[i % dataLength], data[(i + 1) % dataLength], data[(i + 2) % dataLength]);
     }
     return dummy;
   }
@@ -194,11 +209,12 @@ public final class VarargsBenchmark {
     long[] data = this.data;
     int dataLength = data.length;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.four(
-          data[i % dataLength],
-          data[(i + 1) % dataLength],
-          data[(i + 2) % dataLength],
-          data[(i + 3) % dataLength]);
+      dummy +=
+          strategy.four(
+              data[i % dataLength],
+              data[(i + 1) % dataLength],
+              data[(i + 2) % dataLength],
+              data[(i + 3) % dataLength]);
     }
     return dummy;
   }
@@ -208,12 +224,13 @@ public final class VarargsBenchmark {
     long[] data = this.data;
     int dataLength = data.length;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.five(
-          data[i % dataLength],
-          data[(i + 1) % dataLength],
-          data[(i + 2) % dataLength],
-          data[(i + 3) % dataLength],
-          data[(i + 4) % dataLength]);
+      dummy +=
+          strategy.five(
+              data[i % dataLength],
+              data[(i + 1) % dataLength],
+              data[(i + 2) % dataLength],
+              data[(i + 3) % dataLength],
+              data[(i + 4) % dataLength]);
     }
     return dummy;
   }
@@ -223,13 +240,14 @@ public final class VarargsBenchmark {
     long[] data = this.data;
     int dataLength = data.length;
     for (int i = 0; i < reps; i++) {
-      dummy += strategy.six(
-          data[i % dataLength],
-          data[(i + 1) % dataLength],
-          data[(i + 2) % dataLength],
-          data[(i + 3) % dataLength],
-          data[(i + 4) % dataLength],
-          data[(i + 5) % dataLength]);
+      dummy +=
+          strategy.six(
+              data[i % dataLength],
+              data[(i + 1) % dataLength],
+              data[(i + 2) % dataLength],
+              data[(i + 3) % dataLength],
+              data[(i + 4) % dataLength],
+              data[(i + 5) % dataLength]);
     }
     return dummy;
   }

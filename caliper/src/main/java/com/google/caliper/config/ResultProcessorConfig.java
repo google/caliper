@@ -21,7 +21,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
-
 import java.util.Map;
 
 /**
@@ -47,24 +46,25 @@ public class ResultProcessorConfig {
     return options;
   }
 
-
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof ResultProcessorConfig) {
       ResultProcessorConfig that = (ResultProcessorConfig) obj;
-      return this.className.equals(that.className)
-          && this.options.equals(that.options);
+      return this.className.equals(that.className) && this.options.equals(that.options);
     } else {
       return false;
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(className, options);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("className", className)
         .add("options", options)

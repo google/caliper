@@ -16,19 +16,18 @@
 package com.google.caliper.worker;
 
 /**
- * An object that records all allocations that occur between {@link #startRecording()} 
- * and {@link #stopRecording(int)}.
- * 
- * <p>This object can accurately track allocations made from multiple threads but is only 
- * expected to have {@link #startRecording()} and {@link #stopRecording(int)} called by a single 
- * thread.
+ * An object that records all allocations that occur between {@link #startRecording()} and {@link
+ * #stopRecording(int)}.
+ *
+ * <p>This object can accurately track allocations made from multiple threads but is only expected
+ * to have {@link #startRecording()} and {@link #stopRecording(int)} called by a single thread.
  */
 abstract class AllocationRecorder {
   private boolean firstTime = true;
-  
-  /** 
+
+  /**
    * Clears the prior state and starts a new recording.
-   * 
+   *
    * @throws IllegalStateException if the recording infrastructure is misconfigured.
    */
   final void startRecording() {
@@ -39,22 +38,23 @@ abstract class AllocationRecorder {
       AllocationStats stats = stopRecording(1);
       if (stats.getAllocationCount() != 1 || stats.getAllocationSize() < 1) {
         throw new IllegalStateException(
-            String.format("The allocation recording infrastructure appears to be broken. "
-                + "Expected to find exactly one allocation of a java/lang/Object instead found %s",
+            String.format(
+                "The allocation recording infrastructure appears to be broken. "
+                    + "Expected to find exactly one allocation of a java/lang/Object instead found %s",
                 stats));
       }
       firstTime = false;
     }
     doStartRecording();
   }
-  
+
   /** Clears the prior state and starts a new recording. */
   protected abstract void doStartRecording();
-  
+
   /**
    * Stops recording allocations and saves all the allocation data recorded since the previous call
    * to {@link #startRecording()} to an {@link AllocationStats} object.
-   * 
+   *
    * @param reps The number of reps that the previous set of allocation represents.
    */
   abstract AllocationStats stopRecording(int reps);

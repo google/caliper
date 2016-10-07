@@ -19,9 +19,7 @@ package com.google.caliper.model;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Objects;
-
 import java.io.Serializable;
-
 
 /**
  * A magnitude with units.
@@ -60,23 +58,25 @@ public class Value implements Serializable {
     return magnitude;
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Value) {
       Value that = (Value) obj;
-      return this.magnitude == that.magnitude
-          && this.unit.equals(that.unit);
+      return this.magnitude == that.magnitude && this.unit.equals(that.unit);
     } else {
       return false;
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(magnitude, unit);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return new StringBuilder().append(magnitude).append(unit).toString();
   }
 }

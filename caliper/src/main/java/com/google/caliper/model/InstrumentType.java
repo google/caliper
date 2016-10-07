@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Google Inc.
+ * Copyright (C) 2016 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.model;
 
-import dagger.Component;
-
-/** Component to use to inject values into an {@link Instrument}. */
-@Component(modules = InstrumentInjectorModule.class)
-interface InstrumentComponent {
-
-  void injectInstrument(Instrument instrument);
+/** Enumeration of the available types of instruments for running benchmarks. */
+public enum InstrumentType {
+  /** Runtime microbenchmark instrument. */
+  RUNTIME_MICRO,
+  /** Runtime macrobenchmark instrument. */
+  RUNTIME_MACRO,
+  /** Runtime picobenchmark instrument. */
+  RUNTIME_PICO,
+  /** Allocation microbenchmark instrument. */
+  ALLOCATION_MICRO,
+  /** Allocation macrobenchmark instrument. */
+  ALLOCATION_MACRO,
+  /** Arbitrary measurement instrument. */
+  ARBITRARY_MEASUREMENT,
 }

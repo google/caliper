@@ -22,13 +22,12 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.runner.ExperimentModule;
 import com.google.common.net.InetAddresses;
-
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
 /**
- * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages
- * the benchmark and hands it off to the instrument's worker.
+ * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages the
+ * benchmark and hands it off to the instrument's worker.
  */
 public final class WorkerMain {
   private WorkerMain() {}
@@ -43,10 +42,11 @@ public final class WorkerMain {
     channel.configureBlocking(false);
     channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
 
-    WorkerComponent workerComponent = DaggerWorkerComponent.builder()
-        .experimentModule(ExperimentModule.forWorkerSpec(request))
-        .workerModule(new WorkerModule(request))
-        .build();
+    WorkerComponent workerComponent =
+        DaggerWorkerComponent.builder()
+            .experimentModule(ExperimentModule.forWorkerSpec(request))
+            .workerModule(new WorkerModule(request))
+            .build();
     Worker worker = workerComponent.getWorker();
     WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
 

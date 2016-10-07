@@ -26,7 +26,6 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Primitives;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -47,59 +46,70 @@ import java.util.List;
 /**
  * Parses command line options.
  *
- * Strings in the passed-in String[] are parsed left-to-right. Each String is classified as a short
- * option (such as "-v"), a long option (such as "--verbose"), an argument to an option (such as
- * "out.txt" in "-f out.txt"), or a non-option positional argument.
+ * <p>Strings in the passed-in String[] are parsed left-to-right. Each String is classified as a
+ * short option (such as "-v"), a long option (such as "--verbose"), an argument to an option (such
+ * as "out.txt" in "-f out.txt"), or a non-option positional argument.
  *
- * A simple short option is a "-" followed by a short option character. If the option requires an
+ * <p>A simple short option is a "-" followed by a short option character. If the option requires an
  * argument (which is true of any non-boolean option), it may be written as a separate parameter,
  * but need not be. That is, "-f out.txt" and "-fout.txt" are both acceptable.
  *
- * It is possible to specify multiple short options after a single "-" as long as all (except
+ * <p>It is possible to specify multiple short options after a single "-" as long as all (except
  * possibly the last) do not require arguments.
  *
- * A long option begins with "--" followed by several characters. If the option requires an
+ * <p>A long option begins with "--" followed by several characters. If the option requires an
  * argument, it may be written directly after the option name, separated by "=", or as the next
  * argument. (That is, "--file=out.txt" or "--file out.txt".)
  *
- * A boolean long option '--name' automatically gets a '--no-name' companion. Given an option
+ * <p>A boolean long option '--name' automatically gets a '--no-name' companion. Given an option
  * "--flag", then, "--flag", "--no-flag", "--flag=true" and "--flag=false" are all valid, though
  * neither "--flag true" nor "--flag false" are allowed (since "--flag" by itself is sufficient, the
  * following "true" or "false" is interpreted separately). You can use "yes" and "no" as synonyms
  * for "true" and "false".
  *
- * Each String not starting with a "-" and not a required argument of a previous option is a
+ * <p>Each String not starting with a "-" and not a required argument of a previous option is a
  * non-option positional argument, as are all successive Strings. Each String after a "--" is a
  * non-option positional argument.
  *
- * The fields corresponding to options are updated as their options are processed. Any remaining
+ * <p>The fields corresponding to options are updated as their options are processed. Any remaining
  * positional arguments are returned as an ImmutableList<String>.
  *
- * Here's a simple example:
+ * <p>Here's a simple example:
  *
- * // This doesn't need to be a separate class, if your application doesn't warrant it. //
- * Non-@Option fields will be ignored. class Options {
+ * <pre>{@code
+ * // This doesn't need to be a separate class, if your application doesn't warrant it.
+ * // Non-@Option fields will be ignored.
+ * class Options {
+ *   @Option(names = { "-q", "--quiet" })
+ *   boolean quiet = false;
  *
- * @Option(names = { "-q", "--quiet" }) boolean quiet = false;
+ *   // Boolean options require a long name if it's to be possible to explicitly turn them off.
+ *   // Here the user can use --no-color.
+ *   @Option(names = { "--color" })
+ *   boolean color = true;
+ *   @Option(names = { "-m", "--mode" })
+ *   String mode = "standard; // Supply a default just by setting the field.
+ *   @Option(names = { "-p", "--port" })
+ *   int portNumber = 8888;
  *
- * // Boolean options require a long name if it's to be possible to explicitly turn them off. //
- * Here the user can use --no-color.
- * @Option(names = { "--color" }) boolean color = true;
- * @Option(names = { "-m", "--mode" }) String mode = "standard; // Supply a default just by setting
- * the field.
- * @Option(names = { "-p", "--port" }) int portNumber = 8888;
- *
- * // There's no need to offer a short name for rarely-used options.
- * @Option(names = { "--timeout" }) double timeout = 1.0;
- * @Option(names = { "-o", "--output-file" }) String outputFile;
- *
+ *   // There's no need to offer a short name for rarely-used options.
+ *   @Option(names = {"--timeout" })
+ *   double timeout = 1.0;
+ *   @Option(names = { "-o", "--output-file" })
+ *   String outputFile;
  * }
+ * }</pre>
  *
- * See also:
+ * <p>See also:
  *
- * the getopt(1) man page Python's "optparse" module (http://docs.python.org/library/optparse.html)
- * the POSIX "Utility Syntax Guidelines" (http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap12.html#tag_12_02)
- * the GNU "Standards for Command Line Interfaces" (http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces)
+ * <ul>
+ * <li>the getopt(1) man page
+ * <li>Python's "optparse" module (http://docs.python.org/library/optparse.html)
+ * <li>the POSIX "Utility Syntax Guidelines"
+ *     (http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap12.html#tag_12_02)
+ * <li>the GNU "Standards for Command Line Interfaces"
+ *     (http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces)
+ * </ul>
  */
 final class CommandLineParser<T> {
   /**
@@ -182,7 +192,9 @@ final class CommandLineParser<T> {
 
   private abstract static class InjectableOption {
     abstract boolean isBoolean();
+
     abstract void inject(String valueText, Object injectee) throws InvalidCommandException;
+
     boolean delayedInjection() {
       return false;
     }
@@ -192,21 +204,26 @@ final class CommandLineParser<T> {
     public static InjectionMap forClass(Class<?> injectedClass) {
       ImmutableMap.Builder<String, InjectableOption> builder = ImmutableMap.builder();
 
-      InjectableOption helpOption = new InjectableOption() {
-        @Override boolean isBoolean() {
-          return true;
-        }
-        @Override void inject(String valueText, Object injectee) throws DisplayUsageException {
-          throw new DisplayUsageException();
-        }
-      };
+      InjectableOption helpOption =
+          new InjectableOption() {
+            @Override
+            boolean isBoolean() {
+              return true;
+            }
+
+            @Override
+            void inject(String valueText, Object injectee) throws DisplayUsageException {
+              throw new DisplayUsageException();
+            }
+          };
       builder.put("-h", helpOption);
       builder.put("--help", helpOption);
 
       Method leftoverMethod = null;
 
       for (Field field : injectedClass.getDeclaredFields()) {
-        checkArgument(!field.isAnnotationPresent(Leftovers.class),
+        checkArgument(
+            !field.isAnnotationPresent(Leftovers.class),
             "Sorry, @Leftovers only works for methods at present"); // TODO(kevinb)
         Option option = field.getAnnotation(Option.class);
         if (option != null) {
@@ -218,10 +235,10 @@ final class CommandLineParser<T> {
       }
       for (Method method : injectedClass.getDeclaredMethods()) {
         if (method.isAnnotationPresent(Leftovers.class)) {
-          checkArgument(!isStaticOrAbstract(method),
-              "@Leftovers method cannot be static or abstract");
-          checkArgument(!method.isAnnotationPresent(Option.class),
-              "method has both @Option and @Leftovers");
+          checkArgument(
+              !isStaticOrAbstract(method), "@Leftovers method cannot be static or abstract");
+          checkArgument(
+              !method.isAnnotationPresent(Option.class), "method has both @Option and @Leftovers");
           checkArgument(leftoverMethod == null, "Two methods have @Leftovers");
 
           method.setAccessible(true);
@@ -284,11 +301,13 @@ final class CommandLineParser<T> {
       }
     }
 
-    @Override boolean isBoolean() {
+    @Override
+    boolean isBoolean() {
       return isBoolean;
     }
 
-    @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
+    @Override
+    void inject(String valueText, Object injectee) throws InvalidCommandException {
       Object value = convert(parser, valueText);
       try {
         field.set(injectee, value);
@@ -300,8 +319,7 @@ final class CommandLineParser<T> {
 
   private static class MethodOption extends InjectableOption {
     private static InjectableOption create(Method method) {
-      checkArgument(!isStaticOrAbstract(method),
-          "@Option methods cannot be static or abstract");
+      checkArgument(!isStaticOrAbstract(method), "@Option methods cannot be static or abstract");
       Class<?>[] classes = method.getParameterTypes();
       checkArgument(classes.length == 1, "Method does not have exactly one argument: " + method);
       return new MethodOption(method, classes[0]);
@@ -323,15 +341,18 @@ final class CommandLineParser<T> {
       method.setAccessible(true);
     }
 
-    @Override boolean isBoolean() {
+    @Override
+    boolean isBoolean() {
       return isBoolean;
     }
 
-    @Override boolean delayedInjection() {
+    @Override
+    boolean delayedInjection() {
       return true;
     }
 
-    @Override void inject(String valueText, Object injectee) throws InvalidCommandException {
+    @Override
+    void inject(String valueText, Object injectee) throws InvalidCommandException {
       invokeMethod(injectee, method, convert(parser, valueText));
     }
   }
@@ -360,9 +381,10 @@ final class CommandLineParser<T> {
     InjectableOption injectable = injectionMap.getInjectableOption(name);
 
     if (value == null) {
-      value = injectable.isBoolean()
-          ? Boolean.toString(!arg.startsWith("--no-"))
-          : grabNextValue(args, name);
+      value =
+          injectable.isBoolean()
+              ? Boolean.toString(!arg.startsWith("--no-"))
+              : grabNextValue(args, name);
     }
     injectNowOrLater(injectable, value);
   }
@@ -406,7 +428,7 @@ final class CommandLineParser<T> {
           value = arg.substring(i + 1);
           i = arg.length() - 1; // delayed "break"
 
-        // otherwise the next arg
+          // otherwise the next arg
         } else {
           value = grabNextValue(args, name);
         }
@@ -428,8 +450,7 @@ final class CommandLineParser<T> {
     }
   }
 
-  private String grabNextValue(Iterator<String> args, String name)
-      throws InvalidCommandException {
+  private String grabNextValue(Iterator<String> args, String name) throws InvalidCommandException {
     if (args.hasNext()) {
       return args.next();
     } else {

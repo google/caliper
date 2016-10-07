@@ -24,10 +24,7 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
-
-
 import java.io.Serializable;
-
 
 /**
  * A single, weighted measurement.
@@ -39,16 +36,20 @@ public class Measurement implements Serializable {
 
   public static ImmutableListMultimap<String, Measurement> indexByDescription(
       Iterable<Measurement> measurements) {
-    return Multimaps.index(measurements, new Function<Measurement, String>() {
-      @Override public String apply(Measurement input) {
-        return input.description;
-      }
-    });
+    return Multimaps.index(
+        measurements,
+        new Function<Measurement, String>() {
+          @Override
+          public String apply(Measurement input) {
+            return input.description;
+          }
+        });
   }
 
   @ExcludeFromJson
   private int id;
   private Value value;
+
   private double weight;
   private String description;
 
@@ -64,7 +65,8 @@ public class Measurement implements Serializable {
     this.weight = builder.weight;
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Measurement) {
@@ -77,11 +79,13 @@ public class Measurement implements Serializable {
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(value, weight, description);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("value", value)
         .add("weight", weight)

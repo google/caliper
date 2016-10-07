@@ -28,8 +28,8 @@ public class LinearTranslation {
   private static final double EQUALITY_TOLERANCE = 1.0E-6;
 
   /**
-   * Constructs a linear translation for which {@code translate(in1) == out1}
-   * and {@code translate(in2) == out2}.
+   * Constructs a linear translation for which {@code translate(in1) == out1} and {@code
+   * translate(in2) == out2}.
    *
    * @throws IllegalArgumentException if {@code in1 == in2}
    */

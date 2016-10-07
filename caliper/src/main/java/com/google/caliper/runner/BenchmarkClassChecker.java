@@ -20,20 +20,17 @@ import com.google.caliper.config.ConfigModule;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.OutputModule;
 import com.google.common.collect.ImmutableSet;
-
 import dagger.Component;
-
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.List;
-
 import javax.inject.Singleton;
 
 /**
  * Determines whether a class contains one or more benchmarks or not.
  *
- * <p>Useful for tools that need to check whether a class contains benchmarks before running them
- * by calling an appropriate method on {@link CaliperMain}.
+ * <p>Useful for tools that need to check whether a class contains benchmarks before running them by
+ * calling an appropriate method on {@link CaliperMain}.
  */
 // This should be considered part of the public API alongside {@link CaliperMain}.
 public final class BenchmarkClassChecker {
@@ -41,8 +38,8 @@ public final class BenchmarkClassChecker {
   /**
    * Create a new instance of {@link BenchmarkClassChecker}.
    *
-   * @param arguments a list of command line arguments for Caliper, can include any of the
-   *     options supported by Caliper.
+   * @param arguments a list of command line arguments for Caliper, can include any of the options
+   *     supported by Caliper.
    * @return a new instance of {@link BenchmarkClassChecker}.
    */
   public static BenchmarkClassChecker create(List<String> arguments) {
@@ -57,10 +54,12 @@ public final class BenchmarkClassChecker {
 
   private BenchmarkClassChecker(List<String> arguments) {
     String[] args = arguments.toArray(new String[arguments.size()]);
-    InstrumentProvider instrumentProvider = DaggerBenchmarkClassChecker_InstrumentProvider.builder()
-        .optionsModule(OptionsModule.withoutBenchmarkClass(args))
-        .outputModule(new OutputModule(new PrintWriter(System.out), new PrintWriter(System.err)))
-        .build();
+    InstrumentProvider instrumentProvider =
+        DaggerBenchmarkClassChecker_InstrumentProvider.builder()
+            .optionsModule(OptionsModule.withoutBenchmarkClass(args))
+            .outputModule(
+                new OutputModule(new PrintWriter(System.out), new PrintWriter(System.err)))
+            .build();
 
     instruments = instrumentProvider.instruments();
   }
@@ -85,17 +84,17 @@ public final class BenchmarkClassChecker {
   }
 
   @Singleton
-  @Component(modules = {
+  @Component(
+    modules = {
       ConfigModule.class,
       ExperimentingRunnerModule.class,
       OptionsModule.class,
       OutputModule.class,
       PlatformModule.class,
       RunnerModule.class,
-  })
-  /**
-   * Provides the set of supported {@link Instrument instruments}.
-   */
+    }
+  )
+  /** Provides the set of supported {@link Instrument instruments}. */
   interface InstrumentProvider {
     ImmutableSet<Instrument> instruments();
   }

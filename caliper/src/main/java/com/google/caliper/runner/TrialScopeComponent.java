@@ -18,9 +18,7 @@ package com.google.caliper.runner;
 
 import dagger.Subcomponent;
 
-/**
- * Component for creating {@link ScheduledTrial} in the {@link TrialScoped}.
- */
+/** Component for creating {@link ScheduledTrial} in the {@link TrialScoped}. */
 @TrialScoped
 @Subcomponent(modules = {TrialModule.class})
 interface TrialScopeComponent {

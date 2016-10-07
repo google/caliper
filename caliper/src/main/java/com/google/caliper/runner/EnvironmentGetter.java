@@ -22,7 +22,6 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -32,16 +31,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * An instance of this class is responsible for returning a Map that describes the environment:
- * JVM version, os details, etc.
+ * An instance of this class is responsible for returning a Map that describes the environment: JVM
+ * version, os details, etc.
  */
 final class EnvironmentGetter {
   Host getHost() {
-    return new Host.Builder()
-        .addAllProperies(getProperties())
-        .build();
+    return new Host.Builder().addAllProperies(getProperties()).build();
   }
-  
+
   private Map<String, String> getProperties() {
     TreeMap<String, String> propertyMap = Maps.newTreeMap();
 
@@ -53,8 +50,8 @@ final class EnvironmentGetter {
     if (alternateVersion != null && alternateVersion.length() > version.length()) {
       version = alternateVersion;
     }
-    propertyMap.put("host.availableProcessors",
-        Integer.toString(Runtime.getRuntime().availableProcessors()));
+    propertyMap.put(
+        "host.availableProcessors", Integer.toString(Runtime.getRuntime().availableProcessors()));
 
     String osName = sysProps.get("os.name");
     propertyMap.put("os.name", osName);
@@ -92,12 +89,11 @@ final class EnvironmentGetter {
   }
 
   /**
-   * Returns the key/value pairs from the specified properties-file like file.
-   * Unlike standard Java properties files, {@code reader} is allowed to list
-   * the same property multiple times. Comments etc. are unsupported.
+   * Returns the key/value pairs from the specified properties-file like file. Unlike standard Java
+   * properties files, {@code reader} is allowed to list the same property multiple times. Comments
+   * etc. are unsupported.
    *
-   * <p>If there's any problem reading the file's contents, we'll return an
-   * empty Multimap.
+   * <p>If there's any problem reading the file's contents, we'll return an empty Multimap.
    */
   private static Multimap<String, String> propertiesFromLinuxFile(String file) {
     try {

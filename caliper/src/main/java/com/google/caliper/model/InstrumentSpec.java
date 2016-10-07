@@ -23,11 +23,8 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
-
-
 import java.util.Map;
 import java.util.SortedMap;
-
 
 /**
  * A specification by which the application of an instrument can be uniquely identified.
@@ -62,13 +59,13 @@ public final class InstrumentSpec {
     return ImmutableSortedMap.copyOf(options);
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof InstrumentSpec) {
       InstrumentSpec that = (InstrumentSpec) obj;
-      return this.className.equals(that.className)
-          && this.options.equals(that.options);
+      return this.className.equals(that.className) && this.options.equals(that.options);
     } else {
       return false;
     }
@@ -76,20 +73,24 @@ public final class InstrumentSpec {
 
   private void initHash() {
     if (hash == 0) {
-      this.hash = getPersistentHashFunction()
-          .newHasher()
-          .putUnencodedChars(className)
-          .putObject(options, StringMapFunnel.INSTANCE)
-          .hash().asInt();
+      this.hash =
+          getPersistentHashFunction()
+              .newHasher()
+              .putUnencodedChars(className)
+              .putObject(options, StringMapFunnel.INSTANCE)
+              .hash()
+              .asInt();
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     initHash();
     return hash;
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("className", className)
         .add("options", options)

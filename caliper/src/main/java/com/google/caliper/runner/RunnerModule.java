@@ -23,27 +23,19 @@ import com.google.caliper.model.Run;
 import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.platform.Platform;
 import com.google.common.collect.ImmutableSet;
-
 import dagger.Module;
 import dagger.Provides;
-
+import java.util.UUID;
+import javax.inject.Singleton;
 import org.joda.time.Instant;
 
-import java.util.UUID;
-
-import javax.inject.Singleton;
-
-/**
- * A Dagger module that configures bindings common to all {@link CaliperRun} implementations.
- */
+/** A Dagger module that configures bindings common to all {@link CaliperRun} implementations. */
 // TODO(gak): throwing providers for all of the things that throw
 @Module
 final class RunnerModule {
   @Provides
   static ImmutableSet<VirtualMachine> provideVirtualMachines(
-      CaliperOptions options,
-      CaliperConfig config,
-      Platform platform)
+      CaliperOptions options, CaliperConfig config, Platform platform)
       throws InvalidConfigurationException {
     ImmutableSet<String> vmNames = options.vmNames();
     ImmutableSet.Builder<VirtualMachine> builder = ImmutableSet.builder();
@@ -67,7 +59,8 @@ final class RunnerModule {
     return experimentingCaliperRun;
   }
 
-  @Provides @Singleton
+  @Provides
+  @Singleton
   static Run provideRun(UUID uuid, CaliperOptions caliperOptions, Instant startTime) {
     return new Run.Builder(uuid).label(caliperOptions.runName()).startTime(startTime).build();
   }

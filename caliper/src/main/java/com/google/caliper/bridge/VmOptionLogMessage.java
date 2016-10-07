@@ -18,7 +18,6 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-
 /**
  * A message representing output produced by the JVM when {@code -XX:+PrintFlagsFinal} is enabled.
  */

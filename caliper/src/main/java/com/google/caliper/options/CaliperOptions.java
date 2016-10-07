@@ -18,22 +18,34 @@ import com.google.caliper.util.ShortDuration;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-
 import java.io.File;
 
 public interface CaliperOptions {
   String benchmarkClassName();
+
   ImmutableSet<String> benchmarkMethodNames();
+
   ImmutableSet<String> vmNames();
+
   ImmutableSetMultimap<String, String> userParameters();
+
   ImmutableSetMultimap<String, String> vmArguments();
+
   ImmutableMap<String, String> configProperties();
+
   ImmutableSet<String> instrumentNames();
+
   int trialsPerScenario();
+
   ShortDuration timeLimit();
+
   String runName();
+
   boolean printConfiguration();
+
   boolean dryRun();
+
   File caliperDirectory();
+
   File caliperConfigFile();
 }

@@ -25,7 +25,7 @@ import com.google.common.math.LongMath;
 
 /**
  * A utility that calculates the finest granularity that can be expected from subsequent calls to
- * {@link System#nanoTime()}.  Note that this utility necessarily invokes {@link System#nanoTime()}
+ * {@link System#nanoTime()}. Note that this utility necessarily invokes {@link System#nanoTime()}
  * directly rather than using {@link Ticker} because the extra indirection might cause additional
  * overhead.
  */

@@ -19,9 +19,7 @@ package com.google.caliper.platform.jvm;
 import dagger.Module;
 import dagger.Provides;
 
-/**
- * Provider of the default {@link JvmPlatform}, this is assumed to always be available.
- */
+/** Provider of the default {@link JvmPlatform}, this is assumed to always be available. */
 @Module
 public final class JvmModule {
 

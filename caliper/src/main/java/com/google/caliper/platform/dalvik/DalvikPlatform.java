@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
@@ -45,8 +44,8 @@ public final class DalvikPlatform extends Platform {
     // TODO(user): Allow the 32/64 version of dalvik to be selected rather than the default
     // standard configurations of Android systems and windows.
     File bin = new File(vmHome, "bin");
-    Preconditions.checkState(bin.exists() && bin.isDirectory(),
-        "Could not find %s under android root %s", bin, vmHome);
+    Preconditions.checkState(
+        bin.exists() && bin.isDirectory(), "Could not find %s under android root %s", bin, vmHome);
     String executableName = "dalvikvm";
     File dalvikvm = new File(bin, executableName);
     if (!dalvikvm.exists() || dalvikvm.isDirectory()) {
@@ -93,6 +92,6 @@ public final class DalvikPlatform extends Platform {
     // TODO(user): Should probably use this to support specifying dalvikvm32/dalvikvm64
     // and maybe even app_process.
     throw new UnsupportedOperationException(
-            "Running with a custom Dalvik VM is not currently supported");
+        "Running with a custom Dalvik VM is not currently supported");
   }
 }

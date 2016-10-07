@@ -25,16 +25,14 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-
 import java.io.File;
-
 import javax.annotation.concurrent.GuardedBy;
 
 /**
- * This is the configuration passed to the VM by the user. This differs from the {@link VmSpec}
- * in that any number of configurations can yield the same spec (due to default flag values) and any
- * number of specs can come from a single configuration (due to
- * <a href="http://www.oracle.com/technetwork/java/ergo5-140223.html">ergonomics</a>).
+ * This is the configuration passed to the VM by the user. This differs from the {@link VmSpec} in
+ * that any number of configurations can yield the same spec (due to default flag values) and any
+ * number of specs can come from a single configuration (due to <a
+ * href="http://www.oracle.com/technetwork/java/ergo5-140223.html">ergonomics</a>).
  *
  * @author gak@google.com (Gregory Kick)
  */
@@ -91,7 +89,8 @@ public final class VmConfig {
     return platform.commonInstrumentVmArgs();
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof VmConfig) {
@@ -104,11 +103,13 @@ public final class VmConfig {
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(platform, vmHome, options);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return MoreObjects.toStringHelper(this)
         .add("platform", platform)
         .add("vmHome", vmHome)
@@ -116,11 +117,11 @@ public final class VmConfig {
         .toString();
   }
 
-  @VisibleForTesting public static final class Builder {
+  @VisibleForTesting
+  public static final class Builder {
     private final Platform platform;
     private final File vmHome;
     private final ImmutableList.Builder<String> optionsBuilder = ImmutableList.builder();
-
 
     public Builder(Platform platform, File vmHome) {
       this.platform = checkNotNull(platform);

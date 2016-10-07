@@ -17,9 +17,9 @@
 package com.google.caliper.api;
 
 /**
- * Throw this exception from your benchmark class's setUp method, or benchmark method
- * to indicate that the combination of parameters supplied should not be benchmarked. For example,
- * while you might want to test <i>most</i> combinations of the parameters {@code size} and {@code
+ * Throw this exception from your benchmark class's setUp method, or benchmark method to indicate
+ * that the combination of parameters supplied should not be benchmarked. For example, while you
+ * might want to test <i>most</i> combinations of the parameters {@code size} and {@code
  * comparator}, you might not want to test the specific combination of {@code size=100000000} and
  * {@code comparator=reallyExpensiveComparator}.
  */

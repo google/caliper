@@ -22,44 +22,48 @@ import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 
-/**
- * Benchmarks creation and cloning various expensive objects.
- */
+/** Benchmarks creation and cloning various expensive objects. */
 @SuppressWarnings({"ResultOfObjectAllocationIgnored"}) // TODO: should fix!
 public class ExpensiveObjectsBenchmark {
-  @Benchmark void newDecimalFormatSymbols(int reps) {
+  @Benchmark
+  void newDecimalFormatSymbols(int reps) {
     for (int i = 0; i < reps; ++i) {
       new DecimalFormatSymbols(Locale.US);
     }
   }
 
-  @Benchmark void clonedDecimalFormatSymbols(int reps) {
+  @Benchmark
+  void clonedDecimalFormatSymbols(int reps) {
     DecimalFormatSymbols dfs = new DecimalFormatSymbols(Locale.US);
     for (int i = 0; i < reps; ++i) {
       dfs.clone();
     }
   }
 
-  @Benchmark void newNumberFormat(int reps) {
+  @Benchmark
+  void newNumberFormat(int reps) {
     for (int i = 0; i < reps; ++i) {
       NumberFormat.getInstance(Locale.US);
     }
   }
 
-  @Benchmark void clonedNumberFormat(int reps) {
+  @Benchmark
+  void clonedNumberFormat(int reps) {
     NumberFormat nf = NumberFormat.getInstance(Locale.US);
     for (int i = 0; i < reps; ++i) {
       nf.clone();
     }
   }
 
-  @Benchmark void newSimpleDateFormat(int reps) {
+  @Benchmark
+  void newSimpleDateFormat(int reps) {
     for (int i = 0; i < reps; ++i) {
       new SimpleDateFormat();
     }
   }
 
-  @Benchmark void clonedSimpleDateFormat(int reps) {
+  @Benchmark
+  void clonedSimpleDateFormat(int reps) {
     SimpleDateFormat sdf = new SimpleDateFormat();
     for (int i = 0; i < reps; ++i) {
       sdf.clone();

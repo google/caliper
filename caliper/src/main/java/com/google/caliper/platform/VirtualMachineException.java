@@ -16,9 +16,7 @@
 
 package com.google.caliper.platform;
 
-/**
- * Thrown when a problem was found with a custom VM configuration.
- */
+/** Thrown when a problem was found with a custom VM configuration. */
 public class VirtualMachineException extends Exception {
 
   public VirtualMachineException(String message) {

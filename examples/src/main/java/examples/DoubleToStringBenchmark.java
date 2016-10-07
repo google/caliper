@@ -19,48 +19,59 @@ package examples;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
-/**
- * Measures the various ways the JDK converts doubles to strings.
- */
+/** Measures the various ways the JDK converts doubles to strings. */
 public class DoubleToStringBenchmark {
   @Param Method method;
 
   public enum Method {
     TO_STRING {
-      @Override String convert(double d) {
+      @Override
+      String convert(double d) {
         return ((Double) d).toString();
       }
-      @Override String convert(Double d) {
+
+      @Override
+      String convert(Double d) {
         return d.toString();
       }
     },
     STRING_VALUE_OF {
-      @Override String convert(double d) {
+      @Override
+      String convert(double d) {
         return String.valueOf(d);
       }
-      @Override String convert(Double d) {
+
+      @Override
+      String convert(Double d) {
         return String.valueOf(d);
       }
     },
     STRING_FORMAT {
-      @Override String convert(double d) {
+      @Override
+      String convert(double d) {
         return String.format("%f", d);
       }
-      @Override String convert(Double d) {
+
+      @Override
+      String convert(Double d) {
         return String.format("%f", d);
       }
     },
     QUOTE_TRICK {
-      @Override String convert(double d) {
+      @Override
+      String convert(double d) {
         return "" + d;
       }
-      @Override String convert(Double d) {
+
+      @Override
+      String convert(Double d) {
         return "" + d;
       }
     },
     ;
 
     abstract String convert(double d);
+
     abstract String convert(Double d);
   }
 
@@ -79,7 +90,8 @@ public class DoubleToStringBenchmark {
 
   @Param Value value;
 
-  @Benchmark int primitive(int reps) {
+  @Benchmark
+  int primitive(int reps) {
     double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
@@ -88,7 +100,8 @@ public class DoubleToStringBenchmark {
     return dummy;
   }
 
-  @Benchmark int wrapper(int reps) {
+  @Benchmark
+  int wrapper(int reps) {
     Double d = value.value;
     int dummy = 0;
     for (int i = 0; i < reps; i++) {

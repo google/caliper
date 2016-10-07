@@ -23,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
@@ -36,12 +35,11 @@ import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Logger;
-
 import javax.annotation.Nullable;
 
 /**
- * Scans the source of a {@link ClassLoader} and finds all jar files.  This is a modified version
- * of {@link com.google.common.reflect.ClassPath} that finds jars instead of resources.
+ * Scans the source of a {@link ClassLoader} and finds all jar files. This is a modified version of
+ * {@link com.google.common.reflect.ClassPath} that finds jars instead of resources.
  */
 final class JarFinder {
   private static final Logger logger = Logger.getLogger(JarFinder.class.getName());
@@ -56,7 +54,7 @@ final class JarFinder {
    * <p>Currently only {@link URLClassLoader} and only {@code file://} urls are supported.
    *
    * @throws IOException if the attempt to read class path resources (jar files or directories)
-   *         failed.
+   *     failed.
    */
   public static ImmutableSet<File> findJarFiles(ClassLoader first, ClassLoader... rest)
       throws IOException {
@@ -71,8 +69,8 @@ final class JarFinder {
     return scanner.jarFiles();
   }
 
-  @VisibleForTesting static ImmutableMap<URI, ClassLoader> getClassPathEntries(
-      ClassLoader classloader) {
+  @VisibleForTesting
+  static ImmutableMap<URI, ClassLoader> getClassPathEntries(ClassLoader classloader) {
     Map<URI, ClassLoader> entries = Maps.newLinkedHashMap();
     // Search parent first, since it's the order ClassLoader#loadClass() uses.
     ClassLoader parent = classloader.getParent();
@@ -96,7 +94,8 @@ final class JarFinder {
     return ImmutableMap.copyOf(entries);
   }
 
-  @VisibleForTesting static final class Scanner {
+  @VisibleForTesting
+  static final class Scanner {
     private final ImmutableSet.Builder<File> jarFiles = new ImmutableSet.Builder<File>();
     private final Set<URI> scannedUris = Sets.newHashSet();
 
@@ -110,8 +109,8 @@ final class JarFinder {
       }
     }
 
-    @VisibleForTesting void scanFrom(File file, ClassLoader classloader)
-        throws IOException {
+    @VisibleForTesting
+    void scanFrom(File file, ClassLoader classloader) throws IOException {
       if (!file.exists()) {
         return;
       }
@@ -126,8 +125,7 @@ final class JarFinder {
       scanDirectory(directory, classloader, "");
     }
 
-    private void scanDirectory(
-        File directory, ClassLoader classloader, String packagePrefix) {
+    private void scanDirectory(File directory, ClassLoader classloader, String packagePrefix) {
       for (File file : directory.listFiles()) {
         String name = file.getName();
         if (file.isDirectory()) {
@@ -153,7 +151,8 @@ final class JarFinder {
       } finally {
         try {
           jarFile.close();
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
       }
     }
 
@@ -164,14 +163,14 @@ final class JarFinder {
      * JAR File Specification</a>. If {@code manifest} is null, it means the jar file has no
      * manifest, and an empty set will be returned.
      */
-    @VisibleForTesting static ImmutableSet<URI> getClassPathFromManifest(
-        File jarFile, @Nullable Manifest manifest) {
+    @VisibleForTesting
+    static ImmutableSet<URI> getClassPathFromManifest(File jarFile, @Nullable Manifest manifest) {
       if (manifest == null) {
         return ImmutableSet.of();
       }
       ImmutableSet.Builder<URI> builder = ImmutableSet.builder();
-      String classpathAttribute = manifest.getMainAttributes()
-          .getValue(Attributes.Name.CLASS_PATH.toString());
+      String classpathAttribute =
+          manifest.getMainAttributes().getValue(Attributes.Name.CLASS_PATH.toString());
       if (classpathAttribute != null) {
         for (String path : CLASS_PATH_ATTRIBUTE_SEPARATOR.split(classpathAttribute)) {
           URI uri;
@@ -189,14 +188,13 @@ final class JarFinder {
     }
 
     /**
-     * Returns the absolute uri of the Class-Path entry value as specified in
-     * <a
+     * Returns the absolute uri of the Class-Path entry value as specified in <a
      * href="http://docs.oracle.com/javase/6/docs/technotes/guides/jar/jar.html#Main%20Attributes">
      * JAR File Specification</a>. Even though the specification only talks about relative urls,
      * absolute urls are actually supported too (for example, in Maven surefire plugin).
      */
-    @VisibleForTesting static URI getClassPathEntry(File jarFile, String path)
-        throws URISyntaxException {
+    @VisibleForTesting
+    static URI getClassPathEntry(File jarFile, String path) throws URISyntaxException {
       URI uri = new URI(path);
       return uri.isAbsolute()
           ? uri

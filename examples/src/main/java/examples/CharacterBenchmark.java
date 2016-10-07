@@ -21,275 +21,295 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
 
 /**
- * Tests various Character methods, intended for testing multiple
- * implementations against each other.
+ * Tests various Character methods, intended for testing multiple implementations against each
+ * other.
  */
 public class CharacterBenchmark {
 
-    @Param private CharacterSet characterSet;
+  @Param private CharacterSet characterSet;
 
-    @Param private Overload overload;
+  @Param private Overload overload;
 
-    private char[] chars;
+  private char[] chars;
 
-    @BeforeExperiment void setUp() throws Exception {
-        this.chars = characterSet.chars;
+  @BeforeExperiment
+  void setUp() throws Exception {
+    this.chars = characterSet.chars;
+  }
+
+  public enum Overload {
+    CHAR,
+    INT
+  }
+
+  public enum CharacterSet {
+    ASCII(128),
+    UNICODE(65536);
+    final char[] chars;
+
+    CharacterSet(int size) {
+      this.chars = new char[65536];
+      for (int i = 0; i < 65536; ++i) {
+        chars[i] = (char) (i % size);
+      }
     }
+  }
 
-    public enum Overload { CHAR, INT }
-
-    public enum CharacterSet {
-        ASCII(128),
-        UNICODE(65536);
-        final char[] chars;
-        CharacterSet(int size) {
-            this.chars = new char[65536];
-            for (int i = 0; i < 65536; ++i) {
-                chars[i] = (char) (i % size);
-            }
+  // A fake benchmark to give us a baseline.
+  @Benchmark
+  boolean isSpace(int reps) {
+    boolean dummy = false;
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          dummy ^= ((char) ch == ' ');
         }
-    }
-
-    // A fake benchmark to give us a baseline.
-    @Benchmark boolean isSpace(int reps) {
-        boolean dummy = false;
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    dummy ^= ((char) ch == ' ');
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    dummy ^= (ch == ' ');
-                }
-            }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          dummy ^= (ch == ' ');
         }
-        return dummy;
+      }
     }
+    return dummy;
+  }
 
-    @Benchmark void digit(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.digit(chars[ch], 10);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.digit((int) chars[ch], 10);
-                }
-            }
+  @Benchmark
+  void digit(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.digit(chars[ch], 10);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.digit((int) chars[ch], 10);
+        }
+      }
     }
+  }
 
-    @Benchmark void getNumericValue(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.getNumericValue(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.getNumericValue((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void getNumericValue(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.getNumericValue(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.getNumericValue((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isDigit(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isDigit(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isDigit((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isDigit(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isDigit(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isDigit((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isIdentifierIgnorable(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isIdentifierIgnorable(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isIdentifierIgnorable((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isIdentifierIgnorable(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isIdentifierIgnorable(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isIdentifierIgnorable((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isJavaIdentifierPart(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isJavaIdentifierPart(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isJavaIdentifierPart((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isJavaIdentifierPart(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isJavaIdentifierPart(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isJavaIdentifierPart((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isJavaIdentifierStart(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isJavaIdentifierStart(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isJavaIdentifierStart((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isJavaIdentifierStart(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isJavaIdentifierStart(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isJavaIdentifierStart((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isLetter(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLetter(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLetter((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isLetter(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLetter(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLetter((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isLetterOrDigit(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLetterOrDigit(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLetterOrDigit((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isLetterOrDigit(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLetterOrDigit(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLetterOrDigit((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isLowerCase(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLowerCase(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isLowerCase((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isLowerCase(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLowerCase(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isLowerCase((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isSpaceChar(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isSpaceChar(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isSpaceChar((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isSpaceChar(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isSpaceChar(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isSpaceChar((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isUpperCase(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isUpperCase(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isUpperCase((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isUpperCase(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isUpperCase(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isUpperCase((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void isWhitespace(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isWhitespace(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.isWhitespace((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void isWhitespace(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isWhitespace(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.isWhitespace((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void toLowerCase(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.toLowerCase(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.toLowerCase((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void toLowerCase(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.toLowerCase(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.toLowerCase((int) chars[ch]);
+        }
+      }
     }
+  }
 
-    @Benchmark void toUpperCase(int reps) {
-        if (overload == Overload.CHAR) {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.toUpperCase(chars[ch]);
-                }
-            }
-        } else {
-            for (int i = 0; i < reps; ++i) {
-                for (int ch = 0; ch < 65536; ++ch) {
-                    Character.toUpperCase((int) chars[ch]);
-                }
-            }
+  @Benchmark
+  void toUpperCase(int reps) {
+    if (overload == Overload.CHAR) {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.toUpperCase(chars[ch]);
         }
+      }
+    } else {
+      for (int i = 0; i < reps; ++i) {
+        for (int ch = 0; ch < 65536; ++ch) {
+          Character.toUpperCase((int) chars[ch]);
+        }
+      }
     }
+  }
 }

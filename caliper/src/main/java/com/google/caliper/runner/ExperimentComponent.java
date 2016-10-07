@@ -16,14 +16,12 @@
 
 package com.google.caliper.runner;
 
-import static com.google.caliper.runner.Running.Benchmark;
-
+import com.google.caliper.runner.Running.Benchmark;
 import dagger.Subcomponent;
 
-/**
- * Provides access to the benchmark instance to use for the experiment.
- */
+/** Provides access to the benchmark instance to use for the experiment. */
 @Subcomponent(modules = ExperimentModule.class)
 public interface ExperimentComponent {
-  @Benchmark Object getBenchmarkInstance();
+  @Benchmark
+  Object getBenchmarkInstance();
 }

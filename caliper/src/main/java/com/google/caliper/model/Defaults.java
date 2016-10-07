@@ -16,9 +16,8 @@
 
 package com.google.caliper.model;
 
-import org.joda.time.Instant;
-
 import java.util.UUID;
+import org.joda.time.Instant;
 
 /**
  * Default instances of non-model classes used by the Caliper model. These are present to facilitate

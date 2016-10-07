@@ -17,17 +17,12 @@
 package com.google.caliper.options;
 
 import com.google.caliper.util.InvalidCommandException;
-
 import dagger.Module;
 import dagger.Provides;
-
 import java.io.File;
-
 import javax.inject.Singleton;
 
-/**
- * Bindings for Caliper command line options.
- */
+/** Bindings for Caliper command line options. */
 @Module
 public final class OptionsModule {
 
@@ -38,13 +33,13 @@ public final class OptionsModule {
   private boolean requireBenchmarkClassName;
 
   /**
-   * Return a module that will provide access to configuration options and the name of the
-   * benchmark class.
+   * Return a module that will provide access to configuration options and the name of the benchmark
+   * class.
    *
-   * @param args the arguments from which the configuration options and the benchmark class name
-   *     are parsed; must have one non-option value that is the benchmark class name.
+   * @param args the arguments from which the configuration options and the benchmark class name are
+   *     parsed; must have one non-option value that is the benchmark class name.
    */
-  public static OptionsModule withBenchmarkClass(String [] args) {
+  public static OptionsModule withBenchmarkClass(String[] args) {
     return new OptionsModule(args, true);
   }
 
@@ -55,13 +50,11 @@ public final class OptionsModule {
    * @param args the arguments from which the configuration options are parsed; it must have no
    *     non-option values.
    */
-  public static OptionsModule withoutBenchmarkClass(String [] args) {
+  public static OptionsModule withoutBenchmarkClass(String[] args) {
     return new OptionsModule(args, false);
   }
 
-  /**
-   * Return a module that will provide access to the default configuration options.
-   */
+  /** Return a module that will provide access to the default configuration options. */
   public static OptionsModule defaultOptionsModule() {
     return new OptionsModule(EMPTY_ARGS, false);
   }
@@ -77,7 +70,9 @@ public final class OptionsModule {
     return ParsedOptions.from(args, requireBenchmarkClassName);
   }
 
-  @Provides @CaliperDirectory static File provideCaliperDirectory(CaliperOptions options) {
+  @Provides
+  @CaliperDirectory
+  static File provideCaliperDirectory(CaliperOptions options) {
     return options.caliperDirectory();
   }
 }

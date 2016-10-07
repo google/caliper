@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -119,7 +118,8 @@ final class BenchmarkClass {
     callTearDown(benchmark);
   }
 
-  @VisibleForTesting Class<?> benchmarkClass() {
+  @VisibleForTesting
+  Class<?> benchmarkClass() {
     return theClass;
   }
 
@@ -127,7 +127,8 @@ final class BenchmarkClass {
     return theClass.getName();
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof BenchmarkClass) {
@@ -138,11 +139,13 @@ final class BenchmarkClass {
     }
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(theClass);
   }
 
-  @Override public String toString() {
+  @Override
+  public String toString() {
     return name();
   }
 

@@ -19,26 +19,18 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.Running.AfterExperimentMethods;
 import com.google.caliper.runner.Running.BeforeExperimentMethods;
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.reflect.Method;
-
 import javax.inject.Inject;
 
-/**
- * A {@link Worker} collects measurements on behalf of a particular Instrument.
- */
+/** A {@link Worker} collects measurements on behalf of a particular Instrument. */
 public abstract class Worker {
-  @Inject
-  @BeforeExperimentMethods
-  ImmutableSet<Method> beforeExperimentMethods;
-  
-  @Inject
-  @AfterExperimentMethods
-  ImmutableSet<Method> afterExperimentMethods;
-  
+  @Inject @BeforeExperimentMethods ImmutableSet<Method> beforeExperimentMethods;
+
+  @Inject @AfterExperimentMethods ImmutableSet<Method> afterExperimentMethods;
+
   protected final Method benchmarkMethod;
   protected final Object benchmark;
-  
+
   protected Worker(Object benchmark, Method method) {
     this.benchmark = benchmark;
     this.benchmarkMethod = method;
@@ -57,8 +49,8 @@ public abstract class Worker {
   /**
    * Called immediately before {@link #measure()}.
    *
-   * @param inWarmup whether we are in warmup, or taking real measurements. Used by
-   *                 some implementations to skip forcing GC to make warmup faster.
+   * @param inWarmup whether we are in warmup, or taking real measurements. Used by some
+   *     implementations to skip forcing GC to make warmup faster.
    */
   public void preMeasure(boolean inWarmup) throws Exception {}
 

@@ -26,12 +26,9 @@ import com.google.common.collect.Maps;
 import com.google.common.hash.Funnel;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.PrimitiveSink;
-
-
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.logging.Logger;
-
 
 /**
  * The performance-informing properties of the host on which a benchmark is run.
@@ -42,9 +39,11 @@ public final class Host {
   static final Host DEFAULT = new Host();
   private static final Logger logger = Logger.getLogger(Host.class.getName());
 
-  @ExcludeFromJson private int id;
+  @ExcludeFromJson
+  private int id;
   private SortedMap<String, String> properties;
-  @ExcludeFromJson private int hash;
+  @ExcludeFromJson
+  private int hash;
 
   private Host() {
     this.properties = Maps.newTreeMap();
@@ -60,7 +59,8 @@ public final class Host {
     return ImmutableSortedMap.copyOf(properties);
   }
 
-  @Override public boolean equals(Object obj) {
+  @Override
+  public boolean equals(Object obj) {
     if (obj == this) {
       return true;
     } else if (obj instanceof Host) {
@@ -81,21 +81,22 @@ public final class Host {
     initHash(getPersistentHashFunction());
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     initHash();
     return hash;
   }
 
-  @Override public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("properties", properties)
-        .toString();
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("properties", properties).toString();
   }
 
   enum HostFunnel implements Funnel<Host> {
     INSTANCE;
 
-    @Override public void funnel(Host from, PrimitiveSink into) {
+    @Override
+    public void funnel(Host from, PrimitiveSink into) {
       StringMapFunnel.INSTANCE.funnel(from.properties, into);
     }
   }
@@ -118,7 +119,8 @@ public final class Host {
      * This only exists for tests to induce hash collisions. Only use this in test code as changing
      * the hash function will break persisted objects.
      */
-    @VisibleForTesting public Builder hashFunctionForTesting(HashFunction hashFunction) {
+    @VisibleForTesting
+    public Builder hashFunctionForTesting(HashFunction hashFunction) {
       logger.warning("somebody is setting the hash function. this should only be used in tests");
       this.hashFunction = checkNotNull(hashFunction);
       return this;

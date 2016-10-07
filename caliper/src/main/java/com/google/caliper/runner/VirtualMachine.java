@@ -20,9 +20,7 @@ import com.google.caliper.config.VmConfig;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-/**
- * A named virtual machine configuration.
- */
+/** A named virtual machine configuration. */
 final class VirtualMachine {
   final String name;
   final VmConfig config;
@@ -32,23 +30,22 @@ final class VirtualMachine {
     this.config = config;
   }
 
-  @Override public boolean equals(Object object) {
+  @Override
+  public boolean equals(Object object) {
     if (object instanceof VirtualMachine) {
       VirtualMachine that = (VirtualMachine) object;
-      return this.name.equals(that.name)
-          && this.config.equals(that.config);
+      return this.name.equals(that.name) && this.config.equals(that.config);
     }
     return false;
   }
 
-  @Override public int hashCode() {
+  @Override
+  public int hashCode() {
     return Objects.hashCode(name, config);
   }
 
-  @Override public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("name", name)
-        .add("config", config)
-        .toString();
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this).add("name", name).add("config", config).toString();
   }
 }

@@ -22,14 +22,12 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
+import java.io.IOException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import java.io.IOException;
 
-/**
- * Unit test to ensure that {@link ResultProcessorCreator} works properly.
- */
+/** Unit test to ensure that {@link ResultProcessorCreator} works properly. */
 @RunWith(JUnit4.class)
 public class ResultProcessorCreatorTest {
 
@@ -42,23 +40,20 @@ public class ResultProcessorCreatorTest {
       ResultProcessorCreator.createResultProcessor(NoPublicConstructorResultProcessor.class);
       fail("Did not fail on non-public constructor");
     } catch (UserCodeException e) {
-      assertEquals(String.format(NOT_SUPPORTED, NoPublicConstructorResultProcessor.class),
-          e.getMessage());
+      assertEquals(
+          String.format(NOT_SUPPORTED, NoPublicConstructorResultProcessor.class), e.getMessage());
     }
   }
 
   public static class NoPublicConstructorResultProcessor implements ResultProcessor {
 
-    NoPublicConstructorResultProcessor() {
-    }
+    NoPublicConstructorResultProcessor() {}
 
     @Override
-    public void processTrial(Trial trial) {
-    }
+    public void processTrial(Trial trial) {}
 
     @Override
-    public void close() throws IOException {
-    }
+    public void close() throws IOException {}
   }
 
   @Test
@@ -78,16 +73,13 @@ public class ResultProcessorCreatorTest {
       implements ResultProcessor {
 
     public PublicButNotDefaultDefaultConstructorResultProcessor(
-        @SuppressWarnings("UnusedParameters") int i) {
-    }
+        @SuppressWarnings("UnusedParameters") int i) {}
 
     @Override
-    public void processTrial(Trial trial) {
-    }
+    public void processTrial(Trial trial) {}
 
     @Override
-    public void close() throws IOException {
-    }
+    public void close() throws IOException {}
   }
 
   @Test
@@ -100,11 +92,9 @@ public class ResultProcessorCreatorTest {
   public static class PublicDefaultConstructorResultProcessor implements ResultProcessor {
 
     @Override
-    public void processTrial(Trial trial) {
-    }
+    public void processTrial(Trial trial) {}
 
     @Override
-    public void close() throws IOException {
-    }
+    public void close() throws IOException {}
   }
 }

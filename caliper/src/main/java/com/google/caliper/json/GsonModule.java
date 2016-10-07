@@ -21,18 +21,15 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.bind.TypeAdapters;
-
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-
+import java.util.Set;
 import org.joda.time.Instant;
 
-import java.util.Set;
-
 /**
- * Binds a {@link Gson} instance suitable for serializing and deserializing Caliper
- * {@linkplain com.google.caliper.model model} objects.
+ * Binds a {@link Gson} instance suitable for serializing and deserializing Caliper {@linkplain
+ * com.google.caliper.model model} objects.
  */
 @Module
 public final class GsonModule {
@@ -72,12 +69,14 @@ public final class GsonModule {
     return TypeAdapters.newFactory(Instant.class, typeAdapter);
   }
 
-  @Provides static InstantTypeAdapter provideInstantTypeAdapter() {
+  @Provides
+  static InstantTypeAdapter provideInstantTypeAdapter() {
     return new InstantTypeAdapter();
   }
 
-  @Provides static Gson provideGson(Set<TypeAdapterFactory> typeAdapterFactories,
-      ExclusionStrategy exclusionStrategy) {
+  @Provides
+  static Gson provideGson(
+      Set<TypeAdapterFactory> typeAdapterFactories, ExclusionStrategy exclusionStrategy) {
     GsonBuilder gsonBuilder = new GsonBuilder().setExclusionStrategies(exclusionStrategy);
     for (TypeAdapterFactory typeAdapterFactory : typeAdapterFactories) {
       gsonBuilder.registerTypeAdapterFactory(typeAdapterFactory);

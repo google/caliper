@@ -17,18 +17,15 @@
 package com.google.caliper.util;
 
 import com.google.common.collect.ImmutableSet;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
-/**
- * A utility class for common reflection operations in Caliper.
- */
+/** A utility class for common reflection operations in Caliper. */
 public final class Reflection {
   private Reflection() {}
 
-  public static ImmutableSet<Method> getAnnotatedMethods(Class<?> clazz,
-      Class<? extends Annotation> annotationClass) {
+  public static ImmutableSet<Method> getAnnotatedMethods(
+      Class<?> clazz, Class<? extends Annotation> annotationClass) {
     Method[] methods = clazz.getDeclaredMethods();
     ImmutableSet.Builder<Method> builder = ImmutableSet.builder();
     for (Method method : methods) {

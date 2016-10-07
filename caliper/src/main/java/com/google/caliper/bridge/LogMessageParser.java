@@ -20,18 +20,15 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.ShortDuration;
-
 import java.math.BigDecimal;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import javax.inject.Inject;
 
-/**
- * Parses {@link LogMessage} strings.
- */
+/** Parses {@link LogMessage} strings. */
 final class LogMessageParser implements Parser<LogMessage> {
-  @Inject LogMessageParser() {}
+  @Inject
+  LogMessageParser() {}
 
   private static final Pattern GC_PATTERN =
       Pattern.compile(".*\\[(?:(Full) )?GC.*(\\d+\\.\\d+) secs\\]");
@@ -40,7 +37,8 @@ final class LogMessageParser implements Parser<LogMessage> {
   private static final Pattern VM_OPTION_PATTERN =
       Pattern.compile("\\s*(\\w+)\\s+(\\w+)\\s+:?=\\s+([^\\s]*)\\s+\\{([^}]*)\\}\\s*");
 
-  @Override public LogMessage parse(CharSequence text) {
+  @Override
+  public LogMessage parse(CharSequence text) {
     // TODO(gak): do this stuff in terms of CharSequence instead of String
     String string = text.toString();
     Matcher gcMatcher = GC_PATTERN.matcher(string);

@@ -19,13 +19,10 @@ package examples;
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
 import com.google.caliper.Param;
-
 import java.util.AbstractList;
 import java.util.List;
 
-/**
- * Measures iterating through list elements.
- */
+/** Measures iterating through list elements. */
 public class ListIterationBenchmark {
 
   @Param({"0", "10", "100", "1000"})
@@ -34,24 +31,29 @@ public class ListIterationBenchmark {
   private List<Object> list;
   private Object[] array;
 
-  @BeforeExperiment void setUp() {
+  @BeforeExperiment
+  void setUp() {
     array = new Object[length];
     for (int i = 0; i < length; i++) {
       array[i] = new Object();
     }
 
-    list = new AbstractList<Object>() {
-      @Override public int size() {
-        return length;
-      }
+    list =
+        new AbstractList<Object>() {
+          @Override
+          public int size() {
+            return length;
+          }
 
-      @Override public Object get(int i) {
-        return array[i];
-      }
-    };
+          @Override
+          public Object get(int i) {
+            return array[i];
+          }
+        };
   }
 
-  @Benchmark int listIteration(int reps) {
+  @Benchmark
+  int listIteration(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (Object value : list) {
@@ -61,7 +63,8 @@ public class ListIterationBenchmark {
     return dummy;
   }
 
-  @Benchmark int arrayIteration(int reps) {
+  @Benchmark
+  int arrayIteration(int reps) {
     int dummy = 0;
     for (int i = 0; i < reps; i++) {
       for (Object value : array) {
