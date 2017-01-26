@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -26,12 +27,17 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.model.InstrumentType;
+import com.google.caliper.model.Measurement;
+import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.math.LinearTransformation;
+import com.google.common.math.PairedStatsAccumulator;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -45,7 +51,7 @@ import org.junit.runners.JUnit4;
 /** Tests {@link RuntimeInstrument}. */
 @RunWith(JUnit4.class)
 public class RuntimeInstrumentTest {
-  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
+  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher(new CaliperMain());
 
   private RuntimeInstrument instrument;
 
@@ -165,6 +171,59 @@ public class RuntimeInstrumentTest {
     void notAMicrobenchmark(int reps) {}
 
     void notAPicobenchmark(long reps) {}
+  }
+
+  @Test
+
+  public void success() throws Exception {
+    runner
+        .forBenchmark(TestBenchmark.class)
+        .instrument("runtime")
+        .options(
+            "-Cinstrument.runtime.options.warmup=10s",
+            "-Cinstrument.runtime.options.timingInterval=100ms",
+            "-Cinstrument.runtime.options.gcBeforeEach=false",
+            "-Cinstrument.runtime.options.measurements=20",
+            "--time-limit=30s")
+        .run();
+    double macroAverage = -1;
+    double microAverage = -1;
+    double picoAverage = -1;
+    ImmutableList<Trial> trials = runner.trials();
+    assertEquals("Expected 3 trials: " + trials, 3, trials.size());
+    for (Trial trial : trials) {
+      PairedStatsAccumulator stats = new PairedStatsAccumulator();
+      for (Measurement measurement : trial.measurements()) {
+        assertEquals("runtime", measurement.description());
+        stats.add(measurement.weight(), measurement.value().magnitude());
+      }
+      LinearTransformation line = stats.leastSquaresFit();
+      String methodName = trial.scenario().benchmarkSpec().methodName();
+      if (line.isVertical()) {
+        assertEquals("macro", methodName);
+        // macro benchmark measurements all have a weight of 1 so the linear transformation is a
+        // vertical line (no slope).
+        macroAverage = stats.yStats().mean();
+      } else {
+        assertTrue("The slope should be positive, got " + line.slope(), line.slope() > 0.0);
+        if ("pico".equals(methodName)) {
+          picoAverage = line.slope();
+        } else if ("micro".equals(methodName)) {
+          microAverage = line.slope();
+        } else {
+          fail("unexpected method name: " + methodName);
+        }
+      }
+    }
+    assertTrue(
+        "We should have seen results from all trials",
+        macroAverage > 0 && picoAverage > 0 && microAverage > 0);
+    // all the results should be the same within a margin of error. As long as they are within 10%
+    // of each other, we will say that the test passed.
+    double marginOfError = 0.1;
+    assertThat(relativeDifference(picoAverage, microAverage)).isLessThan(marginOfError);
+    assertThat(relativeDifference(microAverage, macroAverage)).isLessThan(marginOfError);
+    assertThat(relativeDifference(macroAverage, picoAverage)).isLessThan(marginOfError);
   }
 
   private double relativeDifference(double a, double b) {

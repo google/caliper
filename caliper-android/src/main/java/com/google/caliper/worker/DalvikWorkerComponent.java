@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.jvm;
+package com.google.caliper.worker;
 
-import com.google.caliper.platform.Platform;
-import dagger.Module;
-import dagger.Provides;
+import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.runner.BenchmarkClassModule;
+import com.google.caliper.runner.ExperimentModule;
+import dagger.Component;
+import javax.inject.Singleton;
 
-/** Provider of the {@link JvmPlatform}. */
-@Module
-public final class JvmModule {
-
-  @Provides
-  public static Platform provideJvmPlatform() {
-    return new JvmPlatform();
+/** Actual {@code WorkerComponent} for use on Android. */
+@Singleton
+@Component(
+  modules = {
+    BenchmarkClassModule.class,
+    BridgeModule.class,
+    ExperimentModule.class,
+    WorkerModule.class
   }
-}
+)
+interface DalvikWorkerComponent extends WorkerComponent {}

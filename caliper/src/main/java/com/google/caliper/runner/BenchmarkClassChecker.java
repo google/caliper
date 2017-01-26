@@ -16,15 +16,12 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.ConfigModule;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.util.OutputModule;
 import com.google.common.collect.ImmutableSet;
-import dagger.Component;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.List;
-import javax.inject.Singleton;
 
 /**
  * Determines whether a class contains one or more benchmarks or not.
@@ -54,14 +51,14 @@ public final class BenchmarkClassChecker {
 
   private BenchmarkClassChecker(List<String> arguments) {
     String[] args = arguments.toArray(new String[arguments.size()]);
-    InstrumentProvider instrumentProvider =
-        DaggerBenchmarkClassChecker_InstrumentProvider.builder()
+    MainComponent mainComponent =
+        DaggerJvmMainComponent.builder()
             .optionsModule(OptionsModule.withoutBenchmarkClass(args))
             .outputModule(
                 new OutputModule(new PrintWriter(System.out), new PrintWriter(System.err)))
             .build();
 
-    instruments = instrumentProvider.instruments();
+    instruments = mainComponent.instruments();
   }
 
   /**
@@ -81,21 +78,5 @@ public final class BenchmarkClassChecker {
     }
 
     return false;
-  }
-
-  @Singleton
-  @Component(
-    modules = {
-      ConfigModule.class,
-      ExperimentingRunnerModule.class,
-      OptionsModule.class,
-      OutputModule.class,
-      PlatformModule.class,
-      RunnerModule.class,
-    }
-  )
-  /** Provides the set of supported {@link Instrument instruments}. */
-  interface InstrumentProvider {
-    ImmutableSet<Instrument> instruments();
   }
 }

@@ -14,18 +14,15 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.jvm;
+package com.google.caliper.worker;
 
-import com.google.caliper.platform.Platform;
-import dagger.Module;
-import dagger.Provides;
-
-/** Provider of the {@link JvmPlatform}. */
-@Module
-public final class JvmModule {
-
-  @Provides
-  public static Platform provideJvmPlatform() {
-    return new JvmPlatform();
-  }
+/**
+ * Creates a {@link Worker} for an {@link com.google.caliper.runner.Experiment}.
+ *
+ * <p>This class provides the methods for the component, but is not actually annotated with
+ * {@code @Component}. Annotated subclasses exist for each supported platform to allow a different
+ * set of module dependencies for each.
+ */
+interface WorkerComponent {
+  Worker getWorker();
 }

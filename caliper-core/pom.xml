@@ -26,15 +26,22 @@
   </parent>
 
   <groupId>com.google.caliper</groupId>
-  <artifactId>caliper</artifactId>
+  <artifactId>caliper-core</artifactId>
 
-  <name>Caliper</name>
-  <description>Caliper: Microbenchmarking Framework for Java</description>
+  <name>Caliper Core</name>
+  <description>
+    Core (generally not platform-specific) implementation for Caliper
+  </description>
 
   <dependencies>
     <dependency>
       <groupId>com.google.caliper</groupId>
-      <artifactId>caliper-core</artifactId>
+      <artifactId>caliper-api</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.caliper</groupId>
+      <artifactId>caliper-util</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
@@ -43,8 +50,12 @@
       <scope>provided</scope><!-- used only for annotations -->
     </dependency>
     <dependency>
-      <groupId>com.sun.jersey</groupId>
-      <artifactId>jersey-client</artifactId>
+      <groupId>joda-time</groupId>
+      <artifactId>joda-time</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.squareup.okhttp</groupId>
+      <artifactId>okhttp</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.dagger</groupId>
@@ -60,17 +71,8 @@
       <artifactId>guava</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.google.code.java-allocation-instrumenter</groupId>
-      <artifactId>java-allocation-instrumenter</artifactId>
-    </dependency>
-    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.truth</groupId>
-      <artifactId>truth</artifactId>
       <scope>test</scope>
     </dependency>
     <dependency>

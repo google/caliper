@@ -64,7 +64,7 @@ public final class CaliperMain extends AbstractCaliperMain {
   @Override
   protected MainComponent createMainComponent(
       String[] args, PrintWriter stdout, PrintWriter stderr) {
-    return DaggerJvmMainComponent.builder()
+    return DaggerDalvikMainComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
         .outputModule(new OutputModule(stdout, stderr))
         .build();

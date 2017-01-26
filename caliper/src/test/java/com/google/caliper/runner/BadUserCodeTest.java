@@ -29,7 +29,7 @@ import org.junit.runners.JUnit4;
 /** Integration tests for misbehaving benchmarks. */
 @RunWith(JUnit4.class)
 public class BadUserCodeTest {
-  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
+  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher(new CaliperMain());
 
   @Test
 

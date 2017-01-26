@@ -30,7 +30,7 @@ import org.junit.runners.JUnit4;
 /** Integration tests for the {@link ArbitraryMeasurementInstrument} */
 @RunWith(JUnit4.class)
 public class ArbitraryMeasurmentInstrumentTest {
-  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher();
+  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher(new CaliperMain());
 
   @Test
 

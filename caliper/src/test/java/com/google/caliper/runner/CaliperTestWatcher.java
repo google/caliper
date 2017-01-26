@@ -40,6 +40,8 @@ import org.junit.runner.Description;
  * run the tests.
  */
 public final class CaliperTestWatcher extends TestWatcher {
+  private final AbstractCaliperMain main;
+
   // N.B. StringWriter is internally synchronized and is safe to write to from multiple threads.
   private StringWriter stdout;
   private final StringWriter stderr = new StringWriter();
@@ -48,6 +50,10 @@ public final class CaliperTestWatcher extends TestWatcher {
   private String instrument;
   private Class<?> benchmarkClass;
   private List<String> extraOptions = Lists.newArrayList();
+
+  CaliperTestWatcher(AbstractCaliperMain main) {
+    this.main = main;
+  }
 
   CaliperTestWatcher forBenchmark(Class<?> benchmarkClass) {
     this.benchmarkClass = benchmarkClass;
@@ -81,7 +87,7 @@ public final class CaliperTestWatcher extends TestWatcher {
     options.addAll(extraOptions);
     options.add(benchmarkClass.getName());
     this.stdout = new StringWriter();
-    CaliperMain.exitlessMain(
+    main.exitlessMainImpl(
         options.toArray(new String[0]),
         new PrintWriter(stdout, true),
         new PrintWriter(stderr, true));

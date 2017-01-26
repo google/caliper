@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Google Inc.
+ * Copyright (C) 2016 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.jvm;
+package com.google.caliper.runner;
 
-import com.google.caliper.platform.Platform;
+import dagger.Binds;
 import dagger.Module;
-import dagger.Provides;
 
-/** Provider of the {@link JvmPlatform}. */
+/**
+ * Module providing runner package dependencies that should only be present when running on Android.
+ */
 @Module
-public final class JvmModule {
+abstract class DalvikRunnerModule {
 
-  @Provides
-  public static Platform provideJvmPlatform() {
-    return new JvmPlatform();
-  }
+  /**
+   * Binding that we need since we want to inject the {@code MainComponent} in a class, but {@code
+   * MainComponent} isn't actually the component type.
+   */
+  @Binds
+  abstract MainComponent bindMainComponent(DalvikMainComponent component);
 }

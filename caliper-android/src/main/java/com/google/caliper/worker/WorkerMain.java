@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2016 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public final class WorkerMain extends AbstractWorkerMain {
   @Override
   protected WorkerComponent createWorkerComponent(WorkerSpec request)
       throws ClassNotFoundException {
-    return DaggerJvmWorkerComponent.builder()
+    return DaggerDalvikWorkerComponent.builder()
         .experimentModule(ExperimentModule.forWorkerSpec(request))
         .workerModule(new WorkerModule(request))
         .build();

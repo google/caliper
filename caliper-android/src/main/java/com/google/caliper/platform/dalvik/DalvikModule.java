@@ -14,18 +14,22 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.jvm;
+package com.google.caliper.platform.dalvik;
 
 import com.google.caliper.platform.Platform;
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 
-/** Provider of the {@link JvmPlatform}. */
+/**
+ * Provider of a {@link DalvikPlatform} instance.
+ */
 @Module
-public final class JvmModule {
+public final class DalvikModule {
 
   @Provides
-  public static Platform provideJvmPlatform() {
-    return new JvmPlatform();
+  @Singleton
+  public static Platform provideDalvikPlatform() {
+    return new DalvikPlatform();
   }
 }
