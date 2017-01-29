@@ -1,3 +1,5 @@
+Caliper is Google’s open-source framework for writing, running and viewing the results of Java Microbenchmarks.
+
 To build this project with Maven:
 
 1. cd caliper
