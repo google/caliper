@@ -20,7 +20,7 @@ import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.WorkerSpec;
-import com.google.common.net.InetAddresses;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
 
@@ -37,7 +37,7 @@ abstract class AbstractWorkerMain {
     // nonblocking connect so we can interleave the system call with injector creation.
     SocketChannel channel = SocketChannel.open();
     channel.configureBlocking(false);
-    channel.connect(new InetSocketAddress(InetAddresses.forString("127.0.0.1"), request.port));
+    channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), request.port));
 
     WorkerComponent workerComponent = createWorkerComponent(request);
     Worker worker = workerComponent.getWorker();
