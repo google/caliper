@@ -23,6 +23,7 @@ import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -216,9 +217,9 @@ final class WorkerProcess {
         String.format(
             "Benchmark(%s) %s args: %s", benchmarkClass.name(), platformName, benchmarkJvmOptions));
 
-    String classPath = vmConfig.workerClassPath();
-    Collections.addAll(args, "-cp", classPath);
-    logger.finer(String.format("Class path: %s", classPath));
+    ImmutableList<String> classPathArgs = vmConfig.workerClassPathArgs();
+    args.addAll(classPathArgs);
+    logger.finer(String.format("Class path args: %s", Joiner.on(' ').join(classPathArgs)));
     return args;
   }
 }

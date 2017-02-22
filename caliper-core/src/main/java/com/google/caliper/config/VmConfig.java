@@ -77,8 +77,8 @@ public final class VmConfig {
     return platform.name();
   }
 
-  public String workerClassPath() {
-    return platform.workerClassPath();
+  public ImmutableList<String> workerClassPathArgs() {
+    return platform.workerClassPathArgs();
   }
 
   public ImmutableSet<String> workerProcessArgs() {
