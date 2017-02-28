@@ -121,11 +121,7 @@ public class ParsedOptionsTest {
   private void checkDefaults(CaliperOptions options) {
     assertTrue(options.benchmarkMethodNames().isEmpty());
     assertFalse(options.dryRun());
-    ImmutableSet<String> expectedInstruments =
-        new ImmutableSet.Builder<String>()
-            .add("allocation")
-            .add("runtime")
-            .build();
+    ImmutableSet<String> expectedInstruments = ImmutableSet.of();
     assertEquals(expectedInstruments, options.instrumentNames());
     assertEquals(1, options.trialsPerScenario());
     assertTrue(options.userParameters().isEmpty());

@@ -28,6 +28,7 @@ import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Strings;
+import com.google.common.base.Splitter;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableBiMap;
@@ -130,6 +131,28 @@ public final class CaliperConfig {
   }
 
   private static final Pattern INSTRUMENT_CLASS_PATTERN = Pattern.compile("([^\\.]+)\\.class");
+
+  /**
+   * Returns the default set of instruments to use if the user doesn't specify which instruments to
+   * use on the command line.
+   */
+  public ImmutableSet<String> getDefaultInstruments() {
+    // TODO(cgdecker): could/should this "defaults" be generalized?
+    // e.g. if there's a command line option "--foo", "defaults.foo" is the default value of "foo"
+    // if the user doesn't pass that option. This is already the case here since "--instrument" is
+    // the long-form commmand line option, but I'm not trying to generalize now since there's no
+    // apparent need to.
+    ImmutableMap<String, String> defaults = subgroupMap(properties, "defaults");
+    if (!defaults.isEmpty()) {
+      String instruments = defaults.get("instrument");
+      if (instruments != null) {
+        return ImmutableSet.copyOf(Splitter.on(',').split(instruments));
+      }
+    }
+
+    throw new InvalidConfigurationException(
+        "Could not find default set of instruments to use (defaults.instrument in config file)");
+  }
 
   public ImmutableSet<String> getConfiguredInstruments() {
     ImmutableSet.Builder<String> resultBuilder = ImmutableSet.builder();
