@@ -19,7 +19,8 @@ package com.google.caliper.platform.dalvik;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.platform.Platform;
-import com.google.common.base.Preconditions;
+import com.google.caliper.platform.VirtualMachineException;
+import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableList;
@@ -36,22 +37,42 @@ import java.util.Map;
  */
 public final class DalvikPlatform extends Platform {
 
+  /**
+   * Set of VM executables that the user may specify with --vm=<vm>.
+   *
+   * <p>Unlike the JVM notion of the vm flag, where it's the name of a directory under some root
+   * that is expected to contain {@code bin/java}, the vm flag for Android is expected to be one of
+   * these executable names, which is then expected to be found under {@code $vmHome/bin/$vm}.
+   */
+  /*
+   * This is likely a temporary solution to how we handle VMs for Android. At the point when we're
+   * running the main Caliper process on the host machine and potentially running workers on both
+   * JVMs and Android devices, we'll need to be able to distinguish between both the executable to
+   * use and the device/target for the worker. In that case, we'll likely need a different set of
+   * flags.
+   */
+  private static final ImmutableSet<String> VM_EXECUTABLES = ImmutableSet.of(
+      "dalvikvm",
+      "dalvikvm32",
+      "dalvikvm64",
+      "art",
+      "app_process");
+
+  private String vmExecutable = "dalvikvm";
+
   public DalvikPlatform() {
     super(Type.DALVIK);
   }
 
   @Override
   public File vmExecutable(File vmHome) {
-    // TODO(user): Allow the 32/64 version of dalvik to be selected rather than the default
-    // standard configurations of Android systems and windows.
     File bin = new File(vmHome, "bin");
-    Preconditions.checkState(
+    checkState(
         bin.exists() && bin.isDirectory(), "Could not find %s under android root %s", bin, vmHome);
-    String executableName = "dalvikvm";
-    File dalvikvm = new File(bin, executableName);
+    File dalvikvm = new File(bin, vmExecutable);
     if (!dalvikvm.exists() || dalvikvm.isDirectory()) {
       throw new IllegalStateException(
-          String.format("Cannot find %s binary in %s", executableName, bin));
+          String.format("Cannot find %s binary in %s", vmExecutable, bin));
     }
 
     return dalvikvm;
@@ -95,10 +116,24 @@ public final class DalvikPlatform extends Platform {
   }
 
   @Override
-  public File customVmHomeDir(Map<String, String> vmGroupMap, String vmConfigName) {
-    // TODO(user): Should probably use this to support specifying dalvikvm32/dalvikvm64
-    // and maybe even app_process.
-    throw new UnsupportedOperationException(
-        "Running with a custom Dalvik VM is not currently supported");
+  public File defaultVmHomeDir() {
+    String androidRoot = System.getenv("ANDROID_ROOT");
+    return androidRoot != null ? new File(androidRoot) : super.defaultVmHomeDir();
+  }
+
+  @Override
+  public File customVmHomeDir(Map<String, String> vmGroupMap, String vmConfigName)
+      throws VirtualMachineException {
+    // This is kind of a hack; the main thing we're doing here is not actually changing the home
+    // dir under which we want to look for the VM binary, but setting the name of the VM binary
+    // that we want to use (under the default home dir).
+    if (!VM_EXECUTABLES.contains(vmConfigName)) {
+      throw new VirtualMachineException(vmConfigName
+          + " is not a supported VM for Android; supported values are: "
+          + Joiner.on(", ").join(VM_EXECUTABLES));
+    }
+
+    this.vmExecutable = vmConfigName;
+    return defaultVmHomeDir();
   }
 }
