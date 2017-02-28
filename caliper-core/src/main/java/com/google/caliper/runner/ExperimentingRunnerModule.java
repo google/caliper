@@ -182,7 +182,13 @@ abstract class ExperimentingRunnerModule {
 
     ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
     ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
-    for (final String instrumentName : options.instrumentNames()) {
+    ImmutableSet<String> selectedInstruments = options.instrumentNames();
+
+    if (selectedInstruments.isEmpty()) {
+      selectedInstruments = config.getDefaultInstruments();
+    }
+
+    for (final String instrumentName : selectedInstruments) {
       if (!configuredInstruments.contains(instrumentName)) {
         throw new InvalidCommandException(
             "%s is not a configured instrument (%s). "
