@@ -111,8 +111,6 @@ public abstract class Platform {
 
   /** Get the default vm home directory. */
   public File defaultVmHomeDir() {
-    // Currently both supported platforms use java.home property to refer to the 'home' directory
-    // of the vm, in the case of Android it is the directory containing the dalvikvm executable.
     return new File(System.getProperty("java.home"));
   }
 
