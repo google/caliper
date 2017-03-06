@@ -214,7 +214,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         Optional<String> message = instrumentation.validateMeasurements(entry.getValue());
         if (message.isPresent()) {
           stdout.printf(
-              "For %s (%s)%n  %s",
+              "For %s (%s)%n  %s%n",
               instrumentation.benchmarkMethod().getName(),
               instrumentation.instrument().name(),
               message.get());
