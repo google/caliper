@@ -27,9 +27,15 @@ import javax.inject.Singleton;
 @Module
 public final class DalvikModule {
 
+  private final String classpath;
+
+  public DalvikModule(String classpath) {
+    this.classpath = classpath;
+  }
+
   @Provides
   @Singleton
-  public static Platform provideDalvikPlatform() {
-    return new DalvikPlatform();
+  public Platform provideDalvikPlatform() {
+    return new DalvikPlatform(classpath);
   }
 }

@@ -14,10 +14,9 @@
 
 package com.google.caliper.runner;
 
-import static com.google.common.collect.ObjectArrays.concat;
-
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.options.OptionsModule;
+import com.google.caliper.platform.dalvik.DalvikModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import java.io.PrintWriter;
@@ -29,36 +28,16 @@ import java.io.PrintWriter;
  * might still use {@code CaliperRun} but would skip using this class.
  */
 public final class CaliperMain extends AbstractCaliperMain {
-  /**
-   * Your benchmark classes can implement main() like this:
-   *
-   * <pre>{@code
-   * public static void main(String[] args) {
-   *   CaliperMain.main(MyBenchmark.class, args);
-   * }
-   * }</pre>
-   *
-   * Note that this method does invoke {@link System#exit} when it finishes. Consider {@link
-   * #exitlessMain} if you don't want that.
-   *
-   * <p>Measurement is handled in a subprocess, so it will not use {@code benchmarkClass} itself;
-   * the class is provided here only as a shortcut for specifying the full class <i>name</i>. The
-   * class that gets loaded later could be completely different.
-   */
-  public static void main(Class<?> benchmarkClass, String[] args) {
-    new CaliperMain().mainImpl(concat(args, benchmarkClass.getName()));
+
+  private final String classpath;
+
+  public CaliperMain(String classpath) {
+    this.classpath = classpath;
   }
 
-  /**
-   * Entry point for the caliper benchmark runner application; run with {@code --help} for details.
-   */
-  public static void main(String[] args) {
-    new CaliperMain().mainImpl(args);
-  }
-
-  public static void exitlessMain(String[] args, PrintWriter stdout, PrintWriter stderr)
+  public int exitlessMain(String[] args, PrintWriter stdout, PrintWriter stderr)
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
-    new CaliperMain().exitlessMainImpl(args, stdout, stderr);
+    return mainImpl(args, stdout, stderr);
   }
 
   @Override
@@ -66,6 +45,7 @@ public final class CaliperMain extends AbstractCaliperMain {
       String[] args, PrintWriter stdout, PrintWriter stderr) {
     return DaggerDalvikMainComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
+        .dalvikModule(new DalvikModule(classpath))
         .outputModule(new OutputModule(stdout, stderr))
         .build();
   }
