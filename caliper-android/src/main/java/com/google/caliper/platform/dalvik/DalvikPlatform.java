@@ -60,8 +60,11 @@ public final class DalvikPlatform extends Platform {
 
   private String vmExecutable = "dalvikvm";
 
-  public DalvikPlatform() {
+  private final String classpath;
+
+  public DalvikPlatform(String classpath) {
     super(Type.DALVIK);
+    this.classpath = classpath;
   }
 
   @Override
@@ -69,13 +72,13 @@ public final class DalvikPlatform extends Platform {
     File bin = new File(vmHome, "bin");
     checkState(
         bin.exists() && bin.isDirectory(), "Could not find %s under android root %s", bin, vmHome);
-    File dalvikvm = new File(bin, vmExecutable);
-    if (!dalvikvm.exists() || dalvikvm.isDirectory()) {
+    File executable = new File(bin, vmExecutable);
+    if (!executable.exists() || executable.isDirectory()) {
       throw new IllegalStateException(
           String.format("Cannot find %s binary in %s", vmExecutable, bin));
     }
 
-    return dalvikvm;
+    return executable;
   }
 
   @Override
@@ -85,13 +88,17 @@ public final class DalvikPlatform extends Platform {
 
   @Override
   public ImmutableSet<String> workerProcessArgs() {
+    if (vmExecutable.equals("app_process")) {
+      // app_process expects a command directory argument; use the bin directory where the binary
+      // is
+      return ImmutableSet.of(new File(defaultVmHomeDir(), "bin").toString());
+    }
     return ImmutableSet.of();
   }
 
   @Override
   protected String workerClassPath() {
-    // TODO(user): Find a way to get the class path programmatically from the class loader.
-    return System.getProperty("java.class.path");
+    return classpath;
   }
 
   @Override
