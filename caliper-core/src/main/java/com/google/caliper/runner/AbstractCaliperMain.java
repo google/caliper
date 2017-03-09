@@ -45,22 +45,22 @@ abstract class AbstractCaliperMain {
   protected final void mainImpl(String[] args) {
     PrintWriter stdout = new PrintWriter(System.out, true);
     PrintWriter stderr = new PrintWriter(System.err, true);
-    int code = 1; // pessimism!
+    int code = mainImpl(args, stdout, stderr);
+    System.exit(code);
+  }
 
+  protected final int mainImpl(String[] args, PrintWriter stdout, PrintWriter stderr) {
+    int code = 1; // pessimism!
     try {
       exitlessMainImpl(args, stdout, stderr);
       code = 0;
-
     } catch (InvalidCommandException e) {
       e.display(stderr);
       code = e.exitCode();
-
     } catch (InvalidBenchmarkException e) {
       e.display(stderr);
-
     } catch (InvalidConfigurationException e) {
       e.display(stderr);
-
     } catch (Throwable t) {
       t.printStackTrace(stderr);
       stdout.println();
@@ -70,7 +70,7 @@ abstract class AbstractCaliperMain {
 
     stdout.flush();
     stderr.flush();
-    System.exit(code);
+    return code;
   }
 
   private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
