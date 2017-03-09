@@ -20,12 +20,17 @@ import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import java.lang.annotation.Annotation;
 import java.util.Arrays;
+import javax.inject.Inject;
 
 /**
  * An exclusion strategy that excludes elements annotated with an annotation named
  * "ExcludeFromJson".
  */
 final class AnnotationExclusionStrategy implements ExclusionStrategy {
+
+  @Inject
+  AnnotationExclusionStrategy() {}
+  
   @Override
   public boolean shouldSkipField(FieldAttributes f) {
     return excludeFromJson(f.getAnnotations());

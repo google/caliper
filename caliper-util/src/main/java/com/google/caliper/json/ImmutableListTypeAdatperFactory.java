@@ -29,12 +29,17 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import javax.inject.Inject;
 
 /**
  * Serializes and deserializes {@link ImmutableList} instances using an {@link ArrayList} as an
  * intermediary.
  */
 final class ImmutableListTypeAdatperFactory implements TypeAdapterFactory {
+
+  @Inject
+  ImmutableListTypeAdatperFactory() {}
+  
   @SuppressWarnings("unchecked")
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {

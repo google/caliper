@@ -34,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import javax.inject.Inject;
 
 /**
  * Serializes and deserializes {@link ImmutableMultimap} instances using maps of collections as
@@ -63,6 +64,9 @@ final class ImmutableMultimapTypeAdapterFactory implements TypeAdapterFactory {
         .where(new TypeParameter<K>() {}, keyType)
         .where(new TypeParameter<V>() {}, valueType);
   }
+
+  @Inject
+  ImmutableMultimapTypeAdapterFactory() {}
 
   @Override
   @SuppressWarnings({"unchecked", "rawtypes"})
