@@ -29,12 +29,17 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
+import javax.inject.Inject;
 
 /**
  * Serializes and deserializes {@link ImmutableMap} instances using a {@link HashMap} as an
  * intermediary.
  */
 final class ImmutableMapTypeAdapterFactory implements TypeAdapterFactory {
+
+  @Inject
+  ImmutableMapTypeAdapterFactory() {}
+  
   @SuppressWarnings("unchecked")
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {

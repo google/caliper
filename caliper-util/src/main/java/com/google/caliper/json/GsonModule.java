@@ -21,6 +21,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapterFactory;
 import com.google.gson.internal.bind.TypeAdapters;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
@@ -32,46 +33,35 @@ import org.joda.time.Instant;
  * com.google.caliper.model model} objects.
  */
 @Module
-public final class GsonModule {
+public abstract class GsonModule {
 
-  @Provides
+  @Binds
   @IntoSet
-  static TypeAdapterFactory provideImmutableListTypeAdapterFactory() {
-    return new ImmutableListTypeAdatperFactory();
-  }
+  abstract TypeAdapterFactory bindImmutableListTypeAdapterFactory(
+      ImmutableListTypeAdatperFactory factory);
 
-  @Provides
+  @Binds
   @IntoSet
-  static TypeAdapterFactory provideImmutableMapTypeAdapterFactory() {
-    return new ImmutableMapTypeAdapterFactory();
-  }
+  abstract TypeAdapterFactory bindImmutableMapTypeAdapterFactory(
+      ImmutableMapTypeAdapterFactory factory);
 
-  @Provides
+  @Binds
   @IntoSet
-  static TypeAdapterFactory provideNaturallySortedMapTypeAdapterFactory() {
-    return new NaturallySortedMapTypeAdapterFactory();
-  }
+  abstract TypeAdapterFactory bindNaturallySortedMapTypeAdapterFactory(
+      NaturallySortedMapTypeAdapterFactory factory);
 
-  @Provides
+  @Binds
   @IntoSet
-  static TypeAdapterFactory provideImmutableMultimapTypeAdapterFactory() {
-    return new ImmutableMultimapTypeAdapterFactory();
-  }
+  abstract TypeAdapterFactory bindImmutableMultimapTypeAdapterFactory(
+      ImmutableMultimapTypeAdapterFactory factory);
 
-  @Provides
-  static ExclusionStrategy provideAnnotationExclusionStrategy() {
-    return new AnnotationExclusionStrategy();
-  }
+  @Binds
+  abstract ExclusionStrategy bindAnnotationExclusionStrategy(AnnotationExclusionStrategy strategy);
 
   @Provides
   @IntoSet
   static TypeAdapterFactory provideTypeAdapterFactoryForInstant(InstantTypeAdapter typeAdapter) {
     return TypeAdapters.newFactory(Instant.class, typeAdapter);
-  }
-
-  @Provides
-  static InstantTypeAdapter provideInstantTypeAdapter() {
-    return new InstantTypeAdapter();
   }
 
   @Provides

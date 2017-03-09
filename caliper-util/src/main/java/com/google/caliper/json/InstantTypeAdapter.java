@@ -20,11 +20,16 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import java.io.IOException;
+import javax.inject.Inject;
 import org.joda.time.Instant;
 import org.joda.time.format.ISODateTimeFormat;
 
 /** Serializes and deserializes {@link Instant} instances. */
 final class InstantTypeAdapter extends TypeAdapter<Instant> {
+
+  @Inject
+  InstantTypeAdapter() {}
+  
   @Override
   public void write(JsonWriter out, Instant value) throws IOException {
     out.value(ISODateTimeFormat.dateTime().print(value));
