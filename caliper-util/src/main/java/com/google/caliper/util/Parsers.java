@@ -22,7 +22,6 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.ParseException;
-import java.util.List;
 
 public class Parsers {
   public static final Parser<String> IDENTITY =
@@ -33,7 +32,7 @@ public class Parsers {
         }
       };
 
-  private static final List<String> CONVERSION_METHOD_NAMES =
+  private static final ImmutableList<String> CONVERSION_METHOD_NAMES =
       ImmutableList.of("fromString", "decode", "valueOf");
 
   /**
