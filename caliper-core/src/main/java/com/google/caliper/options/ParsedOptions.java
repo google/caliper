@@ -422,6 +422,6 @@ final class ParsedOptions implements CaliperOptions {
           "     $HOME/.caliper/config.properties. Properties specified on the command line",
           "     will override those specified in the file.",
           "",
-          "See http://code.google.com/p/caliper/wiki/CommandLineOptions for more details.",
+          "See https://github.com/google/caliper/wiki/CommandLineOptions for more details.",
           "");
 }
