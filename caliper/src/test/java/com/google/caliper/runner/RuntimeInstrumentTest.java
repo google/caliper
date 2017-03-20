@@ -183,7 +183,7 @@ public class RuntimeInstrumentTest {
             "-Cinstrument.runtime.options.warmup=10s",
             "-Cinstrument.runtime.options.timingInterval=100ms",
             "-Cinstrument.runtime.options.gcBeforeEach=false",
-            "-Cinstrument.runtime.options.measurements=20",
+            "-Cinstrument.runtime.options.measurements=50",
             "--time-limit=30s")
         .run();
     double macroAverage = -1;
@@ -218,9 +218,11 @@ public class RuntimeInstrumentTest {
     assertTrue(
         "We should have seen results from all trials",
         macroAverage > 0 && picoAverage > 0 && microAverage > 0);
-    // all the results should be the same within a margin of error. As long as they are within 10%
-    // of each other, we will say that the test passed.
-    double marginOfError = 0.1;
+    // All the results should be the same within a margin of error of 50%. Since tests don't tend
+    // to give very consistent performance results, lower margins of error are very flaky. This
+    // could still be flaky, but should be less of the time at least, while it should still catch
+    // any problems where results end up, say, an order of magnitude different.
+    double marginOfError = 0.5;
     assertThat(relativeDifference(picoAverage, microAverage)).isLessThan(marginOfError);
     assertThat(relativeDifference(microAverage, macroAverage)).isLessThan(marginOfError);
     assertThat(relativeDifference(macroAverage, picoAverage)).isLessThan(marginOfError);
@@ -255,10 +257,10 @@ public class RuntimeInstrumentTest {
     }
   }
 
-  // busy spin for 10ms and return the elapsed time.  N.B. we busy spin instead of sleeping so
+  // busy spin for 5ms and return the elapsed time.  N.B. we busy spin instead of sleeping so
   // that we aren't put at the mercy (and variance) of the thread scheduler.
   private static long spin() {
-    long remainingNanos = TimeUnit.MILLISECONDS.toNanos(10);
+    long remainingNanos = TimeUnit.MILLISECONDS.toNanos(5);
     long start = System.nanoTime();
     long elapsed;
     while ((elapsed = System.nanoTime() - start) < remainingNanos) {}
@@ -301,9 +303,9 @@ public class RuntimeInstrumentTest {
   static final class BenchmarkThatAllocatesALot {
     @Benchmark
     int benchmarkMethod() {
-      // Any larger and the GC doesn't manage to make enough space, resulting in
-      // OOMErrors in both test cases above.
-      long[] array = new long[32 * 1024 * 1024];
+      // semi-arbitrary size that (ideally) should cause GC during timing when (and only when)
+      // GC is *not* run between each timing run (gcBeforeEach=false)
+      long[] array = new long[16 * 1024 * 1024];
       return array.length;
     }
   }
