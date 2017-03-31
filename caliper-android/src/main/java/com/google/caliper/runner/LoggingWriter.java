@@ -34,11 +34,11 @@ import java.io.Writer;
 final class LoggingWriter extends Writer {
   private final LineBuffer lineBuffer;
 
-  LoggingWriter(final int priority, final String tag) {
+  LoggingWriter(final int priority, final String tag, final String runId) {
     this.lineBuffer = new LineBuffer() {
       @Override
       protected void handleLine(String line, String end) {
-        Log.println(priority, tag, line);
+        Log.println(priority, tag, "<" + runId + "> " + line);
       }
     };
   }

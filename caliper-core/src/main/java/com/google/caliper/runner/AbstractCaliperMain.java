@@ -20,6 +20,7 @@ import com.google.caliper.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
 import java.io.PrintWriter;
 import java.util.Map.Entry;
@@ -95,6 +96,13 @@ abstract class AbstractCaliperMain {
       // check that the parameters are valid
       mainComponent.getBenchmarkClass().validateParameters(options.userParameters());
       ServiceManager serviceManager = mainComponent.getServiceManager();
+      serviceManager.addListener(new ServiceManager.Listener() {
+        @Override
+        public void failure(Service service) {
+          stderr.println("Service " + service + " failed to start with the following exception:");
+          service.failureCause().printStackTrace(stderr);
+        }
+      });
       serviceManager.startAsync().awaitHealthy();
       try {
         CaliperRun run = mainComponent.getCaliperRun();
