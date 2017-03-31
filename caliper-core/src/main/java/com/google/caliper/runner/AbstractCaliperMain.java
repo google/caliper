@@ -76,7 +76,8 @@ abstract class AbstractCaliperMain {
 
   private static final String LEGACY_ENV = "USE_LEGACY_CALIPER";
 
-  protected final void exitlessMainImpl(String[] args, PrintWriter stdout, PrintWriter stderr)
+  protected final void exitlessMainImpl(
+      final String[] args, final PrintWriter stdout, final PrintWriter stderr)
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
     @Nullable String legacyCaliperEnv = System.getenv(LEGACY_ENV);
     if (!Strings.isNullOrEmpty(legacyCaliperEnv)) {
