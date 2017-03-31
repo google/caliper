@@ -33,6 +33,7 @@ import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.io.BaseEncoding;
+import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -95,6 +96,10 @@ public final class CaliperActivity extends Activity {
    * and the classpath to use for workers from the application info.
    */
   private void runAndExit() {
+    Bundle extras = getIntent().getExtras();
+    // Identifier provided by the script to help it find this run in the log.
+    String runId = extras.getString("com.google.caliper.run_id");
+
     /*
      * Caliper prints messages intended for the user to stdout and stderr by default, but it allows
      * replacing them with other streams. Here, we replace them with streams that use Android's
@@ -103,40 +108,34 @@ public final class CaliperActivity extends Activity {
      * messages with these tags so it can output the same things to the user that would be output
      * if the benchmarks were running locally on their machine.
      */
-    PrintWriter stdout = new PrintWriter(new LoggingWriter(Log.INFO, TAG));
-    PrintWriter stderr = new PrintWriter(new LoggingWriter(Log.ERROR, TAG));
-
-    Bundle extras = getIntent().getExtras();
-    // Identifier provided by the script to help it find this run in the log.
-    String runId = extras.getString("com.google.caliper.run_id");
-
-    // Print the message the script uses to find the start of this run in the log.
-    stdout.println("[START]: " + runId);
+    PrintWriter stdout = new PrintWriter(new LoggingWriter(Log.INFO, TAG, runId));
+    PrintWriter stderr = new PrintWriter(new LoggingWriter(Log.ERROR, TAG, runId));
 
     int code = 1;
     try {
       File filesDir = getFilesDir();
-      File resultsDir = new File(filesDir, "results");
-      resultsDir.mkdirs();
-      File outputFile = new File(resultsDir, runId + ".json");
+      File outputFile = new File(filesDir, runId + ".json");
+      Files.touch(outputFile);
 
       String benchmarkClass = getBenchmarkClass();
 
       String[] args = getArgs(extras, benchmarkClass, filesDir, outputFile);
       String classpath = getClasspath();
 
-      // Print the message the script will use to find the results file after the run completes.
-      stdout.println("[RESULTS FILE]: " + outputFile);
-
       // exitlessMain catches and handles all exceptions, so this will not throw
       CaliperMain main = new CaliperMain(classpath);
       code = main.exitlessMain(args, stdout, stderr);
+
+      if (code == 0) {
+        stdout.println("[RESULTS FILE] " + outputFile);
+      }
     } catch (Throwable e) {
-      Log.e(TAG, "An error occurred getting the arguments for starting Caliper", e);
+      stderr.println("An error occurred getting the arguments for starting Caliper");
+      e.printStackTrace(stderr);
       code = 1;
     } finally {
       // Print the message the script will use to find the end of the run in the log.
-      stdout.println("[FINISH]: " + runId);
+      stdout.println("[FINISH]");
     }
     System.exit(code);
   }
@@ -186,6 +185,12 @@ public final class CaliperActivity extends Activity {
 
     // Set the file to output to
     args.add("-Cresults.file.options.file=" + outputFile);
+
+    File logsDir = new File(filesDir, "logs");
+    logsDir.mkdirs();
+
+    // Also set the worker log output directory, since the default (tmpdir) may not be writable
+    args.add("-Cworker.output=" + logsDir);
 
     String base64Args = Strings.nullToEmpty(extras.getString("com.google.caliper.benchmark_args"));
     if (!"".equals(base64Args)) {
