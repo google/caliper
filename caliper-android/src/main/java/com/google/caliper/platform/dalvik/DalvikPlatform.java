@@ -123,6 +123,21 @@ public final class DalvikPlatform extends Platform {
   }
 
   @Override
+  public void setWorkerEnvironment(Map<String, String> env) {
+    // The worker processes won't be able to write to the default location DexOpt wants to write
+    // optimized dexes to (/data/dalvik-cache), which will cause DexOpt (and the workers) to fail.
+    // To fix this, change the ANDROID_DATA env variable for the workers from /data to a location
+    // that's writeable by the process.
+    // Note: the tmpdir for an app is specific to that app and not shared.
+    String dataDir = System.getProperty("java.io.tmpdir") + "/data";
+    env.put("ANDROID_DATA", dataDir);
+
+    // Also create the dalvik-cache directory, since DexOpt will expect it to already exist.
+    File dalvikCache = new File(dataDir + "/dalvik-cache");
+    dalvikCache.mkdirs();
+  }
+
+  @Override
   public File defaultVmHomeDir() {
     String androidRoot = System.getenv("ANDROID_ROOT");
     return androidRoot != null ? new File(androidRoot) : super.defaultVmHomeDir();

@@ -173,7 +173,7 @@ public class WorkerProcessTest {
 
   private ProcessBuilder createProcess(Experiment experiment, BenchmarkSpec benchmarkSpec) {
     return WorkerProcess.buildProcess(
-        TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, benchmarkClass);
+        new JvmPlatform(), TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, benchmarkClass);
   }
 
   private WorkerProcess createWorkerProcess(Class<?> main, String... args) {

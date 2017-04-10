@@ -21,6 +21,7 @@ import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.WorkerSpec;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
+import com.google.caliper.platform.Platform;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
@@ -32,7 +33,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
@@ -78,6 +78,7 @@ final class WorkerProcess {
 
   @Inject
   WorkerProcess(
+      Platform platform,
       @TrialId UUID trialId,
       ListenableFuture<OpenedSocket> openedSocket,
       Experiment experiment,
@@ -87,7 +88,7 @@ final class WorkerProcess {
       ShutdownHookRegistrar shutdownHookRegistrar) {
     this.trialId = trialId;
     this.workerBuilder =
-        buildProcess(trialId, experiment, benchmarkSpec, localPort, benchmarkClass);
+        buildProcess(platform, trialId, experiment, benchmarkSpec, localPort, benchmarkClass);
     this.openedSocket = openedSocket;
     this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
@@ -155,6 +156,7 @@ final class WorkerProcess {
 
   @VisibleForTesting
   static ProcessBuilder buildProcess(
+      Platform platform,
       UUID trialId,
       Experiment experiment,
       BenchmarkSpec benchmarkSpec,
@@ -173,6 +175,8 @@ final class WorkerProcess {
             localPort);
 
     ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
+
+    platform.setWorkerEnvironment(processBuilder.environment());
 
     List<String> args = processBuilder.command();
 

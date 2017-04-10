@@ -29,18 +29,27 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
 import com.google.common.base.Charsets;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.io.BaseEncoding;
+import com.google.common.io.ByteStreams;
+import com.google.common.io.Closer;
 import com.google.common.io.Files;
+import java.io.Closeable;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * {@link Activity} that runs Caliper on Android.
@@ -51,6 +60,9 @@ public final class CaliperActivity extends Activity {
 
   private static final String TAG = "Caliper";
 
+  private PrintWriter stdout;
+  private PrintWriter stderr;
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -59,7 +71,7 @@ public final class CaliperActivity extends Activity {
     setPerformanceOptions();
 
     ExecutorService executor = Executors.newSingleThreadExecutor();
-    executor.submit(
+    executor.execute(
         new Runnable() {
           @Override
           public void run() {
@@ -108,8 +120,8 @@ public final class CaliperActivity extends Activity {
      * messages with these tags so it can output the same things to the user that would be output
      * if the benchmarks were running locally on their machine.
      */
-    PrintWriter stdout = new PrintWriter(new LoggingWriter(Log.INFO, TAG, runId));
-    PrintWriter stderr = new PrintWriter(new LoggingWriter(Log.ERROR, TAG, runId));
+    this.stdout = new PrintWriter(new LoggingWriter(Log.INFO, TAG, runId));
+    this.stderr = new PrintWriter(new LoggingWriter(Log.ERROR, TAG, runId));
 
     int code = 1;
     try {
@@ -204,11 +216,85 @@ public final class CaliperActivity extends Activity {
   }
 
   /**
-   * Gets the classpath that Caliper should use when launching worker processes. In this case, the
-   * classpath should just be the location of the apk containing this app, since it should contain
-   * all the classes the worker needs.
+   * Gets the classpath that Caliper should use when launching worker processes.
+   *
+   * <p>By default (apk with a single dex or when multidex is natively supported), the classpath is
+   * just the location of the apk containing this app. If the apk has multiple dexes and multidex
+   * isn't natively supported, all dexes are extracted from the apk and the classpath contains the
+   * path to each.
    */
   private String getClasspath() throws IOException {
-    return getApplicationInfo().sourceDir;
+    String apk = getApplicationInfo().sourceDir;
+
+    File codeCache = new File(getApplicationInfo().dataDir, "code_cache");
+
+    // If the secondary-dexes dir exists, that means that
+    // A) the apk is multidex, and
+    // B) there's no native multidex support on this Android version
+    File secondaryDexDir = new File(codeCache, "secondary-dexes");
+    if (!secondaryDexDir.exists()) {
+      return apk;
+    }
+
+    // Note: we don't use any dexes extracted to the secondary-dexes dir because they may have been
+    // modified (e.g. dexopt'ed) in place, which will cause DexOpt to fail when trying to start a
+    // worker process.
+    List<File> dexFiles = extractDexes(apk, new File(codeCache, "worker-dexes"));
+
+    return Joiner.on(System.getProperty("path.separator")).join(dexFiles);
+  }
+
+  /**
+   * Extracts {@code classes.dex} and all secondary {@code classes<N>.dex} files from the given apk
+   * file to the given target directory.
+   */
+  private static List<File> extractDexes(String apk, File targetDir) throws IOException {
+    targetDir.mkdirs();
+    List<File> results = new ArrayList<>();
+    Closer closer = Closer.create();
+    try {
+      ZipFile zip = closer.register(new CloseableZipFile(apk)).zipFile;
+
+      ZipEntry classesEntry = zip.getEntry("classes.dex");
+      if (classesEntry == null) {
+        throw new AssertionError("classes.dex not found in apk");
+      }
+
+      int i = 1;
+      do {
+        InputStream in = closer.register(zip.getInputStream(classesEntry));
+
+        File outFile = new File(targetDir, classesEntry.getName());
+        OutputStream out = closer.register(new FileOutputStream(outFile));
+
+        ByteStreams.copy(in, out);
+
+        results.add(outFile);
+
+        classesEntry = zip.getEntry("classes" + (++i) + ".dex");
+      } while (classesEntry != null);
+      return results;
+    } catch (Throwable t) {
+      throw closer.rethrow(t);
+    } finally {
+      closer.close();
+    }
+  }
+
+  /**
+   * Workaround for the fact that {@code ZipFile} wasn't {@code Closeable} in earlier Java
+   * and Android versions, so that we can use it with {@link Closer}.
+   */
+  private static final class CloseableZipFile implements Closeable {
+    final ZipFile zipFile;
+
+    CloseableZipFile(String file) throws IOException {
+      this.zipFile = new ZipFile(file);
+    }
+
+    @Override
+    public void close() throws IOException {
+      zipFile.close();
+    }
   }
 }

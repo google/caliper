@@ -109,6 +109,12 @@ public abstract class Platform {
    */
   public abstract void checkVmProperties(Map<String, String> options);
 
+  /**
+   * Mutates the given environment map to make changes to the environment variables that worker
+   * processes are launched with.
+   */
+  public void setWorkerEnvironment(Map<String, String> env) {}
+
   /** Get the default vm home directory. */
   public File defaultVmHomeDir() {
     return new File(System.getProperty("java.home"));
