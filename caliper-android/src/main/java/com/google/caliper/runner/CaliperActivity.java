@@ -21,8 +21,6 @@ import static android.view.WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED;
 import static android.view.WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON;
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.content.pm.PackageManager.NameNotFoundException;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
@@ -31,7 +29,6 @@ import android.view.Window;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import com.google.common.io.BaseEncoding;
 import com.google.common.io.ByteStreams;
@@ -129,9 +126,7 @@ public final class CaliperActivity extends Activity {
       File outputFile = new File(filesDir, runId + ".json");
       Files.touch(outputFile);
 
-      String benchmarkClass = getBenchmarkClass();
-
-      String[] args = getArgs(extras, benchmarkClass, filesDir, outputFile);
+      String[] args = getArgs(extras, filesDir, outputFile);
       String classpath = getClasspath();
 
       // exitlessMain catches and handles all exceptions, so this will not throw
@@ -153,40 +148,20 @@ public final class CaliperActivity extends Activity {
   }
 
   /**
-   * Gets the fully qualified name of the benchmark class, which is specified in the manifest.
-   */
-  private String getBenchmarkClass() {
-    try {
-      Bundle metadata = getPackageManager()
-          .getApplicationInfo(getPackageName(), PackageManager.GET_META_DATA)
-          .metaData;
-      if (metadata == null || !metadata.containsKey("benchmark_class")) {
-        throw new RuntimeException("Unable to get benchmark class");
-      }
-
-      return metadata.getString("benchmark_class");
-    } catch (NameNotFoundException e) {
-      throw new RuntimeException("Unable to get benchmark class", e);
-    }
-  }
-
-  /**
    * Gets the args array to pass to the {@code CaliperMain} class. Most of the args come from the
    * user running the script; in the script, those args are joined into a string separated with a
    * separator that's unlikely to appear in the args themselves ("|^|") and then base64 encoded so
    * they can be passed as a single extra argument (com.google.caliper.benchmark_args) in the adb
-   * command that starts this activity.
+   * command that starts this activity. The benchmark class is included in these args.
    *
    * <p>The other args are:
    *
    * <ul>
-   *   <li>The benchmark class name, which we get from the manifest.
    *   <li>The directory that Caliper should save files to.
    *   <li>The path at which Caliper should save the results file.
    * </ul>
    */
-  private static String[] getArgs(
-      Bundle extras, String benchmarkClass, File filesDir, File outputFile) {
+  private static String[] getArgs(Bundle extras, File filesDir, File outputFile) {
     List<String> args = new ArrayList<>();
 
     // explicitly set the directory to save files to since otherwise it will end up being
@@ -204,13 +179,9 @@ public final class CaliperActivity extends Activity {
     // Also set the worker log output directory, since the default (tmpdir) may not be writable
     args.add("-Cworker.output=" + logsDir);
 
-    String base64Args = Strings.nullToEmpty(extras.getString("com.google.caliper.benchmark_args"));
-    if (!"".equals(base64Args)) {
-      String argsString = new String(BaseEncoding.base64().decode(base64Args), Charsets.UTF_8);
-      Iterables.addAll(args, Splitter.on("|^|").split(argsString));
-    }
-
-    args.add(benchmarkClass);
+    String base64Args = extras.getString("com.google.caliper.benchmark_args");
+    String argsString = new String(BaseEncoding.base64().decode(base64Args), Charsets.UTF_8);
+    Iterables.addAll(args, Splitter.on("|^|").split(argsString));
 
     return args.toArray(new String[0]);
   }
