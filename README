@@ -1,3 +1,5 @@
+Caliper is an open source framework for writing, running and analyzing Java microbenchmarks.
+
 To build this project with Maven:
 
 1. cd caliper
