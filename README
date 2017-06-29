@@ -1,4 +1,4 @@
-Caliper is an open source framework for writing, running and analyzing Java microbenchmarks.
+Micro-benchmarking library for Java
 
 To build this project with Maven:
 
