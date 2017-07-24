@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.platform.Platform;
@@ -165,8 +165,8 @@ final class WorkerProcess {
     // TODO(lukes): it would be nice to split this method into a few smaller more targeted methods
     Instrumentation instrumentation = experiment.instrumentation();
     Instrument instrument = instrumentation.instrument();
-    WorkerSpec request =
-        new WorkerSpec(
+    TrialRequest request =
+        new TrialRequest(
             trialId,
             instrumentation.type(),
             instrumentation.workerOptions(),

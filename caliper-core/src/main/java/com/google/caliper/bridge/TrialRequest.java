@@ -20,38 +20,70 @@ import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.InstrumentType;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.Serializable;
 import java.util.UUID;
 
 /**
- * This object is sent from the parent process to the child to tell it what to do. If the child does
- * not do it, it will not get its allowance this week.
+ * {@link WorkerRequest} for telling the worker to run a trial of the benchmark.
+ *
+ * @author Colin Decker
  */
-public final class WorkerSpec implements Serializable {
+public final class TrialRequest extends WorkerRequest {
   private static final long serialVersionUID = 1L;
 
-  public final UUID trialId;
-  public final InstrumentType instrumentType;
-  public final ImmutableMap<String, String> workerOptions;
-  public final BenchmarkSpec benchmarkSpec;
+  private final UUID trialId;
+  private final InstrumentType instrumentType;
+  private final ImmutableMap<String, String> workerOptions;
+  private final BenchmarkSpec benchmarkSpec;
+  private final ImmutableList<Class<?>> methodParameterClasses;
 
-  /** The names of the benchmark method parameters so that the method can be uniquely identified. */
-  public final ImmutableList<Class<?>> methodParameterClasses;
-
-  public final int port;
-
-  public WorkerSpec(
+  public TrialRequest(
       UUID trialId,
       InstrumentType instrumentType,
       ImmutableMap<String, String> workerOptions,
       BenchmarkSpec benchmarkSpec,
       ImmutableList<Class<?>> methodParameterClasses,
       int port) {
+    super(port);
     this.trialId = trialId;
     this.instrumentType = instrumentType;
     this.workerOptions = workerOptions;
     this.benchmarkSpec = benchmarkSpec;
     this.methodParameterClasses = methodParameterClasses;
-    this.port = port;
+  }
+
+  /**
+   * Returns the ID of the trial to run.
+   */
+  public UUID trialId() {
+    return trialId;
+  }
+
+  /**
+   * Returns the instrument to use for the trial.
+   */
+  public InstrumentType instrumentType() {
+    return instrumentType;
+  }
+
+  /**
+   * Returns the worker options to use.
+   */
+  public ImmutableMap<String, String> workerOptions() {
+    return workerOptions;
+  }
+
+  /**
+   * Returns the spec of the benchmark to run for the trial.
+   */
+  public BenchmarkSpec benchmarkSpec() {
+    return benchmarkSpec;
+  }
+
+  /**
+   * Returns the parameter types for the benchmark method to run so that it can be uniquely
+   * identified.
+   */
+  public ImmutableList<Class<?>> methodParameterClasses() {
+    return methodParameterClasses;
   }
 }
