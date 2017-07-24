@@ -43,6 +43,7 @@ import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -267,6 +268,7 @@ public class RuntimeInstrumentTest {
     return elapsed;
   }
 
+  @Ignore // very flaky; no tweaks I've tried have fixed that
   @Test
 
   public void gcBeforeEachOptionIsHonored() throws Exception {
@@ -278,6 +280,7 @@ public class RuntimeInstrumentTest {
         runner.getStdout().toString().contains("WARNING: GC occurred during timing."));
   }
 
+  @Ignore // may also be flaky
   @Test
 
   public void gcBeforeEachOptionIsReallyNecessary() throws Exception {
