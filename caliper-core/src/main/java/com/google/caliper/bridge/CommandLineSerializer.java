@@ -26,10 +26,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
 /**
- * Serializes and deserializes WorkerSpecs as base64 encoded strings so they can be passed on the
- * command line to the worker.
+ * Serializes and deserializes {@link WorkerRequest}s as base64 encoded strings so they can be
+ * passed on the command line to the worker.
  *
- * <p>Java serialization is a appropriate in this usecase because there are no compatibility
+ * <p>Java serialization is a appropriate in this use-case because there are no compatibility
  * concerns. The messages encoded/decoded by this class are only used to communicate with another
  * JVM that is running with the same version of the java classes. Also, it should be lighter weight
  * and faster than other common serialization solutions.
@@ -38,7 +38,7 @@ public final class CommandLineSerializer {
   private CommandLineSerializer() {}
 
   /** Returns the given serializable object as a base64 encoded String. */
-  public static String render(WorkerSpec message) {
+  public static String render(WorkerRequest message) {
     ByteArrayOutputStream bytes = new ByteArrayOutputStream();
     try {
       ObjectOutputStream out = new ObjectOutputStream(bytes);
@@ -51,11 +51,11 @@ public final class CommandLineSerializer {
   }
 
   /** Parses the given base64 encoded string as an object of the given type. */
-  public static WorkerSpec parse(String arg) {
+  public static WorkerRequest parse(String arg) {
     try {
       ByteArrayInputStream bais = new ByteArrayInputStream(BaseEncoding.base64().decode(arg));
       ObjectInputStream in = new ObjectInputStream(bais);
-      WorkerSpec instance = (WorkerSpec) in.readObject();
+      WorkerRequest instance = (WorkerRequest) in.readObject();
       in.close();
       checkState(bais.read() == -1, "Message %s contains more than one object.", arg);
       return instance;

@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.core.Running.Benchmark;
 import com.google.caliper.core.Running.BenchmarkMethod;
 import com.google.caliper.util.Util;
@@ -44,13 +44,13 @@ public final class ExperimentModule {
     return new ExperimentModule(benchmarkMethod, experiment.userParameters());
   }
 
-  public static ExperimentModule forWorkerSpec(WorkerSpec spec) throws ClassNotFoundException {
-    Class<?> benchmarkClass = Util.loadClass(spec.benchmarkSpec.className());
+  public static ExperimentModule forTrialRequest(TrialRequest req) throws ClassNotFoundException {
+    Class<?> benchmarkClass = Util.loadClass(req.benchmarkSpec().className());
     Method benchmarkMethod =
         findBenchmarkMethod(
-            benchmarkClass, spec.benchmarkSpec.methodName(), spec.methodParameterClasses);
+            benchmarkClass, req.benchmarkSpec().methodName(), req.methodParameterClasses());
     benchmarkMethod.setAccessible(true);
-    return new ExperimentModule(benchmarkMethod, spec.benchmarkSpec.parameters());
+    return new ExperimentModule(benchmarkMethod, req.benchmarkSpec().parameters());
   }
 
   @Provides

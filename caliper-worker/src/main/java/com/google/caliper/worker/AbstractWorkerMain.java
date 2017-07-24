@@ -19,7 +19,8 @@ package com.google.caliper.worker;
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
-import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.bridge.TrialRequest;
+import com.google.caliper.bridge.WorkerRequest;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
@@ -33,47 +34,53 @@ abstract class AbstractWorkerMain {
     // TODO(lukes): instead of parsing the spec from the command line pass the port number on the
     // command line and then receive the spec from the socket.  This way we can start JVMs prior
     // to starting experiments and thus get better experiment latency.
-    WorkerSpec request = CommandLineSerializer.parse(args[0]);
-    // nonblocking connect so we can interleave the system call with injector creation.
-    SocketChannel channel = SocketChannel.open();
-    channel.configureBlocking(false);
-    channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), request.port));
+    WorkerRequest request = CommandLineSerializer.parse(args[0]);
 
-    WorkerComponent workerComponent = createWorkerComponent(request);
-    Worker worker = workerComponent.getWorker();
-    WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
+    // TODO(cgdecker): Handle other kinds of requests
+    if (request instanceof TrialRequest) {
+      TrialRequest trialRequest = (TrialRequest) request;
 
-    log.notifyWorkerStarted(request.trialId);
-    try {
-      worker.setUpBenchmark();
-      log.notifyBootstrapPhaseStarting();
-      worker.bootstrap();
-      log.notifyMeasurementPhaseStarting();
-      boolean keepMeasuring = true;
-      boolean isInWarmup = true;
-      while (keepMeasuring) {
-        worker.preMeasure(isInWarmup);
-        log.notifyMeasurementStarting();
-        try {
-          ShouldContinueMessage message = log.notifyMeasurementEnding(worker.measure());
-          keepMeasuring = message.shouldContinue();
-          isInWarmup = !message.isWarmupComplete();
-        } finally {
-          worker.postMeasure();
+      // nonblocking connect so we can interleave the system call with injector creation.
+      SocketChannel channel = SocketChannel.open();
+      channel.configureBlocking(false);
+      channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), request.port()));
+
+      WorkerComponent workerComponent = createWorkerComponent(trialRequest);
+      Worker worker = workerComponent.getWorker();
+      WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
+
+      log.notifyWorkerStarted(trialRequest.trialId());
+      try {
+        worker.setUpBenchmark();
+        log.notifyBootstrapPhaseStarting();
+        worker.bootstrap();
+        log.notifyMeasurementPhaseStarting();
+        boolean keepMeasuring = true;
+        boolean isInWarmup = true;
+        while (keepMeasuring) {
+          worker.preMeasure(isInWarmup);
+          log.notifyMeasurementStarting();
+          try {
+            ShouldContinueMessage message = log.notifyMeasurementEnding(worker.measure());
+            keepMeasuring = message.shouldContinue();
+            isInWarmup = !message.isWarmupComplete();
+          } finally {
+            worker.postMeasure();
+          }
         }
+      } catch (Exception e) {
+        log.notifyFailure(e);
+      } finally {
+        System.out.flush(); // ?
+        worker.tearDownBenchmark();
+        log.close();
       }
-    } catch (Exception e) {
-      log.notifyFailure(e);
-    } finally {
-      System.out.flush(); // ?
-      worker.tearDownBenchmark();
-      log.close();
     }
   }
 
   /**
    * Creates the Dagger {@link WorkerComponent} that will create the worker for the given request.
    */
-  protected abstract WorkerComponent createWorkerComponent(WorkerSpec request)
+  protected abstract WorkerComponent createWorkerComponent(TrialRequest request)
       throws ClassNotFoundException;
 }

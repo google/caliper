@@ -16,7 +16,7 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.bridge.WorkerSpec;
+import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.core.Running;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
@@ -33,7 +33,7 @@ import javax.inject.Provider;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link
- * com.google.caliper.Param parameters} from the {@link WorkerSpec} into the benchmark.
+ * com.google.caliper.Param parameters} from the {@link TrialRequest} into the benchmark.
  *
  * <p>TODO(gak): Ensure that each worker only has bindings for the objects it needs and not the
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
@@ -46,11 +46,11 @@ final class WorkerModule {
 
   private final Class<?> benchmarkClassObject;
 
-  WorkerModule(WorkerSpec workerSpec) throws ClassNotFoundException {
-    this.instrumentType = workerSpec.instrumentType;
-    this.workerOptions = workerSpec.workerOptions;
+  WorkerModule(TrialRequest request) throws ClassNotFoundException {
+    this.instrumentType = request.instrumentType();
+    this.workerOptions = request.workerOptions();
 
-    benchmarkClassObject = Util.loadClass(workerSpec.benchmarkSpec.className());
+    benchmarkClassObject = Util.loadClass(request.benchmarkSpec().className());
   }
 
   @Provides
