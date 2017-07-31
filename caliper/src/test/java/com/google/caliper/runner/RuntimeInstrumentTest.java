@@ -26,6 +26,7 @@ import static org.junit.Assert.fail;
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
+import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;

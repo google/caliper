@@ -23,6 +23,7 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.config.VmConfig;
+import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.collect.ImmutableMap;

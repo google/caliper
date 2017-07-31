@@ -15,6 +15,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.options.OptionsModule;
 import com.google.caliper.platform.dalvik.DalvikModule;
 import com.google.caliper.util.InvalidCommandException;

@@ -28,6 +28,8 @@ import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.config.VmConfig;
+import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.core.UserCodeException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.SupportedPlatform;
