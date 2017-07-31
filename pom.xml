@@ -87,7 +87,11 @@
     <module>caliper-api</module>
     <module>caliper-core</module>
     <module>caliper-examples</module>
+    <module>caliper-runner</module>
     <module>caliper-util</module>
+    <module>caliper-worker</module>
+    <module>caliper-worker-android</module>
+    <module>caliper-worker-jvm</module>
   </modules>
 
   <dependencyManagement>

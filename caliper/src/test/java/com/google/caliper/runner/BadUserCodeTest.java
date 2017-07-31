@@ -19,6 +19,7 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.BeforeExperiment;
 import com.google.caliper.Benchmark;
+import com.google.caliper.core.UserCodeException;
 import com.google.common.collect.Lists;
 import java.util.List;
 import org.junit.Rule;

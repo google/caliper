@@ -19,6 +19,7 @@ import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.config.CaliperConfig;
 import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.platform.Platform;
 import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.caliper.util.Util;
