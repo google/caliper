@@ -22,8 +22,7 @@ import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
 import com.google.common.base.Ticker;
-import com.google.common.collect.ImmutableMap;
-import dagger.MapKey;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
@@ -39,18 +38,19 @@ import javax.inject.Provider;
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
  * worker).
  */
-@Module
+@Module(includes = WorkerModule.OtherBindings.class)
 final class WorkerModule {
-  private final InstrumentType instrumentType;
-  private final ImmutableMap<String, String> workerOptions;
-
+  private final TrialRequest trialRequest;
   private final Class<?> benchmarkClassObject;
 
-  WorkerModule(TrialRequest request) throws ClassNotFoundException {
-    this.instrumentType = request.instrumentType();
-    this.workerOptions = request.workerOptions();
+  WorkerModule(TrialRequest trialRequest) throws ClassNotFoundException {
+    this.trialRequest = trialRequest;
+    this.benchmarkClassObject = Util.loadClass(trialRequest.benchmarkSpec().className());
+  }
 
-    benchmarkClassObject = Util.loadClass(request.benchmarkSpec().className());
+  @Provides
+  TrialRequest provideTrialRequest() {
+    return trialRequest;
   }
 
   @Provides
@@ -59,66 +59,59 @@ final class WorkerModule {
     return benchmarkClassObject;
   }
 
-  @Provides
-  Worker provideWorker(Map<InstrumentType, Provider<Worker>> availableWorkers) {
-    Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
-    if (workerProvider == null) {
-      throw new InvalidCommandException(
-          "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
+  @Module
+  abstract static class OtherBindings {
+
+    @Provides
+    static InstrumentType provideInstrumentType(TrialRequest trialRequest) {
+      return trialRequest.instrumentType();
     }
-    return workerProvider.get();
-  }
 
-  /**
-   * Specifies the type of instrument to use as a key in the map of available {@link Worker workers}
-   * passed to {@link #provideWorker(Map)}.
-   */
-  @MapKey
-  @interface InstrumentTypeKey {
-    InstrumentType value();
-  }
+    @Provides
+    @WorkerOptions
+    static Map<String, String> provideWorkerOptions(TrialRequest trialRequest) {
+      return trialRequest.workerOptions();
+    }
 
-  @Provides
-  @IntoMap
-  @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
-  static Worker provideArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl) {
-    return impl;
-  }
+    @Provides
+    static Worker provideWorker(
+        InstrumentType instrumentType, Map<InstrumentType, Provider<Worker>> availableWorkers) {
+      Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
+      if (workerProvider == null) {
+        throw new InvalidCommandException(
+            "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
+      }
+      return workerProvider.get();
+    }
 
-  @Provides
-  @IntoMap
-  @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
-  static Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl) {
-    return impl;
-  }
+    @Binds
+    @IntoMap
+    @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
+    abstract Worker bindArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl);
 
-  @Provides
-  @IntoMap
-  @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
-  static Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl) {
-    return impl;
-  }
+    @Binds
+    @IntoMap
+    @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
+    abstract Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl);
 
-  @Provides
-  @IntoMap
-  @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
-  static Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl) {
-    return impl;
-  }
+    @Binds
+    @IntoMap
+    @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
+    abstract Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl);
 
-  @Provides
-  static Ticker provideTicker() {
-    return Ticker.systemTicker();
-  }
+    @Binds
+    @IntoMap
+    @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
+    abstract Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl);
 
-  @Provides
-  static Random provideRandom() {
-    return new Random();
-  }
+    @Provides
+    static Ticker provideTicker() {
+      return Ticker.systemTicker();
+    }
 
-  @Provides
-  @WorkerOptions
-  Map<String, String> provideWorkerOptions() {
-    return workerOptions;
+    @Provides
+    static Random provideRandom() {
+      return new Random();
+    }
   }
 }

@@ -17,7 +17,6 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.model.InstrumentType;
-import com.google.caliper.worker.WorkerModule.InstrumentTypeKey;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
