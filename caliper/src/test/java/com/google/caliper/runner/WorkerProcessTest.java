@@ -25,7 +25,7 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.config.VmConfig;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.BenchmarkSpec;
-import com.google.caliper.platform.jvm.JvmPlatform;
+import com.google.caliper.platform.JvmPlatform;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;

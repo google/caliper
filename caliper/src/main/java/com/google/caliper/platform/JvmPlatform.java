@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.jvm;
+package com.google.caliper.platform;
 
 import static com.google.common.base.Preconditions.checkState;
 import static java.lang.Thread.currentThread;
 
-import com.google.caliper.platform.Platform;
-import com.google.caliper.platform.VirtualMachineException;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

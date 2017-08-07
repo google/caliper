@@ -21,8 +21,8 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
+import com.google.caliper.platform.JvmPlatform;
 import com.google.caliper.platform.Platform;
-import com.google.caliper.platform.jvm.JvmPlatform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;

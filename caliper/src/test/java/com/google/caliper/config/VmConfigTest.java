@@ -18,7 +18,7 @@ package com.google.caliper.config;
 
 import static org.junit.Assert.assertTrue;
 
-import com.google.caliper.platform.jvm.JvmPlatform;
+import com.google.caliper.platform.JvmPlatform;
 import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
