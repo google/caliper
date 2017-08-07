@@ -20,7 +20,7 @@ import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.config.ConfigModule;
 import com.google.caliper.json.GsonModule;
 import com.google.caliper.options.OptionsModule;
-import com.google.caliper.platform.jvm.JvmModule;
+import com.google.caliper.platform.PlatformModule;
 import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;
@@ -34,11 +34,11 @@ import javax.inject.Singleton;
     ConfigModule.class,
     ExperimentingRunnerModule.class,
     GsonModule.class,
-    JvmModule.class,
     JvmRunnerModule.class,
     MainModule.class,
     OptionsModule.class,
     OutputModule.class,
+    PlatformModule.class,
     RunnerModule.class,
     ServiceModule.class,
   }

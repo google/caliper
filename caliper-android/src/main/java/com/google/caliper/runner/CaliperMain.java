@@ -17,7 +17,8 @@ package com.google.caliper.runner;
 import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.options.OptionsModule;
-import com.google.caliper.platform.dalvik.DalvikModule;
+import com.google.caliper.platform.DalvikPlatform;
+import com.google.caliper.platform.PlatformModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import java.io.PrintWriter;
@@ -46,8 +47,8 @@ public final class CaliperMain extends AbstractCaliperMain {
       String[] args, PrintWriter stdout, PrintWriter stderr) {
     return DaggerDalvikMainComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
-        .dalvikModule(new DalvikModule(classpath))
         .outputModule(new OutputModule(stdout, stderr))
+        .platformModule(new PlatformModule(new DalvikPlatform(classpath)))
         .build();
   }
 }

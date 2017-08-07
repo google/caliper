@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.google.caliper.platform.dalvik;
+package com.google.caliper.platform;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.caliper.platform.Platform;
-import com.google.caliper.platform.VirtualMachineException;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
