@@ -16,8 +16,8 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.util.concurrent.ServiceManager;
 

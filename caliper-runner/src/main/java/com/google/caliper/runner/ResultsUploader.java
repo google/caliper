@@ -19,9 +19,9 @@ package com.google.caliper.runner;
 import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.api.ResultProcessor;
-import com.google.caliper.config.InvalidConfigurationException;
-import com.google.caliper.config.ResultProcessorConfig;
 import com.google.caliper.model.Trial;
+import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.config.ResultProcessorConfig;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;

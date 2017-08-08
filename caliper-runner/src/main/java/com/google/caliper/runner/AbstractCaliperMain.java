@@ -14,9 +14,9 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSortedMap;

@@ -16,12 +16,12 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.config.InvalidConfigurationException;
-import com.google.caliper.config.VmConfig;
 import com.google.caliper.model.Run;
-import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.platform.Platform;
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.platform.Platform;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;

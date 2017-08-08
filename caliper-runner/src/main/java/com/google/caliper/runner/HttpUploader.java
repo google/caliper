@@ -17,8 +17,8 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.ResultProcessor;
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.config.InvalidConfigurationException;
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.util.Stdout;
 import com.google.gson.Gson;
 import com.squareup.okhttp.OkHttpClient;
