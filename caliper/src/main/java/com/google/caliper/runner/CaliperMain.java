@@ -16,11 +16,11 @@ package com.google.caliper.runner;
 
 import static com.google.common.collect.ObjectArrays.concat;
 
-import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.options.OptionsModule;
-import com.google.caliper.platform.JvmPlatform;
-import com.google.caliper.platform.PlatformModule;
+import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.options.OptionsModule;
+import com.google.caliper.runner.platform.JvmPlatform;
+import com.google.caliper.runner.platform.PlatformModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import java.io.PrintWriter;

@@ -17,10 +17,10 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.bridge.BridgeModule;
-import com.google.caliper.config.ConfigModule;
 import com.google.caliper.json.GsonModule;
-import com.google.caliper.options.OptionsModule;
-import com.google.caliper.platform.PlatformModule;
+import com.google.caliper.runner.config.ConfigModule;
+import com.google.caliper.runner.options.OptionsModule;
+import com.google.caliper.runner.platform.PlatformModule;
 import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;

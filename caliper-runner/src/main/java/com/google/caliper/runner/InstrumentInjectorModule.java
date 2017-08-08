@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.InstrumentConfig;
+import com.google.caliper.runner.config.InstrumentConfig;
 import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.Provides;

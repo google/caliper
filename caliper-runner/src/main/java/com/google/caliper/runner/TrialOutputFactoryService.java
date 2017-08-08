@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.model.Run;
-import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractIdleService;

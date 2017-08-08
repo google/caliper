@@ -16,9 +16,9 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.caliper.config.InvalidConfigurationException;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.Trial;
+import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;

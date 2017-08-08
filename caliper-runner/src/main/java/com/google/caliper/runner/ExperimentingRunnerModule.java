@@ -17,14 +17,14 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.api.ResultProcessor;
-import com.google.caliper.config.CaliperConfig;
-import com.google.caliper.config.InstrumentConfig;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
 import com.google.caliper.model.Host;
-import com.google.caliper.options.CaliperOptions;
-import com.google.caliper.platform.Platform;
 import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.InstrumentConfig;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;

@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.config.VmConfig;
+import com.google.caliper.runner.config.VmConfig;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 

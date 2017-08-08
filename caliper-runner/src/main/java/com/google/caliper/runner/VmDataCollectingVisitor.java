@@ -21,7 +21,7 @@ import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.VmSpec;
-import com.google.caliper.platform.Platform;
+import com.google.caliper.runner.platform.Platform;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;

@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.caliper.core.Running;
 import com.google.caliper.core.UserCodeException;
-import com.google.caliper.options.CaliperOptions;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
 import dagger.Module;
