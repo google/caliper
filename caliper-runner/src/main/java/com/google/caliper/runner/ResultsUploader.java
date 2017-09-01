@@ -108,6 +108,12 @@ abstract class ResultsUploader implements ResultProcessor {
     }
   }
 
+  static void logUploadFailure(Trial trial) {
+    logger.log(
+        SEVERE,
+        String.format("Could not upload trial %s. Consider uploading it manually.", trial.id()));
+  }
+
   static void logUploadFailure(Trial trial, Exception e) {
     logger.log(
         SEVERE,
