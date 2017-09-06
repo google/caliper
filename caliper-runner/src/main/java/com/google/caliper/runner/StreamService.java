@@ -46,6 +46,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
@@ -172,16 +173,19 @@ final class StreamService extends AbstractService {
     Charset processCharset = Charset.defaultCharset();
     runningReadStreams.addAndGet(2);
     openStreams.addAndGet(1);
-    streamExecutor.submit(
-        threadRenaming(
-            "worker-stderr",
-            new StreamReader(
-                "stderr", new InputStreamReader(process.getErrorStream(), processCharset))));
-    streamExecutor.submit(
-        threadRenaming(
-            "worker-stdout",
-            new StreamReader(
-                "stdout", new InputStreamReader(process.getInputStream(), processCharset))));
+    @SuppressWarnings("unused") // go/futurereturn-lsc
+    Future<?> possiblyIgnoredError =
+        streamExecutor.submit(
+            threadRenaming(
+                "worker-stderr",
+                new StreamReader(
+                    "stderr", new InputStreamReader(process.getErrorStream(), processCharset))));
+    possiblyIgnoredError =
+        streamExecutor.submit(
+            threadRenaming(
+                "worker-stdout",
+                new StreamReader(
+                    "stdout", new InputStreamReader(process.getInputStream(), processCharset))));
     worker
         .socketFuture()
         .addListener(
@@ -195,9 +199,11 @@ final class StreamService extends AbstractService {
                   socketWriter = openedSocket.writer();
                   runningReadStreams.addAndGet(1);
                   openStreams.addAndGet(1);
-                  streamExecutor.submit(
-                      threadRenaming(
-                          "worker-socket", new SocketStreamReader(openedSocket.reader())));
+                  @SuppressWarnings("unused") // go/futurereturn-lsc
+                  Future<?> possiblyIgnoredError =
+                      streamExecutor.submit(
+                          threadRenaming(
+                              "worker-socket", new SocketStreamReader(openedSocket.reader())));
                 } catch (ExecutionException e) {
                   notifyFailed(e.getCause());
                 }
@@ -274,33 +280,35 @@ final class StreamService extends AbstractService {
     // Experimentally, even with well behaved processes there is some time between when all streams
     // are closed as part of process shutdown and when the process has exited. So to not fail
     // flakily when shutting down normally we need to do a timed wait
-    streamExecutor.submit(
-        new Callable<Void>() {
-          @Override
-          public Void call() throws Exception {
-            boolean threw = true;
-            try {
-              if (processFuture.get(SHUTDOWN_WAIT_MILLIS, TimeUnit.MILLISECONDS) == 0) {
-                notifyStopped();
-              } else {
-                notifyFailed(
-                    new Exception(
-                        "Process failed to stop cleanly. Exit code: " + process.waitFor()));
+    @SuppressWarnings("unused") // go/futurereturn-lsc
+    Future<?> possiblyIgnoredError =
+        streamExecutor.submit(
+            new Callable<Void>() {
+              @Override
+              public Void call() throws Exception {
+                boolean threw = true;
+                try {
+                  if (processFuture.get(SHUTDOWN_WAIT_MILLIS, TimeUnit.MILLISECONDS) == 0) {
+                    notifyStopped();
+                  } else {
+                    notifyFailed(
+                        new Exception(
+                            "Process failed to stop cleanly. Exit code: " + process.waitFor()));
+                  }
+                  threw = false;
+                } finally {
+                  processFuture.cancel(true); // we don't need it anymore
+                  if (threw) {
+                    process.destroy();
+                    notifyFailed(
+                        new Exception(
+                            "Process failed to stop cleanly and was forcibly killed. Exit code: "
+                                + process.waitFor()));
+                  }
+                }
+                return null;
               }
-              threw = false;
-            } finally {
-              processFuture.cancel(true); // we don't need it anymore
-              if (threw) {
-                process.destroy();
-                notifyFailed(
-                    new Exception(
-                        "Process failed to stop cleanly and was forcibly killed. Exit code: "
-                            + process.waitFor()));
-              }
-            }
-            return null;
-          }
-        });
+            });
   }
 
   private void closeStream() {
