@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,32 @@ import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;
 
-/** The main component used when running caliper. */
+/**
+ * Component for creating the {@link CaliperRunner}.
+ *
+ * @author Colin Decker
+ */
 @Singleton
 @Component(
   modules = {
-    BenchmarkClassModule.class,
     BridgeModule.class,
     ConfigModule.class,
-    ExperimentingRunnerModule.class,
     GsonModule.class,
-    JvmRunnerModule.class,
     MainModule.class,
     OptionsModule.class,
     OutputModule.class,
     PlatformModule.class,
     RunnerModule.class,
     ServiceModule.class,
+    TargetModule.class,
   }
 )
-interface JvmMainComponent extends MainComponent {
+interface CaliperRunnerComponent {
+
+  /** Returns the Caliper runner. */
+  CaliperRunner getRunner();
+
+  // TODO(cgdecker): Consider using subcomponent builders instead
+  /** Creates the component for the actual Caliper benchmark run. */
+  CaliperRunComponent newRunComponent();
 }

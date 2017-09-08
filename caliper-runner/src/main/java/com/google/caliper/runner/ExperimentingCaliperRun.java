@@ -73,7 +73,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       };
 
-  private final MainComponent mainComponent;
+  private final CaliperRunComponent component;
   private final CaliperOptions options;
   private final PrintWriter stdout;
   private final BenchmarkClass benchmarkClass;
@@ -85,7 +85,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   @Inject
   @VisibleForTesting
   public ExperimentingCaliperRun(
-      MainComponent mainComponent,
+      CaliperRunComponent component,
       CaliperOptions options,
       @Stdout PrintWriter stdout,
       BenchmarkClass benchmarkClass,
@@ -93,7 +93,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
       Provider<ListeningExecutorService> executorProvider) {
-    this.mainComponent = mainComponent;
+    this.component = component;
     this.options = options;
     this.stdout = stdout;
     this.benchmarkClass = benchmarkClass;
@@ -105,6 +105,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   @Override
   public void run() throws InvalidBenchmarkException {
+    benchmarkClass.validateParameters(options.userParameters());
+
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
     // TODO(lukes): move this standard-out handling into the ConsoleOutput class?
     // if the user specified a run name, print it first.
@@ -285,7 +287,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       for (Experiment experiment : experimentsToRun) {
         try {
           TrialScopeComponent trialScopeComponent =
-              mainComponent.newTrialComponent(
+              component.newTrialComponent(
                   new TrialModule(UUID.randomUUID(), trialNumber, experiment));
 
           trials.add(trialScopeComponent.getScheduledTrial());
@@ -307,7 +309,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     for (Experiment experiment : experiments) {
       try {
         ExperimentComponent experimentComponent =
-            mainComponent.newExperimentComponent(ExperimentModule.forExperiment(experiment));
+            component.newExperimentComponent(ExperimentModule.forExperiment(experiment));
         Object benchmark = experimentComponent.getBenchmarkInstance();
         benchmarkClass.setUpBenchmark(benchmark);
         try {

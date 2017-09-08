@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.runner.ExperimentingRunnerModule.InstrumentClassKey;
+import com.google.caliper.runner.CaliperRunModule.InstrumentClassKey;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -36,9 +36,9 @@ abstract class JvmRunnerModule {
   }
 
   /**
-   * Binding that we need since we want to inject the {@code MainComponent} in a class, but {@code
-   * MainComponent} isn't actually the component type.
+   * Binding that we need since we want to inject the {@code CaliperRunnerComponent} in a class, but
+   * {@code CaliperRunnerComponent} isn't actually the component type.
    */
   @Binds
-  abstract MainComponent bindMainComponent(JvmMainComponent component);
+  abstract CaliperRunnerComponent bindRunnerComponent(JvmCaliperRunnerComponent component);
 }

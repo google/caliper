@@ -23,6 +23,7 @@ import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.caliper.runner.platform.PlatformModule;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
+import com.google.common.annotations.VisibleForTesting;
 import java.io.PrintWriter;
 
 /**
@@ -31,7 +32,7 @@ import java.io.PrintWriter;
  * invocation and then hand off to {@code CaliperRun}. That is, a hypothetical GUI benchmark runner
  * might still use {@code CaliperRun} but would skip using this class.
  */
-public final class CaliperMain extends AbstractCaliperMain {
+public final class CaliperMain {
   /**
    * Your benchmark classes can implement main() like this:
    *
@@ -49,28 +50,29 @@ public final class CaliperMain extends AbstractCaliperMain {
    * class that gets loaded later could be completely different.
    */
   public static void main(Class<?> benchmarkClass, String[] args) {
-    new CaliperMain().mainImpl(concat(args, benchmarkClass.getName()));
+    main(concat(args, benchmarkClass.getName()));
   }
 
   /**
    * Entry point for the caliper benchmark runner application; run with {@code --help} for details.
    */
   public static void main(String[] args) {
-    new CaliperMain().mainImpl(args);
+    createRunner(args, new PrintWriter(System.out, true), new PrintWriter(System.err, true))
+        .runAndExit();
   }
 
   public static void exitlessMain(String[] args, PrintWriter stdout, PrintWriter stderr)
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
-    new CaliperMain().exitlessMainImpl(args, stdout, stderr);
+    createRunner(args, stdout, stderr).runInternal();
   }
 
-  @Override
-  protected MainComponent createMainComponent(
-      String[] args, PrintWriter stdout, PrintWriter stderr) {
-    return DaggerJvmMainComponent.builder()
+  @VisibleForTesting
+  static CaliperRunner createRunner(String[] args, PrintWriter stdout, PrintWriter stderr) {
+    return DaggerJvmCaliperRunnerComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
         .outputModule(new OutputModule(stdout, stderr))
         .platformModule(new PlatformModule(new JvmPlatform()))
-        .build();
+        .build()
+        .getRunner();
   }
 }

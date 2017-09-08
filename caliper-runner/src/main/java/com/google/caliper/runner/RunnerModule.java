@@ -18,50 +18,43 @@ package com.google.caliper.runner;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.runner.config.CaliperConfig;
-import com.google.caliper.runner.config.InvalidConfigurationException;
-import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.platform.Platform;
-import com.google.common.collect.ImmutableSet;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Module;
 import dagger.Provides;
 import java.util.UUID;
+import java.util.concurrent.Executors;
 import javax.inject.Singleton;
 import org.joda.time.Instant;
 
 /** A Dagger module that configures bindings common to all {@link CaliperRun} implementations. */
 // TODO(gak): throwing providers for all of the things that throw
 @Module
-final class RunnerModule {
-  @Provides
-  static ImmutableSet<VirtualMachine> provideVirtualMachines(
-      CaliperOptions options, CaliperConfig config, Platform platform)
-      throws InvalidConfigurationException {
-    ImmutableSet<String> vmNames = options.vmNames();
-    ImmutableSet.Builder<VirtualMachine> builder = ImmutableSet.builder();
-    if (vmNames.isEmpty()) {
-      builder.add(new VirtualMachine("default", config.getDefaultVmConfig(platform)));
-    } else {
-      for (String vmName : vmNames) {
-        VmConfig vmConfig = config.getVmConfig(platform, vmName);
-        builder.add(new VirtualMachine(vmName, vmConfig));
-      }
-    }
-    return builder.build();
-  }
+abstract class RunnerModule {
+
+  private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
 
   @Provides
   static Instant provideInstant() {
     return Instant.now();
   }
 
-  @Provides static CaliperRun provideCaliperRun(ExperimentingCaliperRun experimentingCaliperRun) {
-    return experimentingCaliperRun;
+  @Provides
+  static UUID provideUuid() {
+    return UUID.randomUUID();
   }
 
   @Provides
   @Singleton
   static Run provideRun(UUID uuid, CaliperOptions caliperOptions, Instant startTime) {
     return new Run.Builder(uuid).label(caliperOptions.runName()).startTime(startTime).build();
+  }
+
+  @Provides
+  @Singleton
+  static ListeningExecutorService provideExecutorService(CaliperConfig config) {
+    int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
+    return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
 }

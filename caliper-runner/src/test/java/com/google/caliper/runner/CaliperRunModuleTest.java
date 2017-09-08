@@ -36,9 +36,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Tests {@link ExperimentingRunnerModule}. */
+/** Tests {@link CaliperRunModule}. */
 @RunWith(MockitoJUnitRunner.class)
-public class ExperimentingRunnerModuleTest {
+public class CaliperRunModuleTest {
   private Instrument instrumentA = new FakeInstrument();
   private Instrument instrumentB = new FakeInstrument();
 
@@ -67,7 +67,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentations(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -83,7 +83,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentA.createInstrumentation(methodB))
             .add(instrumentB.createInstrumentation(methodB))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentations(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -94,7 +94,7 @@ public class ExperimentingRunnerModuleTest {
             .add(instrumentB.createInstrumentation(methodA))
             .add(instrumentB.createInstrumentation(methodC))
             .build(),
-        ExperimentingRunnerModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentations(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -104,7 +104,7 @@ public class ExperimentingRunnerModuleTest {
   public void provideInstrumentations_withInvalidName() {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("a", "c", "bad"));
     try {
-      ExperimentingRunnerModule.provideInstrumentations(
+      CaliperRunModule.provideInstrumentations(
           options,
           BenchmarkClass.forClass(TestBenchmark.class),
           ImmutableSet.of(instrumentA, instrumentB));

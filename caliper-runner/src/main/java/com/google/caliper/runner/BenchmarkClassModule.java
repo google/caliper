@@ -23,8 +23,8 @@ import com.google.caliper.core.Running.BeforeExperimentMethods;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
+import dagger.Reusable;
 import java.lang.reflect.Method;
-import javax.inject.Singleton;
 
 /** Binds objects related to a benchmark class. */
 // TODO(gak): move more of benchmark class into this module
@@ -32,7 +32,7 @@ import javax.inject.Singleton;
 public final class BenchmarkClassModule {
 
   @Provides
-  @Singleton
+  @Reusable
   static BenchmarkClass provideBenchmarkClass(@Running.BenchmarkClass Class<?> benchmarkClassObject)
       throws InvalidBenchmarkException {
     return BenchmarkClass.forClass(benchmarkClassObject);

@@ -22,17 +22,23 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.base.Ticker;
 import com.google.common.math.LongMath;
+import dagger.Module;
+import dagger.Provides;
 
 /**
- * A utility that calculates the finest granularity that can be expected from subsequent calls to
+ * A module that calculates the finest granularity that can be expected from subsequent calls to
  * {@link System#nanoTime()}. Note that this utility necessarily invokes {@link System#nanoTime()}
  * directly rather than using {@link Ticker} because the extra indirection might cause additional
  * overhead.
  */
-final class NanoTimeGranularityTester {
+@Module
+abstract class NanoTimeGranularityModule {
   private static final int TRIALS = 1000;
 
-  ShortDuration testNanoTimeGranularity() {
+  @Provides
+  @RunScoped
+  @NanoTimeGranularity
+  static ShortDuration testNanoTimeGranularity() {
     long total = 0L;
     for (int i = 0; i < TRIALS; i++) {
       long first = System.nanoTime();

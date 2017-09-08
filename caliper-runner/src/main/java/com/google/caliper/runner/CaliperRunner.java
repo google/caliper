@@ -1,0 +1,161 @@
+/*
+ * Copyright (C) 2011 Google Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.google.caliper.runner;
+
+import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.options.OptionsModule;
+import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.OutputModule;
+import com.google.caliper.util.Stderr;
+import com.google.caliper.util.Stdout;
+import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.util.concurrent.Service;
+import com.google.common.util.concurrent.ServiceManager;
+import java.io.PrintWriter;
+import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import javax.inject.Inject;
+
+/**
+ * The Caliper runner.
+ *
+ * <p>This is the entry point class for the Caliper runner process which controls a full benchmark
+ * run.
+ *
+ * @author Colin Decker
+ */
+final class CaliperRunner {
+
+  /** Creates a new {@link CaliperRunner}. */
+  public static CaliperRunner create(
+      String[] args, Platform platform, PrintWriter stdout, PrintWriter stderr) {
+    CaliperRunnerComponent component =
+        DaggerCaliperRunnerComponent.builder()
+            .optionsModule(OptionsModule.withBenchmarkClass(args))
+            .platformModule(new PlatformModule(platform))
+            .outputModule(new OutputModule(stdout, stderr))
+            .build();
+    return component.getRunner();
+  }
+
+  private final CaliperRunnerComponent component;
+
+  private final CaliperOptions options;
+  private final CaliperConfig config;
+
+  private final ServiceManager serviceManager;
+  private final PrintWriter stdout;
+  private final PrintWriter stderr;
+
+  @Inject
+  CaliperRunner(
+      CaliperRunnerComponent component,
+      CaliperOptions options,
+      CaliperConfig config,
+      ServiceManager serviceManager,
+      @Stdout PrintWriter stdout,
+      @Stderr PrintWriter stderr) {
+    this.component = component;
+    this.options = options;
+    this.config = config;
+    this.serviceManager = serviceManager;
+    this.stdout = stdout;
+    this.stderr = stderr;
+  }
+
+  /** Runs Caliper, handles any exceptions and returns an exit code. */
+  public int run() {
+    int code = 1; // pessimism!
+    try {
+      runInternal();
+      code = 0;
+    } catch (InvalidCommandException e) {
+      e.display(stderr);
+      code = e.exitCode();
+    } catch (InvalidBenchmarkException e) {
+      e.display(stderr);
+    } catch (InvalidConfigurationException e) {
+      e.display(stderr);
+    } catch (Throwable t) {
+      t.printStackTrace(stderr);
+      stdout.println();
+      stdout.println("An unexpected exception has been thrown by the caliper runner.");
+      stdout.println("Please see https://sites.google.com/site/caliperusers/issues");
+    }
+
+    stdout.flush();
+    stderr.flush();
+    return code;
+  }
+
+  /**
+   * Runs Caliper, handling any exceptions and exiting the process with an appropriate exit code.
+   */
+  public void runAndExit() {
+    System.exit(run());
+  }
+
+  /**
+   * Runs Caliper, throwing an exception if the command line, configuration or benchmark class is
+   * invalid.
+   */
+  void runInternal()
+      throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
+    try {
+      if (options.printConfiguration()) {
+        stdout.println("Configuration:");
+        ImmutableSortedMap<String, String> sortedProperties =
+            ImmutableSortedMap.copyOf(config.properties());
+        for (Entry<String, String> entry : sortedProperties.entrySet()) {
+          stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
+        }
+      }
+      serviceManager.addListener(
+          new ServiceManager.Listener() {
+            @Override
+            public void failure(Service service) {
+              stderr.println(
+                  "Service " + service + " failed to start with the following exception:");
+              service.failureCause().printStackTrace(stderr);
+            }
+          });
+      serviceManager.startAsync().awaitHealthy();
+      try {
+        CaliperRun run = component.newRunComponent().getCaliperRun();
+        run.run(); // throws IBE
+      } finally {
+        try {
+          // We have some shutdown logic to ensure that files are cleaned up so give it a chance to
+          // run
+          serviceManager.stopAsync().awaitStopped(10, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+          // That's fine
+        }
+      }
+    } finally {
+      // courtesy flush
+      stderr.flush();
+      stdout.flush();
+    }
+  }
+}

@@ -18,14 +18,34 @@ package com.google.caliper.runner;
 
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
+import dagger.multibindings.IntoSet;
 import java.util.Set;
 import javax.inject.Singleton;
 
 /** Configures the {@link ServiceManager}. */
 @Module
-final class ServiceModule {
+abstract class ServiceModule {
+
+  @Binds
+  @IntoSet
+  abstract Service bindServerSocketService(ServerSocketService impl);
+
+  @Binds
+  @IntoSet
+  abstract Service bindTrialOutputFactoryService(TrialOutputFactoryService impl);
+
+  @Binds
+  abstract TrialOutputFactory bindTrialOutputFactory(TrialOutputFactoryService impl);
+
+  @Provides
+  @LocalPort
+  static int providePortNumber(ServerSocketService serverSocketService) {
+    return serverSocketService.getPort();
+  }
+
   @Provides
   @Singleton
   static ServiceManager provideServiceManager(Set<Service> services) {

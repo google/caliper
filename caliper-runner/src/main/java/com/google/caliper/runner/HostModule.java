@@ -22,6 +22,8 @@ import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
+import dagger.Module;
+import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -31,15 +33,19 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * An instance of this class is responsible for returning a Map that describes the environment: JVM
- * version, os details, etc.
+ * Module that creates and binds a {@link Host} object that describes the host environment: JVM
+ * version, OS details, etc.
  */
-final class EnvironmentGetter {
-  Host getHost() {
+@Module
+abstract class HostModule {
+
+  @Provides
+  @RunScoped
+  static Host provideHost() {
     return new Host.Builder().addAllProperies(getProperties()).build();
   }
 
-  private Map<String, String> getProperties() {
+  private static Map<String, String> getProperties() {
     TreeMap<String, String> propertyMap = Maps.newTreeMap();
 
     Map<String, String> sysProps = Maps.fromProperties(System.getProperties());
@@ -65,7 +71,7 @@ final class EnvironmentGetter {
     return propertyMap;
   }
 
-  private void getLinuxEnvironment(Map<String, String> propertyMap) {
+  private static void getLinuxEnvironment(Map<String, String> propertyMap) {
     // the following probably doesn't work on ALL linux
     Multimap<String, String> cpuInfo = propertiesFromLinuxFile("/proc/cpuinfo");
     propertyMap.put("host.cpus", Integer.toString(cpuInfo.get("processor").size()));

@@ -36,11 +36,24 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Implementation of {@link CaliperOptions} that uses {@link CommandLineParser} to parse command
+ * line arguments.
+ */
 final class ParsedOptions implements CaliperOptions {
 
+  // TODO(cgdecker): Consider making this a @Module itself
+
+  /**
+   * Parses the given {@code args} into a {@link ParsedOptions} object. If {@code
+   * requireBenchmarkClassName} is true, fail if the args do not include a benchmark class name.
+   *
+   * @throws InvalidCommandException if the args cannot be parsed into a valid set of Caliper
+   *     options
+   */
   public static ParsedOptions from(String[] args, boolean requireBenchmarkClassName)
       throws InvalidCommandException {
-    ParsedOptions options = new ParsedOptions(requireBenchmarkClassName);
+    ParsedOptions options = new ParsedOptions(args, requireBenchmarkClassName);
 
     CommandLineParser<ParsedOptions> parser = CommandLineParser.forClass(ParsedOptions.class);
     try {
@@ -52,13 +65,22 @@ final class ParsedOptions implements CaliperOptions {
     return options;
   }
 
+  /** The list of args that were passed in to create this object. */
+  private final ImmutableList<String> args;
+
   /**
    * True if the benchmark class name is expected as the last argument, false if it is not allowed.
    */
   private final boolean requireBenchmarkClassName;
 
-  private ParsedOptions(boolean requireBenchmarkClassName) {
+  private ParsedOptions(String[] args, boolean requireBenchmarkClassName) {
+    this.args = ImmutableList.copyOf(args);
     this.requireBenchmarkClassName = requireBenchmarkClassName;
+  }
+
+  @Override
+  public ImmutableList<String> allArgs() {
+    return args;
   }
 
   // --------------------------------------------------------------------------
@@ -254,17 +276,17 @@ final class ParsedOptions implements CaliperOptions {
   // VM arguments
   // --------------------------------------------------------------------------
 
-  private final Map<String, String> mutableConfigPropertes = Maps.newHashMap();
+  private final Map<String, String> mutableConfigProperties = Maps.newHashMap();
 
   @Option("-C")
   private void addConfigProperty(String nameAndValue) throws InvalidCommandException {
     List<String> tokens = splitProperty(nameAndValue);
-    mutableConfigPropertes.put(tokens.get(0), tokens.get(1));
+    mutableConfigProperties.put(tokens.get(0), tokens.get(1));
   }
 
   @Override
   public ImmutableMap<String, String> configProperties() {
-    return ImmutableMap.copyOf(mutableConfigPropertes);
+    return ImmutableMap.copyOf(mutableConfigProperties);
   }
 
   // --------------------------------------------------------------------------
@@ -394,7 +416,7 @@ final class ParsedOptions implements CaliperOptions {
           "                    values are configured in Caliper's configuration file ",
           "                    (default: the default set of instruments from the global or user ",
           "                    configuration file)",
-          " -t, --trials       number of independent trials to peform per benchmark scenario; ",
+          " -t, --trials       number of independent trials to perform per benchmark scenario; ",
           "                    a positive integer (default: 1)",
           " -l, --time-limit   maximum length of time allowed for a single trial; use 0 to allow ",
           "                    trials to run indefinitely. (default: 30s) ",
