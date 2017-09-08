@@ -18,7 +18,22 @@ package com.google.caliper.runner;
 
 import com.google.caliper.core.InvalidBenchmarkException;
 
-/** A single invocation of caliper. */
+/**
+ * A single Caliper benchmark run.
+ *
+ * <p>Unlike {@link CaliperRunner}, this only handles the actual run of a benchmark once various
+ * setup (such as creating the model of the benchmark class) has been done.
+ */
 public interface CaliperRun {
+
+  /*
+   * TODO(cgdecker): Figure out a better way do differentiate between this and CaliperRunner.
+   * Right now I think it's pretty unclear. Maybe this should be "BenchmarkRun"? Or maybe
+   * CaliperRunner should be CaliperMain (but that would require other changes and also I think it's
+   * helpful to make it clear what the "runner" is since that term is used a lot)? Or maybe I should
+   * find a way to avoid this separation at all.
+   */
+
+  /** Runs the benchmark. */
   void run() throws InvalidBenchmarkException;
 }

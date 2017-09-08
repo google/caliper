@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 Google Inc.
+ * Copyright (C) 2013 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,19 +16,19 @@
 
 package com.google.caliper.runner;
 
-import dagger.Binds;
-import dagger.Module;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.TYPE;
+
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import javax.inject.Scope;
 
 /**
- * Module providing runner package dependencies that should only be present when running on Android.
+ * Annotation for bindings for which only one instance should be created for a single {@link
+ * CaliperRun}.
  */
-@Module
-abstract class DalvikRunnerModule {
-
-  /**
-   * Binding that we need since we want to inject the {@code MainComponent} in a class, but {@code
-   * MainComponent} isn't actually the component type.
-   */
-  @Binds
-  abstract MainComponent bindMainComponent(DalvikMainComponent component);
-}
+@Target({TYPE, METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Scope
+@interface RunScoped {}

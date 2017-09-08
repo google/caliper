@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
-import com.google.caliper.model.Host;
 import com.google.caliper.runner.Instrument.Instrumentation;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;
@@ -34,60 +33,28 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Ordering;
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.Service;
 import dagger.Binds;
 import dagger.MapKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
-import dagger.multibindings.IntoSet;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.UUID;
-import java.util.concurrent.Executors;
 import javax.inject.Provider;
-import javax.inject.Singleton;
 
-/** Configures a {@link CaliperRun} that performs experiments. */
-@Module
-abstract class ExperimentingRunnerModule {
-  private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
-
-  @Provides
-  @IntoSet
-  static Service provideServerSocketService(ServerSocketService impl) {
-    return impl;
-  }
-
-  @Provides
-  @IntoSet
-  static Service provideTrialOutputFactoryService(TrialOutputFactoryService impl) {
-    return impl;
-  }
+/** Configures the {@link CaliperRun}. */
+@Module(includes = {HostModule.class, NanoTimeGranularityModule.class})
+abstract class CaliperRunModule {
 
   @Binds
-  abstract TrialOutputFactory provideTrialOutputFactory(TrialOutputFactoryService impl);
+  abstract CaliperRun bindCaliperRun(ExperimentingCaliperRun experimentingCaliperRun);
 
   @Binds
   abstract ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl);
-
-  @Provides
-  static ListeningExecutorService provideExecutorService(CaliperConfig config) {
-    int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
-    return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
-  }
-
-  @LocalPort
-  @Provides
-  static int providePortNumber(ServerSocketService serverSocketService) {
-    return serverSocketService.getPort();
-  }
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available {@link
@@ -126,27 +93,10 @@ abstract class ExperimentingRunnerModule {
   }
 
   @Provides
-  static UUID provideUuid() {
-    return UUID.randomUUID();
-  }
-
-  @Provides
   @BenchmarkParameters
   static ImmutableSetMultimap<String, String> provideBenchmarkParameters(
       BenchmarkClass benchmarkClass, CaliperOptions options) throws InvalidBenchmarkException {
     return benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
-  }
-
-  @Provides
-  @Singleton
-  static Host provideHost(EnvironmentGetter environmentGetter) {
-    return environmentGetter.getHost();
-  }
-
-  @Provides
-  @Singleton
-  static EnvironmentGetter provideEnvironmentGetter() {
-    return new EnvironmentGetter();
   }
 
   /**
@@ -225,19 +175,6 @@ abstract class ExperimentingRunnerModule {
       }
     }
     return builder.build();
-  }
-
-  @Provides
-  @Singleton
-  static NanoTimeGranularityTester provideNanoTimeGranularityTester() {
-    return new NanoTimeGranularityTester();
-  }
-
-  @Provides
-  @Singleton
-  @NanoTimeGranularity
-  static ShortDuration provideNanoTimeGranularity(NanoTimeGranularityTester tester) {
-    return tester.testNanoTimeGranularity();
   }
 
   @Provides

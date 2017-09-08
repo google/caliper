@@ -53,7 +53,7 @@ import org.junit.runners.JUnit4;
 /** Tests {@link RuntimeInstrument}. */
 @RunWith(JUnit4.class)
 public class RuntimeInstrumentTest {
-  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher(new CaliperMain());
+  @Rule public final CaliperTestWatcher runner = new CaliperTestWatcher();
 
   private RuntimeInstrument instrument;
 

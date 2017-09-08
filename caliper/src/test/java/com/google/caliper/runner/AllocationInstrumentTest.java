@@ -43,7 +43,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class AllocationInstrumentTest {
 
-  @Rule public CaliperTestWatcher runner = new CaliperTestWatcher(new CaliperMain());
+  @Rule public final CaliperTestWatcher runner = new CaliperTestWatcher();
 
   @Test
   public void getExtraCommandLineArgs() throws Exception {

@@ -26,6 +26,7 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
+import com.google.caliper.runner.platform.DalvikPlatform;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -129,9 +130,11 @@ public final class CaliperActivity extends Activity {
       String[] args = getArgs(extras, filesDir, outputFile);
       String classpath = getClasspath();
 
-      // exitlessMain catches and handles all exceptions, so this will not throw
-      CaliperMain main = new CaliperMain(classpath);
-      code = main.exitlessMain(args, stdout, stderr);
+      DalvikPlatform platform = new DalvikPlatform(classpath);
+      CaliperRunner runner = CaliperRunner.create(args, platform, stdout, stderr);
+
+      // run() catches and handles all exceptions, so this will not throw
+      code = runner.run();
 
       if (code == 0) {
         stdout.println("[RESULTS FILE] " + outputFile);

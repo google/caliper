@@ -25,7 +25,10 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 import javax.inject.Qualifier;
 
-/** Binding annotation for the granularity of {@link System#nanoTime()}. */
+/**
+ * Binding annotation for a duration representing the finest granularity that can be expected from
+ * subsequent calls to {@link System#nanoTime()}.
+ */
 @Retention(RUNTIME)
 @Target({FIELD, PARAMETER, METHOD})
 @Qualifier

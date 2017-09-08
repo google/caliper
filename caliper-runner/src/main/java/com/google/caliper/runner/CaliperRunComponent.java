@@ -16,33 +16,26 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.runner.config.CaliperConfig;
-import com.google.caliper.runner.options.CaliperOptions;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.util.concurrent.ServiceManager;
+import dagger.Subcomponent;
 
-/**
- * The main component used when running Caliper.
- *
- * <p>This class provides the methods for the component, but is not actually annotated with
- * {@code @Component}. Annotated subclasses exist for each supported platform to allow a different
- * set of module dependencies for each.
- */
-interface MainComponent {
+/** The component for a {@link CaliperRun}. */
+@RunScoped
+@Subcomponent(
+  modules = {
+    BenchmarkClassModule.class,
+    CaliperRunModule.class,
+  }
+)
+interface CaliperRunComponent {
 
-  BenchmarkClass getBenchmarkClass();
-
-  CaliperConfig getCaliperConfig();
-
-  CaliperOptions getCaliperOptions();
-
+  /** Returns the Caliper benchmark run. */
   CaliperRun getCaliperRun();
 
-  ServiceManager getServiceManager();
-
-  ImmutableSet<Instrument> instruments();
-
+  /** Creates a new component containing the runner classes needed for running a single trial. */
   TrialScopeComponent newTrialComponent(TrialModule trialModule);
 
+  /** Returns a new component for running an experiment. */
+  // This is currently only used for performing a dry-run.
+  // TODO(cgdecker): Remove this when moving dry runs to the worker
   ExperimentComponent newExperimentComponent(ExperimentModule experimentModule);
 }
