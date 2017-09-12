@@ -49,8 +49,4 @@ interface CaliperRunnerComponent {
 
   /** Returns the Caliper runner. */
   CaliperRunner getRunner();
-
-  // TODO(cgdecker): Consider using subcomponent builders instead
-  /** Creates the component for the actual Caliper benchmark run. */
-  CaliperRunComponent newRunComponent();
 }

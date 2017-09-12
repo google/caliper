@@ -31,11 +31,10 @@ interface CaliperRunComponent {
   /** Returns the Caliper benchmark run. */
   CaliperRun getCaliperRun();
 
-  /** Creates a new component containing the runner classes needed for running a single trial. */
-  TrialScopeComponent newTrialComponent(TrialModule trialModule);
-
-  /** Returns a new component for running an experiment. */
-  // This is currently only used for performing a dry-run.
-  // TODO(cgdecker): Remove this when moving dry runs to the worker
-  ExperimentComponent newExperimentComponent(ExperimentModule experimentModule);
+  /** Builder for {@link CaliperRunComponent}. */
+  @Subcomponent.Builder
+  interface Builder {
+    /**  Builds a new {@link CaliperRunComponent}. */
+    CaliperRunComponent build();
+  }
 }

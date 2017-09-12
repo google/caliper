@@ -30,7 +30,7 @@ import org.joda.time.Instant;
 
 /** A Dagger module that configures bindings common to all {@link CaliperRun} implementations. */
 // TODO(gak): throwing providers for all of the things that throw
-@Module
+@Module(subcomponents = CaliperRunComponent.class)
 abstract class RunnerModule {
 
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";

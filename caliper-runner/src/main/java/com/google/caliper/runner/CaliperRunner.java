@@ -35,6 +35,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.inject.Inject;
+import javax.inject.Provider;
 
 /**
  * The Caliper runner.
@@ -58,8 +59,6 @@ final class CaliperRunner {
     return component.getRunner();
   }
 
-  private final CaliperRunnerComponent component;
-
   private final CaliperOptions options;
   private final CaliperConfig config;
 
@@ -67,20 +66,22 @@ final class CaliperRunner {
   private final PrintWriter stdout;
   private final PrintWriter stderr;
 
+  private final Provider<CaliperRunComponent.Builder> runComponentBuilder;
+
   @Inject
   CaliperRunner(
-      CaliperRunnerComponent component,
       CaliperOptions options,
       CaliperConfig config,
       ServiceManager serviceManager,
       @Stdout PrintWriter stdout,
-      @Stderr PrintWriter stderr) {
-    this.component = component;
+      @Stderr PrintWriter stderr,
+      Provider<CaliperRunComponent.Builder> runComponentBuilder) {
     this.options = options;
     this.config = config;
     this.serviceManager = serviceManager;
     this.stdout = stdout;
     this.stderr = stderr;
+    this.runComponentBuilder = runComponentBuilder;
   }
 
   /** Runs Caliper, handles any exceptions and returns an exit code. */
@@ -141,7 +142,7 @@ final class CaliperRunner {
           });
       serviceManager.startAsync().awaitHealthy();
       try {
-        CaliperRun run = component.newRunComponent().getCaliperRun();
+        CaliperRun run = runComponentBuilder.get().build().getCaliperRun();
         run.run(); // throws IBE
       } finally {
         try {

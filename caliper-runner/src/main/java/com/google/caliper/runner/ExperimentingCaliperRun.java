@@ -73,7 +73,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       };
 
-  private final CaliperRunComponent component;
   private final CaliperOptions options;
   private final PrintWriter stdout;
   private final BenchmarkClass benchmarkClass;
@@ -82,18 +81,21 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ExperimentSelector selector;
   private final Provider<ListeningExecutorService> executorProvider;
 
+  private final Provider<ExperimentComponent.Builder> experimentComponentBuilder;
+  private final Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder;
+
   @Inject
   @VisibleForTesting
   public ExperimentingCaliperRun(
-      CaliperRunComponent component,
       CaliperOptions options,
       @Stdout PrintWriter stdout,
       BenchmarkClass benchmarkClass,
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
-      Provider<ListeningExecutorService> executorProvider) {
-    this.component = component;
+      Provider<ListeningExecutorService> executorProvider,
+      Provider<ExperimentComponent.Builder> experimentComponentBuilder,
+      Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder) {
     this.options = options;
     this.stdout = stdout;
     this.benchmarkClass = benchmarkClass;
@@ -101,6 +103,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.resultProcessors = resultProcessors;
     this.selector = selector;
     this.executorProvider = executorProvider;
+    this.experimentComponentBuilder = experimentComponentBuilder;
+    this.trialScopeComponentBuilder = trialScopeComponentBuilder;
   }
 
   @Override
@@ -286,9 +290,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
         try {
-          TrialScopeComponent trialScopeComponent =
-              component.newTrialComponent(
-                  new TrialModule(UUID.randomUUID(), trialNumber, experiment));
+          TrialScopeComponent trialScopeComponent = trialScopeComponentBuilder.get()
+              .trialModule(new TrialModule(UUID.randomUUID(), trialNumber, experiment))
+              .build();
 
           trials.add(trialScopeComponent.getScheduledTrial());
         } finally {
@@ -308,8 +312,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     ImmutableSet.Builder<Experiment> builder = ImmutableSet.builder();
     for (Experiment experiment : experiments) {
       try {
-        ExperimentComponent experimentComponent =
-            component.newExperimentComponent(ExperimentModule.forExperiment(experiment));
+        ExperimentComponent experimentComponent = experimentComponentBuilder.get()
+            .experimentModule(ExperimentModule.forExperiment(experiment))
+            .build();
         Object benchmark = experimentComponent.getBenchmarkInstance();
         benchmarkClass.setUpBenchmark(benchmark);
         try {
