@@ -24,4 +24,14 @@ import dagger.Subcomponent;
 public interface ExperimentComponent {
   @Benchmark
   Object getBenchmarkInstance();
+
+  /** Builder for {@link ExperimentComponent}. */
+  @Subcomponent.Builder
+  interface Builder {
+    /** Sets the {@link ExperimentModule} for the component to use. */
+    Builder experimentModule(ExperimentModule module);
+
+    /** Builds a new {@link ExperimentComponent}. */
+    ExperimentComponent build();
+  }
 }
