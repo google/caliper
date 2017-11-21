@@ -26,10 +26,9 @@
   </parent>
 
   <groupId>com.google.caliper</groupId>
-  <artifactId>caliper</artifactId>
+  <artifactId>caliper-worker-jvm</artifactId>
 
-  <name>Caliper</name>
-  <description>Caliper: Microbenchmarking Framework for Java</description>
+  <name>Caliper JVM Worker</name>
 
   <dependencies>
     <dependency>
@@ -39,12 +38,12 @@
     </dependency>
     <dependency>
       <groupId>com.google.caliper</groupId>
-      <artifactId>caliper-runner</artifactId>
+      <artifactId>caliper-worker</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
       <groupId>com.google.caliper</groupId>
-      <artifactId>caliper-worker-jvm</artifactId>
+      <artifactId>caliper-runner</artifactId>
       <version>${project.version}</version>
     </dependency>
     <dependency>
