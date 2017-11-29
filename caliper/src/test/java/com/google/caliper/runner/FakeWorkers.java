@@ -29,8 +29,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Collections;
-import java.util.List;
+import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -63,20 +62,22 @@ final class FakeWorkers {
   }
 
   /**
-   * Returns a ProcessBuilder that attempts to invoke the given class as main in a JVM configured
+   * Returns a {@code Command} that attempts to invoke the given class as main in a JVM configured
    * with a classpath equivalent to the currently executing JVM.
    */
-  static ProcessBuilder createProcessBuilder(Class<?> mainClass, String... mainArgs) {
+  static Command createCommand(Class<?> mainClass, String... mainArgs) {
     VirtualMachine jvm = init();
-    List<String> args;
+    Command.Builder builder = Command.builder();
+
     try {
-      args = WorkerProcess.getJvmArgs(jvm, BenchmarkClass.forClass(mainClass));
+      builder.addArguments(
+          WorkerCommandFactory.getJvmArgs(jvm, BenchmarkClass.forClass(mainClass)));
     } catch (InvalidBenchmarkException e) {
       throw new RuntimeException(e);
     }
-    args.add(mainClass.getName());
-    Collections.addAll(args, mainArgs);
-    return new ProcessBuilder().command(args);
+    builder.addArgument(mainClass.getName());
+    builder.addArguments(Arrays.asList(mainArgs));
+    return builder.build();
   }
 
   public static VirtualMachine getVirtualMachine() {

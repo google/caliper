@@ -20,6 +20,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.io.File;
 import java.util.Collection;
@@ -110,10 +111,13 @@ public abstract class Platform {
   public abstract void checkVmProperties(Map<String, String> options);
 
   /**
-   * Mutates the given environment map to make changes to the environment variables that worker
-   * processes are launched with.
+   * Returns a map of key/value pairs to add to the environment when starting a worker. If the
+   * env already contains values for any of the keys in the returned map, those values will be
+   * overwritten with the new values from the map.
    */
-  public void setWorkerEnvironment(Map<String, String> env) {}
+  public ImmutableMap<String, String> workerEnvironment() {
+    return ImmutableMap.of();
+  }
 
   /** Get the default vm home directory. */
   public File defaultVmHomeDir() {

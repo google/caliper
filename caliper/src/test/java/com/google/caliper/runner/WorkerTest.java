@@ -24,8 +24,8 @@ import static org.junit.Assert.fail;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.runner.FakeWorkers.DummyLogMessage;
-import com.google.caliper.runner.StreamService.StreamItem;
-import com.google.caliper.runner.StreamService.StreamItem.Kind;
+import com.google.caliper.runner.Worker.StreamItem;
+import com.google.caliper.runner.Worker.StreamItem.Kind;
 import com.google.caliper.util.Parser;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -52,10 +52,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests for {@link StreamService}. */
+/** Tests for {@link Worker}. */
 @RunWith(JUnit4.class)
 
-public class StreamServiceTest {
+public class WorkerTest {
 
   private ServerSocket serverSocket;
   private final StringWriter writer = new StringWriter();
@@ -68,7 +68,7 @@ public class StreamServiceTest {
         }
       };
 
-  private StreamService service;
+  private Worker worker;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);
   private static final int TRIAL_NUMBER = 3;
 
@@ -83,16 +83,16 @@ public class StreamServiceTest {
   }
 
   @After
-  public void stopService() {
-    if (service != null && service.state() != State.FAILED && service.state() != State.TERMINATED) {
-      service.stopAsync().awaitTerminated();
+  public void stopWorker() {
+    if (worker != null && worker.state() != State.FAILED && worker.state() != State.TERMINATED) {
+      worker.stopAsync().awaitTerminated();
     }
   }
 
   @Test
   public void testReadOutput() throws Exception {
-    makeService(FakeWorkers.PrintClient.class, "foo", "bar");
-    service.startAsync().awaitRunning();
+    makeWorker(FakeWorkers.PrintClient.class, "foo", "bar");
+    worker.startAsync().awaitRunning();
     StreamItem item1 = readItem();
     assertEquals(Kind.DATA, item1.kind());
     Set<String> lines = Sets.newHashSet();
@@ -101,7 +101,7 @@ public class StreamServiceTest {
     assertEquals(Kind.DATA, item2.kind());
     lines.add(item2.content().toString());
     assertEquals(Sets.newHashSet("foo", "bar"), lines);
-    assertEquals(State.RUNNING, service.state());
+    assertEquals(State.RUNNING, worker.state());
     StreamItem item3 = readItem();
     assertEquals(Kind.EOF, item3.kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
@@ -110,35 +110,35 @@ public class StreamServiceTest {
 
   @Test
   public void failingProcess() throws Exception {
-    makeService(FakeWorkers.Exit.class, "1");
-    service.startAsync().awaitRunning();
+    makeWorker(FakeWorkers.Exit.class, "1");
+    worker.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
-    assertEquals(State.FAILED, service.state());
+    assertEquals(State.FAILED, worker.state());
   }
 
   @Test
   public void processDoesntExit() throws Exception {
     // close all fds and then sleep
-    makeService(FakeWorkers.CloseAndSleep.class);
-    service.startAsync().awaitRunning();
+    makeWorker(FakeWorkers.CloseAndSleep.class);
+    worker.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(200, TimeUnit.MILLISECONDS); // we
-    assertEquals(State.FAILED, service.state());
+    assertEquals(State.FAILED, worker.state());
   }
 
   @Test
   public void testSocketInputOutput() throws Exception {
     int localport = serverSocket.getLocalPort();
     // read from the socket and echo it back
-    makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport));
+    makeWorker(FakeWorkers.SocketEchoClient.class, Integer.toString(localport));
 
-    service.startAsync().awaitRunning();
+    worker.startAsync().awaitRunning();
     assertEquals(new DummyLogMessage("start"), readItem().content());
-    service.sendMessage(new DummyLogMessage("hello socket world"));
+    worker.sendMessage(new DummyLogMessage("hello socket world"));
     assertEquals(new DummyLogMessage("hello socket world"), readItem().content());
-    service.closeWriter();
-    assertEquals(State.RUNNING, service.state());
+    worker.closeWriter();
+    assertEquals(State.RUNNING, worker.state());
     StreamItem nextItem = readItem();
     assertEquals("Expected EOF " + nextItem, Kind.EOF, nextItem.kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
@@ -149,16 +149,16 @@ public class StreamServiceTest {
   public void testSocketClosesBeforeProcess() throws Exception {
     int localport = serverSocket.getLocalPort();
     // read from the socket and echo it back
-    makeService(FakeWorkers.SocketEchoClient.class, Integer.toString(localport), "foo");
-    service.startAsync().awaitRunning();
+    makeWorker(FakeWorkers.SocketEchoClient.class, Integer.toString(localport), "foo");
+    worker.startAsync().awaitRunning();
     assertEquals(new DummyLogMessage("start"), readItem().content());
-    service.sendMessage(new DummyLogMessage("hello socket world"));
+    worker.sendMessage(new DummyLogMessage("hello socket world"));
     assertEquals(new DummyLogMessage("hello socket world"), readItem().content());
-    service.closeWriter();
+    worker.closeWriter();
 
     assertEquals("foo", readItem().content().toString());
 
-    assertEquals(State.RUNNING, service.state());
+    assertEquals(State.RUNNING, worker.state());
     assertEquals(Kind.EOF, readItem().kind());
     awaitStopped(100, TimeUnit.MILLISECONDS);
     assertTerminated();
@@ -167,40 +167,40 @@ public class StreamServiceTest {
   @Test
   public void failsToAcceptConnection() throws Exception {
     serverSocket.close(); // This will force serverSocket.accept to throw a SocketException
-    makeService(FakeWorkers.Sleeper.class, Long.toString(TimeUnit.MINUTES.toMillis(10)));
+    makeWorker(FakeWorkers.Sleeper.class, Long.toString(TimeUnit.MINUTES.toMillis(10)));
     try {
-      service.startAsync().awaitRunning();
+      worker.startAsync().awaitRunning();
       fail();
     } catch (IllegalStateException expected) {
     }
-    assertEquals(SocketException.class, service.failureCause().getClass());
+    assertEquals(SocketException.class, worker.failureCause().getClass());
   }
 
   /** Reads an item, asserting that there was no timeout. */
   private StreamItem readItem() throws InterruptedException {
-    StreamItem item = service.readItem(10, TimeUnit.SECONDS);
+    StreamItem item = worker.readItem(10, TimeUnit.SECONDS);
     assertNotSame("Timed out while reading item from worker", Kind.TIMEOUT, item.kind());
     return item;
   }
 
-  /** Wait for the service to reach a terminal state without calling stop. */
+  /** Wait for the worker to reach a terminal state without calling stop. */
   private void awaitStopped(long time, TimeUnit unit) throws InterruptedException {
     assertTrue(terminalLatch.await(time, unit));
   }
 
   private void assertTerminated() {
-    State state = service.state();
+    State state = worker.state();
     if (state != State.TERMINATED) {
       if (state == State.FAILED) {
-        throw new AssertionError(service.failureCause());
+        throw new AssertionError(worker.failureCause());
       }
-      fail("Expected service to be terminated but was: " + state);
+      fail("Expected worker to be terminated but was: " + state);
     }
   }
 
   @SuppressWarnings("resource")
-  private void makeService(Class<?> main, String... args) {
-    checkState(service == null, "You can only make one StreamService per test");
+  private void makeWorker(Class<?> main, String... args) {
+    checkState(worker == null, "You can only make one Worker per test");
     UUID trialId = UUID.randomUUID();
     TrialOutputLogger trialOutput =
         new TrialOutputLogger(
@@ -226,26 +226,19 @@ public class StreamServiceTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    service =
-        new StreamService(
-            new WorkerProcess(
-                FakeWorkers.createProcessBuilder(main, args),
-                trialId,
-                getSocketFuture(),
-                new RuntimeShutdownHookRegistrar()),
+
+    Command command = FakeWorkers.createCommand(main, args);
+
+    worker =
+        new Worker(
+            new LocalWorkerStarter(new RuntimeShutdownHookRegistrar()),
+            trialId,
+            command,
+            getSocketFuture(),
             parser,
             trialOutput);
-    service.addListener(
+    worker.addListener(
         new Listener() {
-          @Override
-          public void starting() {}
-
-          @Override
-          public void running() {}
-
-          @Override
-          public void stopping(State from) {}
-
           @Override
           public void terminated(State from) {
             terminalLatch.countDown();
