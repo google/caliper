@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,214 +16,68 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.bridge.CommandLineSerializer;
-import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.bridge.TrialRequest;
-import com.google.caliper.model.BenchmarkSpec;
-import com.google.caliper.runner.Instrument.Instrumentation;
-import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.platform.Platform;
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Joiner;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
-import com.google.common.util.concurrent.ListenableFuture;
-import java.io.IOException;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 import java.util.UUID;
-import java.util.logging.Logger;
-import javax.annotation.concurrent.GuardedBy;
-import javax.inject.Inject;
 
 /**
- * A representation of an unstarted worker.
+ * Simple representation of a worker process which may be running locally or remotely.
  *
- * <p>A worker is a sub process that runs a benchmark trial. Specifically it is a JVM running {@link
- * com.google.caliper.worker.WorkerMain}. Because of this we can make certain assumptions about its
- * behavior, including but not limited to:
+ * <p>Automatically handles registration with the {@link ShutdownHookRegistrar} to ensure the
+ * process is killed when Caliper is.
  *
- * <ul>
- * <li>The worker will connect back to us over a socket connection and send us UTF-8 json messages
- *     in a line oriented protocol.
- * <li>TODO(lukes,gak): This is probably as good a place as any to specify the entire protocol.
- * </ul>
+ * @author Colin Decker
  */
-@TrialScoped
-final class WorkerProcess {
-  private static final Logger logger = Logger.getLogger(WorkerProcess.class.getName());
+abstract class WorkerProcess {
 
-  @GuardedBy("this")
-  private Process worker;
-
-  private final ProcessBuilder workerBuilder;
+  private final UUID id;
   private final ShutdownHookRegistrar shutdownHookRegistrar;
-  private final ListenableFuture<OpenedSocket> openedSocket;
-  private final UUID trialId;
+  private final Thread shutdownHook;
 
-  @VisibleForTesting
-  WorkerProcess(
-      ProcessBuilder workerBuilder,
-      UUID trialId,
-      ListenableFuture<OpenedSocket> openedSocket,
-      ShutdownHookRegistrar shutdownHookRegistrar) {
-    this.trialId = trialId;
-    this.workerBuilder = workerBuilder;
-    this.openedSocket = openedSocket;
-    this.shutdownHookRegistrar = shutdownHookRegistrar;
+  protected WorkerProcess(UUID id, ShutdownHookRegistrar shutdownHookRegistrar) {
+    this.id = checkNotNull(id);
+    this.shutdownHookRegistrar = checkNotNull(shutdownHookRegistrar);
+    this.shutdownHook =
+        new Thread("worker-shutdown-hook-" + id) {
+          @Override
+          public void run() {
+            doKill();
+          }
+        };
+    shutdownHookRegistrar.addShutdownHook(shutdownHook);
   }
 
-  @Inject
-  WorkerProcess(
-      Platform platform,
-      @TrialId UUID trialId,
-      ListenableFuture<OpenedSocket> openedSocket,
-      Experiment experiment,
-      BenchmarkSpec benchmarkSpec,
-      @LocalPort int localPort,
-      BenchmarkClass benchmarkClass,
-      ShutdownHookRegistrar shutdownHookRegistrar) {
-    this.trialId = trialId;
-    this.workerBuilder =
-        buildProcess(platform, trialId, experiment, benchmarkSpec, localPort, benchmarkClass);
-    this.openedSocket = openedSocket;
-    this.shutdownHookRegistrar = shutdownHookRegistrar;
+  /** Returns the ID assigned to this worker process. */
+  public final UUID id() {
+    return id;
   }
 
-  ListenableFuture<OpenedSocket> socketFuture() {
-    return openedSocket;
-  }
+  /** Returns the process' standard output stream. */
+  public abstract InputStream stdout();
+
+  /** Returns the process' standard error stream. */
+  public abstract InputStream stderr();
 
   /**
-   * Returns a {@link Process} representing this worker. The process will be started if it hasn't
-   * already.
+   * Waits for the process to exit and returns its exit code. If the process has already exited,
+   * just returns the exit code.
    */
-  synchronized Process startWorker() throws IOException {
-    if (worker == null) {
-      final Process delegate = workerBuilder.start();
-      final Thread shutdownHook =
-          new Thread("worker-shutdown-hook-" + trialId) {
-            @Override
-            public void run() {
-              delegate.destroy();
-            }
-          };
-      shutdownHookRegistrar.addShutdownHook(shutdownHook);
-      worker =
-          new Process() {
-            @Override
-            public OutputStream getOutputStream() {
-              return delegate.getOutputStream();
-            }
-
-            @Override
-            public InputStream getInputStream() {
-              return delegate.getInputStream();
-            }
-
-            @Override
-            public InputStream getErrorStream() {
-              return delegate.getErrorStream();
-            }
-
-            @Override
-            public int waitFor() throws InterruptedException {
-              int waitFor = delegate.waitFor();
-              shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-              return waitFor;
-            }
-
-            @Override
-            public int exitValue() {
-              int exitValue = delegate.exitValue();
-              // if it hasn't thrown, the process is done
-              shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-              return exitValue;
-            }
-
-            @Override
-            public void destroy() {
-              delegate.destroy();
-              shutdownHookRegistrar.removeShutdownHook(shutdownHook);
-            }
-          };
-    }
-    return worker;
+  public final int awaitExit() throws InterruptedException {
+    int result = doAwaitExit();
+    shutdownHookRegistrar.removeShutdownHook(shutdownHook);
+    return result;
   }
 
-  @VisibleForTesting
-  static ProcessBuilder buildProcess(
-      Platform platform,
-      UUID trialId,
-      Experiment experiment,
-      BenchmarkSpec benchmarkSpec,
-      int localPort,
-      BenchmarkClass benchmarkClass) {
-    // TODO(lukes): it would be nice to split this method into a few smaller more targeted methods
-    Instrumentation instrumentation = experiment.instrumentation();
-    Instrument instrument = instrumentation.instrument();
-    TrialRequest request =
-        new TrialRequest(
-            trialId,
-            instrumentation.type(),
-            instrumentation.workerOptions(),
-            benchmarkSpec,
-            ImmutableList.copyOf(instrumentation.benchmarkMethod.getParameterTypes()),
-            localPort);
+  /** Waits for the process to exit and returns its exit code. */
+  protected abstract int doAwaitExit() throws InterruptedException;
 
-    ProcessBuilder processBuilder = new ProcessBuilder().redirectErrorStream(false);
-
-    platform.setWorkerEnvironment(processBuilder.environment());
-
-    List<String> args = processBuilder.command();
-
-    VirtualMachine vm = experiment.vm();
-    VmConfig vmConfig = vm.config;
-    args.addAll(getJvmArgs(vm, benchmarkClass));
-
-    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs(vmConfig);
-    logger.fine(
-        String.format(
-            "Instrument(%s) Java args: %s", instrument.getClass().getName(), instrumentJvmOptions));
-    Iterables.addAll(args, instrumentJvmOptions);
-
-    // last to ensure that they're always applied
-    args.addAll(vmConfig.workerProcessArgs());
-
-    args.add("com.google.caliper.worker.WorkerMain");
-    args.add(CommandLineSerializer.render(request));
-
-    logger.finest(String.format("Full JVM (%s) args: %s", vm.name, args));
-    return processBuilder;
+  /** Attempts to kill the process. */
+  public final void kill() {
+    doKill();
+    shutdownHookRegistrar.removeShutdownHook(shutdownHook);
   }
 
-  @VisibleForTesting
-  static List<String> getJvmArgs(VirtualMachine vm, BenchmarkClass benchmarkClass) {
-
-    VmConfig vmConfig = vm.config;
-    String platformName = vmConfig.platformName();
-
-    List<String> args = Lists.newArrayList();
-    String jdkPath = vmConfig.vmExecutable().getAbsolutePath();
-    args.add(jdkPath);
-    logger.fine(String.format("%s(%s) Path: %s", platformName, vm.name, jdkPath));
-
-    ImmutableList<String> jvmOptions = vmConfig.options();
-    args.addAll(jvmOptions);
-    logger.fine(String.format("%s(%s) args: %s", platformName, vm.name, jvmOptions));
-
-    ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
-    args.addAll(benchmarkJvmOptions);
-    logger.fine(
-        String.format(
-            "Benchmark(%s) %s args: %s", benchmarkClass.name(), platformName, benchmarkJvmOptions));
-
-    ImmutableList<String> classPathArgs = vmConfig.workerClassPathArgs();
-    args.addAll(classPathArgs);
-    logger.finer(String.format("Class path args: %s", Joiner.on(' ').join(classPathArgs)));
-    return args;
-  }
+  /** Attempts to kill the process. */
+  protected abstract void doKill();
 }

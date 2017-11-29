@@ -19,9 +19,9 @@ package com.google.caliper.runner;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.config.VmConfig;
@@ -42,13 +42,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /**
- * Tests {@link WorkerProcess}.
+ * Tests {@link WorkerStarter}.
  *
  * <p>TODO(lukes,gak): write more tests for how our specs get turned into commandlines
  */
 
 @RunWith(JUnit4.class)
-public class WorkerProcessTest {
+public class WorkerStarterTest {
   private static final int PORT_NUMBER = 4004;
   private static final UUID TRIAL_ID = UUID.randomUUID();
 
@@ -66,7 +66,10 @@ public class WorkerProcessTest {
     }
   }
 
+  private final WorkerCommandFactory commandFactory = new WorkerCommandFactory(new JvmPlatform());
   private final MockRegistrar registrar = new MockRegistrar();
+  private final WorkerStarter workerStarter = new LocalWorkerStarter(registrar);
+
   private BenchmarkClass benchmarkClass;
 
   @Before
@@ -92,8 +95,8 @@ public class WorkerProcessTest {
             .className(TestBenchmark.class.getName())
             .methodName(method.getName())
             .build();
-    ProcessBuilder builder = createProcess(experiment, spec);
-    List<String> commandLine = builder.command();
+    Command command = createCommand(experiment, spec);
+    List<String> commandLine = command.arguments();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
     assertEquals("--doTheHustle", commandLine.get(1)); // vm specific flags come next
     assertEquals("-cp", commandLine.get(2)); // then the classpath
@@ -111,53 +114,19 @@ public class WorkerProcessTest {
   }
 
   @Test
-  public void shutdownHook_waitFor() throws Exception {
-    Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
+  public void shutdownHook_awaitExit() throws Exception {
+    WorkerProcess worker = startWorker(FakeWorkers.Exit.class, "0");
     assertEquals(
         "worker-shutdown-hook-" + TRIAL_ID, Iterables.getOnlyElement(registrar.hooks).getName());
-    worker.waitFor();
+    worker.awaitExit();
     assertTrue(registrar.hooks.isEmpty());
   }
 
   @Test
-  public void shutdownHook_exitValueThrows() throws Exception {
-    Process worker =
-        createWorkerProcess(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)))
-            .startWorker();
-    try {
-      Thread hook = Iterables.getOnlyElement(registrar.hooks);
-      assertEquals("worker-shutdown-hook-" + TRIAL_ID, hook.getName());
-      try {
-        worker.exitValue();
-        fail();
-      } catch (IllegalThreadStateException expected) {
-      }
-      assertTrue(registrar.hooks.contains(hook));
-    } finally {
-      worker.destroy(); // clean up
-    }
-  }
-
-  @Test
-  public void shutdownHook_exitValue() throws Exception {
-    Process worker = createWorkerProcess(FakeWorkers.Exit.class, "0").startWorker();
-    while (true) {
-      try {
-        worker.exitValue();
-        assertTrue(registrar.hooks.isEmpty());
-        break;
-      } catch (IllegalThreadStateException e) {
-        Thread.sleep(10); // keep polling
-      }
-    }
-  }
-
-  @Test
-  public void shutdownHook_destroy() throws Exception {
-    Process worker =
-        createWorkerProcess(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)))
-            .startWorker();
-    worker.destroy();
+  public void shutdownHook_kill() throws Exception {
+    WorkerProcess worker =
+        startWorker(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)));
+    worker.kill();
     assertTrue(registrar.hooks.isEmpty());
   }
 
@@ -172,13 +141,13 @@ public class WorkerProcessTest {
     }
   }
 
-  private ProcessBuilder createProcess(Experiment experiment, BenchmarkSpec benchmarkSpec) {
-    return WorkerProcess.buildProcess(
-        new JvmPlatform(), TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER, benchmarkClass);
+  private Command createCommand(Experiment experiment, BenchmarkSpec benchmarkSpec) {
+    WorkerRequest request =
+        TrialModule.provideRequest(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER);
+    return commandFactory.buildCommand(experiment, benchmarkClass, request);
   }
 
-  private WorkerProcess createWorkerProcess(Class<?> main, String... args) {
-    return new WorkerProcess(
-        FakeWorkers.createProcessBuilder(main, args), TRIAL_ID, null, registrar);
+  private WorkerProcess startWorker(Class<?> main, String... args) throws Exception {
+    return workerStarter.startWorker(TRIAL_ID, FakeWorkers.createCommand(main, args));
   }
 }

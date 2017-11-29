@@ -22,7 +22,7 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
-import com.google.caliper.runner.StreamService.StreamItem;
+import com.google.caliper.runner.Worker.StreamItem;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.base.Stopwatch;
@@ -49,7 +49,7 @@ class TrialRunLoop implements Callable<TrialResult> {
   private static final Duration WORKER_CLEANUP_DURATION = Duration.standardSeconds(2);
 
   private final CaliperOptions options;
-  private final StreamService streamService;
+  private final Worker worker;
   private final TrialResultFactory trialFactory;
 
   // TODO(lukes): The VmDataCollectingVisitor should be able to tell us when it has collected all
@@ -65,11 +65,11 @@ class TrialRunLoop implements Callable<TrialResult> {
       CaliperOptions options,
       TrialResultFactory trialFactory,
       TrialOutputLogger trialOutput,
-      StreamService streamService,
+      Worker worker,
       VmDataCollectingVisitor dataCollectingVisitor) {
     this.options = options;
     this.trialFactory = trialFactory;
-    this.streamService = streamService;
+    this.worker = worker;
     this.measurementCollectingVisitor = measurementCollectingVisitor;
     this.trialOutput = trialOutput;
     this.dataCollectingVisitor = dataCollectingVisitor;
@@ -77,12 +77,12 @@ class TrialRunLoop implements Callable<TrialResult> {
 
   @Override
   public TrialResult call() throws TrialFailureException, IOException {
-    if (streamService.state() != State.NEW) {
+    if (worker.state() != State.NEW) {
       throw new IllegalStateException("You can only invoke the run loop once");
     }
     trialOutput.open();
     trialOutput.printHeader();
-    streamService.startAsync().awaitRunning();
+    worker.startAsync().awaitRunning();
     try {
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
       boolean doneCollecting = false;
@@ -91,7 +91,7 @@ class TrialRunLoop implements Callable<TrialResult> {
         StreamItem item;
         try {
           item =
-              streamService.readItem(
+              worker.readItem(
                   timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS), NANOSECONDS);
         } catch (InterruptedException e) {
           trialOutput.ensureFileIsSaved();
@@ -136,11 +136,11 @@ class TrialRunLoop implements Callable<TrialResult> {
               // blocking manner to keep this thread only blocking in one place.  This would
               // complicate error handling, but may increase performance since it would free this
               // thread up to handle other messages
-              streamService.sendMessage(
+              worker.sendMessage(
                   new ShouldContinueMessage(
                       !doneCollecting, measurementCollectingVisitor.isWarmupComplete()));
               if (doneCollecting) {
-                streamService.closeWriter();
+                worker.closeWriter();
               }
             }
             break;
@@ -192,7 +192,7 @@ class TrialRunLoop implements Callable<TrialResult> {
       throw Throwables.propagate(e);
     } finally {
       trialStopwatch.reset();
-      streamService.stopAsync();
+      worker.stopAsync();
       trialOutput.close();
     }
   }

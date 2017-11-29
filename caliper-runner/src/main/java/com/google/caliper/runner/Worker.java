@@ -21,7 +21,7 @@ import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.runner.StreamService.StreamItem.Kind;
+import com.google.caliper.runner.Worker.StreamItem.Kind;
 import com.google.caliper.util.Parser;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
@@ -42,6 +42,7 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -54,7 +55,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /**
- * A {@link Service} that establishes a connection over a socket to a process and then allows
+ * A {@link Service} that establishes a connection over a socket to a worker process and then allows
  * multiplexed access to the processes' line oriented output over the socket and the standard
  * process streams (stdout and stderr) as well as allowing data to be written over the socket.
  *
@@ -62,12 +63,12 @@ import javax.inject.Inject;
  *
  * <ul>
  * <li>{@linkplain State#NEW NEW} : Idle state, no reading or writing is allowed.
- * <li>{@linkplain State#STARTING STARTING} : Streams are being opened
+ * <li>{@linkplain State#STARTING STARTING} : Process is being started and streams are being opened.
  * <li>{@linkplain State#RUNNING RUNNING} : At least one stream is still open or the writer has not
  *     been closed yet.
  * <li>{@linkplain State#STOPPING STOPPING} : All streams have closed but some threads may still be
  *     running.
- * <li>{@linkplain State#TERMINATED TERMINATED} : Idle state, all streams are closed
+ * <li>{@linkplain State#TERMINATED TERMINATED} : Idle state, all streams are closed.
  * <li>{@linkplain State#FAILED FAILED} : The service will transition to failed if it encounters any
  *     errors while reading from or writing to the streams, service failure will also cause the
  *     worker process to be forcibly shutdown and {@link #readItem(long, TimeUnit)}, {@link
@@ -76,11 +77,11 @@ import javax.inject.Inject;
  * </ul>
  */
 @TrialScoped
-final class StreamService extends AbstractService {
+final class Worker extends AbstractService {
   /** How long to wait for a process that should be exiting to actually exit. */
   private static final int SHUTDOWN_WAIT_MILLIS = 10;
 
-  private static final Logger logger = Logger.getLogger(StreamService.class.getName());
+  private static final Logger logger = Logger.getLogger(Worker.class.getName());
   private static final StreamItem TIMEOUT_ITEM = new StreamItem(Kind.TIMEOUT, null);
 
   /** The final item that will be sent down the stream. */
@@ -90,10 +91,16 @@ final class StreamService extends AbstractService {
       MoreExecutors.listeningDecorator(
           Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
-  private final WorkerProcess worker;
-  private volatile Process process;
+
+  private final WorkerStarter workerStarter;
+  private final UUID workerId;
+  private final Command workerCommand;
+  private final ListenableFuture<OpenedSocket> socketFuture;
   private final Parser<LogMessage> logMessageParser;
   private final TrialOutputLogger trialOutput;
+
+  private volatile WorkerProcess process;
+
 
   /**
    * This represents the number of open streams from the users perspective. i.e. can you still write
@@ -113,9 +120,17 @@ final class StreamService extends AbstractService {
   private OpenedSocket.Writer socketWriter;
 
   @Inject
-  StreamService(
-      WorkerProcess worker, Parser<LogMessage> logMessageParser, TrialOutputLogger trialOutput) {
-    this.worker = worker;
+  Worker(
+      WorkerStarter workerStarter,
+      @TrialId UUID workerId,
+      Command workerCommand,
+      ListenableFuture<OpenedSocket> socketFuture,
+      Parser<LogMessage> logMessageParser,
+      TrialOutputLogger trialOutput) {
+    this.workerStarter = workerStarter;
+    this.workerId = workerId;
+    this.workerCommand = workerCommand;
+    this.socketFuture = socketFuture;
     this.logMessageParser = logMessageParser;
     this.trialOutput = trialOutput;
   }
@@ -124,8 +139,8 @@ final class StreamService extends AbstractService {
   protected void doStart() {
     try {
       // TODO(lukes): write the commandline to the trial output file?
-      process = worker.startWorker();
-    } catch (IOException e) {
+      process = workerStarter.startWorker(workerId, workerCommand);
+    } catch (Exception e) {
       notifyFailed(e);
       return;
     }
@@ -133,15 +148,6 @@ final class StreamService extends AbstractService {
     // If the process has already exited cleanly, this will be a no-op.
     addListener(
         new Listener() {
-          @Override
-          public void starting() {}
-
-          @Override
-          public void running() {}
-
-          @Override
-          public void stopping(State from) {}
-
           @Override
           public void terminated(State from) {
             cleanup();
@@ -154,7 +160,7 @@ final class StreamService extends AbstractService {
 
           void cleanup() {
             streamExecutor.shutdown();
-            process.destroy();
+            process.kill();
             try {
               streamExecutor.awaitTermination(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -179,22 +185,20 @@ final class StreamService extends AbstractService {
             threadRenaming(
                 "worker-stderr",
                 new StreamReader(
-                    "stderr", new InputStreamReader(process.getErrorStream(), processCharset))));
+                    "stderr", new InputStreamReader(process.stderr(), processCharset))));
     possiblyIgnoredError =
         streamExecutor.submit(
             threadRenaming(
                 "worker-stdout",
                 new StreamReader(
-                    "stdout", new InputStreamReader(process.getInputStream(), processCharset))));
-    worker
-        .socketFuture()
+                    "stdout", new InputStreamReader(process.stdout(), processCharset))));
+    socketFuture
         .addListener(
             new Runnable() {
               @Override
               public void run() {
                 try {
-                  OpenedSocket openedSocket =
-                      Uninterruptibles.getUninterruptibly(worker.socketFuture());
+                  OpenedSocket openedSocket = Uninterruptibles.getUninterruptibly(socketFuture);
                   logger.fine("successfully opened the pipe from the worker");
                   socketWriter = openedSocket.writer();
                   runningReadStreams.addAndGet(1);
@@ -274,7 +278,7 @@ final class StreamService extends AbstractService {
             new Callable<Integer>() {
               @Override
               public Integer call() throws Exception {
-                return process.waitFor();
+                return process.awaitExit();
               }
             });
     // Experimentally, even with well behaved processes there is some time between when all streams
@@ -293,17 +297,17 @@ final class StreamService extends AbstractService {
                   } else {
                     notifyFailed(
                         new Exception(
-                            "Process failed to stop cleanly. Exit code: " + process.waitFor()));
+                            "Process failed to stop cleanly. Exit code: " + process.awaitExit()));
                   }
                   threw = false;
                 } finally {
                   processFuture.cancel(true); // we don't need it anymore
                   if (threw) {
-                    process.destroy();
+                    process.kill();
                     notifyFailed(
                         new Exception(
                             "Process failed to stop cleanly and was forcibly killed. Exit code: "
-                                + process.waitFor()));
+                                + process.awaitExit()));
                   }
                 }
                 return null;
