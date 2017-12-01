@@ -26,7 +26,7 @@ import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
-import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
 import com.google.common.collect.ImmutableList;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -76,8 +76,8 @@ final class TrialModule {
   @Provides
   static BenchmarkSpec provideBenchmarkSpec(Experiment experiment) {
     return new BenchmarkSpec.Builder()
-        .className(experiment.instrumentation().benchmarkMethod().getDeclaringClass().getName())
-        .methodName(experiment.instrumentation().benchmarkMethod().getName())
+        .className(experiment.instrumentedMethod().benchmarkMethod().getDeclaringClass().getName())
+        .methodName(experiment.instrumentedMethod().benchmarkMethod().getName())
         .addAllParameters(experiment.userParameters())
         .build();
   }
@@ -89,13 +89,13 @@ final class TrialModule {
       Experiment experiment,
       BenchmarkSpec benchmarkSpec,
       @LocalPort int port) {
-    Instrumentation instrumentation = experiment.instrumentation();
+    InstrumentedMethod instrumentedMethod = experiment.instrumentedMethod();
     return new TrialRequest(
         trialId,
-        instrumentation.type(),
-        instrumentation.workerOptions(),
+        instrumentedMethod.type(),
+        instrumentedMethod.workerOptions(),
         benchmarkSpec,
-        ImmutableList.copyOf(instrumentation.benchmarkMethod.getParameterTypes()),
+        ImmutableList.copyOf(instrumentedMethod.benchmarkMethod.getParameterTypes()),
         port);
   }
 
@@ -108,13 +108,13 @@ final class TrialModule {
 
   @Provides
   static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
-    return experiment.instrumentation().getMeasurementCollectingVisitor();
+    return experiment.instrumentedMethod().getMeasurementCollectingVisitor();
   }
 
   @Provides
   @TrialScoped
   static TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
-    return experiment.instrumentation().instrument().schedulingPolicy();
+    return experiment.instrumentedMethod().instrument().schedulingPolicy();
   }
 
   // TODO(user): make this a singleton in a higher level module.
@@ -148,7 +148,7 @@ final class TrialModule {
         return new TrialResult(
             new Trial.Builder(trialId)
                 .run(run)
-                .instrumentSpec(experiment.instrumentation().instrument().getSpec())
+                .instrumentSpec(experiment.instrumentedMethod().instrument().getSpec())
                 .scenario(
                     new Scenario.Builder()
                         .host(host)
@@ -165,10 +165,9 @@ final class TrialModule {
   @Provides
   @TrialScoped
   static Command provideTrialCommand(
-      WorkerCommandFactory commandFactory,
       Experiment experiment,
       BenchmarkClass benchmarkClass,
       WorkerRequest request) {
-    return commandFactory.buildCommand(experiment, benchmarkClass, request);
+    return WorkerCommandFactory.buildCommand(experiment, benchmarkClass, request);
   }
 }

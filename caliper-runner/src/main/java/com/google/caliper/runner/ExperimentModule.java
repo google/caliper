@@ -40,7 +40,7 @@ public final class ExperimentModule {
   }
 
   public static ExperimentModule forExperiment(Experiment experiment) {
-    Method benchmarkMethod = experiment.instrumentation().benchmarkMethod();
+    Method benchmarkMethod = experiment.instrumentedMethod().benchmarkMethod();
     return new ExperimentModule(benchmarkMethod, experiment.userParameters());
   }
 

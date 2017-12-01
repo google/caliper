@@ -74,17 +74,17 @@ public final class AllocationInstrument extends Instrument {
   }
 
   @Override
-  public Instrumentation createInstrumentation(Method benchmarkMethod)
+  public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
       throws InvalidBenchmarkException {
     checkNotNull(benchmarkMethod);
     checkArgument(isBenchmarkMethod(benchmarkMethod));
     try {
       switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
         case MACRO:
-          return new MacroAllocationInstrumentation(benchmarkMethod);
+          return new MacroAllocationInstrumentedMethod(benchmarkMethod);
         case MICRO:
         case PICO:
-          return new MicroAllocationInstrumentation(benchmarkMethod);
+          return new MicroAllocationInstrumentedMethod(benchmarkMethod);
         default:
           throw new AssertionError("unknown type");
       }
@@ -96,8 +96,8 @@ public final class AllocationInstrument extends Instrument {
     }
   }
 
-  private final class MicroAllocationInstrumentation extends Instrumentation {
-    MicroAllocationInstrumentation(Method benchmarkMethod) {
+  private final class MicroAllocationInstrumentedMethod extends InstrumentedMethod {
+    MicroAllocationInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -139,8 +139,8 @@ public final class AllocationInstrument extends Instrument {
     return TrialSchedulingPolicy.PARALLEL;
   }
 
-  private final class MacroAllocationInstrumentation extends Instrumentation {
-    MacroAllocationInstrumentation(Method benchmarkMethod) {
+  private final class MacroAllocationInstrumentedMethod extends InstrumentedMethod {
+    MacroAllocationInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 

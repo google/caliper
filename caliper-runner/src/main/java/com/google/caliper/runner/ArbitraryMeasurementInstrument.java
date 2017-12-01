@@ -50,7 +50,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
   }
 
   @Override
-  public Instrumentation createInstrumentation(Method benchmarkMethod)
+  public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
       throws InvalidBenchmarkException {
     if (benchmarkMethod.getParameterTypes().length != 0) {
       throw new InvalidBenchmarkException(
@@ -74,7 +74,7 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
           "Arbitrary measurement methods must be public: " + benchmarkMethod.getName());
     }
 
-    return new ArbitraryMeasurementInstrumentation(benchmarkMethod);
+    return new ArbitraryMeasurementInstrumentedMethod(benchmarkMethod);
   }
 
   @Override
@@ -84,8 +84,8 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
     return TrialSchedulingPolicy.SERIAL;
   }
 
-  private final class ArbitraryMeasurementInstrumentation extends Instrumentation {
-    protected ArbitraryMeasurementInstrumentation(Method benchmarkMethod) {
+  private final class ArbitraryMeasurementInstrumentedMethod extends InstrumentedMethod {
+    protected ArbitraryMeasurementInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 

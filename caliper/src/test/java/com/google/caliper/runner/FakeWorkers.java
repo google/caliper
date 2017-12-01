@@ -40,25 +40,25 @@ import javax.annotation.concurrent.GuardedBy;
 final class FakeWorkers {
 
   @GuardedBy("FakeWorkers.class")
-  private static VirtualMachine jvm;
+  private static Target target;
 
   /**
    * Try to find the currently executing jvm binary, N.B. This isn't guaranteed to be cross
    * platform.
    */
-  private static synchronized VirtualMachine init() {
-    if (jvm == null) {
+  private static synchronized Target init() {
+    if (target == null) {
       try {
         Platform platform = new JvmPlatform();
-        jvm =
-            new VirtualMachine(
+        target =
+            Target.create(
                 "default",
                 new CaliperConfig(ImmutableMap.<String, String>of()).getDefaultVmConfig(platform));
       } catch (InvalidConfigurationException e) {
         throw new RuntimeException();
       }
     }
-    return jvm;
+    return target;
   }
 
   /**
@@ -66,12 +66,12 @@ final class FakeWorkers {
    * with a classpath equivalent to the currently executing JVM.
    */
   static Command createCommand(Class<?> mainClass, String... mainArgs) {
-    VirtualMachine jvm = init();
+    Target target = init();
     Command.Builder builder = Command.builder();
 
     try {
       builder.addArguments(
-          WorkerCommandFactory.getJvmArgs(jvm, BenchmarkClass.forClass(mainClass)));
+          WorkerCommandFactory.getJvmArgs(target, BenchmarkClass.forClass(mainClass)));
     } catch (InvalidBenchmarkException e) {
       throw new RuntimeException(e);
     }
@@ -80,7 +80,7 @@ final class FakeWorkers {
     return builder.build();
   }
 
-  public static VirtualMachine getVirtualMachine() {
+  public static Target getTarget() {
     return init();
   }
 

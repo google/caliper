@@ -22,7 +22,7 @@ import static java.util.logging.Level.WARNING;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Stdout;
 import com.google.common.annotations.VisibleForTesting;
@@ -125,7 +125,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
                     new Function<Experiment, String>() {
                       @Override
                       public String apply(Experiment experiment) {
-                        return experiment.instrumentation().benchmarkMethod().getName();
+                        return experiment.instrumentedMethod().benchmarkMethod().getName();
                       }
                     })
                 .toSet());
@@ -141,16 +141,15 @@ public final class ExperimentingCaliperRun implements CaliperRun {
                     }));
     stdout.println("  User parameters:   " + selector.userParameters());
     stdout.println(
-        "  Virtual machines:  "
-            + FluentIterable.from(selector.vms())
+        "  Target VMs:  "
+            + FluentIterable.from(selector.targets())
                 .transform(
-                    new Function<VirtualMachine, String>() {
+                    new Function<Target, String>() {
                       @Override
-                      public String apply(VirtualMachine vm) {
-                        return vm.name;
+                      public String apply(Target target) {
+                        return target.name();
                       }
                     }));
-    stdout.println("  Selection type:    " + selector.selectionType());
     stdout.println();
 
     if (allExperiments.isEmpty()) {
@@ -182,7 +181,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
     Stopwatch stopwatch = Stopwatch.createStarted();
     List<ScheduledTrial> trials = createScheduledTrials(experimentsToRun, totalTrials);
-    Multimap<Instrumentation, TrialResult> resultsByInstrumentation = HashMultimap.create();
+    Multimap<InstrumentedMethod, TrialResult> resultsByInstrumentedMethod = HashMultimap.create();
     final ListeningExecutorService executor = executorProvider.get();
     List<ListenableFuture<TrialResult>> pendingTrials = scheduleTrials(trials, executor);
     ConsoleOutput output = new ConsoleOutput(stdout, totalTrials, stopwatch);
@@ -195,7 +194,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           for (ResultProcessor resultProcessor : resultProcessors) {
             resultProcessor.processTrial(result.getTrial());
           }
-          resultsByInstrumentation.put(result.getExperiment().instrumentation(), result);
+          resultsByInstrumentedMethod.put(result.getExperiment().instrumentedMethod(), result);
         } catch (ExecutionException e) {
           if (e.getCause() instanceof TrialFailureException) {
             output.processFailedTrial((TrialFailureException) e.getCause());
@@ -215,15 +214,15 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       }
       // Allow our instruments to do validation across all trials for a given benchmark
-      for (Map.Entry<Instrumentation, Collection<TrialResult>> entry :
-          resultsByInstrumentation.asMap().entrySet()) {
-        Instrumentation instrumentation = entry.getKey();
-        Optional<String> message = instrumentation.validateMeasurements(entry.getValue());
+      for (Map.Entry<InstrumentedMethod, Collection<TrialResult>> entry :
+          resultsByInstrumentedMethod.asMap().entrySet()) {
+        InstrumentedMethod instrumentedMethod = entry.getKey();
+        Optional<String> message = instrumentedMethod.validateMeasurements(entry.getValue());
         if (message.isPresent()) {
           stdout.printf(
               "For %s (%s)%n  %s%n",
-              instrumentation.benchmarkMethod().getName(),
-              instrumentation.instrument().name(),
+              instrumentedMethod.benchmarkMethod().getName(),
+              instrumentedMethod.instrument().name(),
               message.get());
         }
       }
@@ -318,7 +317,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         Object benchmark = experimentComponent.getBenchmarkInstance();
         benchmarkClass.setUpBenchmark(benchmark);
         try {
-          experiment.instrumentation().dryRun(benchmark);
+          experiment.instrumentedMethod().dryRun(benchmark);
           builder.add(experiment);
         } finally {
           // discard 'benchmark' now; the worker will have to instantiate its own anyway

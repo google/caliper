@@ -66,7 +66,6 @@ public class WorkerStarterTest {
     }
   }
 
-  private final WorkerCommandFactory commandFactory = new WorkerCommandFactory(new JvmPlatform());
   private final MockRegistrar registrar = new MockRegistrar();
   private final WorkerStarter workerStarter = new LocalWorkerStarter(registrar);
 
@@ -86,10 +85,10 @@ public class WorkerStarterTest {
         new VmConfig(
             new File("foo"), Arrays.asList("--doTheHustle"), new File("java"), new JvmPlatform());
     Experiment experiment =
-        new Experiment(
-            allocationInstrument.createInstrumentation(method),
+        Experiment.create(
+            allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
-            new VirtualMachine("foo-jvm", vmConfig));
+            Target.create("foo-jvm", vmConfig));
     BenchmarkSpec spec =
         new BenchmarkSpec.Builder()
             .className(TestBenchmark.class.getName())
@@ -144,7 +143,7 @@ public class WorkerStarterTest {
   private Command createCommand(Experiment experiment, BenchmarkSpec benchmarkSpec) {
     WorkerRequest request =
         TrialModule.provideRequest(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER);
-    return commandFactory.buildCommand(experiment, benchmarkClass, request);
+    return WorkerCommandFactory.buildCommand(experiment, benchmarkClass, request);
   }
 
   private WorkerProcess startWorker(Class<?> main, String... args) throws Exception {
