@@ -66,7 +66,7 @@ public abstract class Instrument {
 
   public abstract boolean isBenchmarkMethod(Method method);
 
-  public abstract Instrumentation createInstrumentation(Method benchmarkMethod)
+  public abstract InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
       throws InvalidBenchmarkException;
 
   /** Indicates that trials using this instrument can be run in parallel with other trials. */
@@ -74,10 +74,10 @@ public abstract class Instrument {
 
   /** The application of an instrument to a particular benchmark method. */
   // TODO(gak): consider passing in Instrument explicitly for DI
-  public abstract class Instrumentation {
+  public abstract class InstrumentedMethod {
     protected Method benchmarkMethod;
 
-    protected Instrumentation(Method benchmarkMethod) {
+    protected InstrumentedMethod(Method benchmarkMethod) {
       this.benchmarkMethod = checkNotNull(benchmarkMethod);
     }
 
@@ -93,8 +93,8 @@ public abstract class Instrument {
     public final boolean equals(Object obj) {
       if (obj == this) {
         return true;
-      } else if (obj instanceof Instrumentation) {
-        Instrumentation that = (Instrumentation) obj;
+      } else if (obj instanceof InstrumentedMethod) {
+        InstrumentedMethod that = (InstrumentedMethod) obj;
         return Instrument.this.equals(that.instrument())
             && this.benchmarkMethod.equals(that.benchmarkMethod);
       }
@@ -108,7 +108,7 @@ public abstract class Instrument {
 
     @Override
     public String toString() {
-      return MoreObjects.toStringHelper(Instrumentation.class)
+      return MoreObjects.toStringHelper(InstrumentedMethod.class)
           .add("instrument", Instrument.this)
           .add("benchmarkMethod", benchmarkMethod)
           .toString();
@@ -129,8 +129,8 @@ public abstract class Instrument {
     abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
 
     /**
-     * Subclasses can override this to validate results across all trials for a given
-     * instrumentation.
+     * Subclasses can override this to validate results across all trials for a given instrumented
+     * method.
      *
      * @return an optional warning message to be printed to the console.
      */

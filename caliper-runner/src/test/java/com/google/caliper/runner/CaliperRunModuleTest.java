@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 import com.google.caliper.Benchmark;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
-import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.platform.SupportedPlatform;
@@ -56,18 +56,18 @@ public class CaliperRunModuleTest {
   }
 
   @Test
-  public void provideInstrumentations_noNames() throws Exception {
+  public void provideInstrumentedMethods_noNames() throws Exception {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.<String>of());
     assertEquals(
-        new ImmutableSet.Builder<Instrumentation>()
-            .add(instrumentA.createInstrumentation(methodA))
-            .add(instrumentA.createInstrumentation(methodB))
-            .add(instrumentA.createInstrumentation(methodC))
-            .add(instrumentB.createInstrumentation(methodA))
-            .add(instrumentB.createInstrumentation(methodB))
-            .add(instrumentB.createInstrumentation(methodC))
+        new ImmutableSet.Builder<InstrumentedMethod>()
+            .add(instrumentA.createInstrumentedMethod(methodA))
+            .add(instrumentA.createInstrumentedMethod(methodB))
+            .add(instrumentA.createInstrumentedMethod(methodC))
+            .add(instrumentB.createInstrumentedMethod(methodA))
+            .add(instrumentB.createInstrumentedMethod(methodB))
+            .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
-        CaliperRunModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -75,36 +75,36 @@ public class CaliperRunModuleTest {
 
   @SuppressWarnings("unchecked")
   @Test
-  public void provideInstrumentations_withNames() throws Exception {
+  public void provideInstrumentedMethods_withNames() throws Exception {
     when(options.benchmarkMethodNames())
         .thenReturn(ImmutableSet.of("b"), ImmutableSet.of("a", "c"));
     assertEquals(
-        new ImmutableSet.Builder<Instrumentation>()
-            .add(instrumentA.createInstrumentation(methodB))
-            .add(instrumentB.createInstrumentation(methodB))
+        new ImmutableSet.Builder<InstrumentedMethod>()
+            .add(instrumentA.createInstrumentedMethod(methodB))
+            .add(instrumentB.createInstrumentedMethod(methodB))
             .build(),
-        CaliperRunModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
-        new ImmutableSet.Builder<Instrumentation>()
-            .add(instrumentA.createInstrumentation(methodA))
-            .add(instrumentA.createInstrumentation(methodC))
-            .add(instrumentB.createInstrumentation(methodA))
-            .add(instrumentB.createInstrumentation(methodC))
+        new ImmutableSet.Builder<InstrumentedMethod>()
+            .add(instrumentA.createInstrumentedMethod(methodA))
+            .add(instrumentA.createInstrumentedMethod(methodC))
+            .add(instrumentB.createInstrumentedMethod(methodA))
+            .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
-        CaliperRunModule.provideInstrumentations(
+        CaliperRunModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
   }
 
   @Test
-  public void provideInstrumentations_withInvalidName() {
+  public void provideInstrumentedMethods_withInvalidName() {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("a", "c", "bad"));
     try {
-      CaliperRunModule.provideInstrumentations(
+      CaliperRunModule.provideInstrumentedMethods(
           options,
           BenchmarkClass.forClass(TestBenchmark.class),
           ImmutableSet.of(instrumentA, instrumentB));
@@ -133,8 +133,8 @@ public class CaliperRunModuleTest {
     }
 
     @Override
-    public Instrumentation createInstrumentation(Method benchmarkMethod) {
-      return new Instrumentation(benchmarkMethod) {
+    public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod) {
+      return new InstrumentedMethod(benchmarkMethod) {
         @Override
         public InstrumentType type() {
           throw new UnsupportedOperationException();

@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
-import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;
 import com.google.caliper.runner.options.CaliperOptions;
@@ -56,9 +56,6 @@ abstract class CaliperRunModule {
 
   @Binds
   abstract CaliperRun bindCaliperRun(ExperimentingCaliperRun experimentingCaliperRun);
-
-  @Binds
-  abstract ExperimentSelector provideExperimentSelector(FullCartesianExperimentSelector impl);
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available {@link
@@ -182,16 +179,16 @@ abstract class CaliperRunModule {
   }
 
   @Provides
-  static ImmutableSet<Instrumentation> provideInstrumentations(
+  static ImmutableSet<InstrumentedMethod> provideInstrumentedMethods(
       CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
       throws InvalidBenchmarkException {
-    ImmutableSet.Builder<Instrumentation> builder = ImmutableSet.builder();
+    ImmutableSet.Builder<InstrumentedMethod> builder = ImmutableSet.builder();
     ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
     Set<String> unusedBenchmarkNames = new HashSet<String>(benchmarkMethodNames);
     for (Instrument instrument : instruments) {
       for (Method method : findAllBenchmarkMethods(benchmarkClass.benchmarkClass(), instrument)) {
         if (benchmarkMethodNames.isEmpty() || benchmarkMethodNames.contains(method.getName())) {
-          builder.add(instrument.createInstrumentation(method));
+          builder.add(instrument.createInstrumentedMethod(method));
           unusedBenchmarkNames.remove(method.getName());
         }
       }

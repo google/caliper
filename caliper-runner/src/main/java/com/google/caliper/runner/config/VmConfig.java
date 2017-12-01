@@ -73,8 +73,8 @@ public final class VmConfig {
     return options;
   }
 
-  public String platformName() {
-    return platform.name();
+  public Platform platform() {
+    return platform;
   }
 
   public ImmutableList<String> workerClassPathArgs() {

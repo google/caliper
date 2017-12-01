@@ -33,16 +33,16 @@ abstract class TargetModule {
   // for now, this just binds VMs until device support is added
 
   @Provides
-  static ImmutableSet<VirtualMachine> provideVirtualMachines(
+  static ImmutableSet<Target> provideTargets(
       CaliperOptions options, CaliperConfig config, Platform platform) {
     ImmutableSet<String> vmNames = options.vmNames();
-    ImmutableSet.Builder<VirtualMachine> builder = ImmutableSet.builder();
+    ImmutableSet.Builder<Target> builder = ImmutableSet.builder();
     if (vmNames.isEmpty()) {
-      builder.add(new VirtualMachine("default", config.getDefaultVmConfig(platform)));
+      builder.add(Target.create("default", config.getDefaultVmConfig(platform)));
     } else {
       for (String vmName : vmNames) {
         VmConfig vmConfig = config.getVmConfig(platform, vmName);
-        builder.add(new VirtualMachine(vmName, vmConfig));
+        builder.add(Target.create(vmName, vmConfig));
       }
     }
     return builder.build();

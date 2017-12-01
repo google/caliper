@@ -30,7 +30,7 @@ import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;
-import com.google.caliper.runner.Instrument.Instrumentation;
+import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
@@ -85,70 +85,70 @@ public class RuntimeInstrumentTest {
   }
 
   @Test
-  public void createInstrumentation_macrobenchmark() throws Exception {
+  public void createInstrumentedMethod_macrobenchmark() throws Exception {
     Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("macrobenchmark");
-    Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
-    assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
-    assertEquals(instrument, instrumentation.instrument());
-    assertEquals(InstrumentType.RUNTIME_MACRO, instrumentation.type());
+    InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
+    assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
+    assertEquals(instrument, instrumentedMethod.instrument());
+    assertEquals(InstrumentType.RUNTIME_MACRO, instrumentedMethod.type());
   }
 
   @Test
-  public void createInstrumentation_microbenchmark() throws Exception {
+  public void createInstrumentedMethod_microbenchmark() throws Exception {
     Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("microbenchmark", int.class);
-    Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
-    assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
-    assertEquals(instrument, instrumentation.instrument());
-    assertEquals(InstrumentType.RUNTIME_MICRO, instrumentation.type());
+    InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
+    assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
+    assertEquals(instrument, instrumentedMethod.instrument());
+    assertEquals(InstrumentType.RUNTIME_MICRO, instrumentedMethod.type());
   }
 
   @Test
-  public void createInstrumentation_picobenchmark() throws Exception {
+  public void createInstrumentedMethod_picobenchmark() throws Exception {
     Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("picobenchmark", long.class);
-    Instrumentation instrumentation = instrument.createInstrumentation(benchmarkMethod);
-    assertEquals(benchmarkMethod, instrumentation.benchmarkMethod());
-    assertEquals(instrument, instrumentation.instrument());
-    assertEquals(InstrumentType.RUNTIME_PICO, instrumentation.type());
+    InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
+    assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
+    assertEquals(instrument, instrumentedMethod.instrument());
+    assertEquals(InstrumentType.RUNTIME_PICO, instrumentedMethod.type());
   }
 
   @Test
-  public void createInstrumentation_badParam() throws Exception {
+  public void createInstrumentedMethod_badParam() throws Exception {
     Method benchmarkMethod =
         RuntimeBenchmark.class.getDeclaredMethod("integerParam", Integer.class);
     try {
-      instrument.createInstrumentation(benchmarkMethod);
+      instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
     } catch (InvalidBenchmarkException expected) {
     }
   }
 
   @Test
-  public void createInstrumentation_notAMacrobenchmark() throws Exception {
+  public void createInstrumentedMethod_notAMacrobenchmark() throws Exception {
     Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("notAMacrobenchmark");
     try {
-      instrument.createInstrumentation(benchmarkMethod);
+      instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
     } catch (IllegalArgumentException expected) {
     }
   }
 
   @Test
-  public void createInstrumentationnotAMicrobenchmark() throws Exception {
+  public void createInstrumentedMethodnotAMicrobenchmark() throws Exception {
     Method benchmarkMethod =
         RuntimeBenchmark.class.getDeclaredMethod("notAMicrobenchmark", int.class);
     try {
-      instrument.createInstrumentation(benchmarkMethod);
+      instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
     } catch (IllegalArgumentException expected) {
     }
   }
 
   @Test
-  public void createInstrumentation_notAPicobenchmark() throws Exception {
+  public void createInstrumentedMethod_notAPicobenchmark() throws Exception {
     Method benchmarkMethod =
         RuntimeBenchmark.class.getDeclaredMethod("notAPicobenchmark", long.class);
     try {
-      instrument.createInstrumentation(benchmarkMethod);
+      instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
     } catch (IllegalArgumentException expected) {
     }

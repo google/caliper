@@ -93,7 +93,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   @Override
-  public Instrumentation createInstrumentation(Method benchmarkMethod)
+  public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
       throws InvalidBenchmarkException {
     checkNotNull(benchmarkMethod);
     checkArgument(isBenchmarkMethod(benchmarkMethod));
@@ -104,11 +104,11 @@ class RuntimeInstrument extends Instrument {
     try {
       switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
         case MACRO:
-          return new MacrobenchmarkInstrumentation(benchmarkMethod);
+          return new MacrobenchmarkInstrumentedMethod(benchmarkMethod);
         case MICRO:
-          return new MicrobenchmarkInstrumentation(benchmarkMethod);
+          return new MicrobenchmarkInstrumentedMethod(benchmarkMethod);
         case PICO:
-          return new PicobenchmarkInstrumentation(benchmarkMethod);
+          return new PicobenchmarkInstrumentedMethod(benchmarkMethod);
         default:
           throw new AssertionError("unknown type");
       }
@@ -120,8 +120,8 @@ class RuntimeInstrument extends Instrument {
     }
   }
 
-  private class MacrobenchmarkInstrumentation extends Instrumentation {
-    MacrobenchmarkInstrumentation(Method benchmarkMethod) {
+  private class MacrobenchmarkInstrumentedMethod extends InstrumentedMethod {
+    MacrobenchmarkInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -175,8 +175,8 @@ class RuntimeInstrument extends Instrument {
     return TrialSchedulingPolicy.SERIAL;
   }
 
-  private abstract class RuntimeInstrumentation extends Instrumentation {
-    RuntimeInstrumentation(Method method) {
+  private abstract class RuntimeInstrumentedMethod extends InstrumentedMethod {
+    RuntimeInstrumentedMethod(Method method) {
       super(method);
     }
 
@@ -247,8 +247,8 @@ class RuntimeInstrument extends Instrument {
     }
   }
 
-  private class MicrobenchmarkInstrumentation extends RuntimeInstrumentation {
-    MicrobenchmarkInstrumentation(Method benchmarkMethod) {
+  private class MicrobenchmarkInstrumentedMethod extends RuntimeInstrumentedMethod {
+    MicrobenchmarkInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -267,8 +267,8 @@ class RuntimeInstrument extends Instrument {
     return measurementsPerTrial;
   }
 
-  private class PicobenchmarkInstrumentation extends RuntimeInstrumentation {
-    PicobenchmarkInstrumentation(Method benchmarkMethod) {
+  private class PicobenchmarkInstrumentedMethod extends RuntimeInstrumentedMethod {
+    PicobenchmarkInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
     }
 

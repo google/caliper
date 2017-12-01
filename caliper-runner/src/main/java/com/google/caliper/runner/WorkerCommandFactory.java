@@ -19,7 +19,6 @@ package com.google.caliper.runner;
 import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.platform.Platform;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
@@ -27,7 +26,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.logging.Logger;
-import javax.inject.Inject;
 
 /**
  * Factory for building a {@link Command} for starting a worker.
@@ -45,56 +43,50 @@ final class WorkerCommandFactory {
 
   private static final Logger logger = Logger.getLogger(WorkerCommandFactory.class.getName());
 
-  private final Platform platform;
-
-  @Inject
-  WorkerCommandFactory(Platform platform) {
-    this.platform = platform;
-  }
-
   /** Builds a command that can be used to start a worker. */
-  Command buildCommand(
+  static Command buildCommand(
       Experiment experiment, BenchmarkClass benchmarkClass, WorkerRequest request) {
     // TODO(lukes): it would be nice to split this method into a few smaller more targeted methods
-    Instrument instrument = experiment.instrumentation().instrument();
+    Instrument instrument = experiment.instrumentedMethod().instrument();
     Command.Builder builder = Command.builder();
 
-    builder.putAllEnvironmentVariables(platform.workerEnvironment());
+    Target target = experiment.target();
+    VmConfig vm = target.vm();
 
-    VirtualMachine vm = experiment.vm();
-    VmConfig vmConfig = vm.config;
-    builder.addArguments(getJvmArgs(vm, benchmarkClass));
+    builder.putAllEnvironmentVariables(target.platform().workerEnvironment());
 
-    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs(vmConfig);
+    builder.addArguments(getJvmArgs(target, benchmarkClass));
+
+    Iterable<String> instrumentJvmOptions = instrument.getExtraCommandLineArgs(vm);
     logger.fine(
         String.format(
             "Instrument(%s) Java args: %s", instrument.getClass().getName(), instrumentJvmOptions));
     builder.addArguments(instrumentJvmOptions);
 
     // last to ensure that they're always applied
-    builder.addArguments(vmConfig.workerProcessArgs());
+    builder.addArguments(vm.workerProcessArgs());
 
     builder.addArgument("com.google.caliper.worker.WorkerMain");
     builder.addArgument(CommandLineSerializer.render(request));
 
     Command command = builder.build();
-    logger.finest(String.format("Full JVM (%s) args: %s", vm.name, command.arguments()));
+    logger.finest(String.format("Full JVM (%s) args: %s", target.name(), command.arguments()));
     return command;
   }
 
   @VisibleForTesting
-  static List<String> getJvmArgs(VirtualMachine vm, BenchmarkClass benchmarkClass) {
-    VmConfig vmConfig = vm.config;
-    String platformName = vmConfig.platformName();
+  static List<String> getJvmArgs(Target target, BenchmarkClass benchmarkClass) {
+    VmConfig vm = target.vm();
+    String platformName = vm.platform().name();
 
     List<String> args = Lists.newArrayList();
-    String jdkPath = vmConfig.vmExecutable().getAbsolutePath();
+    String jdkPath = vm.vmExecutable().getAbsolutePath();
     args.add(jdkPath);
-    logger.fine(String.format("%s(%s) Path: %s", platformName, vm.name, jdkPath));
+    logger.fine(String.format("%s(%s) Path: %s", platformName, target.name(), jdkPath));
 
-    ImmutableList<String> jvmOptions = vmConfig.options();
+    ImmutableList<String> jvmOptions = vm.options();
     args.addAll(jvmOptions);
-    logger.fine(String.format("%s(%s) args: %s", platformName, vm.name, jvmOptions));
+    logger.fine(String.format("%s(%s) args: %s", platformName, target.name(), jvmOptions));
 
     ImmutableSet<String> benchmarkJvmOptions = benchmarkClass.vmOptions();
     args.addAll(benchmarkJvmOptions);
@@ -102,7 +94,7 @@ final class WorkerCommandFactory {
         String.format(
             "Benchmark(%s) %s args: %s", benchmarkClass.name(), platformName, benchmarkJvmOptions));
 
-    ImmutableList<String> classPathArgs = vmConfig.workerClassPathArgs();
+    ImmutableList<String> classPathArgs = vm.workerClassPathArgs();
     args.addAll(classPathArgs);
     logger.finer(String.format("Class path args: %s", Joiner.on(' ').join(classPathArgs)));
     return args;
