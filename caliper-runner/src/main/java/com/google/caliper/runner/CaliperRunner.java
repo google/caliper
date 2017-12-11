@@ -23,6 +23,7 @@ import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import com.google.caliper.util.Stderr;
@@ -30,6 +31,7 @@ import com.google.caliper.util.Stdout;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
+import dagger.Lazy;
 import java.io.PrintWriter;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
@@ -59,10 +61,12 @@ final class CaliperRunner {
     return component.getRunner();
   }
 
-  private final CaliperOptions options;
-  private final CaliperConfig config;
+  // These core dependencies should be lazy since some of them throw exceptions and we want that
+  // to occur inside of run() instead of when constructing this object.
+  private final Lazy<CaliperOptions> options;
+  private final Lazy<CaliperConfig> config;
 
-  private final ServiceManager serviceManager;
+  private final Lazy<ServiceManager> serviceManager;
   private final PrintWriter stdout;
   private final PrintWriter stderr;
 
@@ -70,9 +74,9 @@ final class CaliperRunner {
 
   @Inject
   CaliperRunner(
-      CaliperOptions options,
-      CaliperConfig config,
-      ServiceManager serviceManager,
+      Lazy<CaliperOptions> options,
+      Lazy<CaliperConfig> config,
+      Lazy<ServiceManager> serviceManager,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
       Provider<CaliperRunComponent.Builder> runComponentBuilder) {
@@ -90,6 +94,9 @@ final class CaliperRunner {
     try {
       runInternal();
       code = 0;
+    } catch (DisplayUsageException e) {
+      e.display(stdout);
+      code = e.exitCode();
     } catch (InvalidCommandException e) {
       e.display(stderr);
       code = e.exitCode();
@@ -123,24 +130,26 @@ final class CaliperRunner {
   void runInternal()
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
     try {
-      if (options.printConfiguration()) {
+      if (options.get().printConfiguration()) {
         stdout.println("Configuration:");
         ImmutableSortedMap<String, String> sortedProperties =
-            ImmutableSortedMap.copyOf(config.properties());
+            ImmutableSortedMap.copyOf(config.get().properties());
         for (Entry<String, String> entry : sortedProperties.entrySet()) {
           stdout.printf("  %s = %s%n", entry.getKey(), entry.getValue());
         }
       }
-      serviceManager.addListener(
-          new ServiceManager.Listener() {
-            @Override
-            public void failure(Service service) {
-              stderr.println(
-                  "Service " + service + " failed to start with the following exception:");
-              service.failureCause().printStackTrace(stderr);
-            }
-          });
-      serviceManager.startAsync().awaitHealthy();
+      serviceManager
+          .get()
+          .addListener(
+              new ServiceManager.Listener() {
+                @Override
+                public void failure(Service service) {
+                  stderr.println(
+                      "Service " + service + " failed to start with the following exception:");
+                  service.failureCause().printStackTrace(stderr);
+                }
+              });
+      serviceManager.get().startAsync().awaitHealthy();
       try {
         CaliperRun run = runComponentBuilder.get().build().getCaliperRun();
         run.run(); // throws IBE
@@ -148,7 +157,7 @@ final class CaliperRunner {
         try {
           // We have some shutdown logic to ensure that files are cleaned up so give it a chance to
           // run
-          serviceManager.stopAsync().awaitStopped(10, TimeUnit.SECONDS);
+          serviceManager.get().stopAsync().awaitStopped(10, TimeUnit.SECONDS);
         } catch (TimeoutException e) {
           // That's fine
         }
