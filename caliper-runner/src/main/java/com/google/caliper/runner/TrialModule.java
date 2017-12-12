@@ -18,18 +18,12 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.bridge.TrialRequest;
-import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
-import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
-import com.google.common.collect.ImmutableList;
-import com.google.common.util.concurrent.ListenableFuture;
 import dagger.Module;
 import dagger.Provides;
 import java.util.UUID;
@@ -42,34 +36,40 @@ final class TrialModule {
   // One with the fields that need to be provided in the constructor, one abstract class for better
   // performance.
 
-  private final UUID trialId;
   private final int trialNumber;
   private final Experiment experiment;
 
-  TrialModule(UUID trialId, int trialNumber, Experiment experiment) {
-    this.trialId = trialId;
+  TrialModule(int trialNumber, Experiment experiment) {
     this.trialNumber = trialNumber;
     this.experiment = experiment;
   }
 
-  @TrialScoped
   @Provides
+  @TrialScoped
   @TrialId
   UUID provideTrialId() {
-    return trialId;
+    return UUID.randomUUID();
   }
 
-  @TrialScoped
   @Provides
   @TrialNumber
   int provideTrialNumber() {
     return trialNumber;
   }
 
-  @TrialScoped
   @Provides
   Experiment provideExperiment() {
     return experiment;
+  }
+
+  @Provides
+  Target provideTarget(Experiment experiment) {
+    return experiment.target();
+  }
+
+  @Provides
+  WorkerSpec provideWorkerSpec(TrialSpec spec) {
+    return spec;
   }
 
   @TrialScoped
@@ -83,30 +83,6 @@ final class TrialModule {
   }
 
   @Provides
-  @TrialScoped
-  static WorkerRequest provideRequest(
-      @TrialId UUID trialId,
-      Experiment experiment,
-      BenchmarkSpec benchmarkSpec,
-      @LocalPort int port) {
-    InstrumentedMethod instrumentedMethod = experiment.instrumentedMethod();
-    return new TrialRequest(
-        trialId,
-        instrumentedMethod.type(),
-        instrumentedMethod.workerOptions(),
-        benchmarkSpec,
-        ImmutableList.copyOf(instrumentedMethod.benchmarkMethod.getParameterTypes()),
-        port);
-  }
-
-  @Provides
-  @TrialScoped
-  static ListenableFuture<OpenedSocket> provideTrialSocket(
-      @TrialId UUID trialId, ServerSocketService serverSocketService) {
-    return serverSocketService.getConnection(trialId);
-  }
-
-  @Provides
   static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
     return experiment.instrumentedMethod().getMeasurementCollectingVisitor();
   }
@@ -115,19 +91,6 @@ final class TrialModule {
   @TrialScoped
   static TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
     return experiment.instrumentedMethod().instrument().schedulingPolicy();
-  }
-
-  // TODO(user): make this a singleton in a higher level module.
-  @Provides
-  @TrialScoped
-  static ShutdownHookRegistrar provideShutdownHook() {
-    return new RuntimeShutdownHookRegistrar();
-  }
-
-  // TODO(cgdecker): This will need to be bound based on the device in the future.
-  @Provides
-  static WorkerStarter provideWorkerStarter(LocalWorkerStarter workerStarter) {
-    return workerStarter;
   }
 
   @Provides
@@ -160,14 +123,5 @@ final class TrialModule {
             measurementCollectingVisitor.getMessages());
       }
     };
-  }
-
-  @Provides
-  @TrialScoped
-  static Command provideTrialCommand(
-      Experiment experiment,
-      BenchmarkClass benchmarkClass,
-      WorkerRequest request) {
-    return WorkerCommandFactory.buildCommand(experiment, benchmarkClass, request);
   }
 }

@@ -14,8 +14,13 @@
 
 package com.google.caliper.runner;
 
+import javax.inject.Inject;
+
 /** A {@link ShutdownHookRegistrar} that delegates to {@link Runtime}. */
 class RuntimeShutdownHookRegistrar implements ShutdownHookRegistrar {
+  @Inject
+  RuntimeShutdownHookRegistrar() {}
+
   @Override
   public void addShutdownHook(Thread hook) {
     Runtime.getRuntime().addShutdownHook(hook);

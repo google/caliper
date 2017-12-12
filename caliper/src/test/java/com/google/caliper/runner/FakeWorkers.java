@@ -17,19 +17,19 @@ package com.google.caliper.runner;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
+import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.concurrent.CountDownLatch;
 import javax.annotation.concurrent.GuardedBy;
 
@@ -67,17 +67,19 @@ final class FakeWorkers {
    */
   static Command createCommand(Class<?> mainClass, String... mainArgs) {
     Target target = init();
-    Command.Builder builder = Command.builder();
+    VmConfig vm = target.vm();
+    BenchmarkClass benchmarkClass = BenchmarkClass.forClass(mainClass);
 
-    try {
-      builder.addArguments(
-          WorkerCommandFactory.getJvmArgs(target, BenchmarkClass.forClass(mainClass)));
-    } catch (InvalidBenchmarkException e) {
-      throw new RuntimeException(e);
-    }
-    builder.addArgument(mainClass.getName());
-    builder.addArguments(Arrays.asList(mainArgs));
-    return builder.build();
+    // Don't add all the VM options that a normal worker has because we don't want things like
+    // printing flags for the fake workers.
+    return Command.builder()
+        .putAllEnvironmentVariables(target.platform().workerEnvironment())
+        .addArgument(vm.vmExecutable().getAbsolutePath())
+        .addArguments(benchmarkClass.vmOptions())
+        .addArguments(vm.workerClassPathArgs())
+        .addArgument(mainClass.getName())
+        .addArguments(ImmutableList.copyOf(mainArgs))
+        .build();
   }
 
   public static Target getTarget() {

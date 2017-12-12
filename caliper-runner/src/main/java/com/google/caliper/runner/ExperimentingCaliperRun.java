@@ -49,7 +49,6 @@ import java.io.PrintWriter;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
@@ -290,7 +289,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       for (Experiment experiment : experimentsToRun) {
         try {
           TrialScopeComponent trialScopeComponent = trialScopeComponentBuilder.get()
-              .trialModule(new TrialModule(UUID.randomUUID(), trialNumber, experiment))
+              .trialModule(new TrialModule(trialNumber, experiment))
               .build();
 
           trials.add(trialScopeComponent.getScheduledTrial());

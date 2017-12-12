@@ -57,21 +57,20 @@ class TrialRunLoop implements Callable<TrialResult> {
   private final VmDataCollectingVisitor dataCollectingVisitor;
   private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
   private final MeasurementCollectingVisitor measurementCollectingVisitor;
-  private final TrialOutputLogger trialOutput;
+  private final WorkerOutputLogger workerOutput;
 
   @Inject
   TrialRunLoop(
       MeasurementCollectingVisitor measurementCollectingVisitor,
       CaliperOptions options,
       TrialResultFactory trialFactory,
-      TrialOutputLogger trialOutput,
       Worker worker,
       VmDataCollectingVisitor dataCollectingVisitor) {
     this.options = options;
     this.trialFactory = trialFactory;
     this.worker = worker;
     this.measurementCollectingVisitor = measurementCollectingVisitor;
-    this.trialOutput = trialOutput;
+    this.workerOutput = worker.outputLogger();
     this.dataCollectingVisitor = dataCollectingVisitor;
   }
 
@@ -80,8 +79,8 @@ class TrialRunLoop implements Callable<TrialResult> {
     if (worker.state() != State.NEW) {
       throw new IllegalStateException("You can only invoke the run loop once");
     }
-    trialOutput.open();
-    trialOutput.printHeader();
+    workerOutput.open();
+    workerOutput.printHeader();
     worker.startAsync().awaitRunning();
     try {
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
@@ -94,14 +93,14 @@ class TrialRunLoop implements Callable<TrialResult> {
               worker.readItem(
                   timeLimitNanos - trialStopwatch.elapsed(NANOSECONDS), NANOSECONDS);
         } catch (InterruptedException e) {
-          trialOutput.ensureFileIsSaved();
+          workerOutput.ensureFileIsSaved();
           // Someone has asked us to stop (via Futures.cancel?).
           if (doneCollecting) {
             logger.log(
                 Level.WARNING,
                 "Trial cancelled before completing normally (but after "
                     + "collecting sufficient data). Inspect {0} to see any worker output",
-                trialOutput.trialOutputFile());
+                workerOutput.outputFile());
             done = true;
             break;
           }
@@ -109,7 +108,7 @@ class TrialRunLoop implements Callable<TrialResult> {
           throw new TrialFailureException(
               String.format(
                   "Trial cancelled.  Inspect %s to see any worker output.",
-                  trialOutput.trialOutputFile()));
+                  workerOutput.outputFile()));
         }
         switch (item.kind()) {
           case DATA:
@@ -147,24 +146,24 @@ class TrialRunLoop implements Callable<TrialResult> {
           case EOF:
             // We consider EOF to be synonymous with worker shutdown
             if (!doneCollecting) {
-              trialOutput.ensureFileIsSaved();
+              workerOutput.ensureFileIsSaved();
               throw new TrialFailureException(
                   String.format(
                       "The worker exited without producing "
                           + "data. It has likely crashed. Inspect %s to see any worker output.",
-                      trialOutput.trialOutputFile()));
+                      workerOutput.outputFile()));
             }
             done = true;
             break;
           case TIMEOUT:
-            trialOutput.ensureFileIsSaved();
+            workerOutput.ensureFileIsSaved();
             if (doneCollecting) {
               // Should this be an error?
               logger.log(
                   Level.WARNING,
                   "Worker failed to exit cleanly within the alloted time. "
                       + "Inspect {0} to see any worker output",
-                  trialOutput.trialOutputFile());
+                  workerOutput.outputFile());
               done = true;
             } else {
               throw new TrialFailureException(
@@ -172,7 +171,7 @@ class TrialRunLoop implements Callable<TrialResult> {
                       "Trial exceeded the total allowable runtime (%s). "
                           + "The limit may be adjusted using the --time-limit flag.  Inspect %s to "
                           + "see any worker output",
-                      options.timeLimit(), trialOutput.trialOutputFile()));
+                      options.timeLimit(), workerOutput.outputFile()));
             }
             break;
           default:
@@ -184,16 +183,16 @@ class TrialRunLoop implements Callable<TrialResult> {
       Throwables.propagateIfInstanceOf(e, TrialFailureException.class);
       // This is some failure that is not a TrialFailureException, let the exception propagate but
       // log the filename for the user.
-      trialOutput.ensureFileIsSaved();
+      workerOutput.ensureFileIsSaved();
       logger.severe(
           String.format(
               "Unexpected error while executing trial. Inspect %s to see any worker output.",
-              trialOutput.trialOutputFile()));
+              workerOutput.outputFile()));
       throw Throwables.propagate(e);
     } finally {
       trialStopwatch.reset();
       worker.stopAsync();
-      trialOutput.close();
+      workerOutput.close();
     }
   }
 
