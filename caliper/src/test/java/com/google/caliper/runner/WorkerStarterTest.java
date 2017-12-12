@@ -21,8 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.JvmPlatform;
@@ -36,7 +34,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -69,13 +66,6 @@ public class WorkerStarterTest {
   private final MockRegistrar registrar = new MockRegistrar();
   private final WorkerStarter workerStarter = new LocalWorkerStarter(registrar);
 
-  private BenchmarkClass benchmarkClass;
-
-  @Before
-  public void setUp() throws InvalidBenchmarkException {
-    benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
-  }
-
   @Test
   public void simpleArgsTest() throws Exception {
     Method method = TestBenchmark.class.getDeclaredMethods()[0];
@@ -94,22 +84,18 @@ public class WorkerStarterTest {
             .className(TestBenchmark.class.getName())
             .methodName(method.getName())
             .build();
-    Command command = createCommand(experiment, spec);
+    BenchmarkClass benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
+    Command command = createCommand(experiment, spec, benchmarkClass);
     List<String> commandLine = command.arguments();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
-    assertEquals("--doTheHustle", commandLine.get(1)); // vm specific flags come next
-    assertEquals("-cp", commandLine.get(2)); // then the classpath
-    // should we assert on classpath contents?
-    ImmutableSet<String> extraCommandLineArgs =
-        allocationInstrument.getExtraCommandLineArgs(vmConfig);
-    assertEquals(
-        extraCommandLineArgs.asList(), commandLine.subList(4, 4 + extraCommandLineArgs.size()));
-    int index = 4 + extraCommandLineArgs.size();
-    assertEquals("-XX:+PrintFlagsFinal", commandLine.get(index));
-    assertEquals("-XX:+PrintCompilation", commandLine.get(++index));
-    assertEquals("-XX:+PrintGC", commandLine.get(++index));
-    assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(++index));
-    // followed by worker args...
+    assertTrue(commandLine.contains("--doTheHustle"));
+    assertTrue(commandLine.contains("-cp"));
+    assertTrue(commandLine.containsAll(allocationInstrument.getExtraCommandLineArgs(vmConfig)));
+    assertTrue(
+        commandLine.containsAll(
+            ImmutableSet.of("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC")));
+    // main class should be next to last, follower by the single arg to the worker
+    assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(commandLine.size() - 2));
   }
 
   @Test
@@ -140,10 +126,13 @@ public class WorkerStarterTest {
     }
   }
 
-  private Command createCommand(Experiment experiment, BenchmarkSpec benchmarkSpec) {
-    WorkerRequest request =
-        TrialModule.provideRequest(TRIAL_ID, experiment, benchmarkSpec, PORT_NUMBER);
-    return WorkerCommandFactory.buildCommand(experiment, benchmarkClass, request);
+  private Command createCommand(
+      Experiment experiment,
+      BenchmarkSpec benchmarkSpec,
+      BenchmarkClass benchmarkClass) {
+    WorkerSpec spec = new TrialSpec(
+        TRIAL_ID, experiment, benchmarkSpec, benchmarkClass, 1, PORT_NUMBER);
+    return WorkerModule.provideWorkerCommand(experiment.target(), spec);
   }
 
   private WorkerProcess startWorker(Class<?> main, String... args) throws Exception {

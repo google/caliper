@@ -42,7 +42,6 @@ import java.io.Reader;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.text.ParseException;
-import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -76,7 +75,7 @@ import javax.inject.Inject;
  *     IllegalStateExceptions.
  * </ul>
  */
-@TrialScoped
+@WorkerScoped
 final class Worker extends AbstractService {
   /** How long to wait for a process that should be exiting to actually exit. */
   private static final int SHUTDOWN_WAIT_MILLIS = 10;
@@ -87,17 +86,18 @@ final class Worker extends AbstractService {
   /** The final item that will be sent down the stream. */
   static final StreamItem EOF_ITEM = new StreamItem(Kind.EOF, null);
 
+  // TODO(cgdecker): Inject this
   private final ListeningExecutorService streamExecutor =
       MoreExecutors.listeningDecorator(
           Executors.newCachedThreadPool(new ThreadFactoryBuilder().setDaemon(true).build()));
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
 
-  private final WorkerStarter workerStarter;
-  private final UUID workerId;
-  private final Command workerCommand;
+  private final WorkerSpec spec;
+  private final WorkerStarter starter;
+  private final Command command;
   private final ListenableFuture<OpenedSocket> socketFuture;
   private final Parser<LogMessage> logMessageParser;
-  private final TrialOutputLogger trialOutput;
+  private final WorkerOutputLogger output;
 
   private volatile WorkerProcess process;
 
@@ -121,25 +121,29 @@ final class Worker extends AbstractService {
 
   @Inject
   Worker(
-      WorkerStarter workerStarter,
-      @TrialId UUID workerId,
-      Command workerCommand,
+      WorkerSpec spec,
+      WorkerStarter starter,
+      Command command,
       ListenableFuture<OpenedSocket> socketFuture,
       Parser<LogMessage> logMessageParser,
-      TrialOutputLogger trialOutput) {
-    this.workerStarter = workerStarter;
-    this.workerId = workerId;
-    this.workerCommand = workerCommand;
+      WorkerOutputLogger output) {
+    this.spec = spec;
+    this.starter = starter;
+    this.command = command;
     this.socketFuture = socketFuture;
     this.logMessageParser = logMessageParser;
-    this.trialOutput = trialOutput;
+    this.output = output;
+  }
+
+  WorkerOutputLogger outputLogger() {
+    return output;
   }
 
   @Override
   protected void doStart() {
     try {
       // TODO(lukes): write the commandline to the trial output file?
-      process = workerStarter.startWorker(workerId, workerCommand);
+      process = starter.startWorker(spec.id(), command);
     } catch (Exception e) {
       notifyFailed(e);
       return;
@@ -411,7 +415,7 @@ final class Worker extends AbstractService {
       try {
         String line;
         while ((line = lineReader.readLine()) != null) {
-          trialOutput.log(streamName, line);
+          output.log(streamName, line);
           LogMessage logMessage = logMessageParser.parse(line);
           if (logMessage != null) {
             outputQueue.put(new StreamItem(logMessage));
@@ -474,7 +478,7 @@ final class Worker extends AbstractService {
     }
 
     private void log(String text) {
-      trialOutput.log("socket", text);
+      output.log("socket", text);
     }
   }
 }

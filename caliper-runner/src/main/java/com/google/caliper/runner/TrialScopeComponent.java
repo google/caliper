@@ -20,7 +20,8 @@ import dagger.Subcomponent;
 
 /** Component for creating a {@linkplain TrialScoped trial-scoped} {@link ScheduledTrial}. */
 @TrialScoped
-@Subcomponent(modules = TrialModule.class)
+@WorkerScoped
+@Subcomponent(modules = {TrialModule.class, WorkerModule.class})
 interface TrialScopeComponent {
   ScheduledTrial getScheduledTrial();
 
