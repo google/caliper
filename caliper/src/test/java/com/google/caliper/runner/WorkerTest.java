@@ -70,7 +70,6 @@ public class WorkerTest {
 
   private Worker worker;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);
-  private static final int TRIAL_NUMBER = 3;
 
   @Before
   public void setUp() throws IOException {
@@ -202,13 +201,18 @@ public class WorkerTest {
   private void makeWorker(Class<?> main, String... args) {
     checkState(worker == null, "You can only make one Worker per test");
     UUID trialId = UUID.randomUUID();
-    TrialOutputLogger trialOutput =
-        new TrialOutputLogger(
-            new TrialOutputFactory() {
+    WorkerSpec spec = FakeWorkerSpec.builder(main)
+        .setId(trialId)
+        .setArgs(args)
+        .build();
+
+    WorkerOutputLogger output =
+        new WorkerOutputLogger(
+            new WorkerOutputFactory() {
               @Override
-              public FileAndWriter getTrialOutputFile(int trialNumber)
+              public FileAndWriter getOutputFile(String fileName)
                   throws FileNotFoundException {
-                checkArgument(trialNumber == TRIAL_NUMBER);
+                checkArgument(fileName.equals("worker-" + trialId + ".log"));
                 return new FileAndWriter(new File("/tmp/not-a-file"), stdout);
               }
 
@@ -217,12 +221,10 @@ public class WorkerTest {
                 throw new UnsupportedOperationException();
               }
             },
-            TRIAL_NUMBER,
-            trialId,
-            null /* experiment */);
+        spec);
     try {
       // normally the TrialRunLoop opens/closes the logger
-      trialOutput.open();
+      output.open();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
@@ -231,12 +233,12 @@ public class WorkerTest {
 
     worker =
         new Worker(
+            spec,
             new LocalWorkerStarter(new RuntimeShutdownHookRegistrar()),
-            trialId,
             command,
             getSocketFuture(),
             parser,
-            trialOutput);
+            output);
     worker.addListener(
         new Listener() {
           @Override

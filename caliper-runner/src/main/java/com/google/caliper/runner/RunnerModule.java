@@ -21,6 +21,7 @@ import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import java.util.UUID;
@@ -57,4 +58,7 @@ abstract class RunnerModule {
     int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
     return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
+
+  @Binds
+  abstract ShutdownHookRegistrar bindShutdownHookRegistrar(RuntimeShutdownHookRegistrar registrar);
 }

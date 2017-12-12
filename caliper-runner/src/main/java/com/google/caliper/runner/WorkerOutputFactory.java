@@ -21,12 +21,12 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 
 /**
- * A factory for trial log files.
+ * A factory for worker log files.
  *
  * <p>The log files may be configured to be deleted on exit of the runner process. If the files
  * should not be deleted then call {@link #persistFile(File)} to ensure that they survive.
  */
-interface TrialOutputFactory {
+interface WorkerOutputFactory {
 
   /** A simple tuple of a {@link File} and a {@link PrintWriter} for writing to that file. */
   final class FileAndWriter {
@@ -39,8 +39,8 @@ interface TrialOutputFactory {
     }
   }
 
-  /** Returns the file to write trial output to. */
-  FileAndWriter getTrialOutputFile(int trialNumber) throws FileNotFoundException;
+  /** Returns the file to write worker output to. */
+  FileAndWriter getOutputFile(String fileName) throws FileNotFoundException;
 
   /**
    * Ensures that the given file will not be deleted after the run. The file provided must be equal

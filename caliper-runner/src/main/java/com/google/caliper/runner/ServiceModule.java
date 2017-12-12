@@ -35,10 +35,10 @@ abstract class ServiceModule {
 
   @Binds
   @IntoSet
-  abstract Service bindTrialOutputFactoryService(TrialOutputFactoryService impl);
+  abstract Service bindWorkerOutputFactoryService(WorkerOutputFactoryService impl);
 
   @Binds
-  abstract TrialOutputFactory bindTrialOutputFactory(TrialOutputFactoryService impl);
+  abstract WorkerOutputFactory bindWorkerOutputFactory(WorkerOutputFactoryService impl);
 
   @Provides
   @LocalPort

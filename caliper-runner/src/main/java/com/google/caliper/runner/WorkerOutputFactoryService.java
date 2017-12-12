@@ -36,7 +36,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 
 /**
- * A {@link TrialOutputFactory} implemented as a service that manages a directory either under
+ * A {@link WorkerOutputFactory} implemented as a service that manages a directory either under
  * {@code /tmp} or in a user configured directory.
  *
  * <p>If there is a user configured directory, then no files will be deleted on service shutdown.
@@ -44,7 +44,7 @@ import javax.inject.Singleton;
  * call {@link #persistFile(File)} with each file that should not be deleted.
  */
 @Singleton
-final class TrialOutputFactoryService extends AbstractIdleService implements TrialOutputFactory {
+final class WorkerOutputFactoryService extends AbstractIdleService implements WorkerOutputFactory {
   private static final String LOG_DIRECTORY_PROPERTY = "worker.output";
 
   private final CaliperOptions options;
@@ -60,14 +60,13 @@ final class TrialOutputFactoryService extends AbstractIdleService implements Tri
   private boolean persistFiles;
 
   @Inject
-  TrialOutputFactoryService(Run run, CaliperOptions options) {
+  WorkerOutputFactoryService(Run run, CaliperOptions options) {
     this.run = run;
     this.options = options;
   }
 
-  /** Returns the file to write trial output to. */
   @Override
-  public FileAndWriter getTrialOutputFile(int trialNumber) throws FileNotFoundException {
+  public FileAndWriter getOutputFile(String fileName) throws FileNotFoundException {
     File dir;
     synchronized (this) {
       if (directory == null) {
@@ -76,17 +75,17 @@ final class TrialOutputFactoryService extends AbstractIdleService implements Tri
       }
       dir = directory;
     }
-    File trialFile = new File(dir, String.format("trial-%d.log", trialNumber));
+    File file = new File(dir, fileName);
     synchronized (this) {
       if (!persistFiles) {
-        toDelete.add(trialFile.getPath());
+        toDelete.add(file.getPath());
       }
     }
     return new FileAndWriter(
-        trialFile,
+        file,
         new PrintWriter(
             new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(trialFile), Charsets.UTF_8))));
+                new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))));
   }
 
   /**
