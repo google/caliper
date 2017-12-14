@@ -8,7 +8,7 @@ jdk:
 before_install:
   - cd caliper
   - MVN_VERSION=3.5.0
-  - get https://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.zip
+  - wget https://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.zip
   - unzip -qq apache-maven-${MVN_VERSION}-bin.zip
   - export M2_HOME=$PWD/apache-maven-${MVN_VERSION}
   - export PATH=$M2_HOME/bin:$PATH
