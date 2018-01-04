@@ -86,6 +86,7 @@ class TrialRunLoop implements Callable<TrialResult> {
       long timeLimitNanos = getTrialTimeLimitTrialNanos();
       boolean doneCollecting = false;
       boolean done = false;
+      trialStopwatch.start();
       while (!done) {
         StreamItem item;
         try {
