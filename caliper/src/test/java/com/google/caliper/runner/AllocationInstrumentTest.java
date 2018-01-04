@@ -52,13 +52,10 @@ public class AllocationInstrumentTest {
     fakeJar.deleteOnExit();
     instrument.setOptions(ImmutableMap.of("allocationAgentJar", fakeJar.getAbsolutePath()));
     ImmutableSet<String> expected =
-        new ImmutableSet.Builder<String>()
-            .addAll(JvmPlatform.INSTRUMENT_JVM_ARGS)
-            .add("-Xint")
-            .add("-javaagent:" + fakeJar.getAbsolutePath())
-            .add("-Xbootclasspath/a:" + fakeJar.getAbsolutePath())
-            .add("-Dsun.reflect.inflationThreshold=0")
-            .build();
+        ImmutableSet.of(
+            "-Xint",
+            "-javaagent:" + fakeJar.getAbsolutePath(),
+            "-Xbootclasspath/a:" + fakeJar.getAbsolutePath());
     Platform platform = new JvmPlatform();
     VmConfig vmConfig =
         new VmConfig.Builder(platform, new File(System.getProperty("java.home"))).build();

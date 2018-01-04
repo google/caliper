@@ -165,7 +165,7 @@ public abstract class Instrument {
    * @param vmConfig the configuration for the VM on which this is running.
    */
   ImmutableSet<String> getExtraCommandLineArgs(VmConfig vmConfig) {
-    return vmConfig.commonInstrumentVmArgs();
+    return ImmutableSet.of();
   }
 
   interface MeasurementCollectingVisitor extends LogMessageVisitor {
