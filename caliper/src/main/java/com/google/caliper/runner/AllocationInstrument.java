@@ -244,7 +244,6 @@ public final class AllocationInstrument extends Instrument {
     }
     // Add microbenchmark args to minimize differences in the output
     return new ImmutableSet.Builder<String>()
-        .addAll(super.getExtraCommandLineArgs(vmConfig))
         // we just run in interpreted mode to ensure that intrinsics don't break the instrumentation
         .add("-Xint")
         .add("-javaagent:" + agentJar)

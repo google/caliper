@@ -80,6 +80,7 @@ final class TrialSpec extends WorkerSpec {
     Instrument instrument = experiment.instrumentedMethod().instrument();
     return new ImmutableList.Builder<String>()
         .addAll(benchmarkClass.vmOptions())
+        .addAll(vmConfig.commonInstrumentVmArgs())
         .addAll(instrument.getExtraCommandLineArgs(vmConfig))
         .build();
   }

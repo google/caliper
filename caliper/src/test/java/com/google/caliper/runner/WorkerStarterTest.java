@@ -90,6 +90,7 @@ public class WorkerStarterTest {
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
     assertTrue(commandLine.contains("--doTheHustle"));
     assertTrue(commandLine.contains("-cp"));
+    assertTrue(commandLine.containsAll(vmConfig.commonInstrumentVmArgs()));
     assertTrue(commandLine.containsAll(allocationInstrument.getExtraCommandLineArgs(vmConfig)));
     assertTrue(
         commandLine.containsAll(
