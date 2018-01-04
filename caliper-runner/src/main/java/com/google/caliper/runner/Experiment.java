@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.auto.value.AutoValue;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.Map;
 
@@ -45,4 +46,14 @@ abstract class Experiment {
 
   /** Returns the target this experiment is to be run on. */
   abstract Target target();
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper("")
+        .add("instrument", instrumentedMethod().instrument())
+        .add("benchmarkMethod", instrumentedMethod().benchmarkMethod().getName())
+        .add("target", target().name())
+        .add("parameters", userParameters())
+        .toString();
+  }
 }
