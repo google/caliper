@@ -22,7 +22,6 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
-import com.google.common.collect.Lists;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import java.util.Collection;
@@ -76,17 +75,18 @@ public final class ExperimentSelector {
 
   /** Returns the full set of experiments to be run. */
   public ImmutableSet<Experiment> selectExperiments() {
-    List<Experiment> experiments = Lists.newArrayList();
+    ImmutableSet.Builder<Experiment> experiments = ImmutableSet.builder();
+    int id = 1;
     for (InstrumentedMethod instrumentedMethod : instrumentedMethods) {
       for (Target target : targets) {
         for (List<String> userParamsChoice : cartesian(userParameters)) {
           ImmutableMap<String, String> theseUserParams =
               zip(userParameters.keySet(), userParamsChoice);
-          experiments.add(Experiment.create(instrumentedMethod, theseUserParams, target));
+          experiments.add(Experiment.create(id++, instrumentedMethod, theseUserParams, target));
         }
       }
     }
-    return ImmutableSet.copyOf(experiments);
+    return experiments.build();
   }
 
   protected static <T> Set<List<T>> cartesian(SetMultimap<String, T> multimap) {

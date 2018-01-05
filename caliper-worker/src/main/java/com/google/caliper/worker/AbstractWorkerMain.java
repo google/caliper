@@ -17,6 +17,7 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.CommandLineSerializer;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.TrialRequest;
@@ -45,11 +46,11 @@ abstract class AbstractWorkerMain {
       channel.configureBlocking(false);
       channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), request.port()));
 
-      WorkerComponent workerComponent = createWorkerComponent(trialRequest);
+      WorkerComponent workerComponent = createWorkerComponent(trialRequest.experiment());
       Worker worker = workerComponent.getWorker();
       WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
 
-      log.notifyWorkerStarted(trialRequest.trialId());
+      log.notifyWorkerStarted(request.id());
       try {
         worker.setUpBenchmark();
         log.notifyBootstrapPhaseStarting();
@@ -79,8 +80,9 @@ abstract class AbstractWorkerMain {
   }
 
   /**
-   * Creates the Dagger {@link WorkerComponent} that will create the worker for the given request.
+   * Creates the Dagger {@link WorkerComponent} that will create the worker for the given
+   * experiment.
    */
-  protected abstract WorkerComponent createWorkerComponent(TrialRequest request)
+  protected abstract WorkerComponent createWorkerComponent(ExperimentSpec experiment)
       throws ClassNotFoundException;
 }

@@ -17,6 +17,7 @@
 package com.google.caliper.bridge;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 /**
  * Base class for classes the runner sends to the worker to tell it what to do.
@@ -25,10 +26,17 @@ import java.io.Serializable;
  */
 public abstract class WorkerRequest implements Serializable {
 
+  private final UUID id;
   private final int port;
 
-  protected WorkerRequest(int port) {
+  protected WorkerRequest(UUID id, int port) {
+    this.id = id;
     this.port = port;
+  }
+
+  /** Returns the ID of this worker. */
+  public UUID id() {
+    return id;
   }
 
   /**

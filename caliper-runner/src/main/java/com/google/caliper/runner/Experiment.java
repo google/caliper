@@ -33,10 +33,21 @@ abstract class Experiment {
 
   /** Creates a new {@link Experiment}. */
   static Experiment create(
-      InstrumentedMethod instrumentedMethod, Map<String, String> userParameters, Target target) {
+      int id,
+      InstrumentedMethod instrumentedMethod,
+      Map<String, String> userParameters,
+      Target target) {
     return new AutoValue_Experiment(
-        instrumentedMethod, ImmutableSortedMap.copyOf(userParameters), target);
+        id, instrumentedMethod, ImmutableSortedMap.copyOf(userParameters), target);
   }
+
+  /**
+   * Returns the ID of this experiment.
+   *
+   * <p>This is just a simple number to help the runner identify the experiment in results sent back
+   * from workers. It is not included in data uploaded to the webapp server.
+   */
+  abstract int id();
 
   /** Returns the instrumented method for this experiment. */
   abstract InstrumentedMethod instrumentedMethod();

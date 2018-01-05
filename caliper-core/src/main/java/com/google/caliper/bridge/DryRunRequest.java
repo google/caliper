@@ -16,6 +16,8 @@
 
 package com.google.caliper.bridge;
 
+import java.util.UUID;
+
 /**
  * {@link WorkerRequest} for telling a worker to do a dry-run of a benchmark.
  *
@@ -24,7 +26,7 @@ package com.google.caliper.bridge;
 public final class DryRunRequest extends WorkerRequest {
   private static final long serialVersionUID = 1L;
 
-  public DryRunRequest(int port) {
-    super(port);
+  public DryRunRequest(UUID id, int port) {
+    super(id, port);
   }
 }

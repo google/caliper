@@ -16,7 +16,7 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.bridge.TrialRequest;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.core.Running;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
@@ -32,7 +32,7 @@ import javax.inject.Provider;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link
- * com.google.caliper.Param parameters} from the {@link TrialRequest} into the benchmark.
+ * com.google.caliper.Param parameters} from the {@link ExperimentSpec} into the benchmark.
  *
  * <p>TODO(gak): Ensure that each worker only has bindings for the objects it needs and not the
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
@@ -40,17 +40,17 @@ import javax.inject.Provider;
  */
 @Module(includes = WorkerModule.OtherBindings.class)
 final class WorkerModule {
-  private final TrialRequest trialRequest;
+  private final ExperimentSpec experiment;
   private final Class<?> benchmarkClassObject;
 
-  WorkerModule(TrialRequest trialRequest) throws ClassNotFoundException {
-    this.trialRequest = trialRequest;
-    this.benchmarkClassObject = Util.loadClass(trialRequest.benchmarkSpec().className());
+  WorkerModule(ExperimentSpec experiment) throws ClassNotFoundException {
+    this.experiment = experiment;
+    this.benchmarkClassObject = Util.loadClass(experiment.benchmarkSpec().className());
   }
 
   @Provides
-  TrialRequest provideTrialRequest() {
-    return trialRequest;
+  ExperimentSpec provideExperimentSpec() {
+    return experiment;
   }
 
   @Provides
@@ -63,14 +63,14 @@ final class WorkerModule {
   abstract static class OtherBindings {
 
     @Provides
-    static InstrumentType provideInstrumentType(TrialRequest trialRequest) {
-      return trialRequest.instrumentType();
+    static InstrumentType provideInstrumentType(ExperimentSpec experiment) {
+      return experiment.instrumentType();
     }
 
     @Provides
     @WorkerOptions
-    static Map<String, String> provideWorkerOptions(TrialRequest trialRequest) {
-      return trialRequest.workerOptions();
+    static Map<String, String> provideWorkerOptions(ExperimentSpec experiment) {
+      return experiment.workerOptions();
     }
 
     @Provides
