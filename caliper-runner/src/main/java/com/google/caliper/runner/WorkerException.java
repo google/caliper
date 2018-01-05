@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2013 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,13 @@ package com.google.caliper.runner;
 import javax.annotation.Nullable;
 
 /**
- * An exception representing the failure of an individual trial. Throwing this exception will
- * invalidate the trial, but allow the run to continue. Both the runner and individual instruments
- * are free to throw this exception.
+ * An exception indicating an error with a worker.
  *
- * <p>The exception message is used to convey the nature of the failure to the user.
+ * @author Colin Decker
  */
-final class TrialFailureException extends WorkerException {
+class WorkerException extends RuntimeException {
 
-  public TrialFailureException(String message, @Nullable Throwable cause) {
+  public WorkerException(String message, @Nullable Throwable cause) {
     super(message, cause);
   }
 }

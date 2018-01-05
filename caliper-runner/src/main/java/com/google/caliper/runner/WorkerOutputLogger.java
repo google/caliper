@@ -49,7 +49,7 @@ final class WorkerOutputLogger implements Closeable {
   /** Opens the trial output file. */
   synchronized void open() throws IOException {
     if (writer == null) {
-      FileAndWriter fileAndWriter = outputManager.getOutputFile(workerSpec.outputFileName());
+      FileAndWriter fileAndWriter = outputManager.getOutputFile(workerSpec.name() + ".log");
       file = fileAndWriter.file;
       writer = fileAndWriter.writer;
     }

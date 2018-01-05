@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import dagger.BindsInstance;
 import dagger.Subcomponent;
 
 /** Component for creating a {@linkplain TrialScoped trial-scoped} {@link ScheduledTrial}. */
@@ -28,8 +29,13 @@ interface TrialScopeComponent {
   /** Builder for {@link TrialScopeComponent}. */
   @Subcomponent.Builder
   interface Builder {
-    /** Sets the {@link TrialModule} for the component to use. */
-    Builder trialModule(TrialModule module);
+    /** Binds the trial number. */
+    @BindsInstance
+    Builder trialNumber(@TrialNumber int trialNumber);
+
+    /** Binds the experiment for the trial. */
+    @BindsInstance
+    Builder experiment(Experiment experiment);
 
     /** Builds a new {@link TrialScopeComponent}. */
     TrialScopeComponent build();
