@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.bridge.CommandLineSerializer;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.model.BenchmarkSpec;
@@ -65,13 +66,16 @@ final class TrialSpec extends WorkerSpec {
   @Override
   public ImmutableList<String> args() {
     InstrumentedMethod instrumentedMethod = experiment.instrumentedMethod();
-    WorkerRequest request = new TrialRequest(
-        id(),
-        instrumentedMethod.type(),
-        instrumentedMethod.workerOptions(),
-        benchmarkSpec,
-        ImmutableList.copyOf(instrumentedMethod.benchmarkMethod().getParameterTypes()),
-        port);
+    WorkerRequest request =
+        new TrialRequest(
+            id(),
+            port,
+            new ExperimentSpec(
+                experiment.id(),
+                instrumentedMethod.type(),
+                instrumentedMethod.workerOptions(),
+                benchmarkSpec,
+                ImmutableList.copyOf(instrumentedMethod.benchmarkMethod().getParameterTypes())));
     return ImmutableList.of(CommandLineSerializer.render(request));
   }
 

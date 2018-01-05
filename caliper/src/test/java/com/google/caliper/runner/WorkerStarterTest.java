@@ -76,6 +76,7 @@ public class WorkerStarterTest {
             new File("foo"), Arrays.asList("--doTheHustle"), new File("java"), new JvmPlatform());
     Experiment experiment =
         Experiment.create(
+            1,
             allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
             Target.create("foo-jvm", vmConfig));

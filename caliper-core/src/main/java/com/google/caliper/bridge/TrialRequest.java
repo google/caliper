@@ -16,10 +16,6 @@
 
 package com.google.caliper.bridge;
 
-import com.google.caliper.model.BenchmarkSpec;
-import com.google.caliper.model.InstrumentType;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import java.util.UUID;
 
 /**
@@ -30,60 +26,15 @@ import java.util.UUID;
 public final class TrialRequest extends WorkerRequest {
   private static final long serialVersionUID = 1L;
 
-  private final UUID trialId;
-  private final InstrumentType instrumentType;
-  private final ImmutableMap<String, String> workerOptions;
-  private final BenchmarkSpec benchmarkSpec;
-  private final ImmutableList<Class<?>> methodParameterClasses;
+  private final ExperimentSpec experiment;
 
-  public TrialRequest(
-      UUID trialId,
-      InstrumentType instrumentType,
-      ImmutableMap<String, String> workerOptions,
-      BenchmarkSpec benchmarkSpec,
-      ImmutableList<Class<?>> methodParameterClasses,
-      int port) {
-    super(port);
-    this.trialId = trialId;
-    this.instrumentType = instrumentType;
-    this.workerOptions = workerOptions;
-    this.benchmarkSpec = benchmarkSpec;
-    this.methodParameterClasses = methodParameterClasses;
+  public TrialRequest(UUID id, int port, ExperimentSpec experiment) {
+    super(id, port);
+    this.experiment = experiment;
   }
 
-  /**
-   * Returns the ID of the trial to run.
-   */
-  public UUID trialId() {
-    return trialId;
-  }
-
-  /**
-   * Returns the instrument to use for the trial.
-   */
-  public InstrumentType instrumentType() {
-    return instrumentType;
-  }
-
-  /**
-   * Returns the worker options to use.
-   */
-  public ImmutableMap<String, String> workerOptions() {
-    return workerOptions;
-  }
-
-  /**
-   * Returns the spec of the benchmark to run for the trial.
-   */
-  public BenchmarkSpec benchmarkSpec() {
-    return benchmarkSpec;
-  }
-
-  /**
-   * Returns the parameter types for the benchmark method to run so that it can be uniquely
-   * identified.
-   */
-  public ImmutableList<Class<?>> methodParameterClasses() {
-    return methodParameterClasses;
+  /** Returns the experiment to run. */
+  public ExperimentSpec experiment() {
+    return experiment;
   }
 }

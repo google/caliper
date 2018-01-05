@@ -50,6 +50,7 @@ public class ExperimentTest {
     instrument.setInstrumentName("runtime");
     Method method = FooBenchmark.class.getDeclaredMethod("myBenchmark", long.class);
     return Experiment.create(
+        1,
         instrument.createInstrumentedMethod(method),
         ImmutableMap.of("baz", "qux"),
         Target.create(

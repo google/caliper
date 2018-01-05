@@ -16,7 +16,7 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.bridge.TrialRequest;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.runner.ExperimentModule;
 
 /**
@@ -31,11 +31,11 @@ public final class WorkerMain extends AbstractWorkerMain {
   }
 
   @Override
-  protected WorkerComponent createWorkerComponent(TrialRequest request)
+  protected WorkerComponent createWorkerComponent(ExperimentSpec experiment)
       throws ClassNotFoundException {
     return DaggerDalvikWorkerComponent.builder()
-        .experimentModule(ExperimentModule.forTrialRequest(request))
-        .workerModule(new WorkerModule(request))
+        .experimentModule(ExperimentModule.forExperimentSpec(experiment))
+        .workerModule(new WorkerModule(experiment))
         .build();
   }
 }
