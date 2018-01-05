@@ -32,6 +32,7 @@ import javax.inject.Inject;
  *
  * @author Colin Decker
  */
+@TrialScoped
 final class TrialSpec extends WorkerSpec {
 
   private final Experiment experiment;
@@ -54,6 +55,11 @@ final class TrialSpec extends WorkerSpec {
     this.benchmarkClass = benchmarkClass;
     this.trialNumber = trialNumber;
     this.port = port;
+  }
+
+  @Override
+  public String name() {
+    return "trial-" + trialNumber;
   }
 
   @Override
@@ -83,11 +89,6 @@ final class TrialSpec extends WorkerSpec {
         .addAll(vmConfig.commonInstrumentVmArgs())
         .addAll(instrument.getExtraCommandLineArgs(vmConfig))
         .build();
-  }
-
-  @Override
-  public String outputFileName() {
-    return "trial-" + trialNumber + ".log";
   }
 
   @Override

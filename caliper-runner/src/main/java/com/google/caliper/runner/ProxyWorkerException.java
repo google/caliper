@@ -25,14 +25,14 @@ import com.google.common.base.Splitter;
  */
 final class ProxyWorkerException extends RuntimeException {
   ProxyWorkerException(String stackTrace) {
-    super(formatMesssage(stackTrace));
+    super(formatMessage(stackTrace));
   }
 
-  private static String formatMesssage(String stackTrace) {
+  private static String formatMessage(String stackTrace) {
     StringBuilder builder =
         new StringBuilder(stackTrace.length() + 512)
             .append(
-                "An exception occurred in a worker process.  The stack trace is as follows:\n\t");
+                "An exception occurred in a worker process. The stack trace is as follows:\n\t");
     Joiner.on("\n\t").appendTo(builder, Splitter.on('\n').split(stackTrace));
     return builder.toString();
   }

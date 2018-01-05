@@ -16,6 +16,7 @@ package com.google.caliper.runner.options;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.runner.options.CommandLineParser.Leftovers;
 import com.google.caliper.runner.options.CommandLineParser.Option;
@@ -165,12 +166,15 @@ final class ParsedOptions implements CaliperOptions {
   // Time limit
   // --------------------------------------------------------------------------
 
-  private ShortDuration runTime = ShortDuration.of(5, MINUTES);
+  private ShortDuration timeLimit = ShortDuration.of(5, MINUTES);
 
   @Option({"-l", "--time-limit"})
   private void setTimeLimit(String timeLimitString) throws InvalidCommandException {
     try {
-      this.runTime = ShortDuration.valueOf(timeLimitString);
+      this.timeLimit = ShortDuration.valueOf(timeLimitString);
+      if (this.timeLimit.equals(ShortDuration.zero())) {
+        this.timeLimit = ShortDuration.of(Long.MAX_VALUE, NANOSECONDS);
+      }
     } catch (IllegalArgumentException e) {
       throw new InvalidCommandException("Invalid time limit: " + timeLimitString);
     }
@@ -178,7 +182,7 @@ final class ParsedOptions implements CaliperOptions {
 
   @Override
   public ShortDuration timeLimit() {
-    return runTime;
+    return timeLimit;
   }
 
   // --------------------------------------------------------------------------

@@ -42,6 +42,14 @@ abstract class WorkerSpec {
   }
 
   /**
+   * A unique (within a single Caliper run) name for this worker. Used for display to the user and
+   * in naming the file that worker output is written to.
+   */
+  public String name() {
+    return "worker-" + id;
+  }
+
+  /**
    * Returns the fully-qualified name of the worker class to run.
    */
   public String mainClass() {
@@ -63,13 +71,6 @@ abstract class WorkerSpec {
    */
   public ImmutableList<String> vmOptions(VmConfig vm) {
     return ImmutableList.of();
-  }
-
-  /**
-   * Returns the name to use for the output file for the worker.
-   */
-  public String outputFileName() {
-    return "worker-" + id + ".log";
   }
 
   /**

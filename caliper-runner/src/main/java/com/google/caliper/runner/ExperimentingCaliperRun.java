@@ -289,7 +289,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       for (Experiment experiment : experimentsToRun) {
         try {
           TrialScopeComponent trialScopeComponent = trialScopeComponentBuilder.get()
-              .trialModule(new TrialModule(trialNumber, experiment))
+              .trialNumber(trialNumber)
+              .experiment(experiment)
               .build();
 
           trials.add(trialScopeComponent.getScheduledTrial());

@@ -135,6 +135,12 @@ final class Worker extends AbstractService {
     this.output = output;
   }
 
+  /** Returns the name of this worker. */
+  String name() {
+    return spec.name();
+  }
+
+  /** Returns the logger for writing output from the worker. */
   WorkerOutputLogger outputLogger() {
     return output;
   }

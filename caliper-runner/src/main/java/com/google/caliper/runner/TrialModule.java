@@ -24,53 +24,32 @@ import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.Instrument.MeasurementCollectingVisitor;
+import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import java.util.UUID;
 
-/** Configuration for a {@link TrialRunLoop}. */
+/** Configuration for running a trial. */
 @Module
-final class TrialModule {
+abstract class TrialModule {
 
-  // TODO(cgdecker): Consider splitting this into two modules.
-  // One with the fields that need to be provided in the constructor, one abstract class for better
-  // performance.
-
-  private final int trialNumber;
-  private final Experiment experiment;
-
-  TrialModule(int trialNumber, Experiment experiment) {
-    this.trialNumber = trialNumber;
-    this.experiment = experiment;
-  }
+  @Binds
+  abstract WorkerProcessor<TrialResult> bindTrialProcessor(TrialProcessor processor);
 
   @Provides
   @TrialScoped
   @TrialId
-  UUID provideTrialId() {
+  static UUID provideTrialId() {
     return UUID.randomUUID();
   }
 
   @Provides
-  @TrialNumber
-  int provideTrialNumber() {
-    return trialNumber;
-  }
-
-  @Provides
-  Experiment provideExperiment() {
-    return experiment;
-  }
-
-  @Provides
-  Target provideTarget(Experiment experiment) {
+  static Target provideTarget(Experiment experiment) {
     return experiment.target();
   }
 
-  @Provides
-  WorkerSpec provideWorkerSpec(TrialSpec spec) {
-    return spec;
-  }
+  @Binds
+  abstract WorkerSpec bindWorkerSpec(TrialSpec spec);
 
   @TrialScoped
   @Provides
