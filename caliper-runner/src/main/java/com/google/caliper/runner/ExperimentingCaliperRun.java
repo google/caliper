@@ -172,6 +172,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     }
 
     if (options.dryRun()) {
+      stdout.println("Dry-run completed successfully.");
       return;
     }
 
