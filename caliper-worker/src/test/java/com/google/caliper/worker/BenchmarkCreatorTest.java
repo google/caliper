@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;

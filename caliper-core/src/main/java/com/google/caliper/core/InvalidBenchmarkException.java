@@ -22,6 +22,10 @@ public class InvalidBenchmarkException extends RuntimeException {
     super(String.format(message, fixArgs(args)));
   }
 
+  public InvalidBenchmarkException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
   private static Object[] fixArgs(Object[] args) {
     for (int i = 0; i < args.length; i++) {
       if (args[i] instanceof Class) {

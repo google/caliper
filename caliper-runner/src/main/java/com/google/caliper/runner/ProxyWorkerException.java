@@ -24,8 +24,24 @@ import com.google.common.base.Splitter;
  * reports the actual exception class and message in its message.
  */
 final class ProxyWorkerException extends RuntimeException {
-  ProxyWorkerException(String stackTrace) {
+
+  private final String exceptionType;
+  private final String message;
+
+  ProxyWorkerException(String exceptionType, String message, String stackTrace) {
     super(formatMessage(stackTrace));
+    this.message = message;
+    this.exceptionType = exceptionType;
+  }
+
+  /** Returns the type of the original exception. */
+  public String exceptionType() {
+    return exceptionType;
+  }
+
+  /** Returns the message from the original exception. */
+  public String message() {
+    return message;
   }
 
   private static String formatMessage(String stackTrace) {

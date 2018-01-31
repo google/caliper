@@ -53,6 +53,11 @@ public final class ArbitraryMeasurementWorker extends Worker {
   }
 
   @Override
+  public void dryRun() throws Exception {
+    benchmarkMethod.invoke(benchmark);
+  }
+
+  @Override
   public Iterable<Measurement> measure() throws Exception {
     double measured = (Double) benchmarkMethod.invoke(benchmark);
     return ImmutableSet.of(

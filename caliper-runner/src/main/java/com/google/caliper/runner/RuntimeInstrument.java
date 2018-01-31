@@ -18,27 +18,21 @@ import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_O
 import static com.google.caliper.runner.CommonInstrumentOptions.MAX_WARMUP_WALL_TIME_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.WARMUP_OPTION;
-import static com.google.caliper.util.Reflection.getAnnotatedMethods;
 import static com.google.caliper.util.Util.isStatic;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.api.AfterRep;
-import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
-import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.GcLogMessage;
 import com.google.caliper.bridge.HotspotLogMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.core.UserCodeException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.platform.Platform;
@@ -50,7 +44,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.List;
@@ -63,7 +56,6 @@ import javax.inject.Inject;
 class RuntimeInstrument extends Instrument {
   private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
   private static final String TIMING_INTERVAL_OPTION = "timingInterval";
-  private static final int DRY_RUN_REPS = 1;
 
   private static final Logger logger = Logger.getLogger(RuntimeInstrument.class.getName());
 
@@ -126,32 +118,6 @@ class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    public void dryRun(Object benchmark) throws UserCodeException {
-      ImmutableSet<Method> beforeRepMethods =
-          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), BeforeRep.class);
-      ImmutableSet<Method> afterRepMethods =
-          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), AfterRep.class);
-      try {
-        for (Method beforeRepMethod : beforeRepMethods) {
-          beforeRepMethod.invoke(benchmark);
-        }
-        try {
-          benchmarkMethod.invoke(benchmark);
-        } finally {
-          for (Method afterRepMethod : afterRepMethods) {
-            afterRepMethod.invoke(benchmark);
-          }
-        }
-      } catch (IllegalAccessException e) {
-        throw new AssertionError(e);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
-    }
-
-    @Override
     public InstrumentType type() {
       return InstrumentType.RUNTIME_MACRO;
     }
@@ -178,19 +144,6 @@ class RuntimeInstrument extends Instrument {
   private abstract class RuntimeInstrumentedMethod extends InstrumentedMethod {
     RuntimeInstrumentedMethod(Method method) {
       super(method);
-    }
-
-    @Override
-    public void dryRun(Object benchmark) throws UserCodeException {
-      try {
-        benchmarkMethod.invoke(benchmark, DRY_RUN_REPS);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
     }
 
     @Override

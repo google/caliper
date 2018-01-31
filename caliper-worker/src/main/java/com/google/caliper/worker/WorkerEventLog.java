@@ -16,6 +16,7 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.bridge.DryRunSuccessLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
@@ -26,6 +27,7 @@ import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.Measurement;
 import java.io.Closeable;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.UUID;
 
 /** The worker's interface for communicating with the runner. */
@@ -38,26 +40,24 @@ final class WorkerEventLog implements Closeable {
     this.reader = socket.reader();
   }
 
-  void notifyWorkerStarted(UUID trialId) throws IOException {
-    writer.write(new StartupAnnounceMessage(trialId));
-    writer.write(new VmPropertiesLogMessage());
-    writer.flush();
+  void notifyWorkerStarted(UUID workerId) throws IOException {
+    send(new StartupAnnounceMessage(workerId));
   }
 
-  void notifyBootstrapPhaseStarting() throws IOException {
-    writer.write("Bootstrap phase starting.");
-    writer.flush();
+  void notifyVmProperties() throws IOException {
+    send(new VmPropertiesLogMessage());
   }
 
-  void notifyMeasurementPhaseStarting() throws IOException {
-    writer.write("Measurement phase starting (includes warmup and actual measurement).");
-    writer.flush();
+  void notifyTrialBootstrapPhaseStarting() throws IOException {
+    send("Bootstrap phase starting.");
   }
 
-  void notifyMeasurementStarting() throws IOException {
-    writer.write("About to measure.");
-    writer.write(new StartMeasurementLogMessage());
-    writer.flush();
+  void notifyTrialMeasurementPhaseStarting() throws IOException {
+    send("Measurement phase starting (includes warmup and actual measurement).");
+  }
+
+  void notifyTrialMeasurementStarting() throws IOException {
+    send("About to measure.", new StartMeasurementLogMessage());
   }
 
   /**
@@ -65,15 +65,25 @@ final class WorkerEventLog implements Closeable {
    * from the runner, which lets us know whether to continue measuring and whether we're in the
    * warmup or measurement phase.
    */
-  ShouldContinueMessage notifyMeasurementEnding(Iterable<Measurement> measurements)
+  ShouldContinueMessage notifyTrialMeasurementEnding(Iterable<Measurement> measurements)
       throws IOException {
-    writer.write(new StopMeasurementLogMessage(measurements));
-    writer.flush();
+    send(new StopMeasurementLogMessage(measurements));
     return (ShouldContinueMessage) reader.read();
   }
 
-  void notifyFailure(Exception e) throws IOException {
-    writer.write(new FailureLogMessage(e));
+  void notifyDryRunSuccess(Iterable<Integer> ids) throws IOException {
+    send(DryRunSuccessLogMessage.create(ids));
+  }
+
+  void notifyFailure(Throwable e) throws IOException {
+    send(FailureLogMessage.create(e));
+  }
+
+  /** Sends the given messages to the runner. */
+  private void send(Serializable... messages) throws IOException {
+    for (Serializable message : messages) {
+      writer.write(message);
+    }
     writer.flush();
   }
 

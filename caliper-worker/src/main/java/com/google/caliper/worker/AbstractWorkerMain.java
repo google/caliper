@@ -16,15 +16,22 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.CommandLineSerializer;
+import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
+import com.google.caliper.core.UserCodeException;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.io.Closer;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.SocketChannel;
+import java.util.UUID;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages the
@@ -36,53 +43,104 @@ abstract class AbstractWorkerMain {
     // command line and then receive the spec from the socket.  This way we can start JVMs prior
     // to starting experiments and thus get better experiment latency.
     WorkerRequest request = CommandLineSerializer.parse(args[0]);
+    int port = request.port();
+    UUID workerId = request.id();
 
-    // TODO(cgdecker): Handle other kinds of requests
-    if (request instanceof TrialRequest) {
-      TrialRequest trialRequest = (TrialRequest) request;
+    Closer closer = Closer.create();
+    try {
+      SocketChannel channel = closer.register(SocketChannel.open());
+      channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), port));
 
-      // nonblocking connect so we can interleave the system call with injector creation.
-      SocketChannel channel = SocketChannel.open();
-      channel.configureBlocking(false);
-      channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), request.port()));
+      WorkerEventLog log = closer.register(new WorkerEventLog(OpenedSocket.fromSocket(channel)));
+      log.notifyWorkerStarted(workerId);
 
-      WorkerComponent workerComponent = createWorkerComponent(trialRequest.experiment());
-      Worker worker = workerComponent.getWorker();
-      WorkerEventLog log = new WorkerEventLog(OpenedSocket.fromSocket(channel));
+      if (request instanceof DryRunRequest) {
+        dryRun(((DryRunRequest) request).experiments(), log);
+      } else {
+        runTrial(((TrialRequest) request).experiment(), log);
+      }
+    } catch (Throwable t) {
+      throw closer.rethrow(t, Exception.class);
+    } finally {
+      closer.close();
+    }
+  }
 
-      log.notifyWorkerStarted(request.id());
+  private void dryRun(Iterable<ExperimentSpec> experiments, WorkerEventLog log) throws Exception {
+    ImmutableSet.Builder<Integer> successes = ImmutableSet.builder();
+
+    for (ExperimentSpec experiment : experiments) {
       try {
+        // Worker creation done here to ensure that user code exceptions thrown in construction are
+        // handled the same as exceptions thrown from benchmark methods, setup methods, etc.
+        Worker worker = createWorker(experiment);
+
         worker.setUpBenchmark();
-        log.notifyBootstrapPhaseStarting();
-        worker.bootstrap();
-        log.notifyMeasurementPhaseStarting();
-        boolean keepMeasuring = true;
-        boolean isInWarmup = true;
-        while (keepMeasuring) {
-          worker.preMeasure(isInWarmup);
-          log.notifyMeasurementStarting();
-          try {
-            ShouldContinueMessage message = log.notifyMeasurementEnding(worker.measure());
-            keepMeasuring = message.shouldContinue();
-            isInWarmup = !message.isWarmupComplete();
-          } finally {
-            worker.postMeasure();
-          }
+        try {
+          worker.dryRun();
+        } finally {
+          worker.tearDownBenchmark();
         }
-      } catch (Exception e) {
+
+        successes.add(experiment.id());
+      } catch (Throwable e) {
+        if (e instanceof InvocationTargetException) {
+          Throwable userException = e.getCause(); // the exception thrown by the benchmark method
+          if (userException instanceof SkipThisScenarioException) {
+            // Throwing SkipThisScenarioException is not a failure; we simply don't include that
+            // experiment's ID in the list we send back, which tells the runner that it should be
+            // skipped.
+            continue;
+          }
+
+          e = new UserCodeException(userException);
+        }
+
         log.notifyFailure(e);
-      } finally {
-        System.out.flush(); // ?
-        worker.tearDownBenchmark();
-        log.close();
+        // stop after one failure; the runner should throw an exception once we notify it anyway
+        return;
       }
     }
+
+    log.notifyDryRunSuccess(successes.build());
+  }
+
+  private void runTrial(ExperimentSpec experiment, WorkerEventLog log) throws Exception {
+    Worker worker = createWorker(experiment);
+
+    log.notifyVmProperties();
+    try {
+      worker.setUpBenchmark();
+      log.notifyTrialBootstrapPhaseStarting();
+      worker.bootstrap();
+      log.notifyTrialMeasurementPhaseStarting();
+      boolean keepMeasuring = true;
+      boolean isInWarmup = true;
+      while (keepMeasuring) {
+        worker.preMeasure(isInWarmup);
+        log.notifyTrialMeasurementStarting();
+        try {
+          ShouldContinueMessage message = log.notifyTrialMeasurementEnding(worker.measure());
+          keepMeasuring = message.shouldContinue();
+          isInWarmup = !message.isWarmupComplete();
+        } finally {
+          worker.postMeasure();
+        }
+      }
+    } catch (Exception e) {
+      log.notifyFailure(e);
+    } finally {
+      worker.tearDownBenchmark();
+    }
+  }
+
+  private Worker createWorker(ExperimentSpec experiment) {
+    return createWorkerComponent(experiment).getWorker();
   }
 
   /**
    * Creates the Dagger {@link WorkerComponent} that will create the worker for the given
    * experiment.
    */
-  protected abstract WorkerComponent createWorkerComponent(ExperimentSpec experiment)
-      throws ClassNotFoundException;
+  protected abstract WorkerComponent createWorkerComponent(ExperimentSpec experiment);
 }

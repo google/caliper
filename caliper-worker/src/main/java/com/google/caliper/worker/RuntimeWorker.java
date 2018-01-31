@@ -40,6 +40,7 @@ public abstract class RuntimeWorker extends Worker {
   protected final Random random;
   protected final Ticker ticker;
   protected final Options options;
+
   private long totalReps;
   private long totalNanos;
   private long nextReps;
@@ -68,14 +69,21 @@ public abstract class RuntimeWorker extends Worker {
     nextReps =
         calculateTargetReps(
             totalReps, totalNanos, options.timingIntervalNanos, random.nextGaussian());
+
     if (options.gcBeforeEach && !inWarmup) {
       Util.forceGc();
     }
   }
 
   @Override
+  public void dryRun() throws Exception {
+    invokeTimeMethod(1);
+  }
+
+  @Override
   public Iterable<Measurement> measure() throws Exception {
     long nanos = invokeTimeMethod(nextReps);
+
     Measurement measurement =
         new Measurement.Builder()
             .description("runtime")

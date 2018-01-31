@@ -22,7 +22,6 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
@@ -139,9 +138,6 @@ public class CaliperRunModuleTest {
         public InstrumentType type() {
           throw new UnsupportedOperationException();
         }
-
-        @Override
-        public void dryRun(Object benchmark) throws InvalidBenchmarkException {}
 
         @Override
         MeasurementCollectingVisitor getMeasurementCollectingVisitor() {

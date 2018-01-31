@@ -17,6 +17,8 @@
 package com.google.caliper.runner;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
@@ -46,6 +48,16 @@ public abstract class Command {
    * Returns the full list of arguments that make up this command, including the binary to run.
    */
   public abstract ImmutableList<String> arguments();
+
+  private static final Joiner SPACE_JOINER = Joiner.on(' ');
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(Command.class.getSimpleName())
+        .add("environment", environment())
+        .add("arguments", SPACE_JOINER.join(arguments()))
+        .toString();
+  }
 
   /**
    * Builder for creating {@link Command} objects.

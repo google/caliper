@@ -129,6 +129,11 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
   }
 
   @Override
+  public void dryRun() throws Exception {
+    benchmarkMethod.invoke(benchmark, 1);
+  }
+
+  @Override
   public Iterable<Measurement> measure() throws Exception {
     AllocationStats baseline = measureAllocations(benchmark, benchmarkMethod, 0);
     // [1, MAX_REPS]

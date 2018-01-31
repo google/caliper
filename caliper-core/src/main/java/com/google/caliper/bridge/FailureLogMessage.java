@@ -16,48 +16,34 @@
 
 package com.google.caliper.bridge;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Throwables;
 import java.io.Serializable;
+import javax.annotation.Nullable;
 
 /** A message containing information on a failure encountered by the worker JVM. */
-public class FailureLogMessage extends LogMessage implements Serializable {
+@AutoValue
+public abstract class FailureLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  private final String stackTrace;
-
-  public FailureLogMessage(Throwable e) {
-    this(Throwables.getStackTraceAsString(e));
+  /** Creates a new log message for the given {@code Throwable}. */
+  public static FailureLogMessage create(Throwable e) {
+    return new AutoValue_FailureLogMessage(
+        e.getClass().getName(), e.getMessage(), Throwables.getStackTraceAsString(e));
   }
 
-  public FailureLogMessage(String stackTrace) {
-    this.stackTrace = checkNotNull(stackTrace);
-  }
+  /** The name of the type of the exception that was thrown. */
+  public abstract String exceptionType();
 
-  public String stackTrace() {
-    return stackTrace;
-  }
+  /** Returns the message of the exception that was thrown. */
+  @Nullable
+  public abstract String message();
+
+  /** The full stack trace of the exception. */
+  public abstract String stackTrace();
 
   @Override
-  public void accept(LogMessageVisitor visitor) {
+  public final void accept(LogMessageVisitor visitor) {
     visitor.visit(this);
-  }
-
-  @Override
-  public int hashCode() {
-    return stackTrace.hashCode();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    } else if (obj instanceof FailureLogMessage) {
-      FailureLogMessage that = (FailureLogMessage) obj;
-      return this.stackTrace.equals(that.stackTrace);
-    } else {
-      return false;
-    }
   }
 }

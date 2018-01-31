@@ -17,18 +17,25 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.ExperimentSpec;
-import com.google.caliper.core.Running;
+import com.google.caliper.core.Running.Benchmark;
+import com.google.caliper.core.Running.BenchmarkClass;
+import com.google.caliper.core.Running.BenchmarkMethod;
+import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
 import com.google.common.base.Ticker;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
+import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.Random;
 import javax.inject.Provider;
+import javax.inject.Singleton;
 
 /**
  * Binds classes necessary for the worker. Also manages the injection of {@link
@@ -38,80 +45,121 @@ import javax.inject.Provider;
  * objects required by different workers. (i.e. don't bind a Ticker if the worker is an allocation
  * worker).
  */
-@Module(includes = WorkerModule.OtherBindings.class)
-final class WorkerModule {
-  private final ExperimentSpec experiment;
-  private final Class<?> benchmarkClassObject;
+@Module
+abstract class WorkerModule {
 
-  WorkerModule(ExperimentSpec experiment) throws ClassNotFoundException {
-    this.experiment = experiment;
-    this.benchmarkClassObject = Util.loadClass(experiment.benchmarkSpec().className());
+  @Provides
+  static BenchmarkSpec provideBenchmarkSpec(ExperimentSpec experiment) {
+    return experiment.benchmarkSpec();
   }
 
   @Provides
-  ExperimentSpec provideExperimentSpec() {
-    return experiment;
+  @Singleton
+  @BenchmarkClass
+  static Class<?> provideBenchmarkClass(BenchmarkSpec spec) {
+    try {
+      return Util.loadClass(spec.className());
+    } catch (ClassNotFoundException e) {
+      // TODO(cgdecker): Throw a better exception type?
+      throw new RuntimeException(e);
+    }
   }
 
   @Provides
-  @Running.BenchmarkClass
-  Class<?> provideBenchmarkClassObject() {
-    return benchmarkClassObject;
+  @Benchmark
+  static Object provideBenchmarkInstance(BenchmarkCreator creator) {
+    return creator.createBenchmarkInstance();
   }
 
-  @Module
-  abstract static class OtherBindings {
+  @Provides
+  @Singleton
+  @BenchmarkMethod
+  static Method provideBenchmarkMethod(
+      ExperimentSpec experiment,
+      BenchmarkSpec benchmarkSpec,
+      @BenchmarkClass Class<?> benchmarkClass) {
+    Method method =
+        findBenchmarkMethod(
+            benchmarkClass, benchmarkSpec.methodName(), experiment.methodParameterClasses());
+    method.setAccessible(true);
+    return method;
+  }
 
-    @Provides
-    static InstrumentType provideInstrumentType(ExperimentSpec experiment) {
-      return experiment.instrumentType();
+  @Provides
+  @BenchmarkMethod
+  static String provideBenchmarkMethodName(@BenchmarkMethod Method benchmarkMethod) {
+    return benchmarkMethod.getName();
+  }
+
+  @Provides
+  @Benchmark
+  static ImmutableSortedMap<String, String> provideUserParameters(BenchmarkSpec spec) {
+    return spec.parameters();
+  }
+
+  @Provides
+  static InstrumentType provideInstrumentType(ExperimentSpec experiment) {
+    return experiment.instrumentType();
+  }
+
+  @Provides
+  @WorkerOptions
+  static Map<String, String> provideWorkerOptions(ExperimentSpec experiment) {
+    return experiment.workerOptions();
+  }
+
+  @Provides
+  static Worker provideWorker(
+      InstrumentType instrumentType, Map<InstrumentType, Provider<Worker>> availableWorkers) {
+    Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
+    if (workerProvider == null) {
+      throw new InvalidCommandException(
+          "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
     }
+    return workerProvider.get();
+  }
 
-    @Provides
-    @WorkerOptions
-    static Map<String, String> provideWorkerOptions(ExperimentSpec experiment) {
-      return experiment.workerOptions();
-    }
+  @Binds
+  @IntoMap
+  @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
+  abstract Worker bindArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl);
 
-    @Provides
-    static Worker provideWorker(
-        InstrumentType instrumentType, Map<InstrumentType, Provider<Worker>> availableWorkers) {
-      Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
-      if (workerProvider == null) {
-        throw new InvalidCommandException(
-            "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
-      }
-      return workerProvider.get();
-    }
+  @Binds
+  @IntoMap
+  @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
+  abstract Worker bindMacrobenchmarkWorker(MacrobenchmarkWorker impl);
 
-    @Binds
-    @IntoMap
-    @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
-    abstract Worker bindArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl);
+  @Binds
+  @IntoMap
+  @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
+  abstract Worker bindRuntimeWorkerMicro(RuntimeWorker.Micro impl);
 
-    @Binds
-    @IntoMap
-    @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
-    abstract Worker provideMacrobenchmarkWorker(MacrobenchmarkWorker impl);
+  @Binds
+  @IntoMap
+  @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
+  abstract Worker bindRuntimeWorkerPico(RuntimeWorker.Pico impl);
 
-    @Binds
-    @IntoMap
-    @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
-    abstract Worker provideRuntimeWorkerMicro(RuntimeWorker.Micro impl);
+  @Provides
+  static Ticker provideTicker() {
+    return Ticker.systemTicker();
+  }
 
-    @Binds
-    @IntoMap
-    @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
-    abstract Worker provideRuntimeWorkerPico(RuntimeWorker.Pico impl);
+  @Provides
+  @Singleton
+  static Random provideRandom() {
+    return new Random();
+  }
 
-    @Provides
-    static Ticker provideTicker() {
-      return Ticker.systemTicker();
-    }
-
-    @Provides
-    static Random provideRandom() {
-      return new Random();
+  private static Method findBenchmarkMethod(
+      Class<?> benchmark, String methodName, ImmutableList<Class<?>> methodParameterClasses) {
+    Class<?>[] params = methodParameterClasses.toArray(new Class<?>[0]);
+    try {
+      return benchmark.getDeclaredMethod(methodName, params);
+    } catch (NoSuchMethodException e) {
+      throw new RuntimeException(e);
+    } catch (SecurityException e) {
+      // assertion error?
+      throw new RuntimeException(e);
     }
   }
 }

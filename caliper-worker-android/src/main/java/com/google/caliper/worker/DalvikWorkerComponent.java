@@ -17,19 +17,25 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.runner.BenchmarkClassModule;
-import com.google.caliper.runner.ExperimentModule;
+import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 
 /** Actual {@code WorkerComponent} for use on Android. */
 @Singleton
-@Component(
-  modules = {
-    BenchmarkClassModule.class,
-    BridgeModule.class,
-    ExperimentModule.class,
-    WorkerModule.class
+@Component(modules = {BenchmarkClassModule.class, BridgeModule.class, WorkerModule.class})
+interface DalvikWorkerComponent extends WorkerComponent {
+
+  /** Builder for a {@code DalvikWorkerComponent}. */
+  @Component.Builder
+  interface Builder {
+    /** Binds the {@code ExperimentSpec} for the worker. */
+    @BindsInstance
+    Builder experiment(ExperimentSpec experiment);
+
+    /** Builds a new {@code DalvikWorkerComponent} instance. */
+    DalvikWorkerComponent build();
   }
-)
-interface DalvikWorkerComponent extends WorkerComponent {}
+}

@@ -41,4 +41,7 @@ public abstract class AbstractLogMessageVisitor implements LogMessageVisitor {
 
   @Override
   public void visit(VmPropertiesLogMessage logMessage) {}
+
+  @Override
+  public void visit(DryRunSuccessLogMessage logMessage) {}
 }
