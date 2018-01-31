@@ -48,9 +48,8 @@ import javax.inject.Provider;
 
 /** Configures the {@link CaliperRun}. */
 @Module(
-    includes = {HostModule.class, NanoTimeGranularityModule.class},
-    // TODO(cgdecker): Remove ExperimentComponent when moving dry runs to the worker
-    subcomponents = {ExperimentComponent.class, TrialScopeComponent.class}
+  includes = {HostModule.class, NanoTimeGranularityModule.class},
+  subcomponents = {DryRunComponent.class, TrialScopeComponent.class}
 )
 abstract class CaliperRunModule {
 

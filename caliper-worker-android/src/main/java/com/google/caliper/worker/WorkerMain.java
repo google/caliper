@@ -17,7 +17,6 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.ExperimentSpec;
-import com.google.caliper.runner.ExperimentModule;
 
 /**
  * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages the
@@ -31,11 +30,7 @@ public final class WorkerMain extends AbstractWorkerMain {
   }
 
   @Override
-  protected WorkerComponent createWorkerComponent(ExperimentSpec experiment)
-      throws ClassNotFoundException {
-    return DaggerDalvikWorkerComponent.builder()
-        .experimentModule(ExperimentModule.forExperimentSpec(experiment))
-        .workerModule(new WorkerModule(experiment))
-        .build();
+  protected WorkerComponent createWorkerComponent(ExperimentSpec experiment) {
+    return DaggerDalvikWorkerComponent.builder().experiment(experiment).build();
   }
 }

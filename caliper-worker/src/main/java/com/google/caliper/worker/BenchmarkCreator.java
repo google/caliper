@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
 import com.google.caliper.Param;
-import com.google.caliper.core.Running;
+import com.google.caliper.core.Running.Benchmark;
+import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.core.UserCodeException;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
@@ -40,8 +41,8 @@ final class BenchmarkCreator {
 
   @Inject
   BenchmarkCreator(
-      @Running.BenchmarkClass Class<?> benchmarkClass,
-      @Running.Benchmark ImmutableSortedMap<String, String> parameters) {
+      @BenchmarkClass Class<?> benchmarkClass,
+      @Benchmark ImmutableSortedMap<String, String> parameters) {
     this.benchmarkClass = benchmarkClass;
     this.benchmarkClassCtor = findDefaultConstructor(benchmarkClass);
     this.parameters = parameters;

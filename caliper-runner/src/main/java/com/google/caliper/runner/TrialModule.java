@@ -18,7 +18,6 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.Host;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Scenario;
@@ -51,16 +50,6 @@ abstract class TrialModule {
   @Binds
   abstract WorkerSpec bindWorkerSpec(TrialSpec spec);
 
-  @TrialScoped
-  @Provides
-  static BenchmarkSpec provideBenchmarkSpec(Experiment experiment) {
-    return new BenchmarkSpec.Builder()
-        .className(experiment.instrumentedMethod().benchmarkMethod().getDeclaringClass().getName())
-        .methodName(experiment.instrumentedMethod().benchmarkMethod().getName())
-        .addAllParameters(experiment.userParameters())
-        .build();
-  }
-
   @Provides
   static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
     return experiment.instrumentedMethod().getMeasurementCollectingVisitor();
@@ -74,11 +63,7 @@ abstract class TrialModule {
 
   @Provides
   static TrialResultFactory provideTrialFactory(
-      @TrialId final UUID trialId,
-      final Run run,
-      final Host host,
-      final Experiment experiment,
-      final BenchmarkSpec benchmarkSpec) {
+      @TrialId final UUID trialId, final Run run, final Host host, final Experiment experiment) {
     return new TrialResultFactory() {
       @Override
       public TrialResult newTrialResult(
@@ -95,7 +80,7 @@ abstract class TrialModule {
                     new Scenario.Builder()
                         .host(host)
                         .vmSpec(dataCollectingVisitor.vmSpec())
-                        .benchmarkSpec(benchmarkSpec))
+                        .benchmarkSpec(experiment.benchmarkSpec()))
                 .addAllMeasurements(measurementCollectingVisitor.getMeasurements())
                 .build(),
             experiment,

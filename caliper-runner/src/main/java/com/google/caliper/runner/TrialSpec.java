@@ -17,11 +17,8 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.bridge.CommandLineSerializer;
-import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.model.BenchmarkSpec;
-import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import java.io.PrintWriter;
@@ -37,7 +34,6 @@ import javax.inject.Inject;
 final class TrialSpec extends WorkerSpec {
 
   private final Experiment experiment;
-  private final BenchmarkSpec benchmarkSpec;
   private final BenchmarkClass benchmarkClass;
   private final int trialNumber;
   private final int port;
@@ -46,13 +42,11 @@ final class TrialSpec extends WorkerSpec {
   TrialSpec(
       @TrialId UUID id,
       Experiment experiment,
-      BenchmarkSpec benchmarkSpec,
       BenchmarkClass benchmarkClass,
       @TrialNumber int trialNumber,
       @LocalPort int port) {
     super(id);
     this.experiment = experiment;
-    this.benchmarkSpec = benchmarkSpec;
     this.benchmarkClass = benchmarkClass;
     this.trialNumber = trialNumber;
     this.port = port;
@@ -65,26 +59,10 @@ final class TrialSpec extends WorkerSpec {
 
   @Override
   public ImmutableList<String> args() {
-    InstrumentedMethod instrumentedMethod = experiment.instrumentedMethod();
-    WorkerRequest request =
-        new TrialRequest(
-            id(),
-            port,
-            new ExperimentSpec(
-                experiment.id(),
-                instrumentedMethod.type(),
-                instrumentedMethod.workerOptions(),
-                benchmarkSpec,
-                ImmutableList.copyOf(instrumentedMethod.benchmarkMethod().getParameterTypes())));
+    WorkerRequest request = new TrialRequest(id(), port, experiment.toExperimentSpec());
     return ImmutableList.of(CommandLineSerializer.render(request));
   }
 
-  /**
-   * Returns a list of VM option flags that should be used when starting the worker VM.
-   *
-   * <p>These will be added to the command line in addition to options specified in the VM
-   * configuration.
-   */
   @Override
   public ImmutableList<String> vmOptions(VmConfig vmConfig) {
     Instrument instrument = experiment.instrumentedMethod().instrument();

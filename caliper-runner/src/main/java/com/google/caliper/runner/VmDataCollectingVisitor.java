@@ -17,7 +17,6 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
-import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.VmSpec;
@@ -48,11 +47,6 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
     ImmutableMap<String, String> options = vmOptionsBuilder.build();
     platform.checkVmProperties(options);
     return new VmSpec.Builder().addAllProperties(vmProperties.get()).addAllOptions(options).build();
-  }
-
-  @Override
-  public void visit(FailureLogMessage logMessage) {
-    throw new ProxyWorkerException(logMessage.stackTrace());
   }
 
   @Override

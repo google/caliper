@@ -59,6 +59,7 @@ final class TrialProcessor extends WorkerProcessor<TrialResult> {
 
   @Override
   public boolean handleMessage(LogMessage message, Worker worker) throws IOException {
+    message.accept(FailureLogMessageVisitor.INSTANCE);
     message.accept(measurementCollectingVisitor);
     message.accept(dataCollectingVisitor);
 

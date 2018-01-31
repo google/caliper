@@ -114,8 +114,6 @@ public abstract class Instrument {
           .toString();
     }
 
-    public abstract void dryRun(Object benchmark) throws InvalidBenchmarkException;
-
     public abstract InstrumentType type();
 
     /**

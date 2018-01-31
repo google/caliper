@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,29 @@
 
 package com.google.caliper.bridge;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
-import java.util.UUID;
+import java.io.Serializable;
 
 /**
- * {@link WorkerRequest} for telling the worker to do a dry-run of multiple experiments.
+ * A log message listing the IDs of successful dry-run experiments.
  *
  * @author Colin Decker
  */
-public final class DryRunRequest extends WorkerRequest {
+@AutoValue
+public abstract class DryRunSuccessLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  private final ImmutableSet<ExperimentSpec> experiments;
-
-  public DryRunRequest(UUID id, int port, Iterable<ExperimentSpec> experiments) {
-    super(id, port);
-    this.experiments = ImmutableSet.copyOf(experiments);
+  /** Creates a new dry-run success log message for the given experiment IDs. */
+  public static DryRunSuccessLogMessage create(Iterable<Integer> ids) {
+    return new AutoValue_DryRunSuccessLogMessage(ImmutableSet.copyOf(ids));
   }
 
-  /** Returns the set of experiments to be dry-run. */
-  public ImmutableSet<ExperimentSpec> experiments() {
-    return experiments;
+  /** Returns the IDs of the experiments that were successfully dry-run and not skipped. */
+  public abstract ImmutableSet<Integer> ids();
+
+  @Override
+  public void accept(LogMessageVisitor visitor) {
+    visitor.visit(this);
   }
 }

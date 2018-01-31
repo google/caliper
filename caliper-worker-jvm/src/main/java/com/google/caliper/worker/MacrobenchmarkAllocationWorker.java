@@ -63,6 +63,13 @@ public final class MacrobenchmarkAllocationWorker extends Worker {
   }
 
   @Override
+  public void dryRun() throws Exception {
+    preMeasure(true);
+    benchmarkMethod.invoke(benchmark);
+    postMeasure();
+  }
+
+  @Override
   public ImmutableList<Measurement> measure() throws Exception {
     return measureAllocations(benchmark, benchmarkMethod).toMeasurements();
   }

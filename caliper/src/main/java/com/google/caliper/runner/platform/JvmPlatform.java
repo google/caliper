@@ -109,20 +109,27 @@ public final class JvmPlatform extends Platform {
     return classpath;
   }
 
+  /**
+   * Predicate for filtering out JVM flags (from those used to start the runner JVM) that we don't
+   * want to pass on to worker VMs.
+   */
+  private static final Predicate<String> JVM_FLAGS_TO_RETAIN =
+      new Predicate<String>() {
+        @Override
+        public boolean apply(String flag) {
+          // Exclude the -agentlib:jdwp param which configures the socket debugging protocol.
+          // If this is set in the parent VM we do not want it to be inherited by the child
+          // VM.  If it is, the child will die immediately on startup because it will fail to
+          // bind to the debug port (because the parent VM is already bound to it).
+          return !flag.startsWith("-agentlib:jdwp");
+        }
+      };
+
   @Override
   public Collection<String> inputArguments() {
+    // TODO(cgdecker): Don't pass any input args to workers by default.
     return Collections2.filter(
-        ManagementFactory.getRuntimeMXBean().getInputArguments(),
-        new Predicate<String>() {
-          @Override
-          public boolean apply(String input) {
-            // Exclude the -agentlib:jdwp param which configures the socket debugging protocol.
-            // If this is set in the parent VM we do not want it to be inherited by the child
-            // VM.  If it is, the child will die immediately on startup because it will fail to
-            // bind to the debug port (because the parent VM is already bound to it).
-            return !input.startsWith("-agentlib:jdwp");
-          }
-        });
+        ManagementFactory.getRuntimeMXBean().getInputArguments(), JVM_FLAGS_TO_RETAIN);
   }
 
   @Override

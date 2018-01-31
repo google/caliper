@@ -64,6 +64,13 @@ public class MacrobenchmarkWorker extends Worker {
   }
 
   @Override
+  public void dryRun() throws Exception {
+    preMeasure(true);
+    benchmarkMethod.invoke(benchmark);
+    postMeasure();
+  }
+
+  @Override
   public Iterable<Measurement> measure() throws Exception {
     stopwatch.start();
     benchmarkMethod.invoke(benchmark);

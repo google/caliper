@@ -37,7 +37,7 @@ public class BadUserCodeTest {
   public void testExceptionInInit() throws Exception {
     try {
       runner.forBenchmark(ExceptionInInitBenchmark.class).run();
-      fail();
+      fail("Expected UserCodeException");
     } catch (UserCodeException expected) {
     }
   }
@@ -62,7 +62,7 @@ public class BadUserCodeTest {
   public void testExceptionInConstructor() throws Exception {
     try {
       runner.forBenchmark(ExceptionInConstructorBenchmark.class).run();
-      fail();
+      fail("Expected UserCodeException");
     } catch (UserCodeException expected) {
     }
   }
@@ -100,7 +100,7 @@ public class BadUserCodeTest {
   public void testExceptionInMethod_notInDryRun() throws Exception {
     try {
       runner.forBenchmark(ExceptionLateInMethodBenchmark.class).run();
-      fail();
+      fail("Expected ProxyWorkerException");
     } catch (ProxyWorkerException expected) {
       assertTrue(expected.getMessage().contains(ExceptionLateInMethodBenchmark.class.getName()));
     }
@@ -120,7 +120,7 @@ public class BadUserCodeTest {
   public void testExceptionInSetUp() throws Exception {
     try {
       runner.forBenchmark(ExceptionInSetUpBenchmark.class).run();
-      fail();
+      fail("Expected UserCodeException");
     } catch (UserCodeException expected) {
     }
   }
@@ -146,7 +146,7 @@ public class BadUserCodeTest {
           .instrument("allocation")
           .options("-Cinstrument.allocation.options.trackAllocations=" + false)
           .run();
-      fail();
+      fail("Expected ProxyWorkerException");
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
       assertTrue(
@@ -164,7 +164,7 @@ public class BadUserCodeTest {
           .instrument("allocation")
           .options("-Cinstrument.allocation.options.trackAllocations=" + true)
           .run();
-      fail();
+      fail("Expected ProxyWorkerException");
     } catch (ProxyWorkerException expected) {
       String message = "Your benchmark appears to have non-deterministic allocation behavior";
       assertTrue(

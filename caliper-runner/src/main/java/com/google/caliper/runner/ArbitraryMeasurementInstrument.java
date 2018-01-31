@@ -17,13 +17,10 @@
 package com.google.caliper.runner;
 
 import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_OPTION;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
 
-import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.core.UserCodeException;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
@@ -35,7 +32,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 /**
@@ -87,19 +83,6 @@ public final class ArbitraryMeasurementInstrument extends Instrument {
   private final class ArbitraryMeasurementInstrumentedMethod extends InstrumentedMethod {
     protected ArbitraryMeasurementInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
-    }
-
-    @Override
-    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
-      try {
-        benchmarkMethod.invoke(benchmark);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
     }
 
     @Override

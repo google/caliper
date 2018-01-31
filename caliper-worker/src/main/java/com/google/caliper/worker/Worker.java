@@ -57,6 +57,9 @@ public abstract class Worker {
   /** Called immediately after {@link #measure()}. */
   public void postMeasure() throws Exception {}
 
+  /** Does a minimal dry-run of the benchmark to ensure that it runs successfully. */
+  public abstract void dryRun() throws Exception;
+
   /** Template method for workers that produce multiple measurements. */
   public abstract Iterable<Measurement> measure() throws Exception;
 

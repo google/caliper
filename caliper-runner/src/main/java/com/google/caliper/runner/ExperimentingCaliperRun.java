@@ -22,6 +22,7 @@ import static java.util.logging.Level.WARNING;
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.core.UserCodeException;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Stdout;
@@ -34,6 +35,7 @@ import com.google.common.collect.FluentIterable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
@@ -80,7 +82,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ExperimentSelector selector;
   private final Provider<ListeningExecutorService> executorProvider;
 
-  private final Provider<ExperimentComponent.Builder> experimentComponentBuilder;
+  private final Provider<DryRunComponent.Builder> dryRunComponentBuilder;
   private final Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder;
 
   @Inject
@@ -93,7 +95,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
       Provider<ListeningExecutorService> executorProvider,
-      Provider<ExperimentComponent.Builder> experimentComponentBuilder,
+      Provider<DryRunComponent.Builder> dryRunComponentBuilder,
       Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder) {
     this.options = options;
     this.stdout = stdout;
@@ -102,7 +104,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.resultProcessors = resultProcessors;
     this.selector = selector;
     this.executorProvider = executorProvider;
-    this.experimentComponentBuilder = experimentComponentBuilder;
+    this.dryRunComponentBuilder = dryRunComponentBuilder;
     this.trialScopeComponentBuilder = trialScopeComponentBuilder;
   }
 
@@ -111,45 +113,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     benchmarkClass.validateParameters(options.userParameters());
 
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
-    // TODO(lukes): move this standard-out handling into the ConsoleOutput class?
-    // if the user specified a run name, print it first.
-    if (!options.runName().isEmpty()) {
-      stdout.println("Run: " + options.runName());
-    }
-    stdout.println("Experiment selection: ");
-    stdout.println(
-        "  Benchmark Methods:   "
-            + FluentIterable.from(allExperiments)
-                .transform(
-                    new Function<Experiment, String>() {
-                      @Override
-                      public String apply(Experiment experiment) {
-                        return experiment.instrumentedMethod().benchmarkMethod().getName();
-                      }
-                    })
-                .toSet());
-    stdout.println(
-        "  Instruments:   "
-            + FluentIterable.from(selector.instruments())
-                .transform(
-                    new Function<Instrument, String>() {
-                      @Override
-                      public String apply(Instrument instrument) {
-                        return instrument.name();
-                      }
-                    }));
-    stdout.println("  User parameters:   " + selector.userParameters());
-    stdout.println(
-        "  Target VMs:  "
-            + FluentIterable.from(selector.targets())
-                .transform(
-                    new Function<Target, String>() {
-                      @Override
-                      public String apply(Target target) {
-                        return target.name();
-                      }
-                    }));
-    stdout.println();
+
+    printRunInfo(allExperiments);
 
     if (allExperiments.isEmpty()) {
       throw new InvalidBenchmarkException(
@@ -199,17 +164,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
           if (e.getCause() instanceof TrialFailureException) {
             output.processFailedTrial((TrialFailureException) e.getCause());
           } else {
-            for (ListenableFuture<?> toCancel : pendingTrials) {
-              toCancel.cancel(true);
-            }
+            cancelAll(pendingTrials);
             throw Throwables.propagate(e.getCause());
           }
         } catch (InterruptedException e) {
-          // be responsive to interruption, cancel outstanding work and exit
-          for (ListenableFuture<?> toCancel : pendingTrials) {
-            // N.B. TrialRunLoop is responsive to interruption.
-            toCancel.cancel(true);
-          }
+          cancelAll(pendingTrials);
           throw new RuntimeException(e);
         }
       }
@@ -238,6 +197,48 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         logger.log(WARNING, "Could not close a result processor: " + resultProcessor, e);
       }
     }
+  }
+
+  private void printRunInfo(ImmutableSet<Experiment> allExperiments) {
+    // TODO(lukes): move this standard-out handling into the ConsoleOutput class?
+    // if the user specified a run name, print it first.
+    if (!options.runName().isEmpty()) {
+      stdout.println("Run: " + options.runName());
+    }
+    stdout.println("Experiment selection: ");
+    stdout.println(
+        "  Benchmark Methods:   "
+            + FluentIterable.from(allExperiments)
+                .transform(
+                    new Function<Experiment, String>() {
+                      @Override
+                      public String apply(Experiment experiment) {
+                        return experiment.instrumentedMethod().benchmarkMethod().getName();
+                      }
+                    })
+                .toSet());
+    stdout.println(
+        "  Instruments:   "
+            + FluentIterable.from(selector.instruments())
+                .transform(
+                    new Function<Instrument, String>() {
+                      @Override
+                      public String apply(Instrument instrument) {
+                        return instrument.name();
+                      }
+                    }));
+    stdout.println("  User parameters:   " + selector.userParameters());
+    stdout.println(
+        "  Target VMs:  "
+            + FluentIterable.from(selector.targets())
+                .transform(
+                    new Function<Target, String>() {
+                      @Override
+                      public String apply(Target target) {
+                        return target.name();
+                      }
+                    }));
+    stdout.println();
   }
 
   /**
@@ -288,46 +289,69 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     int trialNumber = 1;
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
-        try {
-          TrialScopeComponent trialScopeComponent = trialScopeComponentBuilder.get()
-              .trialNumber(trialNumber)
-              .experiment(experiment)
-              .build();
-
-          trials.add(trialScopeComponent.getScheduledTrial());
-        } finally {
-          trialNumber++;
-        }
+        ScheduledTrial trial =
+            trialScopeComponentBuilder
+                .get()
+                .trialNumber(trialNumber++)
+                .experiment(experiment)
+                .build()
+                .getScheduledTrial();
+        trials.add(trial);
       }
     }
     return trials;
   }
 
   /**
-   * Attempts to run each given scenario once, in the current VM. Returns a set of all of the
-   * scenarios that didn't throw a {@link SkipThisScenarioException}.
+   * Attempts to run each given experiment once on the target for that experiment. Returns a set of
+   * all of the experiments that didn't throw a {@link SkipThisScenarioException}.
    */
   ImmutableSet<Experiment> dryRun(Iterable<Experiment> experiments)
       throws InvalidBenchmarkException {
-    ImmutableSet.Builder<Experiment> builder = ImmutableSet.builder();
-    for (Experiment experiment : experiments) {
+    // TODO(cgdecker): Use Multimaps.index once lambdas/method references can be used in runner.
+    ImmutableSetMultimap<Target, Experiment> experimentsByTarget = indexByTarget(experiments);
+
+    // For now, run dry-runs for each target in serial so we don't have multiple dry-run workers
+    // running at the same time. Since currently workers are necessarily all on the same device,
+    // creating too many workers at the same time could eat up too much of the system resources or
+    // even fail completely (if each worker requests a high -Xms or there are just many workers, for
+    // example). Once multiple devices are supported, we should be able to safely run workers on
+    // different devices in parallel.
+    ImmutableSet.Builder<Experiment> results = ImmutableSet.builder();
+    for (Target target : experimentsByTarget.keySet()) {
+      WorkerRunner<ImmutableSet<Experiment>> runner =
+          dryRunComponentBuilder
+              .get()
+              .experiments(experimentsByTarget.get(target))
+              .build()
+              .workerRunner();
+
       try {
-        ExperimentComponent experimentComponent = experimentComponentBuilder.get()
-            .experimentModule(ExperimentModule.forExperiment(experiment))
-            .build();
-        Object benchmark = experimentComponent.getBenchmarkInstance();
-        benchmarkClass.setUpBenchmark(benchmark);
-        try {
-          experiment.instrumentedMethod().dryRun(benchmark);
-          builder.add(experiment);
-        } finally {
-          // discard 'benchmark' now; the worker will have to instantiate its own anyway
-          benchmarkClass.cleanup(benchmark);
+        results.addAll(runner.runWorker());
+      } catch (ProxyWorkerException e) {
+        if (e.exceptionType().equals(UserCodeException.class.getName())) {
+          throw new UserCodeException(e.message(), e);
+        } else if (e.exceptionType().equals(InvalidBenchmarkException.class.getName())) {
+          throw new InvalidBenchmarkException(e.message(), e);
         }
-      } catch (SkipThisScenarioException innocuous) {
+        throw e;
       }
     }
-    return builder.build();
+    return results.build();
+  }
+
+  private ImmutableSetMultimap<Target, Experiment> indexByTarget(Iterable<Experiment> experiments) {
+    ImmutableSetMultimap.Builder<Target, Experiment> result = ImmutableSetMultimap.builder();
+    for (Experiment experiment : experiments) {
+      result.put(experiment.target(), experiment);
+    }
+    return result.build();
+  }
+
+  private static void cancelAll(Iterable<? extends ListenableFuture<?>> futures) {
+    for (ListenableFuture<?> toCancel : futures) {
+      toCancel.cancel(true);
+    }
   }
 
   public static <T> ImmutableList<ListenableFuture<T>> inCompletionOrder(

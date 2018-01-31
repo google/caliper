@@ -17,8 +17,11 @@
 package com.google.caliper.runner;
 
 import com.google.auto.value.AutoValue;
+import com.google.caliper.bridge.ExperimentSpec;
+import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.common.base.MoreObjects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import java.util.Map;
 
@@ -37,8 +40,9 @@ abstract class Experiment {
       InstrumentedMethod instrumentedMethod,
       Map<String, String> userParameters,
       Target target) {
+    BenchmarkSpec benchmarkSpec = createBenchmarkSpec(instrumentedMethod, userParameters);
     return new AutoValue_Experiment(
-        id, instrumentedMethod, ImmutableSortedMap.copyOf(userParameters), target);
+        id, instrumentedMethod, ImmutableSortedMap.copyOf(userParameters), target, benchmarkSpec);
   }
 
   /**
@@ -57,6 +61,28 @@ abstract class Experiment {
 
   /** Returns the target this experiment is to be run on. */
   abstract Target target();
+
+  /** Returns the {@link BenchmarkSpec} for this experiment. */
+  abstract BenchmarkSpec benchmarkSpec();
+
+  /** Returns an {@link ExperimentSpec} representing this experiment. */
+  final ExperimentSpec toExperimentSpec() {
+    return new ExperimentSpec(
+        id(),
+        instrumentedMethod().type(),
+        instrumentedMethod().workerOptions(),
+        benchmarkSpec(),
+        ImmutableList.copyOf(instrumentedMethod().benchmarkMethod().getParameterTypes()));
+  }
+
+  private static BenchmarkSpec createBenchmarkSpec(
+      InstrumentedMethod method, Map<String, String> userParameters) {
+    return new BenchmarkSpec.Builder()
+        .className(method.benchmarkMethod().getDeclaringClass().getName())
+        .methodName(method.benchmarkMethod().getName())
+        .addAllParameters(userParameters)
+        .build();
+  }
 
   @Override
   public String toString() {

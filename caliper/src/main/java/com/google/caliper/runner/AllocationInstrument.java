@@ -16,19 +16,13 @@
 
 package com.google.caliper.runner;
 
-import static com.google.caliper.util.Reflection.getAnnotatedMethods;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
 import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.api.AfterRep;
-import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
-import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.core.UserCodeException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.Platform;
@@ -40,7 +34,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
@@ -102,21 +95,6 @@ public final class AllocationInstrument extends Instrument {
     }
 
     @Override
-    public void dryRun(Object benchmark) throws UserCodeException {
-      // execute the benchmark method, but don't try to take any measurements, because this JVM
-      // may not have the allocation instrumenter agent.
-      try {
-        benchmarkMethod.invoke(benchmark, 1);
-      } catch (IllegalAccessException impossible) {
-        throw new AssertionError(impossible);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
-    }
-
-    @Override
     public ImmutableMap<String, String> workerOptions() {
       return ImmutableMap.of(TRACK_ALLOCATIONS_OPTION, options.get(TRACK_ALLOCATIONS_OPTION));
     }
@@ -142,34 +120,6 @@ public final class AllocationInstrument extends Instrument {
   private final class MacroAllocationInstrumentedMethod extends InstrumentedMethod {
     MacroAllocationInstrumentedMethod(Method benchmarkMethod) {
       super(benchmarkMethod);
-    }
-
-    @Override
-    public void dryRun(Object benchmark) throws InvalidBenchmarkException {
-      // execute the benchmark method, but don't try to take any measurements, because this JVM
-      // may not have the allocation instrumenter agent.
-      ImmutableSet<Method> beforeRepMethods =
-          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), BeforeRep.class);
-      ImmutableSet<Method> afterRepMethods =
-          getAnnotatedMethods(benchmarkMethod.getDeclaringClass(), AfterRep.class);
-      try {
-        for (Method beforeRepMethod : beforeRepMethods) {
-          beforeRepMethod.invoke(benchmark);
-        }
-        try {
-          benchmarkMethod.invoke(benchmark);
-        } finally {
-          for (Method afterRepMethod : afterRepMethods) {
-            afterRepMethod.invoke(benchmark);
-          }
-        }
-      } catch (IllegalAccessException e) {
-        throw new AssertionError(e);
-      } catch (InvocationTargetException e) {
-        Throwable userException = e.getCause();
-        propagateIfInstanceOf(userException, SkipThisScenarioException.class);
-        throw new UserCodeException(userException);
-      }
     }
 
     @Override

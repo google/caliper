@@ -17,8 +17,9 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.runner.BenchmarkClassModule;
-import com.google.caliper.runner.ExperimentModule;
+import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 
@@ -28,9 +29,20 @@ import javax.inject.Singleton;
   modules = {
     BenchmarkClassModule.class,
     BridgeModule.class,
-    ExperimentModule.class,
     JvmWorkerModule.class,
     WorkerModule.class
   }
 )
-interface JvmWorkerComponent extends WorkerComponent {}
+interface JvmWorkerComponent extends WorkerComponent {
+
+  /** Builder for a {@code JvmWorkerComponent}. */
+  @Component.Builder
+  interface Builder {
+    /** Binds the {@code ExperimentSpec} for the worker. */
+    @BindsInstance
+    Builder experiment(ExperimentSpec experiment);
+
+    /** Builds a new {@code JvmWorkerComponent} instance. */
+    JvmWorkerComponent build();
+  }
+}

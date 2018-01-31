@@ -21,7 +21,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.common.collect.ImmutableMap;
@@ -80,13 +79,8 @@ public class WorkerStarterTest {
             allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
             Target.create("foo-jvm", vmConfig));
-    BenchmarkSpec spec =
-        new BenchmarkSpec.Builder()
-            .className(TestBenchmark.class.getName())
-            .methodName(method.getName())
-            .build();
     BenchmarkClass benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
-    Command command = createCommand(experiment, spec, benchmarkClass);
+    Command command = createCommand(experiment, benchmarkClass);
     List<String> commandLine = command.arguments();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
     assertTrue(commandLine.contains("--doTheHustle"));
@@ -128,12 +122,8 @@ public class WorkerStarterTest {
     }
   }
 
-  private Command createCommand(
-      Experiment experiment,
-      BenchmarkSpec benchmarkSpec,
-      BenchmarkClass benchmarkClass) {
-    WorkerSpec spec = new TrialSpec(
-        TRIAL_ID, experiment, benchmarkSpec, benchmarkClass, 1, PORT_NUMBER);
+  private Command createCommand(Experiment experiment, BenchmarkClass benchmarkClass) {
+    WorkerSpec spec = new TrialSpec(TRIAL_ID, experiment, benchmarkClass, 1, PORT_NUMBER);
     return WorkerModule.provideWorkerCommand(experiment.target(), spec);
   }
 

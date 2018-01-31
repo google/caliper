@@ -29,6 +29,9 @@ import javax.inject.Qualifier;
 public class Running {
   private Running() {}
 
+  // TODO(cgdecker): We probably don't need @BenchmarkMethod and @BenchmarkClass and could just use
+  // @Benchmark.
+
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
   @Qualifier
