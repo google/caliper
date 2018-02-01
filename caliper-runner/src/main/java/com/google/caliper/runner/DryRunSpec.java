@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.WorkerRequest;
@@ -61,14 +60,12 @@ final class DryRunSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> args() {
+  public WorkerRequest request() {
     Set<ExperimentSpec> experimentSpecs = new HashSet<>();
     for (Experiment experiment : experiments) {
       experimentSpecs.add(experiment.toExperimentSpec());
     }
-
-    WorkerRequest request = new DryRunRequest(id(), port, experimentSpecs);
-    return ImmutableList.of(CommandLineSerializer.render(request));
+    return new DryRunRequest(experimentSpecs);
   }
 
   @Override

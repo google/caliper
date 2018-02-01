@@ -17,20 +17,18 @@
 package com.google.caliper.bridge;
 
 import com.google.common.collect.ImmutableSet;
-import java.util.UUID;
 
 /**
  * {@link WorkerRequest} for telling the worker to do a dry-run of multiple experiments.
  *
  * @author Colin Decker
  */
-public final class DryRunRequest extends WorkerRequest {
+public final class DryRunRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 
   private final ImmutableSet<ExperimentSpec> experiments;
 
-  public DryRunRequest(UUID id, int port, Iterable<ExperimentSpec> experiments) {
-    super(id, port);
+  public DryRunRequest(Iterable<ExperimentSpec> experiments) {
     this.experiments = ImmutableSet.copyOf(experiments);
   }
 

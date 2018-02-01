@@ -93,6 +93,7 @@ final class WorkerRunner<R> implements Callable<R> {
       Stopwatch stopwatch = Stopwatch.createUnstarted();
 
       worker.awaitRunning();
+      worker.sendRequest();
 
       stopwatch.start();
       while (!done) {

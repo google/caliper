@@ -241,6 +241,24 @@ final class Worker extends AbstractService {
   }
 
   /**
+   * Schedules the {@code WorkerRequest} to be sent to the worker once a connection is established.
+   */
+  void sendRequest() {
+    socketFuture.addListener(
+        new Runnable() {
+          @Override
+          public void run() {
+            try {
+              sendMessage(spec.request());
+            } catch (IOException ignore) {
+              // sendMessage will have already called notifyFailed
+            }
+          }
+        },
+        MoreExecutors.directExecutor());
+  }
+
+  /**
    * Write a line of data to the worker process over the socket.
    *
    * <p>N.B. Writing data via {@link #sendMessage(Serializable)} is only valid once the underlying

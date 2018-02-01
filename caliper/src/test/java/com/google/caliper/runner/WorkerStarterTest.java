@@ -90,8 +90,8 @@ public class WorkerStarterTest {
     assertTrue(
         commandLine.containsAll(
             ImmutableSet.of("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC")));
-    // main class should be next to last, follower by the single arg to the worker
-    assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(commandLine.size() - 2));
+    // main class should be third to last, followed by ID and port
+    assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(commandLine.size() - 3));
   }
 
   @Test
@@ -123,8 +123,8 @@ public class WorkerStarterTest {
   }
 
   private Command createCommand(Experiment experiment, BenchmarkClass benchmarkClass) {
-    WorkerSpec spec = new TrialSpec(TRIAL_ID, experiment, benchmarkClass, 1, PORT_NUMBER);
-    return WorkerModule.provideWorkerCommand(experiment.target(), spec);
+    WorkerSpec spec = new TrialSpec(TRIAL_ID, experiment, benchmarkClass, 1);
+    return WorkerModule.provideWorkerCommand(experiment.target(), spec, PORT_NUMBER);
   }
 
   private WorkerProcess startWorker(Class<?> main, String... args) throws Exception {

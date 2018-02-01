@@ -18,21 +18,18 @@ package com.google.caliper.bridge;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import java.util.UUID;
-
 /**
  * {@link WorkerRequest} for telling a worker to send the runner the information it needs on the
  * benchmark, such as what methods and parameters it has.
  *
  * @author Colin Decker
  */
-public final class BenchmarkInfoRequest extends WorkerRequest {
+public final class BenchmarkInfoRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 
   private final String benchmarkClass;
 
-  public BenchmarkInfoRequest(String benchmarkClass, UUID id, int port) {
-    super(id, port);
+  public BenchmarkInfoRequest(String benchmarkClass) {
     checkArgument(!benchmarkClass.isEmpty());
     this.benchmarkClass = benchmarkClass;
   }

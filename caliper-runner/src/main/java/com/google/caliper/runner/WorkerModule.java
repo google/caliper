@@ -44,7 +44,7 @@ abstract class WorkerModule {
   abstract WorkerStarter bindWorkerStarter(LocalWorkerStarter workerStarter);
 
   @Provides
-  static Command provideWorkerCommand(Target target, WorkerSpec spec) {
+  static Command provideWorkerCommand(Target target, WorkerSpec spec, @LocalPort int port) {
     VmConfig vm = target.vm();
     return Command.builder()
         .putAllEnvironmentVariables(target.platform().workerEnvironment())
@@ -54,7 +54,8 @@ abstract class WorkerModule {
         .addArguments(vm.workerClassPathArgs())
         .addArguments(vm.workerProcessArgs())
         .addArgument(spec.mainClass())
-        .addArguments(spec.args())
+        .addArgument(spec.id())
+        .addArgument(port)
         .build();
   }
 }

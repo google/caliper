@@ -16,20 +16,18 @@
 
 package com.google.caliper.bridge;
 
-import java.util.UUID;
 
 /**
  * {@link WorkerRequest} for telling the worker to run a trial of the benchmark.
  *
  * @author Colin Decker
  */
-public final class TrialRequest extends WorkerRequest {
+public final class TrialRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 
   private final ExperimentSpec experiment;
 
-  public TrialRequest(UUID id, int port, ExperimentSpec experiment) {
-    super(id, port);
+  public TrialRequest(ExperimentSpec experiment) {
     this.experiment = experiment;
   }
 

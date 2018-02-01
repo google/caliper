@@ -203,7 +203,6 @@ public class WorkerTest {
     UUID trialId = UUID.randomUUID();
     WorkerSpec spec = FakeWorkerSpec.builder(main)
         .setId(trialId)
-        .setArgs(args)
         .build();
 
     WorkerOutputLogger output =

@@ -17,32 +17,10 @@
 package com.google.caliper.bridge;
 
 import java.io.Serializable;
-import java.util.UUID;
 
 /**
- * Base class for classes the runner sends to the worker to tell it what to do.
+ * Marker interface for classes the runner sends to the worker to tell it what to do.
  *
  * @author Colin Decker
  */
-public abstract class WorkerRequest implements Serializable {
-
-  private final UUID id;
-  private final int port;
-
-  protected WorkerRequest(UUID id, int port) {
-    this.id = id;
-    this.port = port;
-  }
-
-  /** Returns the ID of this worker. */
-  public UUID id() {
-    return id;
-  }
-
-  /**
-   * Returns the port the worker should open a socket connection to for communication.
-   */
-  public int port() {
-    return port;
-  }
-}
+public interface WorkerRequest extends Serializable {}

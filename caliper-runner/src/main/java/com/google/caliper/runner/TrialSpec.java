@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.runner.config.VmConfig;
@@ -36,20 +35,17 @@ final class TrialSpec extends WorkerSpec {
   private final Experiment experiment;
   private final BenchmarkClass benchmarkClass;
   private final int trialNumber;
-  private final int port;
 
   @Inject
   TrialSpec(
       @TrialId UUID id,
       Experiment experiment,
       BenchmarkClass benchmarkClass,
-      @TrialNumber int trialNumber,
-      @LocalPort int port) {
+      @TrialNumber int trialNumber) {
     super(id);
     this.experiment = experiment;
     this.benchmarkClass = benchmarkClass;
     this.trialNumber = trialNumber;
-    this.port = port;
   }
 
   @Override
@@ -58,9 +54,8 @@ final class TrialSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> args() {
-    WorkerRequest request = new TrialRequest(id(), port, experiment.toExperimentSpec());
-    return ImmutableList.of(CommandLineSerializer.render(request));
+  public WorkerRequest request() {
+    return new TrialRequest(experiment.toExperimentSpec());
   }
 
   @Override
