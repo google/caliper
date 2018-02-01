@@ -65,19 +65,17 @@ public abstract class Command {
   @AutoValue.Builder
   public static abstract class Builder {
 
-    /**
-     * Adds the given argument to the command.
-     */
-    public final Builder addArgument(String arg) {
-      argumentsBuilder().add(arg);
+    /** Adds the given argument to the command. */
+    public final Builder addArgument(Object arg) {
+      argumentsBuilder().add(arg.toString());
       return this;
     }
 
-    /**
-     * Adds the given arguments to the command.
-     */
-    public final Builder addArguments(Iterable<String> args) {
-      argumentsBuilder().addAll(args);
+    /** Adds the given arguments to the command. */
+    public final Builder addArguments(Iterable<?> args) {
+      for (Object arg : args) {
+        argumentsBuilder().add(arg.toString());
+      }
       return this;
     }
 

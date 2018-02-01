@@ -24,6 +24,7 @@ import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
+import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.model.Measurement;
 import java.io.Closeable;
 import java.io.IOException;
@@ -40,8 +41,13 @@ final class WorkerEventLog implements Closeable {
     this.reader = socket.reader();
   }
 
-  void notifyWorkerStarted(UUID workerId) throws IOException {
-    send(new StartupAnnounceMessage(workerId));
+  /**
+   * Sends the runner a message telling it that this worker has started and then waits for the
+   * runner to send this worker the request it should handle.
+   */
+  WorkerRequest notifyWorkerStarted(UUID id) throws IOException {
+    send(new StartupAnnounceMessage(id));
+    return (WorkerRequest) reader.read();
   }
 
   void notifyVmProperties() throws IOException {

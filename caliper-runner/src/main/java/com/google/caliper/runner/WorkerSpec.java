@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import java.io.PrintWriter;
@@ -56,12 +57,8 @@ abstract class WorkerSpec {
     return "com.google.caliper.worker.WorkerMain";
   }
 
-  /**
-   * Returns the arguments to the worker's main method.
-   */
-  public ImmutableList<String> args() {
-    return ImmutableList.of();
-  }
+  /** Returns the request to send to the worker once it starts. */
+  public abstract WorkerRequest request();
 
   /**
    * Returns a list of VM option flags that should be used when starting the worker VM.

@@ -17,7 +17,6 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.api.SkipThisScenarioException;
-import com.google.caliper.bridge.CommandLineSerializer;
 import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.OpenedSocket;
@@ -39,12 +38,8 @@ import java.util.UUID;
  */
 abstract class AbstractWorkerMain {
   protected final void mainImpl(String[] args) throws Exception {
-    // TODO(lukes): instead of parsing the spec from the command line pass the port number on the
-    // command line and then receive the spec from the socket.  This way we can start JVMs prior
-    // to starting experiments and thus get better experiment latency.
-    WorkerRequest request = CommandLineSerializer.parse(args[0]);
-    int port = request.port();
-    UUID workerId = request.id();
+    UUID id = UUID.fromString(args[0]);
+    int port = Integer.valueOf(args[1]);
 
     Closer closer = Closer.create();
     try {
@@ -52,7 +47,8 @@ abstract class AbstractWorkerMain {
       channel.connect(new InetSocketAddress(InetAddress.getLoopbackAddress(), port));
 
       WorkerEventLog log = closer.register(new WorkerEventLog(OpenedSocket.fromSocket(channel)));
-      log.notifyWorkerStarted(workerId);
+
+      WorkerRequest request = log.notifyWorkerStarted(id);
 
       if (request instanceof DryRunRequest) {
         dryRun(((DryRunRequest) request).experiments(), log);

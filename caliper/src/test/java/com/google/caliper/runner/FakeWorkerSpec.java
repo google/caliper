@@ -16,12 +16,13 @@ package com.google.caliper.runner;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import java.util.UUID;
 
 /**
- * Spec for a fake worker; just specifies a main class, some VM options and some args.
+ * Spec for a fake worker; just specifies a main class and some VM options.
  *
  * @author Colin Decker
  */
@@ -29,14 +30,11 @@ final class FakeWorkerSpec extends WorkerSpec {
 
   private final String mainClass;
   private final ImmutableList<String> vmOptions;
-  private final ImmutableList<String> args;
 
-  private FakeWorkerSpec(
-      UUID id, Class<?> mainClass, Iterable<String> vmOptions, Iterable<String> args) {
+  private FakeWorkerSpec(UUID id, Class<?> mainClass, Iterable<String> vmOptions) {
     super(id);
     this.mainClass = mainClass.getName();
     this.vmOptions = ImmutableList.copyOf(vmOptions);
-    this.args = ImmutableList.copyOf(args);
   }
 
   @Override
@@ -50,8 +48,8 @@ final class FakeWorkerSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> args() {
-    return args;
+  public WorkerRequest request() {
+    return new WorkerRequest() {};
   }
 
   public static Builder builder(Class<?> mainClass) {
@@ -63,7 +61,6 @@ final class FakeWorkerSpec extends WorkerSpec {
     private final Class<?> mainClass;
     private UUID id = UUID.randomUUID();
     private ImmutableList<String> vmOptions = ImmutableList.of();
-    private ImmutableList<String> args = ImmutableList.of();
 
     private Builder(Class<?> mainClass) {
       this.mainClass = mainClass;
@@ -83,17 +80,8 @@ final class FakeWorkerSpec extends WorkerSpec {
       return this;
     }
 
-    Builder setArgs(String... args) {
-      return setArgs(ImmutableList.copyOf(args));
-    }
-
-    Builder setArgs(Iterable<String> args) {
-      this.args = ImmutableList.copyOf(args);
-      return this;
-    }
-
     FakeWorkerSpec build() {
-      return new FakeWorkerSpec(id, mainClass, vmOptions, args);
+      return new FakeWorkerSpec(id, mainClass, vmOptions);
     }
   }
 }
