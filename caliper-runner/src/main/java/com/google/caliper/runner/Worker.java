@@ -148,7 +148,6 @@ final class Worker extends AbstractService {
   @Override
   protected void doStart() {
     try {
-      // TODO(lukes): write the commandline to the trial output file?
       process = starter.startWorker(spec.id(), command);
     } catch (Exception e) {
       notifyFailed(e);

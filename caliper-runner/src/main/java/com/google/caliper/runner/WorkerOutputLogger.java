@@ -37,13 +37,13 @@ final class WorkerOutputLogger implements Closeable {
 
   private final WorkerOutputFactory outputManager;
   private final WorkerSpec workerSpec;
+  private final Command command;
 
   @Inject
-  WorkerOutputLogger(
-      WorkerOutputFactory outputManager,
-      WorkerSpec workerSpec) {
+  WorkerOutputLogger(WorkerOutputFactory outputManager, WorkerSpec workerSpec, Command command) {
     this.outputManager = outputManager;
     this.workerSpec = workerSpec;
+    this.command = command;
   }
 
   /** Opens the trial output file. */
@@ -67,9 +67,8 @@ final class WorkerOutputLogger implements Closeable {
   synchronized void printHeader() {
     checkOpened();
     // make the file self describing
-    // TODO(lukes): we could print the command line here.  The user wouldn't be able to run it again
-    // since there would be no runner sending continue messages, but it might be useful to debug
-    // classpath issues.
+    writer.println("Command: " + command.argumentsString());
+    writer.println();
     workerSpec.printInfoHeader(writer);
     writer.println();
   }

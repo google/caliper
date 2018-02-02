@@ -51,11 +51,19 @@ public abstract class Command {
 
   private static final Joiner SPACE_JOINER = Joiner.on(' ');
 
+  /**
+   * Returns the full list of arguments that make up this command, including the binary to run, as a
+   * single string with a space between each argument.
+   */
+  public final String argumentsString() {
+    return SPACE_JOINER.join(arguments());
+  }
+
   @Override
   public String toString() {
     return MoreObjects.toStringHelper(Command.class.getSimpleName())
         .add("environment", environment())
-        .add("arguments", SPACE_JOINER.join(arguments()))
+        .add("arguments", argumentsString())
         .toString();
   }
 
