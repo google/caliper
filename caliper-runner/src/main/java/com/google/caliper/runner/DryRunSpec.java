@@ -56,7 +56,7 @@ final class DryRunSpec extends WorkerSpec {
 
   @Override
   public String name() {
-    return "dry-run-worker-" + target.name();
+    return "dry-run-" + target.name();
   }
 
   @Override

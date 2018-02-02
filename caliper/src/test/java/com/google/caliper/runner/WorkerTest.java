@@ -204,13 +204,13 @@ public class WorkerTest {
     WorkerSpec spec = FakeWorkerSpec.builder(main)
         .setId(trialId)
         .build();
+    Command command = FakeWorkers.createCommand(main, args);
 
     WorkerOutputLogger output =
         new WorkerOutputLogger(
             new WorkerOutputFactory() {
               @Override
-              public FileAndWriter getOutputFile(String fileName)
-                  throws FileNotFoundException {
+              public FileAndWriter getOutputFile(String fileName) throws FileNotFoundException {
                 checkArgument(fileName.equals("worker-" + trialId + ".log"));
                 return new FileAndWriter(new File("/tmp/not-a-file"), stdout);
               }
@@ -220,15 +220,14 @@ public class WorkerTest {
                 throw new UnsupportedOperationException();
               }
             },
-        spec);
+            spec,
+            command);
     try {
       // normally the TrialRunLoop opens/closes the logger
       output.open();
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-
-    Command command = FakeWorkers.createCommand(main, args);
 
     worker =
         new Worker(
