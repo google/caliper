@@ -24,6 +24,10 @@ import dagger.Subcomponent;
   modules = {
     BenchmarkClassModule.class,
     CaliperRunModule.class,
+    HostModule.class,
+    NanoTimeGranularityModule.class,
+    InstrumentModule.class,
+    ResultProcessorModule.class
   }
 )
 interface CaliperRunComponent {

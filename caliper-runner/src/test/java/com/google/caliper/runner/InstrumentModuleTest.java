@@ -35,9 +35,9 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Tests {@link CaliperRunModule}. */
+/** Tests {@link InstrumentModule}. */
 @RunWith(MockitoJUnitRunner.class)
-public class CaliperRunModuleTest {
+public class InstrumentModuleTest {
   private Instrument instrumentA = new FakeInstrument();
   private Instrument instrumentB = new FakeInstrument();
 
@@ -66,7 +66,7 @@ public class CaliperRunModuleTest {
             .add(instrumentB.createInstrumentedMethod(methodB))
             .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
-        CaliperRunModule.provideInstrumentedMethods(
+        InstrumentModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -82,7 +82,7 @@ public class CaliperRunModuleTest {
             .add(instrumentA.createInstrumentedMethod(methodB))
             .add(instrumentB.createInstrumentedMethod(methodB))
             .build(),
-        CaliperRunModule.provideInstrumentedMethods(
+        InstrumentModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -93,7 +93,7 @@ public class CaliperRunModuleTest {
             .add(instrumentB.createInstrumentedMethod(methodA))
             .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
-        CaliperRunModule.provideInstrumentedMethods(
+        InstrumentModule.provideInstrumentedMethods(
             options,
             BenchmarkClass.forClass(TestBenchmark.class),
             ImmutableSet.of(instrumentA, instrumentB)));
@@ -103,7 +103,7 @@ public class CaliperRunModuleTest {
   public void provideInstrumentedMethods_withInvalidName() {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("a", "c", "bad"));
     try {
-      CaliperRunModule.provideInstrumentedMethods(
+      InstrumentModule.provideInstrumentedMethods(
           options,
           BenchmarkClass.forClass(TestBenchmark.class),
           ImmutableSet.of(instrumentA, instrumentB));
