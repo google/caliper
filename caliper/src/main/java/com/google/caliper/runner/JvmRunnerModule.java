@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.runner.CaliperRunModule.InstrumentClassKey;
+import com.google.caliper.runner.InstrumentModule.InstrumentClassKey;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
