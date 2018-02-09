@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.Random;
 import javax.inject.Inject;
 
-/** A {@link Worker} base class for micro and pico benchmarks. */
-public abstract class RuntimeWorker extends Worker {
+/** A {@link WorkerInstrument} base class for micro and pico benchmarks. */
+public abstract class RuntimeWorkerInstrument extends WorkerInstrument {
   @VisibleForTesting static final int INITIAL_REPS = 100;
 
   protected final Random random;
@@ -45,7 +45,7 @@ public abstract class RuntimeWorker extends Worker {
   private long totalNanos;
   private long nextReps;
 
-  RuntimeWorker(
+  RuntimeWorkerInstrument(
       Object benchmark,
       Method method,
       Random random,
@@ -110,15 +110,15 @@ public abstract class RuntimeWorker extends Worker {
   }
 
   /** A {@link Worker} for micro benchmarks. */
-  public static final class Micro extends RuntimeWorker {
+  public static final class Micro extends RuntimeWorkerInstrument {
     @Inject
     Micro(
         @Benchmark Object benchmark,
         @BenchmarkMethod Method method,
         Random random,
         Ticker ticker,
-        @WorkerOptions Map<String, String> workerOptions) {
-      super(benchmark, method, random, ticker, workerOptions);
+        @WorkerInstrument.Options Map<String, String> options) {
+      super(benchmark, method, random, ticker, options);
     }
 
     @Override
@@ -141,15 +141,15 @@ public abstract class RuntimeWorker extends Worker {
   }
 
   /** A {@link Worker} for pico benchmarks. */
-  public static final class Pico extends RuntimeWorker {
+  public static final class Pico extends RuntimeWorkerInstrument {
     @Inject
     Pico(
         @Benchmark Object benchmark,
         @BenchmarkMethod Method method,
         Random random,
         Ticker ticker,
-        @WorkerOptions Map<String, String> workerOptions) {
-      super(benchmark, method, random, ticker, workerOptions);
+        @WorkerInstrument.Options Map<String, String> options) {
+      super(benchmark, method, random, ticker, options);
     }
 
     @Override

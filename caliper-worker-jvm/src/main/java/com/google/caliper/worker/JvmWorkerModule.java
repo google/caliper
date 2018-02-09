@@ -31,20 +31,21 @@ abstract class JvmWorkerModule {
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.ALLOCATION_MICRO)
-  abstract Worker abstractMicrobenchmarkAllocationWorker(MicrobenchmarkAllocationWorker impl);
+  abstract WorkerInstrument abstractMicrobenchmarkAllocationWorkerInstrument(
+      MicrobenchmarkAllocationWorkerInstrument impl);
 
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.ALLOCATION_MACRO)
-  abstract Worker bindsMacrobenchmarkAllocationWorker(MacrobenchmarkAllocationWorker impl);
+  abstract WorkerInstrument bindsMacrobenchmarkAllocationWorkerInstrument(
+      MacrobenchmarkAllocationWorkerInstrument impl);
 
   @Provides
   static AllocationRecorder provideAllocationRecorder(
-      @WorkerOptions Map<String, String> workerOptions,
+      @WorkerInstrument.Options Map<String, String> workerInstrumentOptions,
       Provider<AllAllocationsRecorder> allAllocationsRecorderProvider,
       Provider<AggregateAllocationsRecorder> aggregateAllocationsRecorderProvider) {
-
-    return Boolean.valueOf(workerOptions.get("trackAllocations"))
+    return Boolean.valueOf(workerInstrumentOptions.get("trackAllocations"))
         ? allAllocationsRecorderProvider.get()
         : aggregateAllocationsRecorderProvider.get();
   }

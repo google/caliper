@@ -14,8 +14,8 @@
 
 package com.google.caliper.worker;
 
-import static com.google.caliper.worker.RuntimeWorker.INITIAL_REPS;
-import static com.google.caliper.worker.RuntimeWorker.calculateTargetReps;
+import static com.google.caliper.worker.RuntimeWorkerInstrument.INITIAL_REPS;
+import static com.google.caliper.worker.RuntimeWorkerInstrument.calculateTargetReps;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -28,9 +28,9 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/** Tests {@link RuntimeWorker}. */
+/** Tests {@link RuntimeWorkerInstrument}. */
 @RunWith(JUnit4.class)
-public class RuntimeWorkerTest {
+public class RuntimeWorkerInstrumentTest {
   private static final ShortDuration TIMING_INTERVAL = ShortDuration.of(100, MILLISECONDS);
 
   @Test

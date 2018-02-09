@@ -26,11 +26,11 @@ import java.util.Random;
 import javax.inject.Inject;
 
 /**
- * The {@link Worker} for the {@code AllocationInstrument}. This class invokes the benchmark method
- * a few times, with varying numbers of reps, and computes the number of object allocations and the
- * total size of those allocations.
+ * The {@link WorkerInstrument} for the {@code AllocationInstrument}. This class invokes the
+ * benchmark method a few times, with varying numbers of reps, and computes the number of object
+ * allocations and the total size of those allocations.
  */
-public final class MicrobenchmarkAllocationWorker extends Worker {
+public final class MicrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
   // TODO(gak): make this or something like this an option
   private static final int WARMUP_REPS = 10;
   private static final int MAX_REPS = 100;
@@ -53,7 +53,7 @@ public final class MicrobenchmarkAllocationWorker extends Worker {
   private final AllocationRecorder recorder;
 
   @Inject
-  MicrobenchmarkAllocationWorker(
+  MicrobenchmarkAllocationWorkerInstrument(
       @Benchmark Object benchmark,
       @BenchmarkMethod Method method,
       AllocationRecorder recorder,

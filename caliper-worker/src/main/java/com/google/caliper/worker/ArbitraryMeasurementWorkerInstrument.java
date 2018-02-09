@@ -28,18 +28,18 @@ import java.util.Map;
 import javax.inject.Inject;
 
 /** Worker for arbitrary measurements. */
-public final class ArbitraryMeasurementWorker extends Worker {
+public final class ArbitraryMeasurementWorkerInstrument extends WorkerInstrument {
   private final Options options;
   private final String unit;
   private final String description;
 
   @Inject
-  ArbitraryMeasurementWorker(
+  ArbitraryMeasurementWorkerInstrument(
       @Benchmark Object benchmark,
       @BenchmarkMethod Method method,
-      @WorkerOptions Map<String, String> workerOptions) {
+      @WorkerInstrument.Options Map<String, String> options) {
     super(benchmark, method);
-    this.options = new Options(workerOptions);
+    this.options = new Options(options);
     ArbitraryMeasurement annotation = method.getAnnotation(ArbitraryMeasurement.class);
     this.unit = annotation.units();
     this.description = annotation.description();

@@ -69,13 +69,13 @@ abstract class AbstractWorkerMain {
       try {
         // Worker creation done here to ensure that user code exceptions thrown in construction are
         // handled the same as exceptions thrown from benchmark methods, setup methods, etc.
-        Worker worker = createWorker(experiment);
+        WorkerInstrument workerInstrument = createWorkerInstrument(experiment);
 
-        worker.setUpBenchmark();
+        workerInstrument.setUpBenchmark();
         try {
-          worker.dryRun();
+          workerInstrument.dryRun();
         } finally {
-          worker.tearDownBenchmark();
+          workerInstrument.tearDownBenchmark();
         }
 
         successes.add(experiment.id());
@@ -102,36 +102,37 @@ abstract class AbstractWorkerMain {
   }
 
   private void runTrial(ExperimentSpec experiment, WorkerEventLog log) throws Exception {
-    Worker worker = createWorker(experiment);
+    WorkerInstrument workerInstrument = createWorkerInstrument(experiment);
 
     log.notifyVmProperties();
     try {
-      worker.setUpBenchmark();
+      workerInstrument.setUpBenchmark();
       log.notifyTrialBootstrapPhaseStarting();
-      worker.bootstrap();
+      workerInstrument.bootstrap();
       log.notifyTrialMeasurementPhaseStarting();
       boolean keepMeasuring = true;
       boolean isInWarmup = true;
       while (keepMeasuring) {
-        worker.preMeasure(isInWarmup);
+        workerInstrument.preMeasure(isInWarmup);
         log.notifyTrialMeasurementStarting();
         try {
-          ShouldContinueMessage message = log.notifyTrialMeasurementEnding(worker.measure());
+          ShouldContinueMessage message =
+              log.notifyTrialMeasurementEnding(workerInstrument.measure());
           keepMeasuring = message.shouldContinue();
           isInWarmup = !message.isWarmupComplete();
         } finally {
-          worker.postMeasure();
+          workerInstrument.postMeasure();
         }
       }
     } catch (Exception e) {
       log.notifyFailure(e);
     } finally {
-      worker.tearDownBenchmark();
+      workerInstrument.tearDownBenchmark();
     }
   }
 
-  private Worker createWorker(ExperimentSpec experiment) {
-    return createWorkerComponent(experiment).getWorker();
+  private WorkerInstrument createWorkerInstrument(ExperimentSpec experiment) {
+    return createWorkerComponent(experiment).getWorkerInstrument();
   }
 
   /**

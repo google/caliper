@@ -103,41 +103,45 @@ abstract class WorkerModule {
   }
 
   @Provides
-  @WorkerOptions
-  static Map<String, String> provideWorkerOptions(ExperimentSpec experiment) {
-    return experiment.workerOptions();
+  @WorkerInstrument.Options
+  static Map<String, String> provideWorkerInstrumentOptions(ExperimentSpec experiment) {
+    return experiment.workerInstrumentOptions();
   }
 
   @Provides
-  static Worker provideWorker(
-      InstrumentType instrumentType, Map<InstrumentType, Provider<Worker>> availableWorkers) {
-    Provider<Worker> workerProvider = availableWorkers.get(instrumentType);
-    if (workerProvider == null) {
+  static WorkerInstrument provideWorkerInstrument(
+      InstrumentType instrumentType,
+      Map<InstrumentType, Provider<WorkerInstrument>> availableWorkerInstruments) {
+    Provider<WorkerInstrument> workerInstrumentProvider =
+        availableWorkerInstruments.get(instrumentType);
+    if (workerInstrumentProvider == null) {
       throw new InvalidCommandException(
-          "%s is not a supported instrument type (%s).", instrumentType, availableWorkers);
+          "%s is not a supported instrument type (%s).",
+          instrumentType, availableWorkerInstruments);
     }
-    return workerProvider.get();
+    return workerInstrumentProvider.get();
   }
 
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.ARBITRARY_MEASUREMENT)
-  abstract Worker bindArbitraryMeasurementWorker(ArbitraryMeasurementWorker impl);
+  abstract WorkerInstrument bindArbitraryMeasurementWorkerInstrument(
+      ArbitraryMeasurementWorkerInstrument impl);
 
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.RUNTIME_MACRO)
-  abstract Worker bindMacrobenchmarkWorker(MacrobenchmarkWorker impl);
+  abstract WorkerInstrument bindMacrobenchmarkWorkerInstrument(MacrobenchmarkWorkerInstrument impl);
 
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.RUNTIME_MICRO)
-  abstract Worker bindRuntimeWorkerMicro(RuntimeWorker.Micro impl);
+  abstract WorkerInstrument bindRuntimeWorkerInstrumentMicro(RuntimeWorkerInstrument.Micro impl);
 
   @Binds
   @IntoMap
   @InstrumentTypeKey(InstrumentType.RUNTIME_PICO)
-  abstract Worker bindRuntimeWorkerPico(RuntimeWorker.Pico impl);
+  abstract WorkerInstrument bindRuntimeWorkerInstrumentPico(RuntimeWorkerInstrument.Pico impl);
 
   @Provides
   static Ticker provideTicker() {
