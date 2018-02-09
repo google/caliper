@@ -36,7 +36,7 @@ abstract class TrialModule {
   abstract WorkerProcessor<TrialResult> bindTrialProcessor(TrialProcessor processor);
 
   @Provides
-  @TrialScoped
+  @WorkerScoped
   @TrialId
   static UUID provideTrialId() {
     return UUID.randomUUID();
@@ -56,7 +56,6 @@ abstract class TrialModule {
   }
 
   @Provides
-  @TrialScoped
   static TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
     return experiment.instrumentedMethod().instrument().schedulingPolicy();
   }

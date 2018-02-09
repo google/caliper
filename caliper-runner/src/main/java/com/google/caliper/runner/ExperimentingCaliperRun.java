@@ -83,7 +83,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final Provider<ListeningExecutorService> executorProvider;
 
   private final Provider<DryRunComponent.Builder> dryRunComponentBuilder;
-  private final Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder;
+  private final Provider<TrialComponent.Builder> trialComponentBuilder;
 
   @Inject
   @VisibleForTesting
@@ -96,7 +96,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ExperimentSelector selector,
       Provider<ListeningExecutorService> executorProvider,
       Provider<DryRunComponent.Builder> dryRunComponentBuilder,
-      Provider<TrialScopeComponent.Builder> trialScopeComponentBuilder) {
+      Provider<TrialComponent.Builder> trialComponentBuilder) {
     this.options = options;
     this.stdout = stdout;
     this.benchmarkClass = benchmarkClass;
@@ -105,7 +105,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.selector = selector;
     this.executorProvider = executorProvider;
     this.dryRunComponentBuilder = dryRunComponentBuilder;
-    this.trialScopeComponentBuilder = trialScopeComponentBuilder;
+    this.trialComponentBuilder = trialComponentBuilder;
   }
 
   @Override
@@ -290,7 +290,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     for (int i = 0; i < options.trialsPerScenario(); i++) {
       for (Experiment experiment : experimentsToRun) {
         ScheduledTrial trial =
-            trialScopeComponentBuilder
+            trialComponentBuilder
                 .get()
                 .trialNumber(trialNumber++)
                 .experiment(experiment)

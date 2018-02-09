@@ -22,7 +22,7 @@ import dagger.Module;
 import dagger.Provides;
 
 /** Configures the {@link CaliperRun}. */
-@Module(subcomponents = {DryRunComponent.class, TrialScopeComponent.class})
+@Module(subcomponents = {DryRunComponent.class, TrialComponent.class})
 abstract class CaliperRunModule {
 
   @Binds
