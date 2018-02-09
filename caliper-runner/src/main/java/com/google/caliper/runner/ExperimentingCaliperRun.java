@@ -23,6 +23,7 @@ import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.UserCodeException;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Stdout;
@@ -76,7 +77,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   private final CaliperOptions options;
   private final PrintWriter stdout;
-  private final BenchmarkClass benchmarkClass;
+  private final BenchmarkClassModel benchmarkClass;
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final ExperimentSelector selector;
@@ -90,7 +91,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   public ExperimentingCaliperRun(
       CaliperOptions options,
       @Stdout PrintWriter stdout,
-      BenchmarkClass benchmarkClass,
+      BenchmarkClassModel benchmarkClass,
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
@@ -110,16 +111,14 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
   @Override
   public void run() throws InvalidBenchmarkException {
-    benchmarkClass.validateParameters(options.userParameters());
-
     ImmutableSet<Experiment> allExperiments = selector.selectExperiments();
 
     printRunInfo(allExperiments);
 
     if (allExperiments.isEmpty()) {
       throw new InvalidBenchmarkException(
-          "There were no experiments to be performed for the class %s using the instruments %s",
-          benchmarkClass.benchmarkClass().getSimpleName(), instruments);
+          "There were no experiments to be performed for the class '%s' using the instruments %s",
+          benchmarkClass.name(), instruments);
     }
 
     stdout.format("This selection yields %s experiments.%n", allExperiments.size());
@@ -180,7 +179,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         if (message.isPresent()) {
           stdout.printf(
               "For %s (%s)%n  %s%n",
-              instrumentedMethod.benchmarkMethod().getName(),
+              instrumentedMethod.benchmarkMethod().name(),
               instrumentedMethod.instrument().name(),
               message.get());
         }
@@ -213,7 +212,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
                     new Function<Experiment, String>() {
                       @Override
                       public String apply(Experiment experiment) {
-                        return experiment.instrumentedMethod().benchmarkMethod().getName();
+                        return experiment.instrumentedMethod().benchmarkMethod().name();
                       }
                     })
                 .toSet());

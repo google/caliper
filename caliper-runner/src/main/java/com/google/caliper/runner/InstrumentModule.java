@@ -18,6 +18,8 @@ package com.google.caliper.runner;
 
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
+import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;
@@ -36,7 +38,6 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoMap;
 import java.io.PrintWriter;
-import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -127,53 +128,54 @@ abstract class InstrumentModule {
 
   @Provides
   static ImmutableSet<InstrumentedMethod> provideInstrumentedMethods(
-      CaliperOptions options, BenchmarkClass benchmarkClass, ImmutableSet<Instrument> instruments)
+      CaliperOptions options,
+      BenchmarkClassModel benchmarkClass,
+      ImmutableSet<Instrument> instruments)
       throws InvalidBenchmarkException {
     ImmutableSet.Builder<InstrumentedMethod> builder = ImmutableSet.builder();
     ImmutableSet<String> benchmarkMethodNames = options.benchmarkMethodNames();
     Set<String> unusedBenchmarkNames = new HashSet<String>(benchmarkMethodNames);
     for (Instrument instrument : instruments) {
-      for (Method method : findAllBenchmarkMethods(benchmarkClass.benchmarkClass(), instrument)) {
-        if (benchmarkMethodNames.isEmpty() || benchmarkMethodNames.contains(method.getName())) {
+      for (MethodModel method : findAllBenchmarkMethods(benchmarkClass, instrument)) {
+        if (benchmarkMethodNames.isEmpty() || benchmarkMethodNames.contains(method.name())) {
           builder.add(instrument.createInstrumentedMethod(method));
-          unusedBenchmarkNames.remove(method.getName());
+          unusedBenchmarkNames.remove(method.name());
         }
       }
     }
     if (!unusedBenchmarkNames.isEmpty()) {
       throw new InvalidBenchmarkException(
-          "Invalid benchmark method(s) specified in options: " + unusedBenchmarkNames);
+          "Invalid benchmark method(s) specified in options: %s", unusedBenchmarkNames);
     }
     return builder.build();
   }
 
-  private static ImmutableSortedSet<Method> findAllBenchmarkMethods(
-      Class<?> benchmarkClass, Instrument instrument) throws InvalidBenchmarkException {
-    ImmutableSortedSet.Builder<Method> result =
+  private static ImmutableSortedSet<MethodModel> findAllBenchmarkMethods(
+      BenchmarkClassModel benchmarkClass, Instrument instrument) throws InvalidBenchmarkException {
+    ImmutableSortedSet.Builder<MethodModel> result =
         ImmutableSortedSet.orderedBy(
             Ordering.natural()
                 .onResultOf(
-                    new Function<Method, String>() {
+                    new Function<MethodModel, String>() {
                       @Override
-                      public String apply(Method method) {
-                        return method.getName();
+                      public String apply(MethodModel method) {
+                        return method.name();
                       }
                     }));
     Set<String> benchmarkMethodNames = new HashSet<String>();
     Set<String> overloadedMethodNames = new TreeSet<String>();
-    for (Method method : benchmarkClass.getDeclaredMethods()) {
+    for (MethodModel method : benchmarkClass.methods()) {
       if (instrument.isBenchmarkMethod(method)) {
-        method.setAccessible(true);
         result.add(method);
-        if (!benchmarkMethodNames.add(method.getName())) {
-          overloadedMethodNames.add(method.getName());
+        if (!benchmarkMethodNames.add(method.name())) {
+          overloadedMethodNames.add(method.name());
         }
       }
     }
     if (!overloadedMethodNames.isEmpty()) {
       throw new InvalidBenchmarkException(
           "Overloads are disallowed for benchmark methods, found overloads of %s in benchmark %s",
-          overloadedMethodNames, benchmarkClass);
+          overloadedMethodNames, benchmarkClass.simpleName());
     }
     return result.build();
   }

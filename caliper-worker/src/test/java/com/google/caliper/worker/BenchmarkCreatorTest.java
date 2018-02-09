@@ -76,9 +76,9 @@ public class BenchmarkCreatorTest {
       fail("Expected UserCodeException");
     } catch (UserCodeException e) {
       assertEquals(
-          "Benchmark class "
+          "Benchmark class '"
               + PublicNoSuitableConstructorBenchmark.class.getName()
-              + " does not have a publicly visible default constructor",
+              + "' does not have a publicly visible default constructor",
           e.getMessage());
     }
   }

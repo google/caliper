@@ -16,6 +16,7 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.bridge.BenchmarkModelLogMessage;
 import com.google.caliper.bridge.DryRunSuccessLogMessage;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.OpenedSocket;
@@ -25,6 +26,7 @@ import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.bridge.WorkerRequest;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.model.Measurement;
 import java.io.Closeable;
 import java.io.IOException;
@@ -79,6 +81,10 @@ final class WorkerEventLog implements Closeable {
 
   void notifyDryRunSuccess(Iterable<Integer> ids) throws IOException {
     send(DryRunSuccessLogMessage.create(ids));
+  }
+
+  void sendBenchmarkModel(BenchmarkClassModel model) throws IOException {
+    send(BenchmarkModelLogMessage.create(model));
   }
 
   void notifyFailure(Throwable e) throws IOException {

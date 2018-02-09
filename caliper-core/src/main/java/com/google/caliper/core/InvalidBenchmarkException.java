@@ -29,7 +29,7 @@ public class InvalidBenchmarkException extends RuntimeException {
   private static Object[] fixArgs(Object[] args) {
     for (int i = 0; i < args.length; i++) {
       if (args[i] instanceof Class) {
-        args[i] = ((Class<?>) args[i]).getSimpleName();
+        args[i] = ((Class<?>) args[i]).getName();
       }
     }
     return args;

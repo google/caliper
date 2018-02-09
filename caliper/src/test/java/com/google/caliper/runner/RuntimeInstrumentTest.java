@@ -27,6 +27,7 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.api.BeforeRep;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;
@@ -67,18 +68,25 @@ public class RuntimeInstrumentTest {
     assertEquals(
         ImmutableSet.of("macrobenchmark", "microbenchmark", "picobenchmark", "integerParam"),
         FluentIterable.from(Arrays.asList(RuntimeBenchmark.class.getDeclaredMethods()))
-            .filter(
-                new Predicate<Method>() {
+            .transform(
+                new Function<Method, MethodModel>() {
                   @Override
-                  public boolean apply(Method input) {
+                  public MethodModel apply(Method input) {
+                    return MethodModel.of(input);
+                  }
+                })
+            .filter(
+                new Predicate<MethodModel>() {
+                  @Override
+                  public boolean apply(MethodModel input) {
                     return instrument.isBenchmarkMethod(input);
                   }
                 })
             .transform(
-                new Function<Method, String>() {
+                new Function<MethodModel, String>() {
                   @Override
-                  public String apply(Method input) {
-                    return input.getName();
+                  public String apply(MethodModel input) {
+                    return input.name();
                   }
                 })
             .toSet());
@@ -86,7 +94,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_macrobenchmark() throws Exception {
-    Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("macrobenchmark");
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("macrobenchmark");
     InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
     assertEquals(instrument, instrumentedMethod.instrument());
@@ -95,7 +103,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_microbenchmark() throws Exception {
-    Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("microbenchmark", int.class);
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("microbenchmark", int.class);
     InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
     assertEquals(instrument, instrumentedMethod.instrument());
@@ -104,7 +112,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_picobenchmark() throws Exception {
-    Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("picobenchmark", long.class);
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("picobenchmark", long.class);
     InstrumentedMethod instrumentedMethod = instrument.createInstrumentedMethod(benchmarkMethod);
     assertEquals(benchmarkMethod, instrumentedMethod.benchmarkMethod());
     assertEquals(instrument, instrumentedMethod.instrument());
@@ -113,8 +121,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_badParam() throws Exception {
-    Method benchmarkMethod =
-        RuntimeBenchmark.class.getDeclaredMethod("integerParam", Integer.class);
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("integerParam", Integer.class);
     try {
       instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
@@ -124,7 +131,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_notAMacrobenchmark() throws Exception {
-    Method benchmarkMethod = RuntimeBenchmark.class.getDeclaredMethod("notAMacrobenchmark");
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("notAMacrobenchmark");
     try {
       instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
@@ -134,8 +141,7 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethodnotAMicrobenchmark() throws Exception {
-    Method benchmarkMethod =
-        RuntimeBenchmark.class.getDeclaredMethod("notAMicrobenchmark", int.class);
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("notAMicrobenchmark", int.class);
     try {
       instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
@@ -145,13 +151,17 @@ public class RuntimeInstrumentTest {
 
   @Test
   public void createInstrumentedMethod_notAPicobenchmark() throws Exception {
-    Method benchmarkMethod =
-        RuntimeBenchmark.class.getDeclaredMethod("notAPicobenchmark", long.class);
+    MethodModel benchmarkMethod = runtimeBenchmarkMethod("notAPicobenchmark", long.class);
     try {
       instrument.createInstrumentedMethod(benchmarkMethod);
       fail();
     } catch (IllegalArgumentException expected) {
     }
+  }
+
+  private static MethodModel runtimeBenchmarkMethod(String name, Class<?>... parameterTypes)
+      throws NoSuchMethodException {
+    return MethodModel.of(RuntimeBenchmark.class.getDeclaredMethod(name, parameterTypes));
   }
 
   @SuppressWarnings("unused")

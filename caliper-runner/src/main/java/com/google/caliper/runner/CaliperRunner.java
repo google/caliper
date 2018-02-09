@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.options.CaliperOptions;
@@ -67,6 +68,7 @@ final class CaliperRunner {
   private final Lazy<CaliperConfig> config;
 
   private final Lazy<ServiceManager> serviceManager;
+  private final Lazy<BenchmarkModelFactory> modelFactory;
   private final PrintWriter stdout;
   private final PrintWriter stderr;
 
@@ -77,12 +79,14 @@ final class CaliperRunner {
       Lazy<CaliperOptions> options,
       Lazy<CaliperConfig> config,
       Lazy<ServiceManager> serviceManager,
+      Lazy<BenchmarkModelFactory> modelFactory,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
       Provider<CaliperRunComponent.Builder> runComponentBuilder) {
     this.options = options;
     this.config = config;
     this.serviceManager = serviceManager;
+    this.modelFactory = modelFactory;
     this.stdout = stdout;
     this.stderr = stderr;
     this.runComponentBuilder = runComponentBuilder;
@@ -151,7 +155,11 @@ final class CaliperRunner {
               });
       serviceManager.get().startAsync().awaitHealthy();
       try {
-        CaliperRun run = runComponentBuilder.get().build().getCaliperRun();
+        BenchmarkClassModel benchmarkClassModel = modelFactory.get().createBenchmarkClassModel();
+        CaliperRun run = runComponentBuilder.get()
+            .benchmarkClassModel(benchmarkClassModel)
+            .build()
+            .getCaliperRun();
         run.run(); // throws IBE
       } finally {
         try {

@@ -24,9 +24,13 @@ import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Util;
+import com.google.common.base.Function;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
+import com.google.common.collect.Maps;
+import com.google.common.primitives.Primitives;
 import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
@@ -155,8 +159,21 @@ abstract class WorkerModule {
   }
 
   private static Method findBenchmarkMethod(
-      Class<?> benchmark, String methodName, ImmutableList<Class<?>> methodParameterClasses) {
-    Class<?>[] params = methodParameterClasses.toArray(new Class<?>[0]);
+      Class<?> benchmark, String methodName, ImmutableList<String> methodParameterClasses) {
+    Class<?>[] params = new Class<?>[methodParameterClasses.size()];
+    for (int i = 0; i < methodParameterClasses.size(); i++) {
+      try {
+        String typeName = methodParameterClasses.get(i);
+        Class<?> primitiveType = PRIMITIVE_TYPES.get(typeName);
+        if (primitiveType != null) {
+          params[i] = primitiveType;
+        } else {
+          params[i] = Util.loadClass(typeName);
+        }
+      } catch (ClassNotFoundException e) {
+        throw new RuntimeException(e);
+      }
+    }
     try {
       return benchmark.getDeclaredMethod(methodName, params);
     } catch (NoSuchMethodException e) {
@@ -166,4 +183,14 @@ abstract class WorkerModule {
       throw new RuntimeException(e);
     }
   }
+
+  private static final ImmutableMap<String, Class<?>> PRIMITIVE_TYPES =
+      Maps.uniqueIndex(
+          Primitives.allPrimitiveTypes(),
+          new Function<Class<?>, String>() {
+            @Override
+            public String apply(Class<?> input) {
+              return input.getName();
+            }
+          });
 }

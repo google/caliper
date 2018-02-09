@@ -18,7 +18,6 @@ import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_O
 import static com.google.caliper.runner.CommonInstrumentOptions.MAX_WARMUP_WALL_TIME_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.MEASUREMENTS_OPTION;
 import static com.google.caliper.runner.CommonInstrumentOptions.WARMUP_OPTION;
-import static com.google.caliper.util.Util.isStatic;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
@@ -33,6 +32,7 @@ import com.google.caliper.bridge.HotspotLogMessage;
 import com.google.caliper.bridge.StartMeasurementLogMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.platform.Platform;
@@ -44,7 +44,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
-import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.logging.Logger;
@@ -67,7 +67,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   @Override
-  public boolean isBenchmarkMethod(Method method) {
+  public boolean isBenchmarkMethod(MethodModel method) {
     return method.isAnnotationPresent(Benchmark.class)
         || BenchmarkMethods.isTimeMethod(method)
         || method.isAnnotationPresent(Macrobenchmark.class);
@@ -85,13 +85,13 @@ class RuntimeInstrument extends Instrument {
   }
 
   @Override
-  public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
+  public InstrumentedMethod createInstrumentedMethod(MethodModel benchmarkMethod)
       throws InvalidBenchmarkException {
     checkNotNull(benchmarkMethod);
     checkArgument(isBenchmarkMethod(benchmarkMethod));
-    if (isStatic(benchmarkMethod)) {
+    if (Modifier.isStatic(benchmarkMethod.modifiers())) {
       throw new InvalidBenchmarkException(
-          "Benchmark methods must not be static: %s", benchmarkMethod.getName());
+          "Benchmark methods must not be static: %s", benchmarkMethod.name());
     }
     try {
       switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
@@ -108,12 +108,12 @@ class RuntimeInstrument extends Instrument {
       throw new InvalidBenchmarkException(
           "Benchmark methods must have no arguments or accept "
               + "a single int or long parameter: %s",
-          benchmarkMethod.getName());
+          benchmarkMethod.name());
     }
   }
 
   private class MacrobenchmarkInstrumentedMethod extends InstrumentedMethod {
-    MacrobenchmarkInstrumentedMethod(Method benchmarkMethod) {
+    MacrobenchmarkInstrumentedMethod(MethodModel benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -142,7 +142,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   private abstract class RuntimeInstrumentedMethod extends InstrumentedMethod {
-    RuntimeInstrumentedMethod(Method method) {
+    RuntimeInstrumentedMethod(MethodModel method) {
       super(method);
     }
 
@@ -201,7 +201,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   private class MicrobenchmarkInstrumentedMethod extends RuntimeInstrumentedMethod {
-    MicrobenchmarkInstrumentedMethod(Method benchmarkMethod) {
+    MicrobenchmarkInstrumentedMethod(MethodModel benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -221,7 +221,7 @@ class RuntimeInstrument extends Instrument {
   }
 
   private class PicobenchmarkInstrumentedMethod extends RuntimeInstrumentedMethod {
-    PicobenchmarkInstrumentedMethod(Method benchmarkMethod) {
+    PicobenchmarkInstrumentedMethod(MethodModel benchmarkMethod) {
       super(benchmarkMethod);
     }
 

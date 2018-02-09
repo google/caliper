@@ -21,6 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.common.collect.ImmutableMap;
@@ -28,7 +30,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -67,7 +68,7 @@ public class WorkerStarterTest {
 
   @Test
   public void simpleArgsTest() throws Exception {
-    Method method = TestBenchmark.class.getDeclaredMethods()[0];
+    MethodModel method = MethodModel.of(TestBenchmark.class.getDeclaredMethods()[0]);
     AllocationInstrument allocationInstrument = new AllocationInstrument();
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
     VmConfig vmConfig =
@@ -79,7 +80,7 @@ public class WorkerStarterTest {
             allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
             Target.create("foo-jvm", vmConfig));
-    BenchmarkClass benchmarkClass = BenchmarkClass.forClass(TestBenchmark.class);
+    BenchmarkClassModel benchmarkClass = BenchmarkClassModel.builder(TestBenchmark.class).build();
     Command command = createCommand(experiment, benchmarkClass);
     List<String> commandLine = command.arguments();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
@@ -122,7 +123,7 @@ public class WorkerStarterTest {
     }
   }
 
-  private Command createCommand(Experiment experiment, BenchmarkClass benchmarkClass) {
+  private Command createCommand(Experiment experiment, BenchmarkClassModel benchmarkClass) {
     WorkerSpec spec = new TrialSpec(TRIAL_ID, experiment, benchmarkClass, 1);
     return WorkerModule.provideWorkerCommand(experiment.target(), spec, PORT_NUMBER);
   }

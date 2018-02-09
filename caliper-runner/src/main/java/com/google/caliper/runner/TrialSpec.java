@@ -18,6 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import java.io.PrintWriter;
@@ -32,14 +33,14 @@ import javax.inject.Inject;
 final class TrialSpec extends WorkerSpec {
 
   private final Experiment experiment;
-  private final BenchmarkClass benchmarkClass;
+  private final BenchmarkClassModel benchmarkClass;
   private final int trialNumber;
 
   @Inject
   TrialSpec(
       @TrialId UUID id,
       Experiment experiment,
-      BenchmarkClass benchmarkClass,
+      BenchmarkClassModel benchmarkClass,
       @TrialNumber int trialNumber) {
     super(id);
     this.experiment = experiment;

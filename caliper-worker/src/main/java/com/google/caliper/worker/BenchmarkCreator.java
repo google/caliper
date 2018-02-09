@@ -33,7 +33,7 @@ import javax.inject.Inject;
 final class BenchmarkCreator {
 
   private static final String BENCHMARK_NO_PUBLIC_DEFAULT_CONSTRUCTOR =
-      "Benchmark %s does not have a publicly visible default constructor";
+      "Benchmark class '%s' does not have a publicly visible default constructor";
 
   private final Class<?> benchmarkClass;
   private final ImmutableSortedMap<String, String> parameters;
@@ -59,7 +59,7 @@ final class BenchmarkCreator {
     }
     if (defaultConstructor == null) {
       throw new UserCodeException(
-          String.format(BENCHMARK_NO_PUBLIC_DEFAULT_CONSTRUCTOR, benchmarkClass), null);
+          String.format(BENCHMARK_NO_PUBLIC_DEFAULT_CONSTRUCTOR, benchmarkClass.getName()), null);
     }
     return defaultConstructor;
   }

@@ -40,9 +40,9 @@ public class MalformedBenchmarksTest {
 
   private static final String ABSTRACT = "Class '%s' is abstract";
   private static final String NO_CONSTRUCTOR =
-      "Benchmark class %s does not have a publicly visible default constructor";
+      "Benchmark class '%s' does not have a publicly visible default constructor";
   private static final String NO_METHODS =
-      "There were no experiments to be performed for the class %s using the instruments "
+      "There were no experiments to be performed for the class '%s' using the instruments "
           + "[allocation, runtime]";
   private static final String STATIC_BENCHMARK = "Benchmark methods must not be static: timeIt";
   private static final String WRONG_ARGUMENTS =
@@ -50,7 +50,7 @@ public class MalformedBenchmarksTest {
   private static final String STATIC_PARAM = "Parameter field 'oops' must not be static";
   private static final String RESERVED_PARAM = "Class '%s' uses reserved parameter name 'vm'";
   private static final String NO_CONVERSION =
-      "Type 'Object' of parameter field 'oops' "
+      "Type 'java.lang.Object' of parameter field 'oops' "
           + "has no recognized String-converting method; see <TODO> for details";
   private static final String CONVERT_FAILED = // granted this one's a little weird (and brittle)
       "Cannot convert value 'oops' to type 'int': For input string: \"oops\"";
@@ -197,7 +197,7 @@ public class MalformedBenchmarksTest {
     } catch (InvalidBenchmarkException e) {
       try {
         String expectedMessageText =
-            String.format(expectedMessageFmt, benchmarkClass.getSimpleName());
+            String.format(expectedMessageFmt, benchmarkClass.getName());
         assertEquals(expectedMessageText, e.getMessage());
 
         // don't swallow our real stack trace
