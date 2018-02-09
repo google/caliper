@@ -27,7 +27,7 @@ import com.google.common.collect.Maps;
 import javax.inject.Inject;
 
 /** An {@link AbstractLogMessageVisitor} that collects data about JVM properties and options. */
-@TrialScoped
+@WorkerScoped
 final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
   private final ImmutableMap.Builder<String, String> vmOptionsBuilder = ImmutableMap.builder();
   private final Platform platform;

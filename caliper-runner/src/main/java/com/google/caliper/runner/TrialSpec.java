@@ -29,7 +29,6 @@ import javax.inject.Inject;
  *
  * @author Colin Decker
  */
-@TrialScoped
 final class TrialSpec extends WorkerSpec {
 
   private final Experiment experiment;

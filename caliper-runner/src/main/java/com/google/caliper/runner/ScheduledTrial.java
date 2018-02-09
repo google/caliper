@@ -18,9 +18,9 @@ import java.util.concurrent.Callable;
 import javax.inject.Inject;
 
 /**
- * A ScheduledTrial is a simple pair of a {@link WorkerRunner} and a {@link TrialSchedulingPolicy}.
+ * A simple pair of a {@link WorkerRunner WorkerRunner<TrialResult>} and a
+ * {@link TrialSchedulingPolicy}.
  */
-@TrialScoped
 final class ScheduledTrial {
   private final WorkerRunner<TrialResult> runLoop;
   private final Experiment experiment;
