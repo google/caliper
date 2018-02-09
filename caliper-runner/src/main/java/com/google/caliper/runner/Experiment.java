@@ -72,14 +72,14 @@ abstract class Experiment {
         instrumentedMethod().type(),
         instrumentedMethod().workerOptions(),
         benchmarkSpec(),
-        ImmutableList.copyOf(instrumentedMethod().benchmarkMethod().getParameterTypes()));
+        ImmutableList.copyOf(instrumentedMethod().benchmarkMethod().parameterTypes()));
   }
 
   private static BenchmarkSpec createBenchmarkSpec(
       InstrumentedMethod method, Map<String, String> userParameters) {
     return new BenchmarkSpec.Builder()
-        .className(method.benchmarkMethod().getDeclaringClass().getName())
-        .methodName(method.benchmarkMethod().getName())
+        .className(method.benchmarkMethod().declaringClass())
+        .methodName(method.benchmarkMethod().name())
         .addAllParameters(userParameters)
         .build();
   }
@@ -88,7 +88,7 @@ abstract class Experiment {
   public String toString() {
     return MoreObjects.toStringHelper("")
         .add("instrument", instrumentedMethod().instrument())
-        .add("benchmarkMethod", instrumentedMethod().benchmarkMethod().getName())
+        .add("benchmarkMethod", instrumentedMethod().benchmarkMethod().name())
         .add("target", target().name())
         .add("parameters", userParameters())
         .toString();

@@ -16,13 +16,14 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.model.BenchmarkClassModel;
+import dagger.BindsInstance;
 import dagger.Subcomponent;
 
 /** The component for a {@link CaliperRun}. */
 @RunScoped
 @Subcomponent(
   modules = {
-    BenchmarkClassModule.class,
     CaliperRunModule.class,
     HostModule.class,
     NanoTimeGranularityModule.class,
@@ -38,6 +39,9 @@ interface CaliperRunComponent {
   /** Builder for {@link CaliperRunComponent}. */
   @Subcomponent.Builder
   interface Builder {
+    @BindsInstance
+    Builder benchmarkClassModel(BenchmarkClassModel model);
+
     /**  Builds a new {@link CaliperRunComponent}. */
     CaliperRunComponent build();
   }

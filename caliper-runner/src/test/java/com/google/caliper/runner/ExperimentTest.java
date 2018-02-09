@@ -20,13 +20,13 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.testing.FakePlatform;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
-import java.lang.reflect.Method;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -48,7 +48,8 @@ public class ExperimentTest {
   private static Experiment createFakeExperiment() throws Exception {
     RuntimeInstrument instrument = new RuntimeInstrument(ShortDuration.of(100, NANOSECONDS));
     instrument.setInstrumentName("runtime");
-    Method method = FooBenchmark.class.getDeclaredMethod("myBenchmark", long.class);
+    MethodModel method =
+        MethodModel.of(FooBenchmark.class.getDeclaredMethod("myBenchmark", long.class));
     return Experiment.create(
         1,
         instrument.createInstrumentedMethod(method),

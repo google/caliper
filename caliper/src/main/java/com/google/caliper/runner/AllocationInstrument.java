@@ -23,6 +23,7 @@ import static java.util.logging.Level.SEVERE;
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.Macrobenchmark;
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.Platform;
@@ -34,7 +35,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 import java.util.logging.Logger;
@@ -60,14 +60,14 @@ public final class AllocationInstrument extends Instrument {
   private static final Logger logger = Logger.getLogger(AllocationInstrument.class.getName());
 
   @Override
-  public boolean isBenchmarkMethod(Method method) {
+  public boolean isBenchmarkMethod(MethodModel method) {
     return method.isAnnotationPresent(Benchmark.class)
         || BenchmarkMethods.isTimeMethod(method)
         || method.isAnnotationPresent(Macrobenchmark.class);
   }
 
   @Override
-  public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
+  public InstrumentedMethod createInstrumentedMethod(MethodModel benchmarkMethod)
       throws InvalidBenchmarkException {
     checkNotNull(benchmarkMethod);
     checkArgument(isBenchmarkMethod(benchmarkMethod));
@@ -85,12 +85,12 @@ public final class AllocationInstrument extends Instrument {
       throw new InvalidBenchmarkException(
           "Benchmark methods must have no arguments or accept "
               + "a single int or long parameter: %s",
-          benchmarkMethod.getName());
+          benchmarkMethod.name());
     }
   }
 
   private final class MicroAllocationInstrumentedMethod extends InstrumentedMethod {
-    MicroAllocationInstrumentedMethod(Method benchmarkMethod) {
+    MicroAllocationInstrumentedMethod(MethodModel benchmarkMethod) {
       super(benchmarkMethod);
     }
 
@@ -118,7 +118,7 @@ public final class AllocationInstrument extends Instrument {
   }
 
   private final class MacroAllocationInstrumentedMethod extends InstrumentedMethod {
-    MacroAllocationInstrumentedMethod(Method benchmarkMethod) {
+    MacroAllocationInstrumentedMethod(MethodModel benchmarkMethod) {
       super(benchmarkMethod);
     }
 

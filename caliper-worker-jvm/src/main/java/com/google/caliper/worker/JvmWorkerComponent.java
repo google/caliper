@@ -18,7 +18,6 @@ package com.google.caliper.worker;
 
 import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.ExperimentSpec;
-import com.google.caliper.runner.BenchmarkClassModule;
 import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;

@@ -19,6 +19,7 @@ package com.google.caliper.runner;
 import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.WorkerRequest;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -36,19 +37,13 @@ import javax.inject.Inject;
 @WorkerScoped
 final class DryRunSpec extends WorkerSpec {
 
-  private final int port;
-  private final BenchmarkClass benchmarkClass;
+  private final BenchmarkClassModel benchmarkClass;
   private final ImmutableSet<Experiment> experiments;
   private final Target target;
 
   @Inject
-  DryRunSpec(
-      @LocalPort int port,
-      BenchmarkClass benchmarkClass,
-      Set<Experiment> experiments,
-      Target target) {
+  DryRunSpec(BenchmarkClassModel benchmarkClass, Set<Experiment> experiments, Target target) {
     super(UUID.randomUUID());
-    this.port = port;
     this.benchmarkClass = benchmarkClass;
     this.experiments = ImmutableSet.copyOf(experiments);
     this.target = target;

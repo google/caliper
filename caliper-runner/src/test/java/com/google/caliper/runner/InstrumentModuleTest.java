@@ -16,19 +16,20 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.platform.SupportedPlatform;
 import com.google.common.collect.ImmutableSet;
-import java.lang.reflect.Method;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,20 +39,24 @@ import org.mockito.runners.MockitoJUnitRunner;
 /** Tests {@link InstrumentModule}. */
 @RunWith(MockitoJUnitRunner.class)
 public class InstrumentModuleTest {
+
+  private static final BenchmarkClassModel TEST_BENCHMARK_MODEL =
+      BenchmarkClassModel.builder(TestBenchmark.class).build();
+
   private Instrument instrumentA = new FakeInstrument();
   private Instrument instrumentB = new FakeInstrument();
 
   @Mock CaliperOptions options;
 
-  private Method methodA;
-  private Method methodB;
-  private Method methodC;
+  private MethodModel methodA;
+  private MethodModel methodB;
+  private MethodModel methodC;
 
   @Before
   public void setUp() throws Exception {
-    methodA = TestBenchmark.class.getDeclaredMethod("a");
-    methodB = TestBenchmark.class.getDeclaredMethod("b");
-    methodC = TestBenchmark.class.getDeclaredMethod("c");
+    methodA = MethodModel.of(TestBenchmark.class.getDeclaredMethod("a"));
+    methodB = MethodModel.of(TestBenchmark.class.getDeclaredMethod("b"));
+    methodC = MethodModel.of(TestBenchmark.class.getDeclaredMethod("c"));
   }
 
   @Test
@@ -67,9 +72,7 @@ public class InstrumentModuleTest {
             .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
         InstrumentModule.provideInstrumentedMethods(
-            options,
-            BenchmarkClass.forClass(TestBenchmark.class),
-            ImmutableSet.of(instrumentA, instrumentB)));
+            options, TEST_BENCHMARK_MODEL, ImmutableSet.of(instrumentA, instrumentB)));
   }
 
   @SuppressWarnings("unchecked")
@@ -83,9 +86,7 @@ public class InstrumentModuleTest {
             .add(instrumentB.createInstrumentedMethod(methodB))
             .build(),
         InstrumentModule.provideInstrumentedMethods(
-            options,
-            BenchmarkClass.forClass(TestBenchmark.class),
-            ImmutableSet.of(instrumentA, instrumentB)));
+            options, TEST_BENCHMARK_MODEL, ImmutableSet.of(instrumentA, instrumentB)));
     assertEquals(
         new ImmutableSet.Builder<InstrumentedMethod>()
             .add(instrumentA.createInstrumentedMethod(methodA))
@@ -94,9 +95,7 @@ public class InstrumentModuleTest {
             .add(instrumentB.createInstrumentedMethod(methodC))
             .build(),
         InstrumentModule.provideInstrumentedMethods(
-            options,
-            BenchmarkClass.forClass(TestBenchmark.class),
-            ImmutableSet.of(instrumentA, instrumentB)));
+            options, TEST_BENCHMARK_MODEL, ImmutableSet.of(instrumentA, instrumentB)));
   }
 
   @Test
@@ -104,12 +103,10 @@ public class InstrumentModuleTest {
     when(options.benchmarkMethodNames()).thenReturn(ImmutableSet.of("a", "c", "bad"));
     try {
       InstrumentModule.provideInstrumentedMethods(
-          options,
-          BenchmarkClass.forClass(TestBenchmark.class),
-          ImmutableSet.of(instrumentA, instrumentB));
+          options, TEST_BENCHMARK_MODEL, ImmutableSet.of(instrumentA, instrumentB));
       fail("should have thrown for invalid benchmark method name");
     } catch (Exception expected) {
-      assertTrue(expected.getMessage().contains("[bad]"));
+      assertThat(expected.getMessage()).contains("[bad]");
     }
   }
 
@@ -127,12 +124,12 @@ public class InstrumentModuleTest {
   @SupportedPlatform(Platform.Type.JVM)
   static final class FakeInstrument extends Instrument {
     @Override
-    public boolean isBenchmarkMethod(Method method) {
+    public boolean isBenchmarkMethod(MethodModel method) {
       return true;
     }
 
     @Override
-    public InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod) {
+    public InstrumentedMethod createInstrumentedMethod(MethodModel benchmarkMethod) {
       return new InstrumentedMethod(benchmarkMethod) {
         @Override
         public InstrumentType type() {

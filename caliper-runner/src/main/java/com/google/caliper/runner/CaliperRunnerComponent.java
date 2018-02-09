@@ -33,14 +33,13 @@ import javax.inject.Singleton;
 @Singleton
 @Component(
   modules = {
+    CaliperRunnerModule.class,
     BridgeModule.class,
     ConfigModule.class,
     GsonModule.class,
-    MainModule.class,
     OptionsModule.class,
     OutputModule.class,
     PlatformModule.class,
-    RunnerModule.class,
     ServiceModule.class,
     TargetModule.class,
   }

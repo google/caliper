@@ -19,6 +19,7 @@ package com.google.caliper.runner;
 import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.api.ResultProcessor;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.model.Run;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.config.CaliperConfig;
@@ -58,7 +59,7 @@ final class OutputFileDumper implements ResultProcessor {
   @Inject
   OutputFileDumper(
       Run run,
-      BenchmarkClass benchmarkClass,
+      BenchmarkClassModel benchmarkClass,
       Gson gson,
       CaliperConfig caliperConfig,
       @CaliperDirectory File caliperDirectory)

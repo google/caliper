@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.Running;

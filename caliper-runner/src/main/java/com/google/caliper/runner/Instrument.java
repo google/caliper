@@ -23,6 +23,7 @@ import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.core.InvalidBenchmarkException;
+import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentSpec;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
@@ -37,7 +38,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.MultimapBuilder;
-import java.lang.reflect.Method;
 import javax.inject.Inject;
 
 public abstract class Instrument {
@@ -64,9 +64,9 @@ public abstract class Instrument {
     return name();
   }
 
-  public abstract boolean isBenchmarkMethod(Method method);
+  public abstract boolean isBenchmarkMethod(MethodModel method);
 
-  public abstract InstrumentedMethod createInstrumentedMethod(Method benchmarkMethod)
+  public abstract InstrumentedMethod createInstrumentedMethod(MethodModel benchmarkMethod)
       throws InvalidBenchmarkException;
 
   /** Indicates that trials using this instrument can be run in parallel with other trials. */
@@ -75,9 +75,9 @@ public abstract class Instrument {
   /** The application of an instrument to a particular benchmark method. */
   // TODO(gak): consider passing in Instrument explicitly for DI
   public abstract class InstrumentedMethod {
-    protected Method benchmarkMethod;
+    protected MethodModel benchmarkMethod;
 
-    protected InstrumentedMethod(Method benchmarkMethod) {
+    protected InstrumentedMethod(MethodModel benchmarkMethod) {
       this.benchmarkMethod = checkNotNull(benchmarkMethod);
     }
 
@@ -85,7 +85,7 @@ public abstract class Instrument {
       return Instrument.this;
     }
 
-    Method benchmarkMethod() {
+    MethodModel benchmarkMethod() {
       return benchmarkMethod;
     }
 

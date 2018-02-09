@@ -17,6 +17,7 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.bridge.BenchmarkModelRequest;
 import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.OpenedSocket;
@@ -24,8 +25,10 @@ import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.UserCodeException;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closer;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -50,10 +53,20 @@ abstract class AbstractWorkerMain {
 
       WorkerRequest request = log.notifyWorkerStarted(id);
 
-      if (request instanceof DryRunRequest) {
-        dryRun(((DryRunRequest) request).experiments(), log);
-      } else {
-        runTrial(((TrialRequest) request).experiment(), log);
+      try {
+        if (request instanceof BenchmarkModelRequest) {
+          log.sendBenchmarkModel(getBenchmarkModel((BenchmarkModelRequest) request));
+        } else if (request instanceof DryRunRequest) {
+          log.notifyDryRunSuccess(dryRun(((DryRunRequest) request).experiments()));
+        } else {
+          runTrial(((TrialRequest) request).experiment(), log);
+        }
+      } catch (IOException e) {
+        // If an IOException was thrown, it was probably from trying to send something to the
+        // runner and failing, so don't bother trying to send *that* to the runner.
+        throw e;
+      } catch (Exception e) {
+        log.notifyFailure(e);
       }
     } catch (Throwable t) {
       throw closer.rethrow(t, Exception.class);
@@ -62,7 +75,13 @@ abstract class AbstractWorkerMain {
     }
   }
 
-  private void dryRun(Iterable<ExperimentSpec> experiments, WorkerEventLog log) throws Exception {
+  private BenchmarkClassModel getBenchmarkModel(BenchmarkModelRequest request) throws Exception {
+    BenchmarkClass benchmarkClass = BenchmarkClass.forName(request.benchmarkClass());
+    benchmarkClass.validateParameters(request.userParameters());
+    return benchmarkClass.toModel();
+  }
+
+  private ImmutableSet<Integer> dryRun(Iterable<ExperimentSpec> experiments) throws Exception {
     ImmutableSet.Builder<Integer> successes = ImmutableSet.builder();
 
     for (ExperimentSpec experiment : experiments) {
@@ -79,26 +98,20 @@ abstract class AbstractWorkerMain {
         }
 
         successes.add(experiment.id());
-      } catch (Throwable e) {
-        if (e instanceof InvocationTargetException) {
-          Throwable userException = e.getCause(); // the exception thrown by the benchmark method
-          if (userException instanceof SkipThisScenarioException) {
-            // Throwing SkipThisScenarioException is not a failure; we simply don't include that
-            // experiment's ID in the list we send back, which tells the runner that it should be
-            // skipped.
-            continue;
-          }
-
-          e = new UserCodeException(userException);
+      } catch (InvocationTargetException e) {
+        Throwable userException = e.getCause(); // the exception thrown by the benchmark method
+        if (userException instanceof SkipThisScenarioException) {
+          // Throwing SkipThisScenarioException is not a failure; we simply don't include that
+          // experiment's ID in the list we send back, which tells the runner that it should be
+          continue;
+          // skipped.
         }
 
-        log.notifyFailure(e);
-        // stop after one failure; the runner should throw an exception once we notify it anyway
-        return;
+        throw new UserCodeException(userException);
       }
     }
 
-    log.notifyDryRunSuccess(successes.build());
+    return successes.build();
   }
 
   private void runTrial(ExperimentSpec experiment, WorkerEventLog log) throws Exception {
@@ -124,8 +137,6 @@ abstract class AbstractWorkerMain {
           workerInstrument.postMeasure();
         }
       }
-    } catch (Exception e) {
-      log.notifyFailure(e);
     } finally {
       workerInstrument.tearDownBenchmark();
     }

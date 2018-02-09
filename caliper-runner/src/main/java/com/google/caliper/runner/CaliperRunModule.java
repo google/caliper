@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.collect.ImmutableSetMultimap;
 import dagger.Module;
@@ -31,7 +32,7 @@ abstract class CaliperRunModule {
   @Provides
   @BenchmarkParameters
   static ImmutableSetMultimap<String, String> provideBenchmarkParameters(
-      BenchmarkClass benchmarkClass, CaliperOptions options) {
-    return benchmarkClass.userParameters().fillInDefaultsFor(options.userParameters());
+      BenchmarkClassModel benchmarkClass, CaliperOptions options) {
+    return benchmarkClass.fillInDefaultParameterValues(options.userParameters());
   }
 }

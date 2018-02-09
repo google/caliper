@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
 import com.google.caliper.Param;
 import com.google.caliper.core.InvalidBenchmarkException;
@@ -22,7 +22,6 @@ import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableCollection;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Primitives;
 import java.lang.reflect.Field;
@@ -40,7 +39,7 @@ public final class Parameter {
 
   private final Field field;
   private final Parser<?> parser;
-  private final ImmutableList<String> defaults;
+  private final ImmutableSet<String> defaults;
 
   public Parameter(Field field) throws InvalidBenchmarkException {
     if (Util.isStatic(field)) {
@@ -63,7 +62,7 @@ public final class Parameter {
       throw new InvalidBenchmarkException(
           "Type '%s' of parameter field '%s' has no recognized "
               + "String-converting method; see <TODO> for details",
-          type, field.getName());
+          type.getName(), field.getName());
     }
 
     this.defaults = findDefaults(field);
@@ -96,7 +95,7 @@ public final class Parameter {
     return field.getName();
   }
 
-  ImmutableList<String> defaults() {
+  ImmutableSet<String> defaults() {
     return defaults;
   }
 
@@ -112,10 +111,10 @@ public final class Parameter {
     }
   }
 
-  private static ImmutableList<String> findDefaults(Field field) {
+  private static ImmutableSet<String> findDefaults(Field field) {
     String[] defaultsAsStrings = field.getAnnotation(Param.class).value();
     if (defaultsAsStrings.length > 0) {
-      return ImmutableList.copyOf(defaultsAsStrings);
+      return ImmutableSet.copyOf(defaultsAsStrings);
     }
 
     Class<?> type = field.getType();
@@ -124,14 +123,14 @@ public final class Parameter {
     }
 
     if (type.isEnum()) {
-      ImmutableList.Builder<String> builder = ImmutableList.builder();
+      ImmutableSet.Builder<String> builder = ImmutableSet.builder();
       for (Object enumConstant : type.getEnumConstants()) {
         builder.add(enumConstant.toString());
       }
       return builder.build();
     }
-    return ImmutableList.of();
+    return ImmutableSet.of();
   }
 
-  private static final ImmutableList<String> ALL_BOOLEANS = ImmutableList.of("true", "false");
+  private static final ImmutableSet<String> ALL_BOOLEANS = ImmutableSet.of("true", "false");
 }

@@ -34,14 +34,14 @@ public final class ExperimentSpec implements Serializable {
   private final InstrumentType instrumentType;
   private final ImmutableMap<String, String> workerInstrumentOptions;
   private final BenchmarkSpec benchmarkSpec;
-  private final ImmutableList<Class<?>> methodParameterClasses;
+  private final ImmutableList<String> methodParameterClasses;
 
   public ExperimentSpec(
       int id,
       InstrumentType instrumentType,
       ImmutableMap<String, String> workerInstrumentOptions,
       BenchmarkSpec benchmarkSpec,
-      Iterable<Class<?>> methodParameterClasses) {
+      Iterable<String> methodParameterClasses) {
     this.id = id;
     this.instrumentType = instrumentType;
     this.workerInstrumentOptions = workerInstrumentOptions;
@@ -73,7 +73,7 @@ public final class ExperimentSpec implements Serializable {
    * Returns the parameter types for the benchmark method to run so that it can be uniquely
    * identified.
    */
-  public ImmutableList<Class<?>> methodParameterClasses() {
+  public ImmutableList<String> methodParameterClasses() {
     return methodParameterClasses;
   }
 }

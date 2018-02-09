@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
@@ -26,8 +26,10 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.api.VmOptions;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.UserCodeException;
+import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Reflection;
+import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
@@ -45,6 +47,33 @@ import java.util.logging.Logger;
 final class BenchmarkClass {
   private static final Logger logger = Logger.getLogger(BenchmarkClass.class.getName());
 
+  /**
+   * Returns a {@link BenchmarkClass} instance wrapping the class with the given name.
+   *
+   * @throws InvalidCommandException if the named class can't be found; this probably means the
+   *     class name the user provided was wrong.
+   * @throws InvalidBenchmarkException if the benchmark class can't be loaded or initialized or if
+   *     it doesn't pass some basic checks for a valid benchmark class.
+   */
+  static BenchmarkClass forName(String className)
+      throws InvalidCommandException, InvalidBenchmarkException {
+    try {
+      return forClass(Util.lenientClassForName(className));
+    } catch (ClassNotFoundException e) {
+      throw new InvalidCommandException("Benchmark class not found: " + className);
+    } catch (ExceptionInInitializerError e) {
+      throw new UserCodeException(
+          "Exception thrown while initializing class: " + className, e.getCause());
+    } catch (NoClassDefFoundError e) {
+      throw new UserCodeException("Unable to load class: " + className, e);
+    }
+  }
+
+  /**
+   * Returns a benchmark class instance wrapping the given class.
+   *
+   * @throws InvalidBenchmarkException if the class is not a valid benchmark class.
+   */
   static BenchmarkClass forClass(Class<?> theClass) throws InvalidBenchmarkException {
     return new BenchmarkClass(theClass);
   }
@@ -58,7 +87,7 @@ final class BenchmarkClass {
 
     if (!theClass.getSuperclass().equals(Object.class)) {
       throw new InvalidBenchmarkException(
-          "%s must not extend any class other than %s. Prefer composition.",
+          "Class '%s' must not extend any class other than %s. Prefer composition.",
           theClass, Object.class);
     }
 
@@ -200,5 +229,19 @@ final class BenchmarkClass {
         throw new InvalidCommandException(e.getMessage());
       }
     }
+  }
+
+  /**
+   * Returns a serializable {@link BenchmarkClassModel} of this benchmark class to be sent back to
+   * the runner.
+   */
+  BenchmarkClassModel toModel() {
+    BenchmarkClassModel.Builder modelBuilder =
+        BenchmarkClassModel.builder(benchmarkClass()).setVmOptions(vmOptions());
+    for (String parameterName : userParameters().names()) {
+      Parameter parameter = userParameters().get(parameterName);
+      modelBuilder.parametersBuilder().put(parameterName, parameter.defaults());
+    }
+    return modelBuilder.build();
   }
 }
