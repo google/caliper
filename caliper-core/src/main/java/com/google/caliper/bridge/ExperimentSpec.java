@@ -32,19 +32,19 @@ public final class ExperimentSpec implements Serializable {
 
   private final int id;
   private final InstrumentType instrumentType;
-  private final ImmutableMap<String, String> workerOptions;
+  private final ImmutableMap<String, String> workerInstrumentOptions;
   private final BenchmarkSpec benchmarkSpec;
   private final ImmutableList<Class<?>> methodParameterClasses;
 
   public ExperimentSpec(
       int id,
       InstrumentType instrumentType,
-      ImmutableMap<String, String> workerOptions,
+      ImmutableMap<String, String> workerInstrumentOptions,
       BenchmarkSpec benchmarkSpec,
       Iterable<Class<?>> methodParameterClasses) {
     this.id = id;
     this.instrumentType = instrumentType;
-    this.workerOptions = workerOptions;
+    this.workerInstrumentOptions = workerInstrumentOptions;
     this.benchmarkSpec = benchmarkSpec;
     this.methodParameterClasses = ImmutableList.copyOf(methodParameterClasses);
   }
@@ -60,8 +60,8 @@ public final class ExperimentSpec implements Serializable {
   }
 
   /** Returns the worker options to use. */
-  public ImmutableMap<String, String> workerOptions() {
-    return workerOptions;
+  public ImmutableMap<String, String> workerInstrumentOptions() {
+    return workerInstrumentOptions;
   }
 
   /** Returns the spec of the benchmark to run. */

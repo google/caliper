@@ -17,12 +17,12 @@
 package com.google.caliper.worker;
 
 /**
- * Creates a {@link Worker} for an {@link com.google.caliper.runner.Experiment}.
+ * Creates a {@link WorkerInstrument} for an {@link com.google.caliper.runner.Experiment}.
  *
  * <p>This class provides the methods for the component, but is not actually annotated with
  * {@code @Component}. Annotated subclasses exist for each supported platform to allow a different
  * set of module dependencies for each.
  */
 interface WorkerComponent {
-  Worker getWorker();
+  WorkerInstrument getWorkerInstrument();
 }

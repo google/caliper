@@ -33,24 +33,24 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import javax.inject.Inject;
 
-/** The {@link Worker} implementation for macrobenchmarks. */
-public class MacrobenchmarkWorker extends Worker {
+/** The {@link WorkerInstrument} implementation for macrobenchmarks. */
+public class MacrobenchmarkWorkerInstrument extends WorkerInstrument {
   private final Stopwatch stopwatch;
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;
   private final boolean gcBeforeEach;
 
   @Inject
-  MacrobenchmarkWorker(
+  MacrobenchmarkWorkerInstrument(
       @Benchmark Object benchmark,
       @BenchmarkMethod Method method,
       Ticker ticker,
-      @WorkerOptions Map<String, String> workerOptions) {
+      @WorkerInstrument.Options Map<String, String> options) {
     super(benchmark, method);
     this.stopwatch = Stopwatch.createUnstarted(ticker);
     this.beforeRepMethods = getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
     this.afterRepMethods = getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
-    this.gcBeforeEach = Boolean.parseBoolean(workerOptions.get("gcBeforeEach"));
+    this.gcBeforeEach = Boolean.parseBoolean(options.get("gcBeforeEach"));
   }
 
   @Override

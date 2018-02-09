@@ -29,17 +29,17 @@ import java.lang.reflect.Method;
 import javax.inject.Inject;
 
 /**
- * The {@link Worker} for the {@code AllocationInstrument}. This class invokes the benchmark method
- * a few times, with varying numbers of reps, and computes the number of object allocations and the
- * total size of those allocations.
+ * The {@link WorkerInstrument} for the {@code AllocationInstrument}. This class invokes the
+ * benchmark method a few times, with varying numbers of reps, and computes the number of object
+ * allocations and the total size of those allocations.
  */
-public final class MacrobenchmarkAllocationWorker extends Worker {
+public final class MacrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
   private final AllocationRecorder recorder;
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;
 
   @Inject
-  MacrobenchmarkAllocationWorker(
+  MacrobenchmarkAllocationWorkerInstrument(
       @Benchmark Object benchmark, @BenchmarkMethod Method method, AllocationRecorder recorder) {
     super(benchmark, method);
     this.recorder = recorder;

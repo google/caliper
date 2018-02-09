@@ -15,15 +15,32 @@
  */
 package com.google.caliper.worker;
 
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import com.google.caliper.core.Running.AfterExperimentMethods;
 import com.google.caliper.core.Running.BeforeExperimentMethods;
 import com.google.caliper.model.Measurement;
 import com.google.common.collect.ImmutableSet;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
 import java.lang.reflect.Method;
 import javax.inject.Inject;
+import javax.inject.Qualifier;
 
-/** A {@link Worker} collects measurements on behalf of a particular Instrument. */
-public abstract class Worker {
+/**
+ * The worker-side counterpart to the runner's {@code Instrument} class. The worker instrument
+ * handles actually running a benchmark and collecting measurements to report back to the runner.
+ */
+public abstract class WorkerInstrument {
+
+  @Retention(RUNTIME)
+  @Target({FIELD, PARAMETER, METHOD})
+  @Qualifier
+  @interface Options {}
+
   @Inject @BeforeExperimentMethods ImmutableSet<Method> beforeExperimentMethods;
 
   @Inject @AfterExperimentMethods ImmutableSet<Method> afterExperimentMethods;
@@ -31,7 +48,7 @@ public abstract class Worker {
   protected final Method benchmarkMethod;
   protected final Object benchmark;
 
-  protected Worker(Object benchmark, Method method) {
+  protected WorkerInstrument(Object benchmark, Method method) {
     this.benchmark = benchmark;
     this.benchmarkMethod = method;
   }
