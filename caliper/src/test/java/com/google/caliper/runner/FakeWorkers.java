@@ -17,7 +17,7 @@ package com.google.caliper.runner;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.VmConfig;
@@ -69,7 +69,7 @@ final class FakeWorkers {
   static Command createCommand(Class<?> mainClass, String... mainArgs) {
     Target target = init();
     VmConfig vm = target.vm();
-    BenchmarkClassModel benchmarkClass = BenchmarkClassModel.builder(mainClass).build();
+    BenchmarkClassModel benchmarkClass = BenchmarkClassModel.create(mainClass);
 
     // Don't add all the VM options that a normal worker has because we don't want things like
     // printing flags for the fake workers.

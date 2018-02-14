@@ -16,10 +16,13 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.core.Running;
 import com.google.caliper.core.Running.AfterExperimentMethods;
 import com.google.caliper.core.Running.BeforeExperimentMethods;
+import com.google.caliper.core.Running.BenchmarkClass;
+import com.google.caliper.util.Reflection;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
@@ -33,20 +36,17 @@ public final class BenchmarkClassModule {
 
   @Provides
   @Reusable
-  static BenchmarkClass provideBenchmarkClass(@Running.BenchmarkClass Class<?> benchmarkClassObject)
-      throws InvalidBenchmarkException {
-    return BenchmarkClass.forClass(benchmarkClassObject);
-  }
-
-  @Provides
   @BeforeExperimentMethods
-  static ImmutableSet<Method> provideBeforeExperimentMethods(BenchmarkClass benchmarkClass) {
-    return benchmarkClass.beforeExperimentMethods();
+  static ImmutableSet<Method> provideBeforeExperimentMethods(
+      @BenchmarkClass Class<?> benchmarkClass) {
+    return Reflection.getAnnotatedMethods(benchmarkClass, BeforeExperiment.class);
   }
 
   @Provides
+  @Reusable
   @AfterExperimentMethods
-  static ImmutableSet<Method> provideAfterExperimentMethods(BenchmarkClass benchmarkClass) {
-    return benchmarkClass.afterExperimentMethods();
+  static ImmutableSet<Method> provideAfterExperimentMethods(
+      @BenchmarkClass Class<?> benchmarkClass) {
+    return Reflection.getAnnotatedMethods(benchmarkClass, AfterExperiment.class);
   }
 }

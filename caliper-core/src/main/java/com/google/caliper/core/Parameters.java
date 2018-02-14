@@ -14,34 +14,25 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.core;
 
 import com.google.caliper.Param;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.primitives.Primitives;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 
-/**
- * Represents an injectable parameter, marked with one of @Param, @VmParam. Has nothing to do with
- * particular choices of <i>values</i> for this parameter (except that it knows how to find the
- * <i>default</i> values).
- */
-public final class Parameter {
-  public static Parameter create(Field field) throws InvalidBenchmarkException {
-    return new Parameter(field);
-  }
+/** Utilities for dealing with {@code @Param} fields. */
+final class Parameters {
 
-  private final Field field;
-  private final Parser<?> parser;
-  private final ImmutableSet<String> defaults;
+  private Parameters() {}
 
-  public Parameter(Field field) throws InvalidBenchmarkException {
+  /** Validates the given parameter field and returns its default values. */
+  static ImmutableSet<String> validateAndGetDefaults(Field field) {
     if (Util.isStatic(field)) {
       throw new InvalidBenchmarkException(
           "Parameter field '%s' must not be static", field.getName());
@@ -52,31 +43,34 @@ public final class Parameter {
           field.getDeclaringClass(), field.getName());
     }
 
-    this.field = field;
     field.setAccessible(true);
 
+    ImmutableSet<String> defaults = findDefaults(field);
+    validate(field, defaults);
+    return defaults;
+  }
+
+  private static Parser<?> getParser(Field field) {
     Class<?> type = Primitives.wrap(field.getType());
     try {
-      this.parser = Parsers.conventionalParser(type);
+      return Parsers.conventionalParser(type);
     } catch (NoSuchMethodException e) {
       throw new InvalidBenchmarkException(
           "Type '%s' of parameter field '%s' has no recognized "
               + "String-converting method; see <TODO> for details",
           type.getName(), field.getName());
     }
-
-    this.defaults = findDefaults(field);
-    validate(defaults);
   }
 
-  void validate(ImmutableCollection<String> values) throws InvalidBenchmarkException {
-    for (String valueAsString : values) {
+  /** Validates the given values can be parsed and assigned to the given feild. */
+  static void validate(Field field, Iterable<String> values) {
+    Parser<?> parser = getParser(field);
+    for (String value : values) {
       try {
-        parser.parse(valueAsString);
+        parser.parse(value);
       } catch (ParseException e) {
         throw new InvalidBenchmarkException(
-            "Cannot convert value '%s' to type '%s': %s",
-            valueAsString, field.getType(), e.getMessage());
+            "Cannot convert value '%s' to type '%s': %s", value, field.getType(), e.getMessage());
       }
     }
   }
@@ -90,26 +84,6 @@ public final class Parameter {
           "run",
           "trial", // currently unused, but we might need it
           "vm");
-
-  String name() {
-    return field.getName();
-  }
-
-  ImmutableSet<String> defaults() {
-    return defaults;
-  }
-
-  void inject(Object benchmark, String value) {
-    try {
-      Object o = parser.parse(value);
-      field.set(benchmark, o);
-    } catch (ParseException impossible) {
-      // already validated both defaults and command-line
-      throw new AssertionError(impossible);
-    } catch (IllegalAccessException impossible) {
-      throw new AssertionError(impossible);
-    }
-  }
 
   private static ImmutableSet<String> findDefaults(Field field) {
     String[] defaultsAsStrings = field.getAnnotation(Param.class).value();

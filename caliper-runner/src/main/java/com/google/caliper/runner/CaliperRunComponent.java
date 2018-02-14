@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import dagger.BindsInstance;
 import dagger.Subcomponent;
 

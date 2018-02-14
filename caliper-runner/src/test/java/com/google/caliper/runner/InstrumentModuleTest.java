@@ -22,8 +22,8 @@ import static org.junit.Assert.fail;
 import static org.mockito.Mockito.when;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.model.BenchmarkClassModel;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
+import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
@@ -41,7 +41,7 @@ import org.mockito.runners.MockitoJUnitRunner;
 public class InstrumentModuleTest {
 
   private static final BenchmarkClassModel TEST_BENCHMARK_MODEL =
-      BenchmarkClassModel.builder(TestBenchmark.class).build();
+      BenchmarkClassModel.create(TestBenchmark.class);
 
   private Instrument instrumentA = new FakeInstrument();
   private Instrument instrumentB = new FakeInstrument();

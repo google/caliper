@@ -19,7 +19,7 @@ package com.google.caliper.runner;
 import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;

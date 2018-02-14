@@ -16,7 +16,7 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 
 /**
  * Factory for creating model of the benchmark class for the rest of the runner to use.

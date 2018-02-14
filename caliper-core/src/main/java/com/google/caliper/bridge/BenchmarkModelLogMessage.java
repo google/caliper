@@ -17,7 +17,7 @@
 package com.google.caliper.bridge;
 
 import com.google.auto.value.AutoValue;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import java.io.Serializable;
 
 /**

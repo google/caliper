@@ -26,7 +26,7 @@ import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.model.Measurement;
 import java.io.Closeable;
 import java.io.IOException;

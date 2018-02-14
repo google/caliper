@@ -19,8 +19,8 @@ package com.google.caliper.runner;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.Benchmark;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.common.collect.ImmutableList;
 import java.lang.reflect.Modifier;
 
