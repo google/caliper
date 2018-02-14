@@ -16,8 +16,8 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.options.CaliperOptions;

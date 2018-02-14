@@ -14,22 +14,28 @@
  * limitations under the License.
  */
 
-package com.google.caliper.model;
+package com.google.caliper.core;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoValue;
+import com.google.caliper.Param;
+import com.google.caliper.api.VmOptions;
+import com.google.caliper.util.InvalidCommandException;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 /**
  * A simplified model of a benchmark class, containing no reflective references to the class and
@@ -44,10 +50,20 @@ public abstract class BenchmarkClassModel implements Serializable {
   private static final long serialVersionUID = 1;
 
   /**
-   * Returns a new builder for the given class, with {@link #type()} and {@link #methods()} already
-   * set.
+   * Creates a model of the given benchmark class and does some validation of it and the given
+   * user-provided values for the class' parameter fields.
    */
-  public static BenchmarkClassModel.Builder builder(Class<?> clazz) {
+  public static BenchmarkClassModel create(Class<?> clazz) {
+    if (!clazz.getSuperclass().equals(Object.class)) {
+      throw new InvalidBenchmarkException(
+          "Class '%s' must not extend any class other than %s. Prefer composition.",
+          clazz, Object.class);
+    }
+
+    if (Modifier.isAbstract(clazz.getModifiers())) {
+      throw new InvalidBenchmarkException("Class '%s' is abstract", clazz);
+    }
+
     BenchmarkClassModel.Builder builder =
         new AutoValue_BenchmarkClassModel.Builder()
             .setName(clazz.getName())
@@ -55,7 +71,35 @@ public abstract class BenchmarkClassModel implements Serializable {
     for (Method method : clazz.getDeclaredMethods()) {
       builder.methodsBuilder().add(MethodModel.of(method));
     }
-    return builder;
+    for (Field field : clazz.getDeclaredFields()) {
+      if (field.isAnnotationPresent(Param.class)) {
+        builder.parametersBuilder().put(field.getName(), Parameters.validateAndGetDefaults(field));
+      }
+    }
+    VmOptions vmOptions = clazz.getAnnotation(VmOptions.class);
+    if (vmOptions != null) {
+      builder.vmOptionsBuilder().add(vmOptions.value());
+    }
+    return builder.build();
+  }
+
+  /**
+   * Validates the given user-provided parameters against the parameter fields on the benchmark
+   * class.
+   */
+  public static void validateUserParameters(
+      Class<?> clazz, SetMultimap<String, String> userParameters) {
+    for (String paramName : userParameters.keySet()) {
+      try {
+        Field field = clazz.getDeclaredField(paramName);
+        Parameters.validate(field, userParameters.get(paramName));
+      } catch (NoSuchFieldException e) {
+        throw new InvalidCommandException("unrecognized parameter: " + paramName);
+      } catch (InvalidBenchmarkException e) {
+        // TODO(kevinb): this is weird.
+        throw new InvalidCommandException(e.getMessage());
+      }
+    }
   }
 
   /** Returns the fully qualified name of the benchmark class. */

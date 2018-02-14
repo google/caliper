@@ -21,8 +21,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.model.BenchmarkClassModel;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
+import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.common.collect.ImmutableMap;
@@ -80,7 +80,7 @@ public class WorkerStarterTest {
             allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
             Target.create("foo-jvm", vmConfig));
-    BenchmarkClassModel benchmarkClass = BenchmarkClassModel.builder(TestBenchmark.class).build();
+    BenchmarkClassModel benchmarkClass = BenchmarkClassModel.create(TestBenchmark.class);
     Command command = createCommand(experiment, benchmarkClass);
     List<String> commandLine = command.arguments();
     assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));

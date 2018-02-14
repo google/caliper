@@ -21,9 +21,9 @@ import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.api.SkipThisScenarioException;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.UserCodeException;
-import com.google.caliper.model.BenchmarkClassModel;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Stdout;

@@ -24,7 +24,7 @@ import com.google.caliper.bridge.BenchmarkModelRequest;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.ShortDuration;

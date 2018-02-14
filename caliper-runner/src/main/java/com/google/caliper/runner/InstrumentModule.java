@@ -16,10 +16,10 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
-import com.google.caliper.model.BenchmarkClassModel;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;

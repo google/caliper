@@ -20,9 +20,9 @@ import static com.google.caliper.runner.CommonInstrumentOptions.GC_BEFORE_EACH_O
 
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.ArbitraryMeasurement;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.runner.platform.Platform;

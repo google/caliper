@@ -24,8 +24,10 @@ import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.ShouldContinueMessage;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
+import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.UserCodeException;
-import com.google.caliper.model.BenchmarkClassModel;
+import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.Util;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.io.Closer;
 import java.io.IOException;
@@ -76,9 +78,10 @@ abstract class AbstractWorkerMain {
   }
 
   private BenchmarkClassModel getBenchmarkModel(BenchmarkModelRequest request) throws Exception {
-    BenchmarkClass benchmarkClass = BenchmarkClass.forName(request.benchmarkClass());
-    benchmarkClass.validateParameters(request.userParameters());
-    return benchmarkClass.toModel();
+    Class<?> benchmarkClass = getClass(request.benchmarkClass());
+    BenchmarkClassModel model = BenchmarkClassModel.create(benchmarkClass);
+    BenchmarkClassModel.validateUserParameters(benchmarkClass, request.userParameters());
+    return model;
   }
 
   private ImmutableSet<Integer> dryRun(Iterable<ExperimentSpec> experiments) throws Exception {
@@ -151,4 +154,17 @@ abstract class AbstractWorkerMain {
    * experiment.
    */
   protected abstract WorkerComponent createWorkerComponent(ExperimentSpec experiment);
+
+  private static Class<?> getClass(String className) {
+    try {
+      return Util.lenientClassForName(className);
+    } catch (ClassNotFoundException e) {
+      throw new InvalidCommandException("Benchmark class not found: " + className);
+    } catch (ExceptionInInitializerError e) {
+      throw new UserCodeException(
+          "Exception thrown while initializing class: " + className, e.getCause());
+    } catch (NoClassDefFoundError e) {
+      throw new UserCodeException("Unable to load class: " + className, e);
+    }
+  }
 }

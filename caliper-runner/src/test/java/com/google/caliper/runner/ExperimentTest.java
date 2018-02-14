@@ -20,7 +20,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.Benchmark;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.testing.FakePlatform;
 import com.google.caliper.util.ShortDuration;

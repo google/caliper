@@ -22,8 +22,8 @@ import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.api.Macrobenchmark;
+import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
-import com.google.caliper.model.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.platform.Platform;
