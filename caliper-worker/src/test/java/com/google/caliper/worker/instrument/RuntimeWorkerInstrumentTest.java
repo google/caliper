@@ -12,10 +12,10 @@
  * the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
-import static com.google.caliper.worker.RuntimeWorkerInstrument.INITIAL_REPS;
-import static com.google.caliper.worker.RuntimeWorkerInstrument.calculateTargetReps;
+import static com.google.caliper.worker.instrument.RuntimeWorkerInstrument.INITIAL_REPS;
+import static com.google.caliper.worker.instrument.RuntimeWorkerInstrument.calculateTargetReps;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;

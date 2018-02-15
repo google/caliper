@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,16 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
-import dagger.BindsInstance;
+import com.google.caliper.model.InstrumentType;
+import dagger.MapKey;
 
-/** Base interface for components that create a {@link Worker}. */
-interface WorkerComponent {
-
-  /** Gets the worker instance. */
-  Worker worker();
-
-  /** Builder for {@link WorkerComponent}. */
-  interface Builder {
-    /** Binds the command line args for the worker. */
-    @BindsInstance
-    Builder args(String[] args);
-
-    /** Builds a new component. */
-    WorkerComponent build();
-  }
+/**
+ * Specifies the type of instrument to use as a key in the map of available {@link Worker workers}
+ * passed to {@link #provideWorker(Map)}.
+ */
+@MapKey
+public @interface InstrumentTypeKey {
+  InstrumentType value();
 }

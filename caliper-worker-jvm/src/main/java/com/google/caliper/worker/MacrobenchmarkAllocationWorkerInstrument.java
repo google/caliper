@@ -23,6 +23,7 @@ import com.google.caliper.api.BeforeRep;
 import com.google.caliper.core.Running.Benchmark;
 import com.google.caliper.core.Running.BenchmarkMethod;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.worker.instrument.WorkerInstrument;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.Method;

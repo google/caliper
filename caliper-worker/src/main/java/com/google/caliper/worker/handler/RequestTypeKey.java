@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.handler;
 
-import dagger.BindsInstance;
+import com.google.caliper.bridge.WorkerRequest;
+import dagger.MapKey;
 
-/** Base interface for components that create a {@link Worker}. */
-interface WorkerComponent {
-
-  /** Gets the worker instance. */
-  Worker worker();
-
-  /** Builder for {@link WorkerComponent}. */
-  interface Builder {
-    /** Binds the command line args for the worker. */
-    @BindsInstance
-    Builder args(String[] args);
-
-    /** Builds a new component. */
-    WorkerComponent build();
-  }
+/**
+ * Specifies the type of request a {@link RequestHandler} handles.
+ *
+ * @autor Colin Decker
+ */
+@MapKey
+@interface RequestTypeKey {
+  Class<? extends WorkerRequest> value();
 }

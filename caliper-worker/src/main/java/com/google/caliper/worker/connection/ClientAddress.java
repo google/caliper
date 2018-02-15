@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.connection;
 
-import dagger.BindsInstance;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/** Base interface for components that create a {@link Worker}. */
-interface WorkerComponent {
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import javax.inject.Qualifier;
 
-  /** Gets the worker instance. */
-  Worker worker();
-
-  /** Builder for {@link WorkerComponent}. */
-  interface Builder {
-    /** Binds the command line args for the worker. */
-    @BindsInstance
-    Builder args(String[] args);
-
-    /** Builds a new component. */
-    WorkerComponent build();
-  }
-}
+/**
+ * Qualifier for binding the socket address of the process that started the worker.
+ *
+ * @author Colin Decker
+ */
+@Qualifier
+@Documented
+@Retention(RUNTIME)
+public @interface ClientAddress {}

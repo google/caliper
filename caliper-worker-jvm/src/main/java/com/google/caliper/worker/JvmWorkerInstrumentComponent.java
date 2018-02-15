@@ -16,18 +16,19 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.worker.instrument.WorkerInstrument;
 import com.google.caliper.worker.instrument.WorkerInstrumentComponent;
-import dagger.Binds;
-import dagger.Module;
+import com.google.caliper.worker.instrument.WorkerInstrumentModule;
+import dagger.Subcomponent;
 
 /**
- * Module with additional bindings needed by a JVM worker.
+ * Component that configures {@link WorkerInstrument}s for JVMs.
  *
  * @author Colin Decker
  */
-@Module(subcomponents = JvmWorkerInstrumentComponent.class)
-abstract class JvmWorkerModule {
-  @Binds
-  abstract WorkerInstrumentComponent.Builder bindInstrumentComponentBuilder(
-      JvmWorkerInstrumentComponent.Builder builder);
+@Subcomponent(modules = {WorkerInstrumentModule.class, JvmWorkerInstrumentModule.class})
+interface JvmWorkerInstrumentComponent extends WorkerInstrumentComponent {
+  /** Builder for {@link JvmWorkerInstrumentComponent}. */
+  @Subcomponent.Builder
+  interface Builder extends WorkerInstrumentComponent.Builder {}
 }

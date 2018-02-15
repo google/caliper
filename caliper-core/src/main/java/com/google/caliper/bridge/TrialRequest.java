@@ -31,6 +31,11 @@ public final class TrialRequest implements WorkerRequest {
     this.experiment = experiment;
   }
 
+  @Override
+  public final Class<? extends WorkerRequest> type() {
+    return TrialRequest.class;
+  }
+
   /** Returns the experiment to run. */
   public ExperimentSpec experiment() {
     return experiment;

@@ -16,21 +16,22 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.bridge.ExperimentSpec;
+import dagger.Component;
+import javax.inject.Singleton;
 
-/**
- * This class is invoked as a subprocess by the Caliper runner parent process; it re-stages the
- * benchmark and hands it off to the instrument's worker.
- */
-public final class WorkerMain extends AbstractWorkerMain {
-  private WorkerMain() {}
+/** Main class for running workers on JVMs. */
+@Singleton
+@Component(modules = {WorkerModule.class, JvmWorkerModule.class})
+public abstract class WorkerMain implements WorkerComponent {
 
   public static void main(String[] args) throws Exception {
-    new WorkerMain().mainImpl(args);
+    Worker worker = DaggerWorkerMain.builder().args(args).build().worker();
+    worker.run();
   }
 
-  @Override
-  protected WorkerComponent createWorkerComponent(ExperimentSpec experiment) {
-    return DaggerJvmWorkerComponent.builder().experiment(experiment).build();
+  @Component.Builder
+  interface Builder extends WorkerComponent.Builder {
+    @Override
+    WorkerMain build(); // to prevent Dagger warnings about the main() method
   }
 }

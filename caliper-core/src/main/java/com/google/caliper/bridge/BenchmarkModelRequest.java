@@ -38,6 +38,11 @@ public abstract class BenchmarkModelRequest implements WorkerRequest {
         benchmarkClass, ImmutableSetMultimap.copyOf(userParameters));
   }
 
+  @Override
+  public final Class<? extends WorkerRequest> type() {
+    return BenchmarkModelRequest.class;
+  }
+
   /** Returns the name of the benchmark class to get the model of. */
   public abstract String benchmarkClass();
 

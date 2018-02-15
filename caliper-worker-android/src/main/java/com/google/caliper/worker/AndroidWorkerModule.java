@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017 Google Inc.
+ * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,18 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.model.InstrumentType;
-import dagger.MapKey;
+import com.google.caliper.worker.instrument.WorkerInstrumentComponent;
+import dagger.Binds;
+import dagger.Module;
 
 /**
- * Specifies the type of instrument to use as a key in the map of available {@link Worker workers}
- * passed to {@link #provideWorker(Map)}.
+ * Module with additional bindings needed by an Android VM worker.
+ *
+ * @author Colin Decker
  */
-@MapKey
-@interface InstrumentTypeKey {
-  InstrumentType value();
+@Module(subcomponents = AndroidWorkerInstrumentComponent.class)
+abstract class AndroidWorkerModule {
+  @Binds
+  abstract WorkerInstrumentComponent.Builder bindInstrumentComponentBuilder(
+      AndroidWorkerInstrumentComponent.Builder builder);
 }

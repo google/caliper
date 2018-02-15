@@ -19,6 +19,7 @@ package com.google.caliper.worker;
 import com.google.caliper.core.Running.Benchmark;
 import com.google.caliper.core.Running.BenchmarkMethod;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.worker.instrument.WorkerInstrument;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;

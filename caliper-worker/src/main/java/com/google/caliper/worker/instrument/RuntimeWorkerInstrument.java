@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
