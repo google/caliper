@@ -32,6 +32,11 @@ public final class DryRunRequest implements WorkerRequest {
     this.experiments = ImmutableSet.copyOf(experiments);
   }
 
+  @Override
+  public final Class<? extends WorkerRequest> type() {
+    return DryRunRequest.class;
+  }
+
   /** Returns the set of experiments to be dry-run. */
   public ImmutableSet<ExperimentSpec> experiments() {
     return experiments;

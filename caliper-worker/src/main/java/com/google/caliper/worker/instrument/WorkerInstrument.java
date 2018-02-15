@@ -13,7 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.google.caliper.worker;
+
+package com.google.caliper.worker.instrument;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.ElementType.METHOD;
@@ -39,7 +40,7 @@ public abstract class WorkerInstrument {
   @Retention(RUNTIME)
   @Target({FIELD, PARAMETER, METHOD})
   @Qualifier
-  @interface Options {}
+  public @interface Options {}
 
   @Inject @BeforeExperimentMethods ImmutableSet<Method> beforeExperimentMethods;
 
@@ -54,7 +55,7 @@ public abstract class WorkerInstrument {
   }
 
   /** Initializes the benchmark object. */
-  final void setUpBenchmark() throws Exception {
+  public final void setUpBenchmark() throws Exception {
     for (Method method : beforeExperimentMethods) {
       method.invoke(benchmark);
     }
@@ -81,7 +82,7 @@ public abstract class WorkerInstrument {
   public abstract Iterable<Measurement> measure() throws Exception;
 
   /** Tears down the benchmark object. */
-  final void tearDownBenchmark() throws Exception {
+  public final void tearDownBenchmark() throws Exception {
     for (Method method : afterExperimentMethods) {
       method.invoke(benchmark);
     }

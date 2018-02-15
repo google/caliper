@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
 import com.google.caliper.core.Running.Benchmark;
 import com.google.caliper.core.Running.BenchmarkMethod;

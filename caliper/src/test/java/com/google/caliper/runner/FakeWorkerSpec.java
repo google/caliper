@@ -49,11 +49,18 @@ final class FakeWorkerSpec extends WorkerSpec {
 
   @Override
   public WorkerRequest request() {
-    return new WorkerRequest() {};
+    return new FakeRequest();
   }
 
   public static Builder builder(Class<?> mainClass) {
     return new Builder(mainClass);
+  }
+
+  static final class FakeRequest implements WorkerRequest {
+    @Override
+    public Class<? extends WorkerRequest> type() {
+      return FakeRequest.class;
+    }
   }
 
   static final class Builder {

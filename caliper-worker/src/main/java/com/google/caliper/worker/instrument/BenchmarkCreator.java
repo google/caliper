@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
 import com.google.caliper.Param;
 import com.google.caliper.core.Running.Benchmark;
@@ -64,13 +64,12 @@ final class BenchmarkCreator {
     return defaultConstructor;
   }
 
-  Object createBenchmarkInstance() {
+  /** Instantiates a benchmark object. */
+  public Object createBenchmarkInstance() {
     Object instance;
     try {
       instance = benchmarkClassCtor.newInstance();
-    } catch (InstantiationException e) {
-      throw new AssertionError(e);
-    } catch (IllegalAccessException e) {
+    } catch (InstantiationException | IllegalAccessException e) {
       throw new AssertionError(e);
     } catch (InvocationTargetException e) {
       Throwable userException = e.getCause();

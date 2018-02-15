@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Google Inc.
+ * Copyright (C) 2018 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,34 +14,28 @@
  * limitations under the License.
  */
 
-package com.google.caliper.worker;
+package com.google.caliper.worker.instrument;
 
-import com.google.caliper.bridge.BridgeModule;
 import com.google.caliper.bridge.ExperimentSpec;
 import dagger.BindsInstance;
-import dagger.Component;
-import javax.inject.Singleton;
 
-/** Actual {@code WorkerComponent} for use on the JVM. */
-@Singleton
-@Component(
-  modules = {
-    BenchmarkClassModule.class,
-    BridgeModule.class,
-    JvmWorkerModule.class,
-    WorkerModule.class
-  }
-)
-interface JvmWorkerComponent extends WorkerComponent {
+/**
+ * Base interface for components that configure {@link WorkerInstrument}s.
+ *
+ * @author Colin Decker
+ */
+public interface WorkerInstrumentComponent {
 
-  /** Builder for a {@code JvmWorkerComponent}. */
-  @Component.Builder
-  interface Builder {
-    /** Binds the {@code ExperimentSpec} for the worker. */
+  /** Returns the {@link WorkerInstrument} configured by this component. */
+  WorkerInstrument instrument();
+
+  /** Builder for {@link WorkerInstrumentComponent}. */
+  public interface Builder {
+    /** Binds the experiment the instrument should be set up to run. */
     @BindsInstance
     Builder experiment(ExperimentSpec experiment);
 
-    /** Builds a new {@code JvmWorkerComponent} instance. */
-    JvmWorkerComponent build();
+    /** Builds the component. */
+    WorkerInstrumentComponent build();
   }
 }

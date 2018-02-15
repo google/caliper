@@ -23,4 +23,8 @@ import java.io.Serializable;
  *
  * @author Colin Decker
  */
-public interface WorkerRequest extends Serializable {}
+public interface WorkerRequest extends Serializable {
+  /** Returns the type of the request. */
+  // this is slightly weird, but with AutoValue, getClass() doesn't return quite what we want
+  Class<? extends WorkerRequest> type();
+}
