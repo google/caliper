@@ -25,7 +25,8 @@ import javax.inject.Singleton;
 public abstract class WorkerMain implements WorkerComponent {
 
   public static void main(String[] args) throws Exception {
-    Worker worker = DaggerWorkerMain.builder().args(args).build().worker();
+    Worker worker =
+        DaggerWorkerMain.builder().options(WorkerOptionsModule.fromArgs(args)).build().worker();
     worker.run();
   }
 

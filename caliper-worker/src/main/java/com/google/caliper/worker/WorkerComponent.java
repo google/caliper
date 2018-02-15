@@ -16,8 +16,6 @@
 
 package com.google.caliper.worker;
 
-import dagger.BindsInstance;
-
 /** Base interface for components that create a {@link Worker}. */
 interface WorkerComponent {
 
@@ -26,9 +24,8 @@ interface WorkerComponent {
 
   /** Builder for {@link WorkerComponent}. */
   interface Builder {
-    /** Binds the command line args for the worker. */
-    @BindsInstance
-    Builder args(String[] args);
+    /** Sets the options module for the worker. */
+    Builder options(WorkerOptionsModule options);
 
     /** Builds a new component. */
     WorkerComponent build();
