@@ -16,14 +16,19 @@
 
 package com.google.caliper.worker;
 
-import com.google.caliper.worker.connection.ClientAddress;
+import com.google.caliper.AfterExperiment;
+import com.google.caliper.BeforeExperiment;
+import com.google.caliper.core.Running.AfterExperimentMethods;
+import com.google.caliper.core.Running.BeforeExperimentMethods;
+import com.google.caliper.core.Running.BenchmarkClass;
+import com.google.caliper.util.Reflection;
 import com.google.caliper.worker.handler.RequestHandlerModule;
+import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
+import dagger.Reusable;
+import java.lang.reflect.Method;
 import java.util.Random;
-import java.util.UUID;
 import javax.inject.Singleton;
 
 /**
@@ -31,24 +36,28 @@ import javax.inject.Singleton;
  *
  * @author Colin Decker
  */
-@Module(includes = RequestHandlerModule.class)
+@Module(includes = {WorkerOptionsModule.class, RequestHandlerModule.class})
 abstract class WorkerModule {
-
-  @Provides
-  static UUID provideWorkerId(String[] args) {
-    return UUID.fromString(args[0]);
-  }
-
-  @Provides
-  @ClientAddress
-  static InetSocketAddress provideClientAddress(String[] args) {
-    int port = Integer.parseInt(args[1]);
-    return new InetSocketAddress(InetAddress.getLoopbackAddress(), port);
-  }
 
   @Provides
   @Singleton
   static Random provideRandom() {
     return new Random();
+  }
+
+  @Provides
+  @Reusable
+  @BeforeExperimentMethods
+  static ImmutableSet<Method> provideBeforeExperimentMethods(
+      @BenchmarkClass Class<?> benchmarkClass) {
+    return Reflection.getAnnotatedMethods(benchmarkClass, BeforeExperiment.class);
+  }
+
+  @Provides
+  @Reusable
+  @AfterExperimentMethods
+  static ImmutableSet<Method> provideAfterExperimentMethods(
+      @BenchmarkClass Class<?> benchmarkClass) {
+    return Reflection.getAnnotatedMethods(benchmarkClass, AfterExperiment.class);
   }
 }

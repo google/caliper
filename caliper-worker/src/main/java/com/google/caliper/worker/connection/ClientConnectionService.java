@@ -43,7 +43,7 @@ public final class ClientConnectionService extends AbstractIdleService {
   private volatile OpenedSocket.Reader reader;
 
   @Inject
-  ClientConnectionService(@ClientAddress InetSocketAddress clientAddress) {
+  ClientConnectionService(InetSocketAddress clientAddress) {
     this.clientAddress = clientAddress;
   }
 

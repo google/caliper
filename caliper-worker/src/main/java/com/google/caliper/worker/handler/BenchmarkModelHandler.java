@@ -20,9 +20,7 @@ import com.google.caliper.bridge.BenchmarkModelLogMessage;
 import com.google.caliper.bridge.BenchmarkModelRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.BenchmarkClassModel;
-import com.google.caliper.core.UserCodeException;
-import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.Util;
+import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.worker.connection.ClientConnectionService;
 import java.io.IOException;
 import javax.inject.Inject;
@@ -35,31 +33,20 @@ import javax.inject.Inject;
 final class BenchmarkModelHandler implements RequestHandler {
 
   private final ClientConnectionService clientConnection;
+  private final Class<?> benchmarkClass;
 
   @Inject
-  BenchmarkModelHandler(ClientConnectionService clientConnection) {
+  BenchmarkModelHandler(
+      ClientConnectionService clientConnection, @BenchmarkClass Class<?> benchmarkClass) {
     this.clientConnection = clientConnection;
+    this.benchmarkClass = benchmarkClass;
   }
 
   @Override
   public void handleRequest(WorkerRequest request) throws IOException {
     BenchmarkModelRequest modelRequest = (BenchmarkModelRequest) request;
-    Class<?> benchmarkClass = getClass(modelRequest.benchmarkClass());
     BenchmarkClassModel model = BenchmarkClassModel.create(benchmarkClass);
     BenchmarkClassModel.validateUserParameters(benchmarkClass, modelRequest.userParameters());
     clientConnection.send(BenchmarkModelLogMessage.create(model));
-  }
-
-  private static Class<?> getClass(String className) {
-    try {
-      return Util.lenientClassForName(className);
-    } catch (ClassNotFoundException e) {
-      throw new InvalidCommandException("Benchmark class not found: " + className);
-    } catch (ExceptionInInitializerError e) {
-      throw new UserCodeException(
-          "Exception thrown while initializing class: " + className, e.getCause());
-    } catch (NoClassDefFoundError e) {
-      throw new UserCodeException("Unable to load class: " + className, e);
-    }
   }
 }

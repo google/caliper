@@ -16,24 +16,18 @@
 
 package com.google.caliper.worker.instrument;
 
-import com.google.caliper.AfterExperiment;
-import com.google.caliper.BeforeExperiment;
 import com.google.caliper.bridge.ExperimentSpec;
-import com.google.caliper.core.Running.AfterExperimentMethods;
-import com.google.caliper.core.Running.BeforeExperimentMethods;
 import com.google.caliper.core.Running.Benchmark;
 import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.core.Running.BenchmarkMethod;
 import com.google.caliper.model.BenchmarkSpec;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.Reflection;
 import com.google.caliper.util.Util;
 import com.google.common.base.Function;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Maps;
 import com.google.common.primitives.Primitives;
@@ -63,37 +57,9 @@ public abstract class WorkerInstrumentModule {
   }
 
   @Provides
-  @Reusable
-  @BenchmarkClass
-  static Class<?> provideBenchmarkClass(BenchmarkSpec spec) {
-    try {
-      return Util.loadClass(spec.className());
-    } catch (ClassNotFoundException e) {
-      // TODO(cgdecker): Throw a better exception type?
-      throw new RuntimeException(e);
-    }
-  }
-
-  @Provides
   @Benchmark
   static Object provideBenchmarkInstance(BenchmarkCreator creator) {
     return creator.createBenchmarkInstance();
-  }
-
-  @Provides
-  @Reusable
-  @BeforeExperimentMethods
-  static ImmutableSet<Method> provideBeforeExperimentMethods(
-      @BenchmarkClass Class<?> benchmarkClass) {
-    return Reflection.getAnnotatedMethods(benchmarkClass, BeforeExperiment.class);
-  }
-
-  @Provides
-  @Reusable
-  @AfterExperimentMethods
-  static ImmutableSet<Method> provideAfterExperimentMethods(
-      @BenchmarkClass Class<?> benchmarkClass) {
-    return Reflection.getAnnotatedMethods(benchmarkClass, AfterExperiment.class);
   }
 
   @Provides

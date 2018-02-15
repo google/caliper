@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.model.Run;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.options.CaliperOptions;
@@ -63,4 +64,10 @@ abstract class CaliperRunnerModule {
 
   @Binds
   abstract BenchmarkModelFactory bindModelFactory(BenchmarkModelFromWorkerFactory factory);
+
+  @Provides
+  @BenchmarkClass
+  static String provideBenchmarkClassName(CaliperOptions options) {
+    return options.benchmarkClassName();
+  }
 }

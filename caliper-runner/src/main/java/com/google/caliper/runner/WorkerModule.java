@@ -17,6 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.common.util.concurrent.ListenableFuture;
 import dagger.Binds;
@@ -44,7 +45,11 @@ abstract class WorkerModule {
   abstract WorkerStarter bindWorkerStarter(LocalWorkerStarter workerStarter);
 
   @Provides
-  static Command provideWorkerCommand(Target target, WorkerSpec spec, @LocalPort int port) {
+  static Command provideWorkerCommand(
+      Target target,
+      WorkerSpec spec,
+      @LocalPort int port,
+      @BenchmarkClass String benchmarkClassName) {
     VmConfig vm = target.vm();
     return Command.builder()
         .putAllEnvironmentVariables(target.platform().workerEnvironment())
@@ -56,6 +61,7 @@ abstract class WorkerModule {
         .addArgument(spec.mainClass())
         .addArgument(spec.id())
         .addArgument(port)
+        .addArgument(benchmarkClassName)
         .build();
   }
 }
