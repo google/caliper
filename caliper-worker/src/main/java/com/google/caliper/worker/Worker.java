@@ -30,7 +30,7 @@ import javax.inject.Inject;
  *
  * @author Colin Decker
  */
-public final class Worker {
+final class Worker {
 
   private final UUID id;
   private final ClientConnectionService clientConnection;

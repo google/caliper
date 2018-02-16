@@ -31,7 +31,7 @@ import javax.inject.Inject;
  * benchmark method a few times, with varying numbers of reps, and computes the number of object
  * allocations and the total size of those allocations.
  */
-public final class MicrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
+final class MicrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
   // TODO(gak): make this or something like this an option
   private static final int WARMUP_REPS = 10;
   private static final int MAX_REPS = 100;

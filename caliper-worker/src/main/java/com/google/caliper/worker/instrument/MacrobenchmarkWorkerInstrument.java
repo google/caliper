@@ -34,7 +34,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 /** The {@link WorkerInstrument} implementation for macrobenchmarks. */
-public class MacrobenchmarkWorkerInstrument extends WorkerInstrument {
+final class MacrobenchmarkWorkerInstrument extends WorkerInstrument {
   private final Stopwatch stopwatch;
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;
