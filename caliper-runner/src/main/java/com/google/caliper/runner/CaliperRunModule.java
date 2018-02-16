@@ -26,8 +26,10 @@ import dagger.Provides;
 @Module(subcomponents = {DryRunComponent.class, TrialComponent.class})
 abstract class CaliperRunModule {
 
-  @Binds
-  abstract CaliperRun bindCaliperRun(ExperimentingCaliperRun experimentingCaliperRun);
+  @Provides
+  static CaliperRun provideCaliperRun(ExperimentingCaliperRun experimentingCaliperRun) {
+    return experimentingCaliperRun;
+  }
 
   @Provides
   @BenchmarkParameters

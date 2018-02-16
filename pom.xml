@@ -77,7 +77,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <dagger.version>2.7</dagger.version>
+    <dagger.version>2.14.1</dagger.version>
   </properties>
 
   <modules>
@@ -138,12 +138,12 @@
       <dependency>
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
-        <version>20.0</version>
+        <version>23.6-jre</version>
       </dependency>
       <dependency>
         <groupId>com.google.code.java-allocation-instrumenter</groupId>
         <artifactId>java-allocation-instrumenter</artifactId>
-        <version>3.0</version>
+        <version>3.1.0</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -153,7 +153,7 @@
       <dependency>
         <groupId>com.google.truth</groupId>
         <artifactId>truth</artifactId>
-        <version>0.30</version>
+        <version>0.39</version>
       </dependency>
       <dependency>
         <groupId>org.mockito</groupId>

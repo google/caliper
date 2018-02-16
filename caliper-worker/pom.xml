@@ -28,7 +28,7 @@
   <groupId>com.google.caliper</groupId>
   <artifactId>caliper-worker</artifactId>
 
-  <name>Caliper Core</name>
+  <name>Caliper Worker</name>
   <description>
     Caliper benchmark worker code which is used to actually run benchmarks on targets.
   </description>

@@ -30,11 +30,6 @@
 
   <name>Caliper Android Worker</name>
 
-  <properties>
-    <android.home>${env.ANDROID_HOME}</android.home>
-    <android.sdk.version>25</android.sdk.version>
-  </properties>
-
   <dependencies>
     <dependency>
       <groupId>com.google.caliper</groupId>
@@ -58,13 +53,6 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.android</groupId>
-      <artifactId>android</artifactId>
-      <version>${android.sdk.version}</version>
-      <scope>system</scope>
-      <systemPath>${android.home}/platforms/android-${android.sdk.version}/android.jar</systemPath>
     </dependency>
   </dependencies>
 
