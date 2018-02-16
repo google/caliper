@@ -34,7 +34,7 @@ import java.util.Random;
 import javax.inject.Inject;
 
 /** A {@link WorkerInstrument} base class for micro and pico benchmarks. */
-public abstract class RuntimeWorkerInstrument extends WorkerInstrument {
+abstract class RuntimeWorkerInstrument extends WorkerInstrument {
   @VisibleForTesting static final int INITIAL_REPS = 100;
 
   protected final Random random;
@@ -110,7 +110,7 @@ public abstract class RuntimeWorkerInstrument extends WorkerInstrument {
   }
 
   /** A {@link Worker} for micro benchmarks. */
-  public static final class Micro extends RuntimeWorkerInstrument {
+  static final class Micro extends RuntimeWorkerInstrument {
     @Inject
     Micro(
         @Benchmark Object benchmark,
@@ -141,7 +141,7 @@ public abstract class RuntimeWorkerInstrument extends WorkerInstrument {
   }
 
   /** A {@link Worker} for pico benchmarks. */
-  public static final class Pico extends RuntimeWorkerInstrument {
+  static final class Pico extends RuntimeWorkerInstrument {
     @Inject
     Pico(
         @Benchmark Object benchmark,

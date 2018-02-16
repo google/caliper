@@ -34,7 +34,7 @@ import javax.inject.Inject;
  * benchmark method a few times, with varying numbers of reps, and computes the number of object
  * allocations and the total size of those allocations.
  */
-public final class MacrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
+final class MacrobenchmarkAllocationWorkerInstrument extends WorkerInstrument {
   private final AllocationRecorder recorder;
   private final ImmutableSet<Method> beforeRepMethods;
   private final ImmutableSet<Method> afterRepMethods;

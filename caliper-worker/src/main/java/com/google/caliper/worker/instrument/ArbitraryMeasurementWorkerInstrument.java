@@ -28,7 +28,7 @@ import java.util.Map;
 import javax.inject.Inject;
 
 /** Worker for arbitrary measurements. */
-public final class ArbitraryMeasurementWorkerInstrument extends WorkerInstrument {
+final class ArbitraryMeasurementWorkerInstrument extends WorkerInstrument {
   private final Options options;
   private final String unit;
   private final String description;
