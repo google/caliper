@@ -32,7 +32,6 @@ import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import com.google.monitoring.runtime.instrumentation.AllocationInstrumenter;
 import java.io.File;
 import java.io.IOException;
 import java.util.jar.JarFile;
@@ -56,6 +55,15 @@ public final class AllocationInstrument extends Instrument {
    * logged. This will also increase the detail of certain error messages.
    */
   private static final String TRACK_ALLOCATIONS_OPTION = "trackAllocations";
+
+  /**
+   * Valid names for the Premain-Class for the allocation instrumenter. This changed between 3.0 and
+   * 3.1.0.
+   */
+  private static final ImmutableSet<String> ALLOCATION_INSTRUMENTER_PREMAIN_CLASS_NAMES =
+      ImmutableSet.of(
+          "com.google.monitoring.runtime.instrumentation.AllocationInstrumenter",
+          "com.google.monitoring.runtime.instrumentation.AllocationInstrumenterBootstrap");
 
   private static final Logger logger = Logger.getLogger(AllocationInstrument.class.getName());
 
@@ -154,9 +162,8 @@ public final class AllocationInstrument extends Instrument {
         jarFile = new JarFile(file);
         Manifest manifest = jarFile.getManifest();
         if ((manifest != null)
-            && AllocationInstrumenter.class
-                .getName()
-                .equals(manifest.getMainAttributes().getValue("Premain-Class"))) {
+            && ALLOCATION_INSTRUMENTER_PREMAIN_CLASS_NAMES.contains(
+                manifest.getMainAttributes().getValue("Premain-Class"))) {
           return Optional.of(file);
         }
       } finally {
