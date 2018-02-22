@@ -14,12 +14,16 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.base.Charsets.UTF_8;
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.runner.Worker.StreamItem;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Throwables;
+import com.google.common.io.Files;
 import com.google.common.util.concurrent.Service.State;
 import java.io.File;
 import java.io.IOException;
@@ -44,6 +48,7 @@ final class WorkerRunner<R> implements Callable<R> {
 
   private final Worker worker;
   private final WorkerProcessor<R> processor;
+  private final boolean printWorkerLog;
 
   private File outputFile = null;
 
@@ -51,9 +56,10 @@ final class WorkerRunner<R> implements Callable<R> {
   private boolean done = false;
 
   @Inject
-  WorkerRunner(Worker worker, WorkerProcessor<R> processor) {
+  WorkerRunner(Worker worker, WorkerProcessor<R> processor, CaliperOptions options) {
     this.worker = worker;
     this.processor = processor;
+    this.printWorkerLog = options.printWorkerLog();
   }
 
   /**
@@ -71,9 +77,7 @@ final class WorkerRunner<R> implements Callable<R> {
    * the provided {@link WorkerProcessor}. Returns the result object produced by the processor.
    */
   public R runWorker() {
-    if (worker.state() != State.NEW) {
-      throw new IllegalStateException("You can only invoke the run loop once");
-    }
+    checkState(worker.state() == State.NEW, "You can only invoke the run loop once");
 
     // logger must be opened before starting worker
     WorkerOutputLogger workerLogger = worker.outputLogger();
@@ -173,8 +177,17 @@ final class WorkerRunner<R> implements Callable<R> {
    * to be added.
    */
   private String formatError(String baseMessageFormat, Object... args) {
-    return String.format(baseMessageFormat, args)
-        + ' '
-        + String.format("Inspect %s to see any worker output.", outputFile);
+    String baseMessage = String.format(baseMessageFormat, args);
+    if (printWorkerLog) {
+      try {
+        worker.outputLogger().flush();
+        String logContent = Files.toString(outputFile, UTF_8);
+        return baseMessage + " Worker log follows:\n\n" + logContent;
+      } catch (IOException ignore) {
+        // fall through to printing the path
+      }
+    }
+
+    return baseMessage + String.format(" Inspect %s to see any worker output.", outputFile);
   }
 }

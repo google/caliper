@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkState;
 import com.google.caliper.runner.WorkerOutputFactory.FileAndWriter;
 import java.io.Closeable;
 import java.io.File;
+import java.io.Flushable;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.annotation.concurrent.GuardedBy;
@@ -28,7 +29,7 @@ import javax.inject.Inject;
 
 /** A logger to write worker output to a file. */
 @WorkerScoped
-final class WorkerOutputLogger implements Closeable {
+final class WorkerOutputLogger implements Flushable, Closeable {
   @GuardedBy("this")
   private File file;
 
@@ -82,6 +83,13 @@ final class WorkerOutputLogger implements Closeable {
   synchronized void log(String source, String line) {
     checkOpened();
     writer.printf("[%s] %s%n", source, line);
+  }
+
+  @Override
+  public synchronized void flush() {
+    if (writer != null) {
+      writer.flush();
+    }
   }
 
   @Override

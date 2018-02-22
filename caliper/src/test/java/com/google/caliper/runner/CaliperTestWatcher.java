@@ -74,6 +74,7 @@ public final class CaliperTestWatcher extends TestWatcher {
     // configure a custom dir so the files aren't deleted when CaliperMain returns
     List<String> options =
         Lists.newArrayList(
+            "--print-worker-log",
             "-Cworker.output=" + workerOutput.getPath(),
             "-Cresults.file.class=",
             "-Cresults.upload.class=" + InMemoryResultsUploader.class.getName());

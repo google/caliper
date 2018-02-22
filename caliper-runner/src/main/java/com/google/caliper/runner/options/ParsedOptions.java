@@ -325,6 +325,18 @@ final class ParsedOptions implements CaliperOptions {
     return caliperConfigFile.or(new File(caliperDirectory, "config.properties"));
   }
 
+  // --------------------------------------------------------------------------
+  // Miscellaneous
+  // --------------------------------------------------------------------------
+
+  @Option("--print-worker-log")
+  private boolean printWorkerLog = false;
+
+  @Override
+  public boolean printWorkerLog() {
+    return printWorkerLog;
+  }
+
 
   // --------------------------------------------------------------------------
   // Leftover - benchmark class name
@@ -431,6 +443,10 @@ final class ParsedOptions implements CaliperOptions {
           "                    $HOME/.caliper/config.properties)",
           " --directory        location of Caliper's configuration and data directory ",
           "                    (default: $HOME/.caliper)",
+          " --print-worker-log if an error occurs in a worker, print the log for that worker ",
+          "                    rather than the path to the log file; primarily for use in tests ",
+          "                    when running in a CI environment where the log files may not be ",
+          "                    easily accessible.",
           "",
           " -Dparam=val1,val2,...",
           "     Specifies the values to inject into the 'param' field of the benchmark",

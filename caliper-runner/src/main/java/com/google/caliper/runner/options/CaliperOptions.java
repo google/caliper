@@ -92,4 +92,10 @@ public interface CaliperOptions {
 
   /** Returns the user's Caliper configuration file. */
   File caliperConfigFile();
+
+  /**
+   * Returns whether or not the worker log file content should be printed when a worker fails. By
+   * default (false), just the path to the log file is printed.
+   */
+  boolean printWorkerLog();
 }
