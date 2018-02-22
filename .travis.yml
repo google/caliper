@@ -5,16 +5,9 @@ language: java
 jdk:
   - oraclejdk8
 
-before_install:
-  - MVN_VERSION=3.5.0
-  - wget https://archive.apache.org/dist/maven/maven-3/${MVN_VERSION}/binaries/apache-maven-${MVN_VERSION}-bin.zip
-  - unzip -qq apache-maven-${MVN_VERSION}-bin.zip
-  - export M2_HOME=$PWD/apache-maven-${MVN_VERSION}
-  - export PATH=$M2_HOME/bin:$PATH
+install: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install -U -DskipTests=true -am -pl caliper
 
-install: mvn -B install -U -DskipTests=true -am -pl caliper
-
-script: mvn -B verify -U -Dmaven.javadoc.skip=true -am -pl caliper
+script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn verify -U -Dmaven.javadoc.skip=true -am -pl caliper
 
 cache:
   directories:
