@@ -43,6 +43,8 @@ public final class JvmPlatform extends Platform {
           "-Xbatch",
           // make sure compilation doesn't run in parallel with itself
           "-XX:CICompilerCount=1",
+          // CICompilerCount=1 doesn't work otherwise, on Oracle JDK8 anyway
+          "-XX:-TieredCompilation",
           // ensure the parallel garbage collector
           "-XX:+UseParallelGC",
           // generate classes or don't, but do it immediately
