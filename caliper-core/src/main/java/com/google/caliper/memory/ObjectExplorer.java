@@ -19,6 +19,7 @@ package com.google.caliper.memory;
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
+import java.lang.ref.Reference;
 import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -138,6 +139,10 @@ public final class ObjectExplorer {
         final Field[] fields = getAllFields(value);
         for (int j = fields.length - 1; j >= 0; j--) {
           final Field field = fields[j];
+          if (field.getDeclaringClass().equals(Reference.class)
+              && !field.getName().equals("referent")) {
+            continue;
+          }
           Object childValue = null;
           try {
             childValue = field.get(value);
