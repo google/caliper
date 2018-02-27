@@ -18,6 +18,7 @@ package com.google.caliper.memory;
 
 import com.google.caliper.memory.ObjectGraphMeasurer.Footprint;
 import com.google.common.collect.ImmutableMultiset;
+import java.lang.ref.WeakReference;
 import junit.framework.TestCase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -141,6 +142,22 @@ public class ObjectGraphMeasurerTest extends TestCase {
   public void testNullField() {
     ObjectGraphMeasurer.Footprint footprint = ObjectGraphMeasurer.measure(oneNullOneNonNull);
     assertEquals(new ObjectGraphMeasurer.Footprint(2, 2, 3, NO_PRIMITIVES), footprint);
+  }
+
+  static final Object someObject = new Object();
+  static final WeakReference<Object> weakRef = new WeakReference<>(someObject);
+
+  /**
+   * Test that we still follow the main {@code referent} field of a {@link WeakReference}, even as
+   * we ignore its other fields.
+   *
+   * <p>(It's more difficult to test that we are in fact ignoring its other fields. We could
+   * probably do it, but we sort of have a test already because this fixes a flaky test in Guava.)
+   */
+  @Test
+  public void testWeakReference() {
+    ObjectGraphMeasurer.Footprint footprint = ObjectGraphMeasurer.measure(weakRef);
+    assertEquals(new ObjectGraphMeasurer.Footprint(2, 1, 0, NO_PRIMITIVES), footprint);
   }
 
   private static final ImmutableMultiset<Class<?>> NO_PRIMITIVES = ImmutableMultiset.of();
