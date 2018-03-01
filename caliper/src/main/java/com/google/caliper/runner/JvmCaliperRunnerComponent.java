@@ -21,6 +21,9 @@ import com.google.caliper.json.GsonModule;
 import com.google.caliper.runner.config.ConfigModule;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.runner.target.TargetModule;
+import com.google.caliper.runner.worker.ServerModule;
+import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;
@@ -37,8 +40,10 @@ import javax.inject.Singleton;
     OptionsModule.class,
     OutputModule.class,
     PlatformModule.class,
+    ServerModule.class,
     ServiceModule.class,
     TargetModule.class,
+    WorkerOutputModule.class
   }
 )
 interface JvmCaliperRunnerComponent extends CaliperRunnerComponent {

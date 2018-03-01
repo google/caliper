@@ -67,7 +67,7 @@ public final class CaliperMain {
   }
 
   @VisibleForTesting
-  static CaliperRunner createRunner(String[] args, PrintWriter stdout, PrintWriter stderr) {
+  public static CaliperRunner createRunner(String[] args, PrintWriter stdout, PrintWriter stderr) {
     return DaggerJvmCaliperRunnerComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
         .outputModule(new OutputModule(stdout, stderr))

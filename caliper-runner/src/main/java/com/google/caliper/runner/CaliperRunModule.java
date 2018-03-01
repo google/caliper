@@ -17,7 +17,10 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.runner.experiment.BenchmarkParameters;
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.worker.dryrun.DryRunComponent;
+import com.google.caliper.runner.worker.trial.TrialComponent;
 import com.google.common.collect.ImmutableSetMultimap;
 import dagger.Module;
 import dagger.Provides;

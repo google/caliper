@@ -22,6 +22,8 @@ import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Scenario;
 import com.google.caliper.model.Trial;
 import com.google.caliper.model.VmSpec;
+import com.google.caliper.runner.worker.trial.TrialFailureException;
+import com.google.caliper.runner.worker.trial.TrialResult;
 import com.google.caliper.util.Stdout;
 import com.google.common.base.Function;
 import com.google.common.base.Stopwatch;

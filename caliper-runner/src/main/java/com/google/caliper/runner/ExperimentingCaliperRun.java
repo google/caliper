@@ -24,8 +24,21 @@ import com.google.caliper.api.SkipThisScenarioException;
 import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.UserCodeException;
-import com.google.caliper.runner.Instrument.InstrumentedMethod;
+import com.google.caliper.model.Measurement;
+import com.google.caliper.runner.experiment.Experiment;
+import com.google.caliper.runner.experiment.ExperimentSelector;
+import com.google.caliper.runner.instrument.Instrument;
+import com.google.caliper.runner.instrument.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.target.Target;
+import com.google.caliper.runner.worker.ProxyWorkerException;
+import com.google.caliper.runner.worker.WorkerRunner;
+import com.google.caliper.runner.worker.dryrun.DryRunComponent;
+import com.google.caliper.runner.worker.trial.ScheduledTrial;
+import com.google.caliper.runner.worker.trial.TrialComponent;
+import com.google.caliper.runner.worker.trial.TrialFailureException;
+import com.google.caliper.runner.worker.trial.TrialResult;
+import com.google.caliper.runner.worker.trial.TrialSchedulingPolicy;
 import com.google.caliper.util.Stdout;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -37,6 +50,7 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSetMultimap;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Queues;
@@ -175,7 +189,8 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       for (Map.Entry<InstrumentedMethod, Collection<TrialResult>> entry :
           resultsByInstrumentedMethod.asMap().entrySet()) {
         InstrumentedMethod instrumentedMethod = entry.getKey();
-        Optional<String> message = instrumentedMethod.validateMeasurements(entry.getValue());
+        Optional<String> message =
+            instrumentedMethod.validateMeasurements(measurements(entry.getValue()));
         if (message.isPresent()) {
           stdout.printf(
               "For %s (%s)%n  %s%n",
@@ -196,6 +211,17 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         logger.log(WARNING, "Could not close a result processor: " + resultProcessor, e);
       }
     }
+  }
+
+  private static Iterable<ImmutableList<Measurement>> measurements(Iterable<TrialResult> results) {
+    return Iterables.transform(
+        results,
+        new Function<TrialResult, ImmutableList<Measurement>>() {
+          @Override
+          public ImmutableList<Measurement> apply(TrialResult result) {
+            return result.getTrial().measurements();
+          }
+        });
   }
 
   private void printRunInfo(ImmutableSet<Experiment> allExperiments) {

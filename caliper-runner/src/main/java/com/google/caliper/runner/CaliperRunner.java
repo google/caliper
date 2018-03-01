@@ -24,11 +24,13 @@ import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ServiceManager;
@@ -48,7 +50,7 @@ import javax.inject.Provider;
  *
  * @author Colin Decker
  */
-final class CaliperRunner {
+public final class CaliperRunner {
 
   /** Creates a new {@link CaliperRunner}. */
   public static CaliperRunner create(
@@ -131,7 +133,8 @@ final class CaliperRunner {
    * Runs Caliper, throwing an exception if the command line, configuration or benchmark class is
    * invalid.
    */
-  void runInternal()
+  @VisibleForTesting
+  public void runInternal()
       throws InvalidCommandException, InvalidBenchmarkException, InvalidConfigurationException {
     try {
       if (options.get().printConfiguration()) {

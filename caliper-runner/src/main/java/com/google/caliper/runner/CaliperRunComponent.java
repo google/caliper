@@ -17,6 +17,8 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.runner.instrument.InstrumentModule;
+import com.google.caliper.runner.resultprocessor.ResultProcessorModule;
 import dagger.BindsInstance;
 import dagger.Subcomponent;
 
@@ -26,7 +28,6 @@ import dagger.Subcomponent;
   modules = {
     CaliperRunModule.class,
     HostModule.class,
-    NanoTimeGranularityModule.class,
     InstrumentModule.class,
     ResultProcessorModule.class
   }

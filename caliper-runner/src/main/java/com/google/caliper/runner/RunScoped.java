@@ -31,4 +31,4 @@ import javax.inject.Scope;
 @Target({TYPE, METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Scope
-@interface RunScoped {}
+public @interface RunScoped {}
