@@ -20,11 +20,12 @@ import com.google.caliper.bridge.LogMessageParserModule;
 import com.google.caliper.json.GsonModule;
 import com.google.caliper.runner.config.ConfigModule;
 import com.google.caliper.runner.options.OptionsModule;
-import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.target.TargetModule;
 import com.google.caliper.runner.worker.ServerModule;
 import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.util.OutputModule;
+import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 
@@ -39,7 +40,6 @@ import javax.inject.Singleton;
     JvmRunnerModule.class,
     OptionsModule.class,
     OutputModule.class,
-    PlatformModule.class,
     ServerModule.class,
     ServiceModule.class,
     TargetModule.class,
@@ -54,7 +54,8 @@ interface JvmCaliperRunnerComponent extends CaliperRunnerFactory {
 
     abstract Builder outputModule(OutputModule outputModule);
 
-    abstract Builder platformModule(PlatformModule platformModule);
+    @BindsInstance
+    abstract Builder platform(Platform platform);
 
     abstract JvmCaliperRunnerComponent build();
   }
