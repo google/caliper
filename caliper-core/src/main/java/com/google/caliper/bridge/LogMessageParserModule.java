@@ -20,9 +20,9 @@ import com.google.caliper.util.Parser;
 import dagger.Binds;
 import dagger.Module;
 
-/** Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes. */
+/** Binds {@link Parser Parser&lt;LogMessage&gt;} to {@link LogMessageParser}. */
 @Module
-public abstract class BridgeModule {
+public abstract class LogMessageParserModule {
   @Binds
   abstract Parser<LogMessage> provideLogMessageParser(LogMessageParser parser);
 }

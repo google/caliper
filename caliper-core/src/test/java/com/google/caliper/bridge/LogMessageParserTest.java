@@ -25,10 +25,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.caliper.util.ShortDuration;
 import com.google.common.io.Resources;
-import dagger.Component;
 import java.util.List;
-import javax.inject.Inject;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -37,17 +34,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 
 public class LogMessageParserTest {
-  @Inject LogMessageParser parser;
-
-  @Component(modules = BridgeModule.class)
-  interface LogMessageParserComponent {
-    void inject(LogMessageParserTest test);
-  }
-
-  @Before
-  public void setUp() {
-    DaggerLogMessageParserTest_LogMessageParserComponent.create().inject(this);
-  }
+  private final LogMessageParser parser = new LogMessageParser();
 
   @Test
   public void gcPatten_jdk6() throws Exception {
