@@ -18,7 +18,7 @@ package com.google.caliper.runner;
 
 import com.google.caliper.bridge.LogMessageParserModule;
 import com.google.caliper.json.GsonModule;
-import com.google.caliper.runner.config.ConfigModule;
+import com.google.caliper.runner.config.CaliperConfigModule;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.target.TargetModule;
@@ -35,7 +35,7 @@ import javax.inject.Singleton;
   modules = {
     LogMessageParserModule.class,
     CaliperRunnerModule.class,
-    ConfigModule.class,
+    CaliperConfigModule.class,
     GsonModule.class,
     JvmRunnerModule.class,
     OptionsModule.class,
