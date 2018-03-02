@@ -29,7 +29,7 @@ import dagger.Component;
 import javax.inject.Singleton;
 
 /**
- * Component for creating the {@link CaliperRunner}.
+ * Android implementation of {@link CaliperRunnerFactory}.
  *
  * @author Colin Decker
  */
@@ -49,8 +49,16 @@ import javax.inject.Singleton;
     WorkerOutputModule.class
   }
 )
-interface CaliperRunnerComponent {
+interface AndroidCaliperRunnerComponent extends CaliperRunnerFactory {
 
-  /** Returns the Caliper runner. */
-  CaliperRunner getRunner();
+  @Component.Builder
+  abstract class Builder {
+    abstract Builder optionsModule(OptionsModule optionsModule);
+
+    abstract Builder outputModule(OutputModule outputModule);
+
+    abstract Builder platformModule(PlatformModule platformModule);
+
+    abstract AndroidCaliperRunnerComponent build();
+  }
 }

@@ -28,7 +28,7 @@ import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;
 
-/** JVM-only version of the {@link CaliperRunnerComponent}. */
+/** JVM implementation of {@link CaliperRunnerFactory}. */
 @Singleton
 @Component(
   modules = {
@@ -46,5 +46,16 @@ import javax.inject.Singleton;
     WorkerOutputModule.class
   }
 )
-interface JvmCaliperRunnerComponent extends CaliperRunnerComponent {
+interface JvmCaliperRunnerComponent extends CaliperRunnerFactory {
+
+  @Component.Builder
+  abstract class Builder {
+    abstract Builder optionsModule(OptionsModule optionsModule);
+
+    abstract Builder outputModule(OutputModule outputModule);
+
+    abstract Builder platformModule(PlatformModule platformModule);
+
+    abstract JvmCaliperRunnerComponent build();
+  }
 }

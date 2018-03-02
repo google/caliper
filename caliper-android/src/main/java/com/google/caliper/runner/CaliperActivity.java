@@ -26,7 +26,10 @@ import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Window;
+import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.DalvikPlatform;
+import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.util.OutputModule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -101,8 +104,8 @@ public final class CaliperActivity extends Activity {
   /**
    * Sets up and runs Caliper, then exits the process.
    *
-   * <p>Set up mostly involves pulling the args for running Caliper from various places: the name
-   * of the benchmark class from the app's manifest, the command line flags from the intent's extras
+   * <p>Set up mostly involves pulling the args for running Caliper from various places: the name of
+   * the benchmark class from the app's manifest, the command line flags from the intent's extras
    * and the classpath to use for workers from the application info.
    */
   private void runAndExit() {
@@ -127,11 +130,7 @@ public final class CaliperActivity extends Activity {
       File outputFile = new File(filesDir, runId + ".json");
       Files.touch(outputFile);
 
-      String[] args = getArgs(extras, filesDir, outputFile);
-      String classpath = getClasspath();
-
-      DalvikPlatform platform = new DalvikPlatform(classpath);
-      CaliperRunner runner = CaliperRunner.create(args, platform, stdout, stderr);
+      CaliperRunner runner = createCaliperRunner(getArgs(extras, filesDir, outputFile));
 
       // run() catches and handles all exceptions, so this will not throw
       code = runner.run();
@@ -148,6 +147,15 @@ public final class CaliperActivity extends Activity {
       stdout.println("[FINISH]");
     }
     System.exit(code);
+  }
+
+  private CaliperRunner createCaliperRunner(String[] args) throws IOException {
+    return DaggerAndroidCaliperRunnerComponent.builder()
+        .optionsModule(OptionsModule.withBenchmarkClass(args))
+        .platformModule(new PlatformModule(new DalvikPlatform(getClasspath())))
+        .outputModule(new OutputModule(stdout, stderr))
+        .build()
+        .getRunner();
   }
 
   /**
@@ -256,8 +264,8 @@ public final class CaliperActivity extends Activity {
   }
 
   /**
-   * Workaround for the fact that {@code ZipFile} wasn't {@code Closeable} in earlier Java
-   * and Android versions, so that we can use it with {@link Closer}.
+   * Workaround for the fact that {@code ZipFile} wasn't {@code Closeable} in earlier Java and
+   * Android versions, so that we can use it with {@link Closer}.
    */
   private static final class CloseableZipFile implements Closeable {
     final ZipFile zipFile;

@@ -21,13 +21,9 @@ import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.options.OptionsModule;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.PlatformModule;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
-import com.google.caliper.util.OutputModule;
 import com.google.caliper.util.Stderr;
 import com.google.caliper.util.Stdout;
 import com.google.common.annotations.VisibleForTesting;
@@ -51,18 +47,6 @@ import javax.inject.Provider;
  * @author Colin Decker
  */
 public final class CaliperRunner {
-
-  /** Creates a new {@link CaliperRunner}. */
-  public static CaliperRunner create(
-      String[] args, Platform platform, PrintWriter stdout, PrintWriter stderr) {
-    CaliperRunnerComponent component =
-        DaggerCaliperRunnerComponent.builder()
-            .optionsModule(OptionsModule.withBenchmarkClass(args))
-            .platformModule(new PlatformModule(platform))
-            .outputModule(new OutputModule(stdout, stderr))
-            .build();
-    return component.getRunner();
-  }
 
   // These core dependencies should be lazy since some of them throw exceptions and we want that
   // to occur inside of run() instead of when constructing this object.
