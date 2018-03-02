@@ -32,12 +32,10 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 import org.joda.time.format.ISODateTimeFormat;
 
 /** Loading the logging configuration at {@code ~/.caliper/logging.properties} if present. */
-@Singleton
-final class LoggingConfigLoader {
+class LoggingConfigLoader {
   private static final Logger logger = Logger.getLogger(LoggingConfigLoader.class.getName());
 
   private final File caliperDirectory;
@@ -51,7 +49,6 @@ final class LoggingConfigLoader {
     this.run = run;
   }
 
-  @Inject
   void loadLoggingConfig() {
     File loggingPropertiesFile = new File(caliperDirectory, "logging.properties");
     if (loggingPropertiesFile.isFile()) {
