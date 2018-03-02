@@ -28,7 +28,6 @@ import android.util.Log;
 import android.view.Window;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.DalvikPlatform;
-import com.google.caliper.runner.platform.PlatformModule;
 import com.google.caliper.util.OutputModule;
 import com.google.common.base.Charsets;
 import com.google.common.base.Joiner;
@@ -152,7 +151,7 @@ public final class CaliperActivity extends Activity {
   private CaliperRunner createCaliperRunner(String[] args) throws IOException {
     return DaggerAndroidCaliperRunnerComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
-        .platformModule(new PlatformModule(new DalvikPlatform(getClasspath())))
+        .platform(new DalvikPlatform(getClasspath()))
         .outputModule(new OutputModule(stdout, stderr))
         .build()
         .getRunner();
