@@ -16,20 +16,21 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.bridge.BridgeModule;
+import com.google.caliper.bridge.LogMessageParserModule;
 import com.google.caliper.json.GsonModule;
-import com.google.caliper.runner.config.ConfigModule;
+import com.google.caliper.runner.config.CaliperConfigModule;
 import com.google.caliper.runner.options.OptionsModule;
-import com.google.caliper.runner.platform.PlatformModule;
+import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.runner.target.TargetModule;
 import com.google.caliper.runner.worker.ServerModule;
 import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.util.OutputModule;
+import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 
 /**
- * Component for creating the {@link CaliperRunner}.
+ * Android implementation of {@link CaliperRunnerFactory}.
  *
  * @author Colin Decker
  */
@@ -37,20 +38,28 @@ import javax.inject.Singleton;
 @Component(
   modules = {
     CaliperRunnerModule.class,
-    BridgeModule.class,
-    ConfigModule.class,
+    LogMessageParserModule.class,
+    CaliperConfigModule.class,
     GsonModule.class,
     OptionsModule.class,
     OutputModule.class,
-    PlatformModule.class,
     ServerModule.class,
     ServiceModule.class,
     TargetModule.class,
     WorkerOutputModule.class
   }
 )
-interface CaliperRunnerComponent {
+interface AndroidCaliperRunnerComponent extends CaliperRunnerFactory {
 
-  /** Returns the Caliper runner. */
-  CaliperRunner getRunner();
+  @Component.Builder
+  abstract class Builder {
+    abstract Builder optionsModule(OptionsModule optionsModule);
+
+    abstract Builder outputModule(OutputModule outputModule);
+
+    @BindsInstance
+    abstract Builder platform(Platform platform);
+
+    abstract AndroidCaliperRunnerComponent build();
+  }
 }

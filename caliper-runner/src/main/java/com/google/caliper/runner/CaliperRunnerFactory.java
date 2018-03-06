@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2017 Google Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-package com.google.caliper.bridge;
+package com.google.caliper.runner;
 
-import com.google.caliper.util.Parser;
-import dagger.Binds;
-import dagger.Module;
+/** Factory for the {@link CaliperRunner}. */
+interface CaliperRunnerFactory {
 
-/** Bindings for {@link Parser parsers} for {@link com.google.caliper.model model} classes. */
-@Module
-public abstract class BridgeModule {
-  @Binds
-  abstract Parser<LogMessage> provideLogMessageParser(LogMessageParser parser);
+  /** Returns the Caliper runner. */
+  CaliperRunner getRunner();
 }

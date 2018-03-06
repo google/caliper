@@ -24,39 +24,31 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteSource;
 import com.google.common.io.Files;
+import dagger.Module;
+import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
-import javax.inject.Inject;
+import java.util.logging.LogManager;
 import javax.inject.Singleton;
 
-/** Loads caliper configuration files and, if necessary, creates new versions from the defaults. */
-@Singleton
-public final class CaliperConfigLoader {
-  private final CaliperOptions options;
+/** Provides {@link CaliperConfig}. */
+@Module
+public abstract class CaliperConfigModule {
 
-  @Inject
-  CaliperConfigLoader(CaliperOptions options) {
-    this.options = options;
-  }
-
-  public CaliperConfig loadOrCreate() throws InvalidConfigurationException {
-    File configFile = options.caliperConfigFile();
-    ImmutableMap<String, String> defaults;
-    try {
-      defaults =
-          Util.loadProperties(
-              Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
-    } catch (IOException impossible) {
-      throw new AssertionError(impossible);
-    }
-
+  @Provides
+  @Singleton
+  static CaliperConfig caliperConfig(
+      CaliperOptions caliperOptions, LoggingConfigLoader loggingConfigLoader) {
     // TODO(kevinb): deal with migration issue from old-style .caliperrc
+    loggingConfigLoader.loadLoggingConfig();
 
+    ImmutableMap<String, String> defaults = loadDefaults();
+    ImmutableMap<String, String> configProperties = caliperOptions.configProperties();
+    File configFile = caliperOptions.caliperConfigFile();
     if (configFile.exists()) {
       try {
-        ImmutableMap<String, String> user = Util.loadProperties(Files.asByteSource(configFile));
-        return new CaliperConfig(mergeProperties(options.configProperties(), user, defaults));
+        return loadCaliperConfig(Files.asByteSource(configFile), configProperties, defaults);
       } catch (IOException keepGoing) {
       }
     }
@@ -64,13 +56,29 @@ public final class CaliperConfigLoader {
     ByteSource supplier = Util.resourceSupplier(CaliperConfig.class, "default-config.properties");
     tryCopyIfNeeded(supplier, configFile);
 
-    ImmutableMap<String, String> user;
     try {
-      user = Util.loadProperties(supplier);
+      return loadCaliperConfig(supplier, configProperties, defaults);
     } catch (IOException e) {
       throw new AssertionError(e); // class path must be messed up
     }
-    return new CaliperConfig(mergeProperties(options.configProperties(), user, defaults));
+  }
+
+  private static ImmutableMap<String, String> loadDefaults() {
+    try {
+      return Util.loadProperties(
+          Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
+    } catch (IOException impossible) {
+      throw new AssertionError(impossible);
+    }
+  }
+
+  private static CaliperConfig loadCaliperConfig(
+      ByteSource source,
+      ImmutableMap<String, String> configProperties,
+      ImmutableMap<String, String> defaults)
+      throws IOException {
+    return new CaliperConfig(
+        mergeProperties(configProperties, Util.loadProperties(source), defaults));
   }
 
   private static ImmutableMap<String, String> mergeProperties(
@@ -90,5 +98,10 @@ public final class CaliperConfigLoader {
         rcFile.delete();
       }
     }
+  }
+
+  @Provides
+  static LogManager provideLogManager() {
+    return LogManager.getLogManager();
   }
 }

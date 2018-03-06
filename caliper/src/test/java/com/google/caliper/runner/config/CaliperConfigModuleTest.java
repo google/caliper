@@ -32,11 +32,12 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
-/** Tests {@link CaliperConfigLoader}. */
+/** Tests {@link CaliperConfigModule}. */
 @RunWith(MockitoJUnitRunner.class)
 
-public class CaliperConfigLoaderTest {
+public class CaliperConfigModuleTest {
   @Mock CaliperOptions optionsMock;
+  @Mock LoggingConfigLoader loggingConfigLoader;
 
   private File tempConfigFile;
 
@@ -60,8 +61,7 @@ public class CaliperConfigLoaderTest {
   public void loadOrCreate_configFileExistsNoOverride() throws Exception {
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.<String, String>of());
-    CaliperConfigLoader loader = new CaliperConfigLoader(optionsMock);
-    CaliperConfig config = loader.loadOrCreate();
+    CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
     assertEquals("franklin", config.properties.get("some.property"));
   }
 
@@ -69,8 +69,7 @@ public class CaliperConfigLoaderTest {
   public void loadOrCreate_configFileExistsWithOverride() throws Exception {
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.of("some.property", "tacos"));
-    CaliperConfigLoader loader = new CaliperConfigLoader(optionsMock);
-    CaliperConfig config = loader.loadOrCreate();
+    CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
     assertEquals("tacos", config.properties.get("some.property"));
   }
 }

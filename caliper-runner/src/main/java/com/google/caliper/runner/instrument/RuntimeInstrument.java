@@ -130,8 +130,7 @@ public class RuntimeInstrument extends Instrument {
       return new SingleInvocationMeasurementCollector(
           Integer.parseInt(options.get(MEASUREMENTS_OPTION)),
           ShortDuration.valueOf(options.get(WARMUP_OPTION)),
-          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)),
-          nanoTimeGranularity);
+          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)));
     }
   }
 
@@ -158,8 +157,7 @@ public class RuntimeInstrument extends Instrument {
       return new RepBasedMeasurementCollector(
           getMeasurementsPerTrial(),
           ShortDuration.valueOf(options.get(WARMUP_OPTION)),
-          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)),
-          nanoTimeGranularity);
+          ShortDuration.valueOf(options.get(MAX_WARMUP_WALL_TIME_OPTION)));
     }
 
     @Override
@@ -240,17 +238,14 @@ public class RuntimeInstrument extends Instrument {
     boolean notifiedAboutMeasuringJit = false;
     Stopwatch timeSinceStartOfTrial = Stopwatch.createUnstarted();
     final List<String> messages = Lists.newArrayList();
-    final ShortDuration nanoTimeGranularity;
 
     RuntimeMeasurementCollector(
         int targetMeasurements,
         ShortDuration warmup,
-        ShortDuration maxWarmupWallTime,
-        ShortDuration nanoTimeGranularity) {
+        ShortDuration maxWarmupWallTime) {
       this.targetMeasurements = targetMeasurements;
       this.warmup = warmup;
       this.maxWarmupWallTime = maxWarmupWallTime;
-      this.nanoTimeGranularity = nanoTimeGranularity;
     }
 
     @Override
@@ -357,9 +352,8 @@ public class RuntimeInstrument extends Instrument {
     RepBasedMeasurementCollector(
         int measurementsPerTrial,
         ShortDuration warmup,
-        ShortDuration maxWarmupWallTime,
-        ShortDuration nanoTimeGranularity) {
-      super(measurementsPerTrial, warmup, maxWarmupWallTime, nanoTimeGranularity);
+        ShortDuration maxWarmupWallTime) {
+      super(measurementsPerTrial, warmup, maxWarmupWallTime);
     }
 
     @Override
@@ -390,9 +384,8 @@ public class RuntimeInstrument extends Instrument {
     SingleInvocationMeasurementCollector(
         int measurementsPerTrial,
         ShortDuration warmup,
-        ShortDuration maxWarmupWallTime,
-        ShortDuration nanoTimeGranularity) {
-      super(measurementsPerTrial, warmup, maxWarmupWallTime, nanoTimeGranularity);
+        ShortDuration maxWarmupWallTime) {
+      super(measurementsPerTrial, warmup, maxWarmupWallTime);
     }
 
     @Override
