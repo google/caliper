@@ -293,7 +293,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     // A future representing the completion of all prior tasks. Futures.successfulAsList allows us
     // to ignore failure.
     ListenableFuture<?> previous = Futures.successfulAsList(pendingTrials);
-    for (Producer<TrialResult> trialResultProducer : serialTrials) {
+    for (final Producer<TrialResult> trialResultProducer : serialTrials) {
       // each of these trials can only start after all prior trials have finished, so we use
       // Futures.transform to force the sequencing.
       ListenableFuture<TrialResult> current =
