@@ -26,20 +26,19 @@ import com.google.common.io.Files;
 import com.google.common.util.concurrent.Service.State;
 import java.io.File;
 import java.io.IOException;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.joda.time.Duration;
 
 /**
- * {@link Callable} that starts a worker, reads data from it, processes that data with a {@link
+ * An object that starts a worker, reads data from it, processes that data with a {@link
  * WorkerProcessor}, and finally returns a result.
  *
  * @author Colin Decker
  */
 @WorkerScoped
-public final class WorkerRunner<R> implements Callable<R> {
+public final class WorkerRunner<R> {
   private static final Logger logger = Logger.getLogger(WorkerRunner.class.getName());
 
   /** The time that the worker has to clean up after running. */
@@ -59,16 +58,6 @@ public final class WorkerRunner<R> implements Callable<R> {
     this.worker = worker;
     this.processor = processor;
     this.printWorkerLog = options.printWorkerLog();
-  }
-
-  /**
-   * @deprecated Call {@link #runWorker} instead. This method is only provided so this class can be
-   *     passed to methods accepting {@link Callable}.
-   */
-  @Deprecated
-  @Override
-  public R call() {
-    return runWorker();
   }
 
   /**

@@ -34,11 +34,10 @@ import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.ProxyWorkerException;
 import com.google.caliper.runner.worker.WorkerRunner;
 import com.google.caliper.runner.worker.dryrun.DryRunComponent;
-import com.google.caliper.runner.worker.trial.ScheduledTrial;
 import com.google.caliper.runner.worker.trial.TrialComponent;
+import com.google.caliper.runner.worker.trial.TrialComponent.TrialRunner;
 import com.google.caliper.runner.worker.trial.TrialFailureException;
 import com.google.caliper.runner.worker.trial.TrialResult;
-import com.google.caliper.runner.worker.trial.TrialSchedulingPolicy;
 import com.google.caliper.util.Stdout;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Function;
@@ -61,6 +60,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.SettableFuture;
 import com.google.common.util.concurrent.Uninterruptibles;
+import dagger.producers.Producer;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Collection;
@@ -95,10 +95,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final ExperimentSelector selector;
-  private final Provider<ListeningExecutorService> executorProvider;
-
+  private final ListeningExecutorService executor;
   private final Provider<DryRunComponent.Builder> dryRunComponentBuilder;
-  private final Provider<TrialComponent.Builder> trialComponentBuilder;
+  private final TrialRunner trialRunner;
 
   @Inject
   @VisibleForTesting
@@ -109,18 +108,18 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
-      Provider<ListeningExecutorService> executorProvider,
+      ListeningExecutorService executor,
       Provider<DryRunComponent.Builder> dryRunComponentBuilder,
-      Provider<TrialComponent.Builder> trialComponentBuilder) {
+      TrialComponent.Builder trialComponentBuilder) {
     this.options = options;
     this.stdout = stdout;
     this.benchmarkClass = benchmarkClass;
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
     this.selector = selector;
-    this.executorProvider = executorProvider;
+    this.executor = executor;
     this.dryRunComponentBuilder = dryRunComponentBuilder;
-    this.trialComponentBuilder = trialComponentBuilder;
+    this.trialRunner = trialComponentBuilder.trialRunner(executor);
   }
 
   @Override
@@ -158,10 +157,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
 
     int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
     Stopwatch stopwatch = Stopwatch.createStarted();
-    List<ScheduledTrial> trials = createScheduledTrials(experimentsToRun, totalTrials);
     Multimap<InstrumentedMethod, TrialResult> resultsByInstrumentedMethod = HashMultimap.create();
-    final ListeningExecutorService executor = executorProvider.get();
-    List<ListenableFuture<TrialResult>> pendingTrials = scheduleTrials(trials, executor);
+    List<ListenableFuture<TrialResult>> pendingTrials =
+        scheduleTrials(experimentsToRun, totalTrials);
     ConsoleOutput output = new ConsoleOutput(stdout, totalTrials, stopwatch);
     try {
       // Process results as they complete.
@@ -269,24 +267,33 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   /**
    * Schedule all the trials.
    *
-   * <p>This method arranges all the {@link ScheduledTrial trials} to run according to their
-   * scheduling criteria. The executor instance is responsible for enforcing max parallelism.
+   * <p>This method arranges all the trials to run according to their scheduling criteria. The
+   * executor instance is responsible for enforcing max parallelism.
    */
   private List<ListenableFuture<TrialResult>> scheduleTrials(
-      List<ScheduledTrial> trials, final ListeningExecutorService executor) {
-    List<ListenableFuture<TrialResult>> pendingTrials = Lists.newArrayList();
-    List<ScheduledTrial> serialTrials = Lists.newArrayList();
-    for (final ScheduledTrial scheduledTrial : trials) {
-      if (scheduledTrial.policy() == TrialSchedulingPolicy.PARALLEL) {
-        pendingTrials.add(executor.submit(scheduledTrial.trialTask()));
-      } else {
-        serialTrials.add(scheduledTrial);
+      ImmutableSet<Experiment> experimentsToRun, int totalTrials) {
+    List<ListenableFuture<TrialResult>> pendingTrials = Lists.newArrayListWithCapacity(totalTrials);
+    List<Producer<TrialResult>> serialTrials = Lists.newArrayList();
+    /** This is 1-indexed because it's only used for display to users. E.g. "Trial 1 of 27" */
+    int trialNumber = 1;
+    for (int i = 0; i < options.trialsPerScenario(); i++) {
+      for (Experiment experiment : experimentsToRun) {
+        Producer<TrialResult> trialResultProducer =
+            trialRunner.trialResultProducer(experiment, trialNumber++);
+        switch (experiment.getTrialSchedulingPolicy()) {
+          case PARALLEL:
+            pendingTrials.add(trialResultProducer.get());
+            break;
+          case SERIAL:
+            serialTrials.add(trialResultProducer);
+            break;
+        }
       }
     }
     // A future representing the completion of all prior tasks. Futures.successfulAsList allows us
     // to ignore failure.
     ListenableFuture<?> previous = Futures.successfulAsList(pendingTrials);
-    for (final ScheduledTrial scheduledTrial : serialTrials) {
+    for (Producer<TrialResult> trialResultProducer : serialTrials) {
       // each of these trials can only start after all prior trials have finished, so we use
       // Futures.transform to force the sequencing.
       ListenableFuture<TrialResult> current =
@@ -295,7 +302,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
               new AsyncFunction<Object, TrialResult>() {
                 @Override
                 public ListenableFuture<TrialResult> apply(Object ignored) {
-                  return executor.submit(scheduledTrial.trialTask());
+                  return trialResultProducer.get();
                 }
               },
               directExecutor());
@@ -304,27 +311,6 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       previous = catchingAsync(current, Throwable.class, FALLBACK_TO_NULL, directExecutor());
     }
     return pendingTrials;
-  }
-
-  /** Returns all the ScheduledTrials for this run. */
-  private List<ScheduledTrial> createScheduledTrials(
-      ImmutableSet<Experiment> experimentsToRun, int totalTrials) {
-    List<ScheduledTrial> trials = Lists.newArrayListWithCapacity(totalTrials);
-    /** This is 1-indexed because it's only used for display to users. E.g. "Trial 1 of 27" */
-    int trialNumber = 1;
-    for (int i = 0; i < options.trialsPerScenario(); i++) {
-      for (Experiment experiment : experimentsToRun) {
-        ScheduledTrial trial =
-            trialComponentBuilder
-                .get()
-                .trialNumber(trialNumber++)
-                .experiment(experiment)
-                .build()
-                .getScheduledTrial();
-        trials.add(trial);
-      }
-    }
-    return trials;
   }
 
   /**

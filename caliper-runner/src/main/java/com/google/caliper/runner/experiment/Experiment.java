@@ -66,6 +66,13 @@ public abstract class Experiment {
   /** Returns the {@link BenchmarkSpec} for this experiment. */
   public abstract BenchmarkSpec benchmarkSpec();
 
+  /** Returns the scheduling policy to use for this experiment. */
+  public final TrialSchedulingPolicy getTrialSchedulingPolicy() {
+    return instrumentedMethod().instrument().parallelizable()
+        ? TrialSchedulingPolicy.PARALLEL
+        : TrialSchedulingPolicy.SERIAL;
+  }
+
   /** Returns an {@link ExperimentSpec} representing this experiment. */
   public final ExperimentSpec toExperimentSpec() {
     return new ExperimentSpec(

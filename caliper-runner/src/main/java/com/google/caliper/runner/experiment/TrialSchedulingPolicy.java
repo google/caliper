@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.caliper.runner.worker.trial;
+package com.google.caliper.runner.experiment;
 
 /**
  * The scheduling policy for a particular trial.

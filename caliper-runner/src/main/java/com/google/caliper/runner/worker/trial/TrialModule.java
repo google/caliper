@@ -27,16 +27,23 @@ import com.google.caliper.runner.instrument.MeasurementCollectingVisitor;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerModule;
 import com.google.caliper.runner.worker.WorkerProcessor;
+import com.google.caliper.runner.worker.WorkerRunner;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.caliper.runner.worker.WorkerSpec;
 import dagger.Binds;
-import dagger.Module;
 import dagger.Provides;
+import dagger.producers.ProducerModule;
+import dagger.producers.Produces;
 import java.util.UUID;
 
 /** Configuration for running a trial. */
-@Module(includes = WorkerModule.class)
+@ProducerModule(includes = WorkerModule.class)
 abstract class TrialModule {
+
+  @Produces
+  static TrialResult trialResult(WorkerRunner<TrialResult> trialResultWorkerRunner) {
+    return trialResultWorkerRunner.runWorker();
+  }
 
   @Binds
   abstract WorkerProcessor<TrialResult> bindTrialProcessor(TrialProcessor processor);
@@ -59,13 +66,6 @@ abstract class TrialModule {
   @Provides
   static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
     return experiment.instrumentedMethod().getMeasurementCollectingVisitor();
-  }
-
-  @Provides
-  static TrialSchedulingPolicy provideTrialSchedulingPolicy(Experiment experiment) {
-    return experiment.instrumentedMethod().instrument().parallelizable()
-        ? TrialSchedulingPolicy.PARALLEL
-        : TrialSchedulingPolicy.SERIAL;
   }
 
   @Provides
