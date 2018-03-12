@@ -78,6 +78,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <dagger.version>2.14.1</dagger.version>
+    <autovalue.version>1.5.3</autovalue.version>
   </properties>
 
   <modules>
@@ -127,13 +128,13 @@
       </dependency>
       <dependency>
         <groupId>com.google.dagger</groupId>
-        <artifactId>dagger-compiler</artifactId>
+        <artifactId>dagger-producers</artifactId>
         <version>${dagger.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.auto.value</groupId>
         <artifactId>auto-value</artifactId>
-        <version>1.5.3</version>
+        <version>${autovalue.version}</version>
       </dependency>
       <dependency>
         <groupId>com.google.guava</groupId>
@@ -175,6 +176,18 @@
           <configuration>
             <source>1.8</source>
             <target>1.8</target>
+            <annotationProcessorPaths>
+               <path>
+                <groupId>com.google.auto.value</groupId>
+                <artifactId>auto-value</artifactId>
+                <version>${autovalue.version}</version>
+              </path>
+              <path>
+                <groupId>com.google.dagger</groupId>
+                <artifactId>dagger-compiler</artifactId>
+                <version>${dagger.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
         <plugin>

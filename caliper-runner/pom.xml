@@ -68,8 +68,7 @@
     </dependency>
     <dependency>
       <groupId>com.google.dagger</groupId>
-      <artifactId>dagger-compiler</artifactId>
-      <optional>true</optional>
+      <artifactId>dagger-producers</artifactId>
     </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
