@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.google.caliper.runner.worker;
+package com.google.caliper.runner.server;
 
 import static com.google.common.base.Preconditions.checkState;
 

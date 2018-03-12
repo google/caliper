@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker;
+package com.google.caliper.runner.server;
 
-import com.google.common.util.concurrent.Service;
-import dagger.Binds;
-import dagger.Module;
-import dagger.Provides;
-import dagger.multibindings.IntoSet;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/** Configures the {@link ServerSocketService}. */
-@Module
-public abstract class ServerModule {
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+import javax.inject.Qualifier;
 
-  @Binds
-  @IntoSet
-  abstract Service bindServerSocketService(ServerSocketService impl);
-
-  @Provides
-  @LocalPort
-  static int providePortNumber(ServerSocketService serverSocketService) {
-    return serverSocketService.getPort();
-  }
-}
+/** Binding annotation for the port to which the worker has bound. */
+@Retention(RUNTIME)
+@Target({FIELD, PARAMETER, METHOD})
+@Qualifier
+public @interface LocalPort {}

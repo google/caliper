@@ -19,6 +19,8 @@ package com.google.caliper.runner.worker;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.server.LocalPort;
+import com.google.caliper.runner.server.ServerSocketService;
 import com.google.caliper.runner.target.Target;
 import com.google.common.util.concurrent.ListenableFuture;
 import dagger.Binds;
