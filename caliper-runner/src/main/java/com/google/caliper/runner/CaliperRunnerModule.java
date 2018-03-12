@@ -16,15 +16,23 @@
 
 package com.google.caliper.runner;
 
+import com.google.caliper.bridge.LogMessageParserModule;
 import com.google.caliper.core.Running.BenchmarkClass;
+import com.google.caliper.json.GsonModule;
 import com.google.caliper.model.Run;
 import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.CaliperConfigModule;
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.options.OptionsModule;
+import com.google.caliper.runner.server.ServerModule;
+import com.google.caliper.runner.target.TargetModule;
 import com.google.caliper.runner.worker.RuntimeShutdownHookRegistrar;
 import com.google.caliper.runner.worker.ShutdownHookRegistrar;
+import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelComponent;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFromWorkerFactory;
+import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import dagger.Binds;
@@ -36,7 +44,20 @@ import javax.inject.Singleton;
 import org.joda.time.Instant;
 
 /** A Dagger module that configures bindings common to all {@link CaliperRun} implementations. */
-@Module(subcomponents = {BenchmarkModelComponent.class, CaliperRunComponent.class})
+@Module(
+  includes = {
+    LogMessageParserModule.class,
+    CaliperConfigModule.class,
+    GsonModule.class,
+    OptionsModule.class,
+    OutputModule.class,
+    ServerModule.class,
+    ServiceModule.class,
+    TargetModule.class,
+    WorkerOutputModule.class
+  },
+  subcomponents = {BenchmarkModelComponent.class, CaliperRunComponent.class}
+)
 abstract class CaliperRunnerModule {
 
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";

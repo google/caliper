@@ -16,14 +16,8 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.bridge.LogMessageParserModule;
-import com.google.caliper.json.GsonModule;
-import com.google.caliper.runner.config.CaliperConfigModule;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.server.ServerModule;
-import com.google.caliper.runner.target.TargetModule;
-import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.util.OutputModule;
 import dagger.BindsInstance;
 import dagger.Component;
@@ -35,20 +29,7 @@ import javax.inject.Singleton;
  * @author Colin Decker
  */
 @Singleton
-@Component(
-  modules = {
-    CaliperRunnerModule.class,
-    LogMessageParserModule.class,
-    CaliperConfigModule.class,
-    GsonModule.class,
-    OptionsModule.class,
-    OutputModule.class,
-    ServerModule.class,
-    ServiceModule.class,
-    TargetModule.class,
-    WorkerOutputModule.class
-  }
-)
+@Component(modules = CaliperRunnerModule.class)
 interface AndroidCaliperRunnerComponent extends CaliperRunnerFactory {
 
   @Component.Builder
