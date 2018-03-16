@@ -30,8 +30,6 @@ import dagger.Provides;
 @Module
 public abstract class TargetModule {
 
-  // for now, this just binds VMs until device support is added
-
   @Provides
   static ImmutableSet<Target> provideTargets(
       CaliperOptions options, CaliperConfig config, Platform platform) {

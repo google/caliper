@@ -19,9 +19,9 @@ package com.google.caliper.runner.worker.trial;
 import com.google.caliper.bridge.TrialRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.BenchmarkClassModel;
-import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.experiment.Experiment;
 import com.google.caliper.runner.instrument.Instrument;
+import com.google.caliper.runner.server.LocalPort;
 import com.google.caliper.runner.worker.WorkerSpec;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
@@ -44,10 +44,11 @@ public final class TrialSpec extends WorkerSpec {
   @Inject
   public TrialSpec(
       @TrialId UUID id,
+      @LocalPort int port,
       Experiment experiment,
       BenchmarkClassModel benchmarkClass,
       @TrialNumber int trialNumber) {
-    super(id);
+    super(experiment.target().vm(), id, id, port, experiment.benchmarkSpec().className());
     this.experiment = experiment;
     this.benchmarkClass = benchmarkClass;
     this.trialNumber = trialNumber;
@@ -64,12 +65,12 @@ public final class TrialSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> vmOptions(VmConfig vmConfig) {
+  public ImmutableList<String> additionalVmOptions() {
     Instrument instrument = experiment.instrumentedMethod().instrument();
     return new ImmutableList.Builder<String>()
         .addAll(benchmarkClass.vmOptions())
-        .addAll(vmConfig.commonInstrumentVmArgs())
-        .addAll(instrument.getExtraCommandLineArgs(vmConfig))
+        .addAll(vm().commonInstrumentVmArgs())
+        .addAll(instrument.getExtraCommandLineArgs(vm()))
         .build();
   }
 

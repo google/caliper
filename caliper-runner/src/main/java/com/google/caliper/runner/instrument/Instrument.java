@@ -41,7 +41,7 @@ import com.google.common.collect.MultimapBuilder;
 import javax.inject.Inject;
 
 public abstract class Instrument {
-  protected ImmutableMap<String, String> options;
+  protected ImmutableMap<String, String> options = ImmutableMap.of();
   private String name = getClass().getSimpleName();
 
   @VisibleForTesting

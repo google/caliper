@@ -21,6 +21,8 @@ import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
+import com.google.caliper.runner.target.DeviceService;
+import com.google.caliper.runner.target.VmProcess;
 import com.google.caliper.runner.worker.Worker.StreamItem.Kind;
 import com.google.caliper.util.Parser;
 import com.google.common.base.MoreObjects;
@@ -32,10 +34,11 @@ import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.Service; // for javadoc
+import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.Serializable;
@@ -93,14 +96,12 @@ public final class Worker extends AbstractService {
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
 
   private final WorkerSpec spec;
-  private final WorkerStarter starter;
-  private final Command command;
+  private final DeviceService device;
   private final ListenableFuture<OpenedSocket> socketFuture;
   private final Parser<LogMessage> logMessageParser;
   private final WorkerOutputLogger output;
 
-  private volatile WorkerProcess process;
-
+  private volatile VmProcess process;
 
   /**
    * This represents the number of open streams from the users perspective. i.e. can you still write
@@ -122,14 +123,12 @@ public final class Worker extends AbstractService {
   @Inject
   Worker(
       WorkerSpec spec,
-      WorkerStarter starter,
-      Command command,
+      DeviceService device,
       ListenableFuture<OpenedSocket> socketFuture,
       Parser<LogMessage> logMessageParser,
       WorkerOutputLogger output) {
     this.spec = spec;
-    this.starter = starter;
-    this.command = command;
+    this.device = device;
     this.socketFuture = socketFuture;
     this.logMessageParser = logMessageParser;
     this.output = output;
@@ -148,7 +147,7 @@ public final class Worker extends AbstractService {
   @Override
   protected void doStart() {
     try {
-      process = starter.startWorker(spec.id(), command);
+      process = device.startVm(spec, output);
     } catch (Exception e) {
       notifyFailed(e);
       return;
@@ -184,46 +183,50 @@ public final class Worker extends AbstractService {
     // will cause the worker to be killed (if its not dead already) and the various StreamReaders to
     // be interrupted (eventually).
 
-    // use the default charset because worker streams will use the default for output
-    Charset processCharset = Charset.defaultCharset();
-    runningReadStreams.addAndGet(2);
-    openStreams.addAndGet(1);
+    openStreams.incrementAndGet();
+
+    startStreamReader("stderr", process.stderr());
+    startStreamReader("stdout", process.stdout());
+    socketFuture.addListener(
+        new Runnable() {
+          @Override
+          public void run() {
+            startSocketStream();
+          }
+        },
+        MoreExecutors.directExecutor());
+    notifyStarted();
+  }
+
+  private void startStreamReader(String name, InputStream inputStream) {
+    runningReadStreams.incrementAndGet();
     @SuppressWarnings("unused") // go/futurereturn-lsc
     Future<?> possiblyIgnoredError =
         streamExecutor.submit(
             threadRenaming(
-                "worker-stderr",
+                "worker-" + name,
+                // use the default charset because worker streams will use the default for output
+                // TODO(cgdecker): not necessarily true if the worker is on a different device;
+                // figure out how to handle this (DeviceService provides a Charset to use, or force
+                // all VMs to use UTF-8 as their default charset...?)
                 new StreamReader(
-                    "stderr", new InputStreamReader(process.stderr(), processCharset))));
-    possiblyIgnoredError =
-        streamExecutor.submit(
-            threadRenaming(
-                "worker-stdout",
-                new StreamReader(
-                    "stdout", new InputStreamReader(process.stdout(), processCharset))));
-    socketFuture
-        .addListener(
-            new Runnable() {
-              @Override
-              public void run() {
-                try {
-                  OpenedSocket openedSocket = Uninterruptibles.getUninterruptibly(socketFuture);
-                  logger.fine("successfully opened the pipe from the worker");
-                  socketWriter = openedSocket.writer();
-                  runningReadStreams.addAndGet(1);
-                  openStreams.addAndGet(1);
-                  @SuppressWarnings("unused") // go/futurereturn-lsc
-                  Future<?> possiblyIgnoredError =
-                      streamExecutor.submit(
-                          threadRenaming(
-                              "worker-socket", new SocketStreamReader(openedSocket.reader())));
-                } catch (ExecutionException e) {
-                  notifyFailed(e.getCause());
-                }
-              }
-            },
-            MoreExecutors.directExecutor());
-    notifyStarted();
+                    name, new InputStreamReader(inputStream, Charset.defaultCharset()))));
+  }
+
+  private void startSocketStream() {
+    try {
+      OpenedSocket openedSocket = Uninterruptibles.getUninterruptibly(socketFuture);
+      logger.fine("successfully opened the pipe from the worker");
+      socketWriter = openedSocket.writer();
+      runningReadStreams.incrementAndGet();
+      openStreams.incrementAndGet();
+      @SuppressWarnings("unused") // go/futurereturn-lsc
+      Future<?> possiblyIgnoredError =
+          streamExecutor.submit(
+              threadRenaming("worker-socket", new SocketStreamReader(openedSocket.reader())));
+    } catch (ExecutionException e) {
+      notifyFailed(e.getCause());
+    }
   }
 
   /**

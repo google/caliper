@@ -14,49 +14,71 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker;
+package com.google.caliper.runner.target;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import java.io.InputStream;
-import java.util.UUID;
 import javax.inject.Inject;
 
 /**
- * Runs commands on the local machine.
+ * {@link DeviceService} for the local machine.
  *
  * @author Colin Decker
  */
-final class LocalWorkerStarter implements WorkerStarter {
+public final class LocalDeviceService extends DeviceService {
 
-  private final ShutdownHookRegistrar shutdownHookRegistrar;
+  private static final Joiner ARG_JOINER = Joiner.on(' ');
+
   private final boolean redirectErrorStream;
 
   @Inject
-  LocalWorkerStarter(ShutdownHookRegistrar shutdownHookRegistrar) {
+  public LocalDeviceService(ShutdownHookRegistrar shutdownHookRegistrar) {
     this(shutdownHookRegistrar, false);
   }
 
   @VisibleForTesting
-  LocalWorkerStarter(ShutdownHookRegistrar shutdownHookRegistrar, boolean redirectErrorStream) {
-    this.shutdownHookRegistrar = shutdownHookRegistrar;
+  public LocalDeviceService(
+      ShutdownHookRegistrar shutdownHookRegistrar, boolean redirectErrorStream) {
+    super(shutdownHookRegistrar);
     this.redirectErrorStream = redirectErrorStream;
   }
 
   @Override
-  public WorkerProcess startWorker(UUID id, Command command) throws Exception {
+  protected void startUp() {}
+
+  @Override
+  protected void shutDown() {}
+
+  @Override
+  public VmProcess doStartVm(VmProcess.Spec spec, VmProcess.Logger logger) throws Exception {
     ProcessBuilder builder = new ProcessBuilder().redirectErrorStream(redirectErrorStream);
-    builder.environment().putAll(command.environment());
-    builder.command(command.arguments());
-    return new LocalWorkerProcess(id, shutdownHookRegistrar, builder.start());
+    builder.environment().putAll(spec.vm().platform().workerEnvironment());
+
+    ImmutableList<String> command = createCommand(spec);
+    logger.log("Command: " + ARG_JOINER.join(command) + "\n");
+    builder.command(command);
+
+    return new LocalProcess(builder.start());
   }
 
-  /** A worker process that running on the local machine. */
-  private static final class LocalWorkerProcess extends WorkerProcess {
+  @VisibleForTesting
+  ImmutableList<String> createCommand(VmProcess.Spec spec) {
+    return new ImmutableList.Builder<String>()
+        .add(spec.vm().vmExecutable().getAbsolutePath())
+        .addAll(spec.vmOptions())
+        .add(spec.mainClass())
+        .addAll(spec.mainArgs())
+        .build();
+  }
+
+  /** A worker process running on the local machine. */
+  private static final class LocalProcess extends VmProcess {
 
     private final Process process;
 
-    LocalWorkerProcess(UUID id, ShutdownHookRegistrar shutdownHookRegistrar, Process process) {
-      super(id, shutdownHookRegistrar);
+    LocalProcess(Process process) {
       this.process = process;
     }
 
