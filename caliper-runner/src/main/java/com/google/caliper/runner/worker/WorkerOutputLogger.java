@@ -18,6 +18,7 @@ package com.google.caliper.runner.worker;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.caliper.runner.target.VmProcess.Logger;
 import com.google.caliper.runner.worker.WorkerOutputFactory.FileAndWriter;
 import java.io.Closeable;
 import java.io.File;
@@ -29,7 +30,7 @@ import javax.inject.Inject;
 
 /** A logger to write worker output to a file. */
 @WorkerScoped
-final class WorkerOutputLogger implements Flushable, Closeable {
+final class WorkerOutputLogger implements Logger, Flushable, Closeable {
   @GuardedBy("this")
   private File file;
 
@@ -38,13 +39,11 @@ final class WorkerOutputLogger implements Flushable, Closeable {
 
   private final WorkerOutputFactory outputManager;
   private final WorkerSpec workerSpec;
-  private final Command command;
 
   @Inject
-  WorkerOutputLogger(WorkerOutputFactory outputManager, WorkerSpec workerSpec, Command command) {
+  WorkerOutputLogger(WorkerOutputFactory outputManager, WorkerSpec workerSpec) {
     this.outputManager = outputManager;
     this.workerSpec = workerSpec;
-    this.command = command;
   }
 
   /** Opens the trial output file. */
@@ -68,19 +67,18 @@ final class WorkerOutputLogger implements Flushable, Closeable {
   synchronized void printHeader() {
     checkOpened();
     // make the file self describing
-    writer.println("Command: " + command.argumentsString());
-    writer.println();
     workerSpec.printInfoHeader(writer);
     writer.println();
   }
 
-  /**
-   * Logs a line of output to the logger.
-   *
-   * @param source The source of the line (e.g. 'stderr')
-   * @param line The output
-   */
-  synchronized void log(String source, String line) {
+  @Override
+  public synchronized void log(String line) {
+    checkOpened();
+    writer.println(line);
+  }
+
+  @Override
+  public synchronized void log(String source, String line) {
     checkOpened();
     writer.printf("[%s] %s%n", source, line);
   }

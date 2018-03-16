@@ -20,8 +20,8 @@ import com.google.caliper.bridge.DryRunRequest;
 import com.google.caliper.bridge.ExperimentSpec;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.BenchmarkClassModel;
-import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.experiment.Experiment;
+import com.google.caliper.runner.server.LocalPort;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.caliper.runner.worker.WorkerSpec;
@@ -46,8 +46,13 @@ final class DryRunSpec extends WorkerSpec {
   private final Target target;
 
   @Inject
-  DryRunSpec(BenchmarkClassModel benchmarkClass, Set<Experiment> experiments, Target target) {
-    super(UUID.randomUUID());
+  DryRunSpec(
+      UUID id,
+      @LocalPort int port,
+      BenchmarkClassModel benchmarkClass,
+      Set<Experiment> experiments,
+      Target target) {
+    super(target.vm(), id, id, port, benchmarkClass.name());
     this.benchmarkClass = benchmarkClass;
     this.experiments = ImmutableSet.copyOf(experiments);
     this.target = target;
@@ -68,7 +73,7 @@ final class DryRunSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> vmOptions(VmConfig vmConfig) {
+  public ImmutableList<String> additionalVmOptions() {
     // For dry runs, don't add most extra VM config options. No measurements are taken in dry runs,
     // so things like configuration for the allocation instrument aren't needed. Do add options
     // specified by the benchmark class itself, which are typically things like -Xmx that may be

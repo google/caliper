@@ -48,10 +48,11 @@ public final class JvmPlatform extends Platform {
           // ensure the parallel garbage collector
           "-XX:+UseParallelGC",
           // generate classes or don't, but do it immediately
-          "-Dsun.reflect.inflationThreshold=0");
-
-  private static final ImmutableSet<String> WORKER_PROCESS_ARGS =
-      ImmutableSet.of("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
+          "-Dsun.reflect.inflationThreshold=0",
+          // Make the VM print various things instruments may want to look at
+          "-XX:+PrintFlagsFinal",
+          "-XX:+PrintCompilation",
+          "-XX:+PrintGC");
 
   private static final Predicate<String> PROPERTIES_TO_RETAIN =
       new Predicate<String>() {
@@ -96,7 +97,7 @@ public final class JvmPlatform extends Platform {
 
   @Override
   public ImmutableSet<String> workerProcessArgs() {
-    return WORKER_PROCESS_ARGS;
+    return ImmutableSet.of();
   }
 
   @Override

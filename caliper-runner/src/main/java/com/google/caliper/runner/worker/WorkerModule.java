@@ -17,13 +17,10 @@
 package com.google.caliper.runner.worker;
 
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.core.Running.BenchmarkClass;
 import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.server.LocalPort;
 import com.google.caliper.runner.server.ServerSocketService;
 import com.google.caliper.runner.target.Target;
 import com.google.common.util.concurrent.ListenableFuture;
-import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 
@@ -43,28 +40,8 @@ public abstract class WorkerModule {
     return serverSocketService.getConnection(spec.id());
   }
 
-  // TODO(cgdecker): This will need to be bound based on the device in the future.
-  @Binds
-  abstract WorkerStarter bindWorkerStarter(LocalWorkerStarter workerStarter);
-
   @Provides
-  static Command provideWorkerCommand(
-      Target target,
-      WorkerSpec spec,
-      @LocalPort int port,
-      @BenchmarkClass String benchmarkClassName) {
-    VmConfig vm = target.vm();
-    return Command.builder()
-        .putAllEnvironmentVariables(target.platform().workerEnvironment())
-        .addArgument(vm.vmExecutable().getAbsolutePath())
-        .addArguments(vm.options())
-        .addArguments(spec.vmOptions(vm))
-        .addArguments(vm.workerClassPathArgs())
-        .addArguments(vm.workerProcessArgs())
-        .addArgument(spec.mainClass())
-        .addArgument(spec.id())
-        .addArgument(port)
-        .addArgument(benchmarkClassName)
-        .build();
+  static VmConfig provideVm(Target target) {
+    return target.vm();
   }
 }

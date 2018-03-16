@@ -12,20 +12,22 @@
  * the License.
  */
 
-package com.google.caliper.runner.worker;
+package com.google.caliper.runner.target;
 
-/** A simple interface for registering and deregistering shutdown hooks. */
-public interface ShutdownHookRegistrar {
-  /**
-   * Adds a hook to run at process shutdown.
-   *
-   * <p>See {@link Runtime#addShutdownHook(Thread)}.
-   */
-  void addShutdownHook(Thread hook);
-  /**
-   * Removes a shutdown hook that was previously registered via {@link #addShutdownHook(Thread)}.
-   *
-   * <p>See {@link Runtime#removeShutdownHook(Thread)}.
-   */
-  boolean removeShutdownHook(Thread hook);
+import javax.inject.Inject;
+
+/** A {@link ShutdownHookRegistrar} that delegates to {@link Runtime}. */
+public final class RuntimeShutdownHookRegistrar implements ShutdownHookRegistrar {
+  @Inject
+  public RuntimeShutdownHookRegistrar() {}
+
+  @Override
+  public void addShutdownHook(Thread hook) {
+    Runtime.getRuntime().addShutdownHook(hook);
+  }
+
+  @Override
+  public boolean removeShutdownHook(Thread hook) {
+    return Runtime.getRuntime().removeShutdownHook(hook);
+  }
 }

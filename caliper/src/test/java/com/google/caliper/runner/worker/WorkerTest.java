@@ -23,7 +23,12 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.runner.worker.FakeWorkers.DummyLogMessage;
+import com.google.caliper.runner.target.DeviceService;
+import com.google.caliper.runner.target.LocalDeviceService;
+import com.google.caliper.runner.target.RuntimeShutdownHookRegistrar;
+import com.google.caliper.runner.testing.FakeWorkerSpec;
+import com.google.caliper.runner.testing.FakeWorkers;
+import com.google.caliper.runner.testing.FakeWorkers.DummyLogMessage;
 import com.google.caliper.runner.worker.Worker.StreamItem;
 import com.google.caliper.runner.worker.Worker.StreamItem.Kind;
 import com.google.caliper.util.Parser;
@@ -42,7 +47,6 @@ import java.net.ServerSocket;
 import java.net.SocketException;
 import java.text.ParseException;
 import java.util.Set;
-import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -67,18 +71,29 @@ public class WorkerTest {
           return new DummyLogMessage(text.toString());
         }
       };
+  private final DeviceService device = new LocalDeviceService(new RuntimeShutdownHookRegistrar());
 
   private Worker worker;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);
 
   @Before
-  public void setUp() throws IOException {
+  public void openSocket() throws IOException {
     serverSocket = new ServerSocket(0);
+  }
+
+  @Before
+  public void startDevice() {
+    device.startAsync().awaitRunning();
   }
 
   @After
   public void closeSocket() throws IOException {
     serverSocket.close();
+  }
+
+  @After
+  public void stopDevice() {
+    device.stopAsync().awaitTerminated();
   }
 
   @After
@@ -200,18 +215,14 @@ public class WorkerTest {
   @SuppressWarnings("resource")
   private void makeWorker(Class<?> main, String... args) {
     checkState(worker == null, "You can only make one Worker per test");
-    UUID trialId = UUID.randomUUID();
-    WorkerSpec spec = FakeWorkerSpec.builder(main)
-        .setId(trialId)
-        .build();
-    Command command = FakeWorkers.createCommand(main, args);
+    final WorkerSpec spec = FakeWorkerSpec.builder(main).setArgs(args).build();
 
     WorkerOutputLogger output =
         new WorkerOutputLogger(
             new WorkerOutputFactory() {
               @Override
               public FileAndWriter getOutputFile(String fileName) throws FileNotFoundException {
-                checkArgument(fileName.equals("worker-" + trialId + ".log"));
+                checkArgument(fileName.equals("worker-" + spec.id() + ".log"));
                 return new FileAndWriter(new File("/tmp/not-a-file"), stdout);
               }
 
@@ -220,8 +231,7 @@ public class WorkerTest {
                 throw new UnsupportedOperationException();
               }
             },
-            spec,
-            command);
+            spec);
     try {
       // normally the TrialRunLoop opens/closes the logger
       output.open();
@@ -229,14 +239,7 @@ public class WorkerTest {
       throw new RuntimeException(e);
     }
 
-    worker =
-        new Worker(
-            spec,
-            new LocalWorkerStarter(new RuntimeShutdownHookRegistrar()),
-            command,
-            getSocketFuture(),
-            parser,
-            output);
+    worker = new Worker(spec, device, getSocketFuture(), parser, output);
     worker.addListener(
         new Listener() {
           @Override

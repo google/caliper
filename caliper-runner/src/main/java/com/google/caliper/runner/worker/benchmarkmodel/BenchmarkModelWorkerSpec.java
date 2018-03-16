@@ -18,8 +18,8 @@ package com.google.caliper.runner.worker.benchmarkmodel;
 
 import com.google.caliper.bridge.BenchmarkModelRequest;
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.server.LocalPort;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.caliper.runner.worker.WorkerSpec;
@@ -36,8 +36,8 @@ final class BenchmarkModelWorkerSpec extends WorkerSpec {
   private final CaliperOptions options;
 
   @Inject
-  BenchmarkModelWorkerSpec(Target target, CaliperOptions options) {
-    super(UUID.randomUUID());
+  BenchmarkModelWorkerSpec(UUID id, @LocalPort int port, Target target, CaliperOptions options) {
+    super(target.vm(), id, id, port, options.benchmarkClassName());
     this.target = target;
     this.options = options;
   }
@@ -53,8 +53,9 @@ final class BenchmarkModelWorkerSpec extends WorkerSpec {
   }
 
   @Override
-  public ImmutableList<String> vmOptions(VmConfig vmConfig) {
+  public ImmutableList<String> additionalVmOptions() {
     // Use a relatively low heap size since nothing the worker does should require much memory.
+    // These go after the default options, so they'll override them.
     return ImmutableList.of("-Xms256m", "-Xmx1g");
   }
 

@@ -25,9 +25,8 @@ import com.google.caliper.runner.config.CaliperConfigModule;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.options.OptionsModule;
 import com.google.caliper.runner.server.ServerModule;
+import com.google.caliper.runner.target.DeviceModule;
 import com.google.caliper.runner.target.TargetModule;
-import com.google.caliper.runner.worker.RuntimeShutdownHookRegistrar;
-import com.google.caliper.runner.worker.ShutdownHookRegistrar;
 import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelComponent;
 import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
@@ -46,6 +45,7 @@ import org.joda.time.Instant;
 /** A Dagger module that configures bindings common to all {@link CaliperRun} implementations. */
 @Module(
   includes = {
+    DeviceModule.class,
     LogMessageParserModule.class,
     CaliperConfigModule.class,
     GsonModule.class,
@@ -84,9 +84,6 @@ abstract class CaliperRunnerModule {
     int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
     return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
-
-  @Binds
-  abstract ShutdownHookRegistrar bindShutdownHookRegistrar(RuntimeShutdownHookRegistrar registrar);
 
   @Binds
   abstract BenchmarkModelFactory bindModelFactory(BenchmarkModelFromWorkerFactory factory);

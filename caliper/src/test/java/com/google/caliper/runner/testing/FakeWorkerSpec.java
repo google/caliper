@@ -12,12 +12,10 @@
  * the License.
  */
 
-package com.google.caliper.runner.worker;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+package com.google.caliper.runner.testing;
 
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.worker.WorkerSpec;
 import com.google.common.collect.ImmutableList;
 import java.util.UUID;
 
@@ -26,19 +24,19 @@ import java.util.UUID;
  *
  * @author Colin Decker
  */
-final class FakeWorkerSpec extends WorkerSpec {
+public final class FakeWorkerSpec extends WorkerSpec {
 
   private final String mainClass;
   private final ImmutableList<String> vmOptions;
 
-  private FakeWorkerSpec(UUID id, Class<?> mainClass, Iterable<String> vmOptions) {
-    super(id);
+  private FakeWorkerSpec(Class<?> mainClass, Iterable<String> vmOptions, Iterable<String> args) {
+    super(FakeWorkers.getTarget().vm(), UUID.randomUUID(), args);
     this.mainClass = mainClass.getName();
     this.vmOptions = ImmutableList.copyOf(vmOptions);
   }
 
   @Override
-  public ImmutableList<String> vmOptions(VmConfig config) {
+  public ImmutableList<String> additionalVmOptions() {
     return vmOptions;
   }
 
@@ -63,32 +61,32 @@ final class FakeWorkerSpec extends WorkerSpec {
     }
   }
 
-  static final class Builder {
+  public static final class Builder {
 
     private final Class<?> mainClass;
-    private UUID id = UUID.randomUUID();
     private ImmutableList<String> vmOptions = ImmutableList.of();
+    private ImmutableList<String> args = ImmutableList.of();
 
     private Builder(Class<?> mainClass) {
       this.mainClass = mainClass;
     }
 
-    Builder setId(UUID id) {
-      this.id = checkNotNull(id);
-      return this;
-    }
-
-    Builder setVmOptions(String... vmOptions) {
+    public Builder setVmOptions(String... vmOptions) {
       return setVmOptions(ImmutableList.copyOf(vmOptions));
     }
 
-    Builder setVmOptions(Iterable<String> vmOptions) {
+    public Builder setVmOptions(Iterable<String> vmOptions) {
       this.vmOptions = ImmutableList.copyOf(vmOptions);
       return this;
     }
 
-    FakeWorkerSpec build() {
-      return new FakeWorkerSpec(id, mainClass, vmOptions);
+    public Builder setArgs(String... args) {
+      this.args = ImmutableList.copyOf(args);
+      return this;
+    }
+
+    public FakeWorkerSpec build() {
+      return new FakeWorkerSpec(mainClass, vmOptions, args);
     }
   }
 }

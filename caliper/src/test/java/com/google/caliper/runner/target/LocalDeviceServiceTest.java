@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker;
+package com.google.caliper.runner.target;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -27,29 +28,33 @@ import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.experiment.Experiment;
 import com.google.caliper.runner.instrument.AllocationInstrument;
 import com.google.caliper.runner.platform.JvmPlatform;
-import com.google.caliper.runner.target.Target;
+import com.google.caliper.runner.target.VmProcess.Logger;
+import com.google.caliper.runner.testing.FakeWorkerSpec;
+import com.google.caliper.runner.testing.FakeWorkers;
+import com.google.caliper.runner.worker.WorkerSpec;
 import com.google.caliper.runner.worker.trial.TrialSpec;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.io.File;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /**
- * Tests {@link WorkerStarter}.
+ * Tests {@link LocalDeviceService}.
  *
  * <p>TODO(lukes,gak): write more tests for how our specs get turned into commandlines
  */
 
 @RunWith(JUnit4.class)
-public class WorkerStarterTest {
+public class LocalDeviceServiceTest {
   private static final int PORT_NUMBER = 4004;
   private static final UUID TRIAL_ID = UUID.randomUUID();
 
@@ -68,7 +73,17 @@ public class WorkerStarterTest {
   }
 
   private final MockRegistrar registrar = new MockRegistrar();
-  private final WorkerStarter workerStarter = new LocalWorkerStarter(registrar);
+  private final LocalDeviceService device = new LocalDeviceService(registrar);
+
+  @Before
+  public void startDevice() {
+    device.startAsync().awaitRunning();
+  }
+
+  @After
+  public void stopDevice() {
+    device.stopAsync().awaitTerminated();
+  }
 
   @Test
   public void simpleArgsTest() throws Exception {
@@ -77,7 +92,7 @@ public class WorkerStarterTest {
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
     VmConfig vmConfig =
         new VmConfig(
-            new File("foo"), Arrays.asList("--doTheHustle"), new File("java"), new JvmPlatform());
+            new File("foo"), Arrays.asList("--doTheHustle"), new File(""), new JvmPlatform());
     Experiment experiment =
         Experiment.create(
             1,
@@ -85,33 +100,35 @@ public class WorkerStarterTest {
             ImmutableMap.<String, String>of(),
             Target.create("foo-jvm", vmConfig));
     BenchmarkClassModel benchmarkClass = BenchmarkClassModel.create(TestBenchmark.class);
-    Command command = createCommand(experiment, benchmarkClass);
-    List<String> commandLine = command.arguments();
-    assertEquals(new File("java").getAbsolutePath(), commandLine.get(0));
-    assertTrue(commandLine.contains("--doTheHustle"));
-    assertTrue(commandLine.contains("-cp"));
-    assertTrue(commandLine.containsAll(vmConfig.commonInstrumentVmArgs()));
-    assertTrue(commandLine.containsAll(allocationInstrument.getExtraCommandLineArgs(vmConfig)));
-    assertTrue(
-        commandLine.containsAll(
-            ImmutableSet.of("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC")));
+    ImmutableList<String> commandLine = createCommand(experiment, benchmarkClass);
+    assertEquals(new File("").getAbsolutePath(), commandLine.get(0));
+    assertThat(commandLine).contains("--doTheHustle");
+    assertThat(commandLine).contains("-cp");
+    assertThat(commandLine).containsAllIn(vmConfig.commonInstrumentVmArgs());
+    assertThat(commandLine).containsAllIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
+    assertThat(commandLine)
+        .containsAllOf("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
     // main class should be fourth to last, followed worker options
     assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(commandLine.size() - 4));
   }
 
   @Test
   public void shutdownHook_awaitExit() throws Exception {
-    WorkerProcess worker = startWorker(FakeWorkers.Exit.class, "0");
+    WorkerSpec spec = FakeWorkerSpec.builder(FakeWorkers.Exit.class).setArgs("0").build();
+    VmProcess worker = device.startVm(spec, new NullLogger());
     assertEquals(
-        "worker-shutdown-hook-" + TRIAL_ID, Iterables.getOnlyElement(registrar.hooks).getName());
+        "worker-shutdown-hook-" + spec.id(), Iterables.getOnlyElement(registrar.hooks).getName());
     worker.awaitExit();
     assertTrue(registrar.hooks.isEmpty());
   }
 
   @Test
   public void shutdownHook_kill() throws Exception {
-    WorkerProcess worker =
-        startWorker(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(1)));
+    WorkerSpec spec =
+        FakeWorkerSpec.builder(FakeWorkers.Sleeper.class)
+            .setArgs(Long.toString(MINUTES.toMillis(1)))
+            .build();
+    VmProcess worker = device.startVm(spec, new NullLogger());
     worker.kill();
     assertTrue(registrar.hooks.isEmpty());
   }
@@ -127,13 +144,17 @@ public class WorkerStarterTest {
     }
   }
 
-  private Command createCommand(Experiment experiment, BenchmarkClassModel benchmarkClass) {
-    WorkerSpec spec = new TrialSpec(TRIAL_ID, experiment, benchmarkClass, 1);
-    return WorkerModule.provideWorkerCommand(
-        experiment.target(), spec, PORT_NUMBER, benchmarkClass.name());
+  private ImmutableList<String> createCommand(
+      Experiment experiment, BenchmarkClassModel benchmarkClass) {
+    WorkerSpec spec = new TrialSpec(TRIAL_ID, PORT_NUMBER, experiment, benchmarkClass, 1);
+    return device.createCommand(spec);
   }
 
-  private WorkerProcess startWorker(Class<?> main, String... args) throws Exception {
-    return workerStarter.startWorker(TRIAL_ID, FakeWorkers.createCommand(main, args));
+  private static class NullLogger implements Logger {
+    @Override
+    public void log(String line) {}
+
+    @Override
+    public void log(String source, String line) {}
   }
 }
