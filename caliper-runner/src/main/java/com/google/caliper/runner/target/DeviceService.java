@@ -37,7 +37,7 @@ public abstract class DeviceService extends AbstractIdleService {
 
   /** Starts a process on the device to run a VM using the given VM process spec. */
   public final VmProcess startVm(VmProcess.Spec spec, VmProcess.Logger logger) throws Exception {
-    VmProcess process = doStartVm(spec, logger);
+    final VmProcess process = doStartVm(spec, logger);
     final Thread shutdownHook =
         new Thread("worker-shutdown-hook-" + spec.id()) {
           @Override
