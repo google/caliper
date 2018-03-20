@@ -202,6 +202,22 @@ final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // Device
+  // --------------------------------------------------------------------------
+
+  private String deviceName = "local";
+
+  @Option({"-e", "--device"})
+  private void setDeviceName(String deviceName) {
+    this.deviceName = deviceName;
+  }
+
+  @Override
+  public String deviceName() {
+    return deviceName;
+  }
+
+  // --------------------------------------------------------------------------
   // VM specifications
   // --------------------------------------------------------------------------
 
@@ -425,6 +441,8 @@ final class ParsedOptions implements CaliperOptions {
           "                    in-process",
           " -b, --benchmark    comma-separated list of benchmark methods to run; 'foo' is",
           "                    an alias for 'timeFoo' (default: all found in class)",
+          " -e, --device       name of the configured device to run the benchmarks on; currently",
+          "                    only 'local' is supported (default: local)",
           " -m, --vm           comma-separated list of VMs to test on; possible values are",
           "                    configured in Caliper's configuration file (default:",
           "                    whichever VM caliper itself is running in, only)",
@@ -464,6 +482,6 @@ final class ParsedOptions implements CaliperOptions {
           "     $HOME/.caliper/config.properties. Properties specified on the command line",
           "     will override those specified in the file.",
           "",
-          "See http://code.google.com/p/caliper/wiki/CommandLineOptions for more details.",
+          "See https://github.com/google/caliper/wiki/CommandLineOptions for more details.",
           "");
 }
