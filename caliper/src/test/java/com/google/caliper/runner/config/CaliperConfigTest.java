@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner.config;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -44,6 +45,46 @@ public class CaliperConfigTest {
   @Rule public TemporaryFolder folder = new TemporaryFolder();
 
   private Platform platform = new JvmPlatform();
+
+  private static final CaliperConfig DEVICE_TEST_CONFIG =
+      new CaliperConfig(
+          ImmutableMap.of(
+              "device.local.type", "fake",
+              "device.local.options.defaultVmType", "jvm",
+              "device.android.type", "adb",
+              "device.android.options.defaultVmType", "android"));
+
+  @Test
+  public void getDeviceConfig() {
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("local");
+    assertThat(deviceConfig.name()).isEqualTo("local");
+    assertThat(deviceConfig.type()).isEqualTo("fake");
+    assertThat(deviceConfig.options()).containsEntry("defaultVmType", "jvm");
+    assertThat(deviceConfig.options()).doesNotContainKey("vmBaseDirectory");
+  }
+
+  @Test
+  public void testGetDeviceConfig_nonLocalDevice() {
+    try {
+      DEVICE_TEST_CONFIG.getDeviceConfig("android");
+      fail();
+    } catch (InvalidConfigurationException expected) {
+    }
+  }
+
+  @Test
+  public void testGetDeviceConfig_missingType() {
+    CaliperConfig config =
+        new CaliperConfig(
+            ImmutableMap.of(
+                "device.local.typo", "local",
+                "device.local.options.defaultVmType", "jvm"));
+    try {
+      config.getDeviceConfig("local");
+      fail();
+    } catch (InvalidConfigurationException expected) {
+    }
+  }
 
   @Test
   public void getDefaultVmConfig() throws Exception {

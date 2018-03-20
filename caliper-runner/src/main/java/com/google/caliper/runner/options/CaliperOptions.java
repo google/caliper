@@ -39,9 +39,12 @@ public interface CaliperOptions {
    */
   ImmutableSet<String> benchmarkMethodNames();
 
+  /** Returns the name of the configured device that the benchmark should be run on. */
+  String deviceName();
+
   /**
-   * Returns the set of VMs the benchmark should be run on. If none are specified, the default VM is
-   * used.
+   * Returns the set of VMs the benchmark should be run on. If none are specified, the default VM
+   * for the device is used.
    */
   ImmutableSet<String> vmNames();
 

@@ -102,6 +102,28 @@ public final class CaliperConfig {
     return properties;
   }
 
+  public DeviceConfig getDeviceConfig(String deviceName) {
+    if (!deviceName.equals("local")) {
+      throw new InvalidConfigurationException(
+          "Invalid device name: " + deviceName + " (only 'local' is currently supported)");
+    }
+
+    ImmutableMap<String, String> devices = subgroupMap(properties, "device");
+    ImmutableMap<String, String> device = subgroupMap(devices, deviceName);
+
+    String deviceType = device.get("type");
+    if (deviceType == null) {
+      throw new InvalidConfigurationException(
+          "Missing configuration field: device." + deviceName + ".type");
+    }
+
+    return DeviceConfig.builder()
+        .name(deviceName)
+        .type(deviceType)
+        .options(subgroupMap(device, "options"))
+        .build();
+  }
+
   /**
    * Returns the configuration of the current host VM (including the flags used to create it). Any
    * args specified using {@code vm.args} will also be applied

@@ -16,15 +16,24 @@
 
 package com.google.caliper.runner.target;
 
+import com.google.caliper.runner.config.CaliperConfig;
+import com.google.caliper.runner.config.DeviceConfig;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.util.concurrent.Service;
 import dagger.Binds;
 import dagger.Module;
+import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import javax.inject.Singleton;
 
 /** Module for providing the {@link DeviceService}. */
 @Module
 public abstract class DeviceModule {
+
+  @Provides
+  static DeviceConfig provideDeviceConfig(CaliperOptions options, CaliperConfig config) {
+    return config.getDeviceConfig(options.deviceName());
+  }
 
   @Binds
   abstract ShutdownHookRegistrar bindShutdownHookRegistrar(RuntimeShutdownHookRegistrar registrar);
