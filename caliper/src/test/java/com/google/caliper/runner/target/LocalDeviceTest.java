@@ -48,13 +48,13 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 /**
- * Tests {@link LocalDeviceService}.
+ * Tests {@link LocalDevice}.
  *
  * <p>TODO(lukes,gak): write more tests for how our specs get turned into commandlines
  */
 
 @RunWith(JUnit4.class)
-public class LocalDeviceServiceTest {
+public class LocalDeviceTest {
   private static final int PORT_NUMBER = 4004;
   private static final UUID TRIAL_ID = UUID.randomUUID();
 
@@ -73,7 +73,7 @@ public class LocalDeviceServiceTest {
   }
 
   private final MockRegistrar registrar = new MockRegistrar();
-  private final LocalDeviceService device = new LocalDeviceService(registrar);
+  private final LocalDevice device = new LocalDevice(registrar);
 
   @Before
   public void startDevice() {

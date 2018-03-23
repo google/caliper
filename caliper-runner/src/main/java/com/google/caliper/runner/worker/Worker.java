@@ -21,7 +21,7 @@ import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.bridge.StopMeasurementLogMessage;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.runner.target.DeviceService;
+import com.google.caliper.runner.target.Device;
 import com.google.caliper.runner.target.VmProcess;
 import com.google.caliper.runner.worker.Worker.StreamItem.Kind;
 import com.google.caliper.util.Parser;
@@ -96,7 +96,7 @@ public final class Worker extends AbstractService {
   private final BlockingQueue<StreamItem> outputQueue = Queues.newLinkedBlockingQueue();
 
   private final WorkerSpec spec;
-  private final DeviceService device;
+  private final Device device;
   private final ListenableFuture<OpenedSocket> socketFuture;
   private final Parser<LogMessage> logMessageParser;
   private final WorkerOutputLogger output;
@@ -123,7 +123,7 @@ public final class Worker extends AbstractService {
   @Inject
   Worker(
       WorkerSpec spec,
-      DeviceService device,
+      Device device,
       ListenableFuture<OpenedSocket> socketFuture,
       Parser<LogMessage> logMessageParser,
       WorkerOutputLogger output) {
@@ -207,7 +207,7 @@ public final class Worker extends AbstractService {
                 "worker-" + name,
                 // use the default charset because worker streams will use the default for output
                 // TODO(cgdecker): not necessarily true if the worker is on a different device;
-                // figure out how to handle this (DeviceService provides a Charset to use, or force
+                // figure out how to handle this (Device provides a Charset to use, or force
                 // all VMs to use UTF-8 as their default charset...?)
                 new StreamReader(
                     name, new InputStreamReader(inputStream, Charset.defaultCharset()))));

@@ -23,23 +23,23 @@ import java.io.InputStream;
 import javax.inject.Inject;
 
 /**
- * {@link DeviceService} for the local machine.
+ * {@link Device} for the local machine.
  *
  * @author Colin Decker
  */
-public final class LocalDeviceService extends DeviceService {
+public final class LocalDevice extends Device {
 
   private static final Joiner ARG_JOINER = Joiner.on(' ');
 
   private final boolean redirectErrorStream;
 
   @Inject
-  public LocalDeviceService(ShutdownHookRegistrar shutdownHookRegistrar) {
+  public LocalDevice(ShutdownHookRegistrar shutdownHookRegistrar) {
     this(shutdownHookRegistrar, false);
   }
 
   @VisibleForTesting
-  public LocalDeviceService(
+  public LocalDevice(
       ShutdownHookRegistrar shutdownHookRegistrar, boolean redirectErrorStream) {
     super(shutdownHookRegistrar);
     this.redirectErrorStream = redirectErrorStream;
