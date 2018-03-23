@@ -26,8 +26,8 @@ import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.SupportedPlatform;
+import com.google.caliper.runner.platform.SupportsVmType;
+import com.google.caliper.runner.platform.VmType;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
@@ -47,7 +47,7 @@ import java.util.logging.Logger;
  * <p>Note that the allocation instruments reports a "worst case" for allocation in that it reports
  * the bytes and objects allocated in interpreted mode (no JIT).
  */
-@SupportedPlatform(Platform.Type.JVM)
+@SupportsVmType(VmType.JVM)
 public final class AllocationInstrument extends Instrument {
   private static final String ALLOCATION_AGENT_JAR_OPTION = "allocationAgentJar";
   /**

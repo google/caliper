@@ -32,10 +32,10 @@ import java.util.Map;
  */
 public abstract class Platform {
 
-  private final Platform.Type platformType;
+  private final VmType vmType;
 
-  public Platform(Type platformType) {
-    this.platformType = checkNotNull(platformType);
+  public Platform(VmType vmType) {
+    this.vmType = checkNotNull(vmType);
   }
 
   /**
@@ -51,7 +51,7 @@ public abstract class Platform {
 
   /** The name of the platform type. */
   public String name() {
-    return platformType.name;
+    return vmType.toString();
   }
 
   /** Additional arguments that should be passed to a worker. */
@@ -72,27 +72,14 @@ public abstract class Platform {
   /**
    * Checks to see whether the specific class is supported on this platform.
    *
-   * <p>This checks to see whether {@link SupportedPlatform} specifies a {@link Type} that matches
+   * <p>This checks to see whether {@link SupportsVmType} specifies a {@link VmType} that matches
    * this platform.
    *
    * @param clazz the class to check.
    * @return true if it is supported, false otherwise.
    */
   public boolean supports(Class<?> clazz) {
-    SupportedPlatform annotation = clazz.getAnnotation(SupportedPlatform.class);
-    if (annotation == null) {
-      // Support must be explicitly declared.
-      return false;
-    }
-
-    Platform.Type[] types = annotation.value();
-    for (Type type : types) {
-      if (type.equals(platformType)) {
-        return true;
-      }
-    }
-
-    return false;
+    return vmType.supports(clazz);
   }
 
   /** Get the input arguments for the current running JVM. */
@@ -136,16 +123,4 @@ public abstract class Platform {
    */
   public abstract File customVmHomeDir(Map<String, String> vmGroupMap, String vmConfigName)
       throws VirtualMachineException;
-
-  /** The type of platforms supported. */
-  public enum Type {
-    DALVIK("Dalvik"),
-    JVM("Java");
-
-    private final String name;
-
-    Type(String name) {
-      this.name = name;
-    }
-  }
 }

@@ -62,7 +62,7 @@ public final class DalvikPlatform extends Platform {
   private final String classpath;
 
   public DalvikPlatform(String classpath) {
-    super(Type.DALVIK);
+    super(VmType.ANDROID);
     this.classpath = classpath;
   }
 

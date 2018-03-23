@@ -68,7 +68,7 @@ public final class JvmPlatform extends Platform {
       };
 
   public JvmPlatform() {
-    super(Type.JVM);
+    super(VmType.JVM);
   }
 
   @Override

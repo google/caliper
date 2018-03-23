@@ -17,6 +17,7 @@
 package com.google.caliper.runner.testing;
 
 import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.platform.VmType;
 import com.google.common.base.Predicate;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableSet;
@@ -32,10 +33,10 @@ import java.util.Map;
 public final class FakePlatform extends Platform {
 
   public FakePlatform() {
-    this(Platform.Type.JVM);
+    this(VmType.JVM);
   }
 
-  public FakePlatform(Platform.Type type) {
+  public FakePlatform(VmType type) {
     super(type);
   }
 

@@ -35,8 +35,8 @@ import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.SupportedPlatform;
+import com.google.caliper.runner.platform.SupportsVmType;
+import com.google.caliper.runner.platform.VmType;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
@@ -53,7 +53,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 
 /** The instrument responsible for measuring the runtime of {@link Benchmark} methods. */
-@SupportedPlatform({Platform.Type.JVM, Platform.Type.DALVIK})
+@SupportsVmType({VmType.JVM, VmType.ANDROID})
 public class RuntimeInstrument extends Instrument {
   private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
   private static final String TIMING_INTERVAL_OPTION = "timingInterval";
