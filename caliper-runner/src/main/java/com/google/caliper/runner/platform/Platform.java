@@ -54,6 +54,11 @@ public abstract class Platform {
     return vmType.toString();
   }
 
+  /** Returns the VM type for this platform. */
+  public VmType vmType() {
+    return vmType;
+  }
+
   /** Additional arguments that should be passed to a worker. */
   public abstract ImmutableSet<String> workerProcessArgs();
 

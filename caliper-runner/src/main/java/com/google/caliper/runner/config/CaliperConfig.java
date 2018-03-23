@@ -35,7 +35,6 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -119,32 +118,42 @@ public final class CaliperConfig {
         .build();
   }
 
+  /** Returns the vm.args configuration values. */
+  public List<String> getVmArgs() {
+    return getArgs(subgroupMap(properties, "vm"));
+  }
+
   /**
    * Returns the configuration of the current host VM (including the flags used to create it). Any
    * args specified using {@code vm.args} will also be applied
    */
   public VmConfig getDefaultVmConfig(Platform platform) {
-    return new VmConfig.Builder(platform, platform.defaultVmHomeDir())
-        .addAllOptions(platform.inputArguments())
-        // still incorporate vm.args
-        .addAllOptions(getArgs(subgroupMap(properties, "vm")))
+    return VmConfig.builder()
+        .name("default")
+        .platform(platform)
+        .type(platform.vmType())
+        .home(platform.defaultVmHomeDir().getPath())
+        .addAllArgs(platform.inputArguments())
+        .addAllArgs(getVmArgs())
         .build();
   }
 
-  public VmConfig getVmConfig(Platform platform, String name) throws InvalidConfigurationException {
+  public VmConfig getVmConfig(Platform platform, String name) {
     checkNotNull(name);
     ImmutableMap<String, String> vmGroupMap = subgroupMap(properties, "vm");
     ImmutableMap<String, String> vmMap = subgroupMap(vmGroupMap, name);
-    File homeDir;
+    VmConfig.Builder builder =
+        VmConfig.builder().name(name).platform(platform).type(platform.vmType());
     try {
-      homeDir = platform.customVmHomeDir(vmGroupMap, name);
+      builder.home(platform.customVmHomeDir(vmGroupMap, name).getPath());
     } catch (VirtualMachineException e) {
       throw new InvalidConfigurationException(e);
     }
-    return new VmConfig.Builder(platform, homeDir)
-        .addAllOptions(getArgs(vmGroupMap))
-        .addAllOptions(getArgs(vmMap))
-        .build();
+    String executable = vmMap.get("executable");
+    if (executable != null) {
+      builder.executable(executable);
+    }
+    return builder.addAllArgs(getVmArgs()).addAllArgs(getArgs(vmMap)).build();
   }
 
   private static final Pattern INSTRUMENT_CLASS_PATTERN = Pattern.compile("([^\\.]+)\\.class");

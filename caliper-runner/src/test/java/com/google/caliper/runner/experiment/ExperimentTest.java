@@ -23,12 +23,11 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.instrument.RuntimeInstrument;
+import com.google.caliper.runner.platform.VmType;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.testing.FakePlatform;
 import com.google.caliper.util.ShortDuration;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.io.File;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -51,14 +50,13 @@ public class ExperimentTest {
     RuntimeInstrument instrument = new RuntimeInstrument(ShortDuration.of(100, NANOSECONDS));
     MethodModel method =
         MethodModel.of(FooBenchmark.class.getDeclaredMethod("myBenchmark", long.class));
+    VmConfig vm =
+        VmConfig.builder().name("foo").platform(new FakePlatform()).type(VmType.JVM).build();
     return Experiment.create(
         1,
         instrument.createInstrumentedMethod(method),
         ImmutableMap.of("baz", "qux"),
-        Target.create(
-            "foo",
-            new VmConfig(
-                new File("foo"), ImmutableList.of(), new File("java"), new FakePlatform())));
+        Target.create("foo", vm));
   }
 
   static class FooBenchmark {

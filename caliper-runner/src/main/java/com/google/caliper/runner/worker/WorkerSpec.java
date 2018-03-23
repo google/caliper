@@ -69,10 +69,10 @@ public abstract class WorkerSpec implements VmProcess.Spec {
   @Override
   public final ImmutableList<String> vmOptions() {
     return new ImmutableList.Builder<String>()
-        .addAll(vm.options())
+        .addAll(vm.args())
         .addAll(additionalVmOptions())
-        .addAll(vm.workerClassPathArgs())
-        .addAll(vm.workerProcessArgs())
+        .addAll(vm.platform().workerClassPathArgs())
+        .addAll(vm.platform().workerProcessArgs())
         .build();
   }
 

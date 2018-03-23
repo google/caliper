@@ -91,14 +91,15 @@ public class CaliperConfigTest {
     CaliperConfig configuration =
         new CaliperConfig(ImmutableMap.of("vm.args", "-very -special=args"));
     VmConfig defaultVmConfig = configuration.getDefaultVmConfig(platform);
-    assertEquals(new File(System.getProperty("java.home")), defaultVmConfig.vmHome());
+    assertEquals(
+        new File(System.getProperty("java.home")).getAbsolutePath(), defaultVmConfig.home().get());
     ImmutableList<String> expectedArgs =
         new ImmutableList.Builder<String>()
             .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
             .add("-very")
             .add("-special=args")
             .build();
-    assertEquals(expectedArgs, defaultVmConfig.options());
+    assertEquals(expectedArgs, defaultVmConfig.args());
   }
 
   @Test
@@ -109,7 +110,12 @@ public class CaliperConfigTest {
     CaliperConfig configuration =
         new CaliperConfig(ImmutableMap.of("vm.baseDirectory", tempBaseDir.getAbsolutePath()));
     assertEquals(
-        new VmConfig.Builder(platform, jdkHome).build(),
+        VmConfig.builder()
+            .name("test")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(jdkHome.getPath())
+            .build(),
         configuration.getVmConfig(platform, "test"));
   }
 
@@ -123,7 +129,12 @@ public class CaliperConfigTest {
             ImmutableMap.of(
                 "vm.baseDirectory", tempBaseDir.getAbsolutePath(), "vm.test.home", "test-home"));
     assertEquals(
-        new VmConfig.Builder(platform, jdkHome).build(),
+        VmConfig.builder()
+            .name("test")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(jdkHome.getPath())
+            .build(),
         configuration.getVmConfig(platform, "test"));
   }
 
@@ -137,12 +148,16 @@ public class CaliperConfigTest {
                 "vm.test.home", jdkHome.getAbsolutePath(),
                 "vm.test.args", " -d     -e     "));
     assertEquals(
-        new VmConfig.Builder(platform, jdkHome)
-            .addOption("-a")
-            .addOption("-b")
-            .addOption("-c")
-            .addOption("-d")
-            .addOption("-e")
+        VmConfig.builder()
+            .name("test")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(jdkHome.getPath())
+            .addArg("-a")
+            .addArg("-b")
+            .addArg("-c")
+            .addArg("-d")
+            .addArg("-e")
             .build(),
         configuration.getVmConfig(platform, "test"));
   }
@@ -158,10 +173,14 @@ public class CaliperConfigTest {
                 "vm.test.home",
                 jdkHome.getAbsolutePath()));
     assertEquals(
-        new VmConfig.Builder(platform, jdkHome)
-            .addOption("-a=string with spaces")
-            .addOption("-b")
-            .addOption("-c")
+        VmConfig.builder()
+            .name("test")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(jdkHome.getPath())
+            .addArg("-a=string with spaces")
+            .addArg("-b")
+            .addArg("-c")
             .build(),
         configuration.getVmConfig(platform, "test"));
   }

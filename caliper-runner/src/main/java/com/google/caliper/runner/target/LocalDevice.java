@@ -19,6 +19,7 @@ package com.google.caliper.runner.target;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
+import java.io.File;
 import java.io.InputStream;
 import javax.inject.Inject;
 
@@ -66,7 +67,7 @@ public final class LocalDevice extends Device {
   @VisibleForTesting
   ImmutableList<String> createCommand(VmProcess.Spec spec) {
     return new ImmutableList.Builder<String>()
-        .add(spec.vm().vmExecutable().getAbsolutePath())
+        .add(spec.vm().platform().vmExecutable(new File(spec.vm().home().get())).getAbsolutePath())
         .addAll(spec.vmOptions())
         .add(spec.mainClass())
         .addAll(spec.mainArgs())

@@ -37,8 +37,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import java.io.File;
-import java.util.Arrays;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.After;
@@ -90,9 +88,15 @@ public class LocalDeviceTest {
     MethodModel method = MethodModel.of(TestBenchmark.class.getDeclaredMethods()[0]);
     AllocationInstrument allocationInstrument = new AllocationInstrument();
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
+    JvmPlatform platform = new JvmPlatform();
     VmConfig vmConfig =
-        new VmConfig(
-            new File("foo"), Arrays.asList("--doTheHustle"), new File(""), new JvmPlatform());
+        VmConfig.builder()
+            .name("foo")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(System.getProperty("java.home"))
+            .addArg("--doTheHustle")
+            .build();
     Experiment experiment =
         Experiment.create(
             1,
@@ -101,10 +105,10 @@ public class LocalDeviceTest {
             Target.create("foo-jvm", vmConfig));
     BenchmarkClassModel benchmarkClass = BenchmarkClassModel.create(TestBenchmark.class);
     ImmutableList<String> commandLine = createCommand(experiment, benchmarkClass);
-    assertEquals(new File("").getAbsolutePath(), commandLine.get(0));
+    assertThat(commandLine.get(0)).startsWith(System.getProperty("java.home") + "/bin/java");
     assertThat(commandLine).contains("--doTheHustle");
     assertThat(commandLine).contains("-cp");
-    assertThat(commandLine).containsAllIn(vmConfig.commonInstrumentVmArgs());
+    assertThat(commandLine).containsAllIn(vmConfig.platform().commonInstrumentVmArgs());
     assertThat(commandLine).containsAllIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
     assertThat(commandLine)
         .containsAllOf("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
