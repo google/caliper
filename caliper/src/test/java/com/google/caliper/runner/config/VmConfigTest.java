@@ -35,10 +35,15 @@ public class VmConfigTest {
 
   @Test
   public void testExecutable() {
-    File javaExecutable =
-        new VmConfig.Builder(new JvmPlatform(), new File(System.getProperty("java.home")))
-            .build()
-            .vmExecutable();
+    JvmPlatform platform = new JvmPlatform();
+    VmConfig config =
+        VmConfig.builder()
+            .name("foo")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(System.getProperty("java.home"))
+            .build();
+    File javaExecutable = config.platform().vmExecutable(new File(config.home().get()));
     assertTrue("Could not find: " + javaExecutable, javaExecutable.exists());
     assertTrue(javaExecutable + " is not a file", javaExecutable.isFile());
   }

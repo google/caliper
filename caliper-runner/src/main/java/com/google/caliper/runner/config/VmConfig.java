@@ -16,130 +16,85 @@
 
 package com.google.caliper.runner.config;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.caliper.model.VmSpec;
+import com.google.auto.value.AutoValue;
 import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.platform.VmType;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
-import java.io.File;
-import javax.annotation.concurrent.GuardedBy;
 
 /**
- * This is the configuration passed to the VM by the user. This differs from the {@link VmSpec} in
- * that any number of configurations can yield the same spec (due to default flag values) and any
- * number of specs can come from a single configuration (due to <a
- * href="http://www.oracle.com/technetwork/java/ergo5-140223.html">ergonomics</a>).
+ * The configuration for a VM.
  *
- * @author gak@google.com (Gregory Kick)
+ * <p>This class is just a simple representation of the information from the {@link CaliperConfig}.
+ * Optional fields not set there will be absent in the {@link VmConfig} instance. Other classes are
+ * responsible for handling optional fields that are unset; for example, if the type isn't set, it
+ * comes from the default VM type set for the device.
  */
-public final class VmConfig {
-  private final Platform platform;
-  private final File vmHome;
-  private final ImmutableList<String> options;
+@AutoValue
+public abstract class VmConfig {
 
-  @GuardedBy("this")
-  private File vmExecutable;
-
-  private VmConfig(Builder builder) {
-    this.platform = builder.platform;
-    this.vmHome = builder.vmHome;
-    this.options = builder.optionsBuilder.build();
+  /** Returns a new builder for {@link VmConfig} instances. */
+  public static Builder builder() {
+    return new AutoValue_VmConfig.Builder();
   }
 
+  /** The name of this VM configuration. */
+  public abstract String name();
+
+  /** Returns the platform for this VM. */
+  public abstract Platform platform(); // temporary
+
+  /** The type of the VM. */
+  public abstract Optional<VmType> type();
+
+  /**
+   * The path, possibly relative, to a directory under which the VM executable can be found, either
+   * directly or in a "bin/" subdirectory.
+   */
+  public abstract Optional<String> home();
+
+  /** The name of or relative path to the VM executable file. */
+  public abstract Optional<String> executable();
+
+  /** The arguments specific to this VM configuration. */
+  public abstract ImmutableList<String> args();
+
+  /** Builder for creating {@link VmConfig} objects. */
+  @AutoValue.Builder
   @VisibleForTesting
-  public VmConfig(File vmHome, Iterable<String> options, File vmExecutable, Platform platform) {
-    this.platform = platform;
-    this.vmHome = checkNotNull(vmHome);
-    this.vmExecutable = checkNotNull(vmExecutable);
-    this.options = ImmutableList.copyOf(options);
-  }
+  public abstract static class Builder {
+    /** Sets the name of the VM configuration. */
+    public abstract Builder name(String name);
 
-  public File vmHome() {
-    return vmHome;
-  }
+    /** Sets the platform for the VM. */
+    public abstract Builder platform(Platform platform);
 
-  public synchronized File vmExecutable() {
-    if (vmExecutable == null) {
-      vmExecutable = platform.vmExecutable(vmHome);
-    }
-    return vmExecutable;
-  }
+    /** Sets the type of the VM. */
+    public abstract Builder type(VmType type);
 
-  public ImmutableList<String> options() {
-    return options;
-  }
+    /** Sets the path for the VM home directory. */
+    public abstract Builder home(String home);
 
-  public Platform platform() {
-    return platform;
-  }
+    /** Sets the path for the VM executable. */
+    public abstract Builder executable(String executable);
 
-  public ImmutableList<String> workerClassPathArgs() {
-    return platform.workerClassPathArgs();
-  }
+    /** Returns a builder for adding VM args. */
+    public abstract ImmutableList.Builder<String> argsBuilder();
 
-  public ImmutableSet<String> workerProcessArgs() {
-    return platform.workerProcessArgs();
-  }
-
-  public ImmutableSet<String> commonInstrumentVmArgs() {
-    return platform.commonInstrumentVmArgs();
-  }
-
-  @Override
-  public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    } else if (obj instanceof VmConfig) {
-      VmConfig that = (VmConfig) obj;
-      return this.platform.equals(that.platform)
-          && this.vmHome.equals(that.vmHome)
-          && this.options.equals(that.options);
-    } else {
-      return false;
-    }
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hashCode(platform, vmHome, options);
-  }
-
-  @Override
-  public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .add("platform", platform)
-        .add("vmHome", vmHome)
-        .add("options", options)
-        .toString();
-  }
-
-  @VisibleForTesting
-  public static final class Builder {
-    private final Platform platform;
-    private final File vmHome;
-    private final ImmutableList.Builder<String> optionsBuilder = ImmutableList.builder();
-
-    public Builder(Platform platform, File vmHome) {
-      this.platform = checkNotNull(platform);
-      this.vmHome = checkNotNull(vmHome);
-    }
-
-    public Builder addOption(String option) {
-      optionsBuilder.add(option);
+    /** Adds the given VM arg to the configuration. */
+    public Builder addArg(String arg) {
+      argsBuilder().add(arg);
       return this;
     }
 
-    public Builder addAllOptions(Iterable<String> options) {
-      optionsBuilder.addAll(options);
+    /** Adds all of the given VM args to the configuration. */
+    public Builder addAllArgs(Iterable<String> args) {
+      argsBuilder().addAll(args);
       return this;
     }
 
-    public VmConfig build() {
-      return new VmConfig(this);
-    }
+    /** Creates a new {@link VmConfig}. */
+    public abstract VmConfig build();
   }
 }

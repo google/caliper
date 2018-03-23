@@ -59,7 +59,12 @@ public class AllocationInstrumentTest {
             "-Xbootclasspath/a:" + fakeJar.getAbsolutePath());
     Platform platform = new JvmPlatform();
     VmConfig vmConfig =
-        new VmConfig.Builder(platform, new File(System.getProperty("java.home"))).build();
+        VmConfig.builder()
+            .name("foo")
+            .platform(platform)
+            .type(platform.vmType())
+            .home(System.getProperty("java.home"))
+            .build();
     assertEquals(expected, instrument.getExtraCommandLineArgs(vmConfig));
     fakeJar.delete();
   }
