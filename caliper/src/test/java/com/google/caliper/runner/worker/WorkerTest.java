@@ -23,8 +23,8 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.runner.target.DeviceService;
-import com.google.caliper.runner.target.LocalDeviceService;
+import com.google.caliper.runner.target.Device;
+import com.google.caliper.runner.target.LocalDevice;
 import com.google.caliper.runner.target.RuntimeShutdownHookRegistrar;
 import com.google.caliper.runner.testing.FakeWorkerSpec;
 import com.google.caliper.runner.testing.FakeWorkers;
@@ -71,7 +71,7 @@ public class WorkerTest {
           return new DummyLogMessage(text.toString());
         }
       };
-  private final DeviceService device = new LocalDeviceService(new RuntimeShutdownHookRegistrar());
+  private final Device device = new LocalDevice(new RuntimeShutdownHookRegistrar());
 
   private Worker worker;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);

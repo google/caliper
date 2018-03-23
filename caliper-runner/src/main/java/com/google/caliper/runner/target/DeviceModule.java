@@ -26,7 +26,7 @@ import dagger.Provides;
 import dagger.multibindings.IntoSet;
 import javax.inject.Singleton;
 
-/** Module for providing the {@link DeviceService}. */
+/** Module for providing the {@link Device}. */
 @Module
 public abstract class DeviceModule {
 
@@ -41,9 +41,9 @@ public abstract class DeviceModule {
   // only local device supported at the moment
   @Binds
   @Singleton
-  abstract DeviceService bindLocalDeviceService(LocalDeviceService localDeviceService);
+  abstract Device bindLocalDevice(LocalDevice localDevice);
 
   @Binds
   @IntoSet
-  abstract Service bindDeviceService(DeviceService service);
+  abstract Service bindDeviceAsService(Device device);
 }

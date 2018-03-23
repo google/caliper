@@ -27,11 +27,11 @@ import com.google.common.util.concurrent.AbstractIdleService;
  * device and transferring classpath files needed to run a worker to the device. Stopping the
  * service should clean up files created on the device as necessary and close any connections.
  */
-public abstract class DeviceService extends AbstractIdleService {
+public abstract class Device extends AbstractIdleService {
 
   private final ShutdownHookRegistrar shutdownHookRegistrar;
 
-  protected DeviceService(ShutdownHookRegistrar shutdownHookRegistrar) {
+  protected Device(ShutdownHookRegistrar shutdownHookRegistrar) {
     this.shutdownHookRegistrar = shutdownHookRegistrar;
   }
 
