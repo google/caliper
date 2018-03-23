@@ -103,11 +103,6 @@ public final class CaliperConfig {
   }
 
   public DeviceConfig getDeviceConfig(String deviceName) {
-    if (!deviceName.equals("local")) {
-      throw new InvalidConfigurationException(
-          "Invalid device name: " + deviceName + " (only 'local' is currently supported)");
-    }
-
     ImmutableMap<String, String> devices = subgroupMap(properties, "device");
     ImmutableMap<String, String> device = subgroupMap(devices, deviceName);
 
@@ -119,7 +114,7 @@ public final class CaliperConfig {
 
     return DeviceConfig.builder()
         .name(deviceName)
-        .type(deviceType)
+        .type(DeviceType.of(deviceType))
         .options(subgroupMap(device, "options"))
         .build();
   }

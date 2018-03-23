@@ -49,16 +49,16 @@ public class CaliperConfigTest {
   private static final CaliperConfig DEVICE_TEST_CONFIG =
       new CaliperConfig(
           ImmutableMap.of(
-              "device.local.type", "fake",
-              "device.local.options.defaultVmType", "jvm",
+              "device.default.type", "local",
+              "device.default.options.defaultVmType", "jvm",
               "device.android.type", "adb",
               "device.android.options.defaultVmType", "android"));
 
   @Test
   public void getDeviceConfig() {
-    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("local");
-    assertThat(deviceConfig.name()).isEqualTo("local");
-    assertThat(deviceConfig.type()).isEqualTo("fake");
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("default");
+    assertThat(deviceConfig.name()).isEqualTo("default");
+    assertThat(deviceConfig.type()).isEqualTo(DeviceType.LOCAL);
     assertThat(deviceConfig.options()).containsEntry("defaultVmType", "jvm");
     assertThat(deviceConfig.options()).doesNotContainKey("vmBaseDirectory");
   }

@@ -35,7 +35,7 @@ public abstract class DeviceConfig {
   public abstract String name();
 
   /** Returns the type of this device. */
-  public abstract String type();
+  public abstract DeviceType type();
 
   /** Returns the configuration options for this device. */
   public abstract ImmutableMap<String, String> options();
@@ -47,7 +47,7 @@ public abstract class DeviceConfig {
     Builder name(String name);
 
     /** Sets the type of the device. */
-    Builder type(String type);
+    Builder type(DeviceType type);
 
     /** Sets the options for the device. */
     Builder options(Map<String, String> options);
