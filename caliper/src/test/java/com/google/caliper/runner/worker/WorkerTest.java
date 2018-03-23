@@ -16,6 +16,8 @@ package com.google.caliper.runner.worker;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
@@ -49,7 +51,6 @@ import java.text.ParseException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -118,7 +119,7 @@ public class WorkerTest {
     assertEquals(State.RUNNING, worker.state());
     StreamItem item3 = readItem();
     assertEquals(Kind.EOF, item3.kind());
-    awaitStopped(100, TimeUnit.MILLISECONDS);
+    awaitStopped();
     assertTerminated();
   }
 
@@ -127,7 +128,7 @@ public class WorkerTest {
     makeWorker(FakeWorkers.Exit.class, "1");
     worker.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
-    awaitStopped(100, TimeUnit.MILLISECONDS);
+    awaitStopped();
     assertEquals(State.FAILED, worker.state());
   }
 
@@ -137,7 +138,7 @@ public class WorkerTest {
     makeWorker(FakeWorkers.CloseAndSleep.class);
     worker.startAsync().awaitRunning();
     assertEquals(Kind.EOF, readItem().kind());
-    awaitStopped(200, TimeUnit.MILLISECONDS); // we
+    awaitStopped();
     assertEquals(State.FAILED, worker.state());
   }
 
@@ -155,7 +156,7 @@ public class WorkerTest {
     assertEquals(State.RUNNING, worker.state());
     StreamItem nextItem = readItem();
     assertEquals("Expected EOF " + nextItem, Kind.EOF, nextItem.kind());
-    awaitStopped(100, TimeUnit.MILLISECONDS);
+    awaitStopped();
     assertTerminated();
   }
 
@@ -174,14 +175,14 @@ public class WorkerTest {
 
     assertEquals(State.RUNNING, worker.state());
     assertEquals(Kind.EOF, readItem().kind());
-    awaitStopped(100, TimeUnit.MILLISECONDS);
+    awaitStopped();
     assertTerminated();
   }
 
   @Test
   public void failsToAcceptConnection() throws Exception {
     serverSocket.close(); // This will force serverSocket.accept to throw a SocketException
-    makeWorker(FakeWorkers.Sleeper.class, Long.toString(TimeUnit.MINUTES.toMillis(10)));
+    makeWorker(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(10)));
     try {
       worker.startAsync().awaitRunning();
       fail();
@@ -192,14 +193,14 @@ public class WorkerTest {
 
   /** Reads an item, asserting that there was no timeout. */
   private StreamItem readItem() throws InterruptedException {
-    StreamItem item = worker.readItem(10, TimeUnit.SECONDS);
+    StreamItem item = worker.readItem(10, SECONDS);
     assertNotSame("Timed out while reading item from worker", Kind.TIMEOUT, item.kind());
     return item;
   }
 
   /** Wait for the worker to reach a terminal state without calling stop. */
-  private void awaitStopped(long time, TimeUnit unit) throws InterruptedException {
-    assertTrue(terminalLatch.await(time, unit));
+  private void awaitStopped() throws InterruptedException {
+    assertTrue(terminalLatch.await(2, SECONDS));
   }
 
   private void assertTerminated() {
