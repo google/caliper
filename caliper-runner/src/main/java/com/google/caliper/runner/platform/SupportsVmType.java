@@ -23,10 +23,10 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-/** Indicates the platforms supported by the annotated type. */
+/** Indicates the VM types supported by the annotated instrument class. */
 @Target(TYPE)
 @Retention(RUNTIME)
 @Documented
-public @interface SupportedPlatform {
-  Platform.Type[] value();
+public @interface SupportsVmType {
+  VmType[] value();
 }

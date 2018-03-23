@@ -27,8 +27,8 @@ import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.runner.instrument.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.SupportedPlatform;
+import com.google.caliper.runner.platform.SupportsVmType;
+import com.google.caliper.runner.platform.VmType;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -121,7 +121,7 @@ public class InstrumentModuleTest {
     void c() {}
   }
 
-  @SupportedPlatform(Platform.Type.JVM)
+  @SupportsVmType(VmType.JVM)
   static final class FakeInstrument extends Instrument {
     @Override
     public boolean isBenchmarkMethod(MethodModel method) {

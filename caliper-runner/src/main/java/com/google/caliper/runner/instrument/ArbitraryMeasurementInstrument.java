@@ -25,8 +25,8 @@ import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.model.ArbitraryMeasurement;
 import com.google.caliper.model.InstrumentType;
 import com.google.caliper.model.Measurement;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.SupportedPlatform;
+import com.google.caliper.runner.platform.SupportsVmType;
+import com.google.caliper.runner.platform.VmType;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -38,7 +38,7 @@ import java.lang.reflect.Modifier;
  * Instrument for taking an arbitrary measurement. When using this instrument, the benchmark code
  * itself returns the value. See {@link ArbitraryMeasurement}.
  */
-@SupportedPlatform(Platform.Type.JVM)
+@SupportsVmType(VmType.JVM)
 public final class ArbitraryMeasurementInstrument extends Instrument {
 
   @Override
