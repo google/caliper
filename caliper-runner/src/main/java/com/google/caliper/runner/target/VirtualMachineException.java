@@ -14,19 +14,12 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.platform;
+package com.google.caliper.runner.target;
 
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+/** Thrown when a problem was found with a custom VM configuration. */
+public class VirtualMachineException extends RuntimeException {
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-/** Indicates the VM types supported by the annotated instrument class. */
-@Target(TYPE)
-@Retention(RUNTIME)
-@Documented
-public @interface SupportsVmType {
-  VmType[] value();
+  public VirtualMachineException(String message) {
+    super(message);
+  }
 }

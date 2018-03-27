@@ -20,7 +20,7 @@ import com.google.caliper.bridge.AbstractLogMessageVisitor;
 import com.google.caliper.bridge.VmOptionLogMessage;
 import com.google.caliper.bridge.VmPropertiesLogMessage;
 import com.google.caliper.model.VmSpec;
-import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
@@ -31,12 +31,12 @@ import javax.inject.Inject;
 @WorkerScoped
 final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
   private final ImmutableMap.Builder<String, String> vmOptionsBuilder = ImmutableMap.builder();
-  private final Platform platform;
+  private final Target target;
   private Optional<ImmutableMap<String, String>> vmProperties = Optional.absent();
 
   @Inject
-  VmDataCollectingVisitor(Platform platform) {
-    this.platform = platform;
+  VmDataCollectingVisitor(Target target) {
+    this.target = target;
   }
 
   /**
@@ -46,7 +46,6 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
    */
   VmSpec vmSpec() {
     ImmutableMap<String, String> options = vmOptionsBuilder.build();
-    platform.checkVmProperties(options);
     return new VmSpec.Builder().addAllProperties(vmProperties.get()).addAllOptions(options).build();
   }
 
@@ -60,6 +59,6 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
     vmProperties =
         Optional.of(
             ImmutableMap.copyOf(
-                Maps.filterKeys(logMessage.properties(), platform.vmPropertiesToRetain())));
+                Maps.filterKeys(logMessage.properties(), target.vm().vmPropertiesToRetain())));
   }
 }

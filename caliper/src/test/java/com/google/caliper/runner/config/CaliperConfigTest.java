@@ -22,8 +22,8 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
-import com.google.caliper.runner.platform.JvmPlatform;
-import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.target.Device;
+import com.google.caliper.runner.target.LocalDevice;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -43,8 +43,6 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class CaliperConfigTest {
   @Rule public TemporaryFolder folder = new TemporaryFolder();
-
-  private Platform platform = new JvmPlatform();
 
   private static final CaliperConfig DEVICE_TEST_CONFIG =
       new CaliperConfig(
@@ -89,10 +87,13 @@ public class CaliperConfigTest {
   @Test
   public void getDefaultVmConfig() throws Exception {
     CaliperConfig configuration =
-        new CaliperConfig(ImmutableMap.of("vm.args", "-very -special=args"));
-    VmConfig defaultVmConfig = configuration.getDefaultVmConfig(platform);
-    assertEquals(
-        new File(System.getProperty("java.home")).getAbsolutePath(), defaultVmConfig.home().get());
+        new CaliperConfig(
+            ImmutableMap.of(
+                "device.local.type", "local",
+                "vm.args", "-very -special=args"));
+    Device device = LocalDevice.builder().caliperConfig(configuration).build();
+    VmConfig defaultVmConfig = device.defaultVmConfig();
+    assertEquals(System.getProperty("java.home"), defaultVmConfig.home().get());
     ImmutableList<String> expectedArgs =
         new ImmutableList.Builder<String>()
             .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
@@ -105,37 +106,21 @@ public class CaliperConfigTest {
   @Test
   public void getVmConfig_baseDirectoryAndName() throws Exception {
     File tempBaseDir = folder.newFolder();
-    File jdkHome = new File(tempBaseDir, "test");
-    jdkHome.mkdir();
     CaliperConfig configuration =
         new CaliperConfig(ImmutableMap.of("vm.baseDirectory", tempBaseDir.getAbsolutePath()));
-    assertEquals(
-        VmConfig.builder()
-            .name("test")
-            .platform(platform)
-            .type(platform.vmType())
-            .home(jdkHome.getPath())
-            .build(),
-        configuration.getVmConfig(platform, "test"));
+    assertEquals(VmConfig.builder().name("test").build(), configuration.getVmConfig("test"));
   }
 
   @Test
   public void getVmConfig_baseDirectoryAndHome() throws Exception {
     File tempBaseDir = folder.newFolder();
-    File jdkHome = new File(tempBaseDir, "test-home");
-    jdkHome.mkdir();
     CaliperConfig configuration =
         new CaliperConfig(
             ImmutableMap.of(
                 "vm.baseDirectory", tempBaseDir.getAbsolutePath(), "vm.test.home", "test-home"));
     assertEquals(
-        VmConfig.builder()
-            .name("test")
-            .platform(platform)
-            .type(platform.vmType())
-            .home(jdkHome.getPath())
-            .build(),
-        configuration.getVmConfig(platform, "test"));
+        VmConfig.builder().name("test").home("test-home").build(),
+        configuration.getVmConfig("test"));
   }
 
   @Test
@@ -150,8 +135,6 @@ public class CaliperConfigTest {
     assertEquals(
         VmConfig.builder()
             .name("test")
-            .platform(platform)
-            .type(platform.vmType())
             .home(jdkHome.getPath())
             .addArg("-a")
             .addArg("-b")
@@ -159,7 +142,7 @@ public class CaliperConfigTest {
             .addArg("-d")
             .addArg("-e")
             .build(),
-        configuration.getVmConfig(platform, "test"));
+        configuration.getVmConfig("test"));
   }
 
   @Test
@@ -175,14 +158,12 @@ public class CaliperConfigTest {
     assertEquals(
         VmConfig.builder()
             .name("test")
-            .platform(platform)
-            .type(platform.vmType())
             .home(jdkHome.getPath())
             .addArg("-a=string with spaces")
             .addArg("-b")
             .addArg("-c")
             .build(),
-        configuration.getVmConfig(platform, "test"));
+        configuration.getVmConfig("test"));
   }
 
   @Test

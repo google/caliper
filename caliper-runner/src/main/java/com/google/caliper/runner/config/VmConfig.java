@@ -17,8 +17,6 @@
 package com.google.caliper.runner.config;
 
 import com.google.auto.value.AutoValue;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.VmType;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
@@ -42,9 +40,6 @@ public abstract class VmConfig {
   /** The name of this VM configuration. */
   public abstract String name();
 
-  /** Returns the platform for this VM. */
-  public abstract Platform platform(); // temporary
-
   /** The type of the VM. */
   public abstract Optional<VmType> type();
 
@@ -66,9 +61,6 @@ public abstract class VmConfig {
   public abstract static class Builder {
     /** Sets the name of the VM configuration. */
     public abstract Builder name(String name);
-
-    /** Sets the platform for the VM. */
-    public abstract Builder platform(Platform platform);
 
     /** Sets the type of the VM. */
     public abstract Builder type(VmType type);

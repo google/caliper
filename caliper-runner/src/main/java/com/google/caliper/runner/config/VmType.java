@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.platform;
+package com.google.caliper.runner.config;
 
 import java.util.Arrays;
 
@@ -33,7 +33,7 @@ public enum VmType {
       case "android":
         return ANDROID;
       default:
-        throw new IllegalArgumentException("Invalid VM type: " + type);
+        throw new InvalidConfigurationException("Invalid VM type: " + type);
     }
   }
 

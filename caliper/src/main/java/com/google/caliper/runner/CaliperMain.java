@@ -19,7 +19,6 @@ import static com.google.common.collect.ObjectArrays.concat;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.options.OptionsModule;
-import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.OutputModule;
 import com.google.common.annotations.VisibleForTesting;
@@ -70,7 +69,6 @@ public final class CaliperMain {
     return DaggerJvmCaliperRunnerComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
         .outputModule(new OutputModule(stdout, stderr))
-        .platform(new JvmPlatform())
         .build()
         .getRunner();
   }

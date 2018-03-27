@@ -17,11 +17,14 @@
 package com.google.caliper.runner.config;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
 /**
- * Configuration for a device.
+ * The configuration for a device.
+ *
+ * <p>This class is just a simple representation of the information from the {@link CaliperConfig}.
  */
 @AutoValue
 public abstract class DeviceConfig {
@@ -39,6 +42,11 @@ public abstract class DeviceConfig {
 
   /** Returns the configuration options for this device. */
   public abstract ImmutableMap<String, String> options();
+
+  /** Returns the value of the option with the given key. */
+  public final Optional<String> option(String key) {
+    return Optional.fromNullable(options().get(key));
+  }
 
   /** Builder for {@link DeviceConfig}. */
   @AutoValue.Builder

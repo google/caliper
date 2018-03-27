@@ -20,7 +20,7 @@ import static com.google.common.base.Functions.toStringFunction;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.caliper.bridge.WorkerRequest;
-import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.target.VmProcess;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
@@ -34,16 +34,16 @@ import java.util.UUID;
  */
 public abstract class WorkerSpec implements VmProcess.Spec {
 
-  private final VmConfig vm;
+  private final Target target;
   private final UUID id;
   private final ImmutableList<String> args;
 
-  protected WorkerSpec(VmConfig vm, UUID id, Object... args) {
-    this(vm, id, FluentIterable.from(args).transform(toStringFunction()));
+  protected WorkerSpec(Target target, UUID id, Object... args) {
+    this(target, id, FluentIterable.from(args).transform(toStringFunction()));
   }
 
-  protected WorkerSpec(VmConfig vm, UUID id, Iterable<String> args) {
-    this.vm = checkNotNull(vm);
+  protected WorkerSpec(Target target, UUID id, Iterable<String> args) {
+    this.target = checkNotNull(target);
     this.id = checkNotNull(id);
     this.args = ImmutableList.copyOf(args);
   }
@@ -62,18 +62,13 @@ public abstract class WorkerSpec implements VmProcess.Spec {
   }
 
   @Override
-  public final VmConfig vm() {
-    return vm;
+  public final Target target() {
+    return target;
   }
 
   @Override
   public final ImmutableList<String> vmOptions() {
-    return new ImmutableList.Builder<String>()
-        .addAll(vm.args())
-        .addAll(additionalVmOptions())
-        .addAll(vm.platform().workerClassPathArgs())
-        .addAll(vm.platform().workerProcessArgs())
-        .build();
+    return target.vm().args(additionalVmOptions());
   }
 
   /**

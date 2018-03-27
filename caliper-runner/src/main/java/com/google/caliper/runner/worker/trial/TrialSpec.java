@@ -48,7 +48,7 @@ public final class TrialSpec extends WorkerSpec {
       Experiment experiment,
       BenchmarkClassModel benchmarkClass,
       @TrialNumber int trialNumber) {
-    super(experiment.target().vm(), id, id, port, experiment.benchmarkSpec().className());
+    super(experiment.target(), id, id, port, experiment.benchmarkSpec().className());
     this.experiment = experiment;
     this.benchmarkClass = benchmarkClass;
     this.trialNumber = trialNumber;
@@ -69,8 +69,8 @@ public final class TrialSpec extends WorkerSpec {
     Instrument instrument = experiment.instrumentedMethod().instrument();
     return new ImmutableList.Builder<String>()
         .addAll(benchmarkClass.vmOptions())
-        .addAll(vm().platform().commonInstrumentVmArgs())
-        .addAll(instrument.getExtraCommandLineArgs(vm()))
+        .addAll(target().vm().trialArgs())
+        .addAll(instrument.getExtraCommandLineArgs(target().vm().config()))
         .build();
   }
 

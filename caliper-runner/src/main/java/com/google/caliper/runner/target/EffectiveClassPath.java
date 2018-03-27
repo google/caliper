@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.platform;
+package com.google.caliper.runner.target;
 
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;

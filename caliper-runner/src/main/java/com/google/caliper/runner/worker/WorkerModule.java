@@ -20,6 +20,7 @@ import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.server.ServerSocketService;
 import com.google.caliper.runner.target.Target;
+import com.google.caliper.runner.target.Vm;
 import com.google.common.util.concurrent.ListenableFuture;
 import dagger.Module;
 import dagger.Provides;
@@ -41,7 +42,12 @@ public abstract class WorkerModule {
   }
 
   @Provides
-  static VmConfig provideVm(Target target) {
+  static Vm provideVm(Target target) {
     return target.vm();
+  }
+
+  @Provides
+  static VmConfig provideVmConfig(Vm vm) {
+    return vm.config();
   }
 }

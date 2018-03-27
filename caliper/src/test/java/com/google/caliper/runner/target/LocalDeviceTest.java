@@ -25,9 +25,9 @@ import com.google.caliper.Benchmark;
 import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.config.VmType;
 import com.google.caliper.runner.experiment.Experiment;
 import com.google.caliper.runner.instrument.AllocationInstrument;
-import com.google.caliper.runner.platform.JvmPlatform;
 import com.google.caliper.runner.target.VmProcess.Logger;
 import com.google.caliper.runner.testing.FakeWorkerSpec;
 import com.google.caliper.runner.testing.FakeWorkers;
@@ -37,6 +37,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.File;
 import java.util.Set;
 import java.util.UUID;
 import org.junit.After;
@@ -71,7 +72,7 @@ public class LocalDeviceTest {
   }
 
   private final MockRegistrar registrar = new MockRegistrar();
-  private final LocalDevice device = new LocalDevice(registrar);
+  private final LocalDevice device = LocalDevice.builder().shutdownHookRegistrar(registrar).build();
 
   @Before
   public void startDevice() {
@@ -88,27 +89,26 @@ public class LocalDeviceTest {
     MethodModel method = MethodModel.of(TestBenchmark.class.getDeclaredMethods()[0]);
     AllocationInstrument allocationInstrument = new AllocationInstrument();
     allocationInstrument.setOptions(ImmutableMap.of("trackAllocations", "true"));
-    JvmPlatform platform = new JvmPlatform();
     VmConfig vmConfig =
         VmConfig.builder()
-            .name("foo")
-            .platform(platform)
-            .type(platform.vmType())
+            .name("foo-jvm")
+            .type(VmType.JVM)
             .home(System.getProperty("java.home"))
             .addArg("--doTheHustle")
             .build();
+    Target target = device.createTarget(vmConfig);
     Experiment experiment =
         Experiment.create(
             1,
             allocationInstrument.createInstrumentedMethod(method),
             ImmutableMap.<String, String>of(),
-            Target.create("foo-jvm", vmConfig));
+            target);
     BenchmarkClassModel benchmarkClass = BenchmarkClassModel.create(TestBenchmark.class);
     ImmutableList<String> commandLine = createCommand(experiment, benchmarkClass);
     assertThat(commandLine.get(0)).startsWith(System.getProperty("java.home") + "/bin/java");
     assertThat(commandLine).contains("--doTheHustle");
     assertThat(commandLine).contains("-cp");
-    assertThat(commandLine).containsAllIn(vmConfig.platform().commonInstrumentVmArgs());
+    assertThat(commandLine).containsAllIn(target.vm().trialArgs());
     assertThat(commandLine).containsAllIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
     assertThat(commandLine)
         .containsAllOf("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
@@ -135,6 +135,21 @@ public class LocalDeviceTest {
     VmProcess worker = device.startVm(spec, new NullLogger());
     worker.kill();
     assertTrue(registrar.hooks.isEmpty());
+  }
+
+  @Test
+  public void vmExecutablePath() {
+    VmConfig config =
+        VmConfig.builder()
+            .name("foo")
+            .type(VmType.JVM)
+            .home(System.getProperty("java.home"))
+            .build();
+    Vm vm = new Jvm(config, "classpath");
+    String path = device.vmExecutablePath(vm);
+    File javaExecutable = new File(path);
+    assertTrue("Could not find: " + javaExecutable, javaExecutable.exists());
+    assertTrue(javaExecutable + " is not a file", javaExecutable.isFile());
   }
 
   static final class TestBenchmark {

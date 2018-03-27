@@ -17,13 +17,10 @@ package com.google.caliper.runner.testing;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.runner.config.CaliperConfig;
-import com.google.caliper.runner.config.InvalidConfigurationException;
-import com.google.caliper.runner.platform.JvmPlatform;
-import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.target.Device;
+import com.google.caliper.runner.target.LocalDevice;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.util.Util;
-import com.google.common.collect.ImmutableMap;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetAddress;
@@ -46,15 +43,8 @@ public final class FakeWorkers {
    */
   static synchronized Target init() {
     if (target == null) {
-      try {
-        Platform platform = new JvmPlatform();
-        target =
-            Target.create(
-                "default",
-                new CaliperConfig(ImmutableMap.<String, String>of()).getDefaultVmConfig(platform));
-      } catch (InvalidConfigurationException e) {
-        throw new RuntimeException();
-      }
+      Device device = LocalDevice.builder().build();
+      target = device.createDefaultTarget();
     }
     return target;
   }

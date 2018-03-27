@@ -52,7 +52,7 @@ final class DryRunSpec extends WorkerSpec {
       BenchmarkClassModel benchmarkClass,
       Set<Experiment> experiments,
       Target target) {
-    super(target.vm(), id, id, port, benchmarkClass.name());
+    super(target, id, id, port, benchmarkClass.name());
     this.benchmarkClass = benchmarkClass;
     this.experiments = ImmutableSet.copyOf(experiments);
     this.target = target;

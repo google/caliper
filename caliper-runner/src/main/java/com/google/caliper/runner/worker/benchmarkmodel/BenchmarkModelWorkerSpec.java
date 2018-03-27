@@ -36,8 +36,8 @@ final class BenchmarkModelWorkerSpec extends WorkerSpec {
   private final CaliperOptions options;
 
   @Inject
-  BenchmarkModelWorkerSpec(UUID id, @LocalPort int port, Target target, CaliperOptions options) {
-    super(target.vm(), id, id, port, options.benchmarkClassName());
+  BenchmarkModelWorkerSpec(Target target, UUID id, @LocalPort int port, CaliperOptions options) {
+    super(target, id, id, port, options.benchmarkClassName());
     this.target = target;
     this.options = options;
   }

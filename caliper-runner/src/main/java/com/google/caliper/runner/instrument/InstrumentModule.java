@@ -22,9 +22,9 @@ import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;
+import com.google.caliper.runner.config.VmType;
 import com.google.caliper.runner.instrument.Instrument.InstrumentedMethod;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
 import com.google.caliper.util.Stderr;
@@ -77,7 +77,7 @@ public abstract class InstrumentModule {
       CaliperOptions options,
       final CaliperConfig config,
       Map<Class<? extends Instrument>, Provider<Instrument>> availableInstruments,
-      Platform platform,
+      ImmutableSet<VmType> vmTypes,
       @Stderr PrintWriter stderr)
       throws InvalidCommandException {
 
@@ -106,8 +106,7 @@ public abstract class InstrumentModule {
           throw new InvalidInstrumentException("Instrument %s not supported", className);
         }
 
-        // Make sure that the instrument is supported on the platform.
-        if (platform.supports(clazz)) {
+        if (isSupportedByAllVms(clazz, vmTypes)) {
           Instrument instrument = instrumentProvider.get();
           InstrumentInjectorModule injectorModule =
               new InstrumentInjectorModule(instrumentConfig, instrumentName);
@@ -117,13 +116,27 @@ public abstract class InstrumentModule {
           builder.add(instrument);
         } else {
           stderr.format(
-              "Instrument %s not supported on %s, ignoring\n", className, platform.name());
+              "Instrument %s not supported on at least one target VM; ignoring\n", className);
         }
       } catch (ClassNotFoundException e) {
         throw new InvalidCommandException("Cannot find instrument class '%s'", className);
       }
     }
     return builder.build();
+  }
+
+  /**
+   * If the user is running the benchmark against multiple VMs, we can only use instruments that all
+   * of those VMs support.
+   */
+  private static boolean isSupportedByAllVms(
+      Class<?> instrumentClass, ImmutableSet<VmType> vmTypes) {
+    for (VmType vmType : vmTypes) {
+      if (!vmType.supports(instrumentClass)) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @Provides

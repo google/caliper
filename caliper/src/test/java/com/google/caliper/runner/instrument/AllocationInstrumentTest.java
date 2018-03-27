@@ -24,8 +24,7 @@ import com.google.caliper.api.BeforeRep;
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Trial;
 import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.platform.JvmPlatform;
-import com.google.caliper.runner.platform.Platform;
+import com.google.caliper.runner.config.VmType;
 import com.google.caliper.runner.testing.CaliperTestWatcher;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
@@ -57,12 +56,10 @@ public class AllocationInstrumentTest {
             "-Xint",
             "-javaagent:" + fakeJar.getAbsolutePath(),
             "-Xbootclasspath/a:" + fakeJar.getAbsolutePath());
-    Platform platform = new JvmPlatform();
     VmConfig vmConfig =
         VmConfig.builder()
             .name("foo")
-            .platform(platform)
-            .type(platform.vmType())
+            .type(VmType.JVM)
             .home(System.getProperty("java.home"))
             .build();
     assertEquals(expected, instrument.getExtraCommandLineArgs(vmConfig));
