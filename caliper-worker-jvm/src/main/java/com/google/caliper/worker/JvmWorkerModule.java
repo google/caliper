@@ -27,6 +27,8 @@ import dagger.Module;
  */
 @Module(subcomponents = JvmWorkerInstrumentComponent.class)
 abstract class JvmWorkerModule {
+  private JvmWorkerModule() {}
+
   @Binds
   abstract WorkerInstrumentComponent.Builder bindInstrumentComponentBuilder(
       JvmWorkerInstrumentComponent.Builder builder);

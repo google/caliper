@@ -29,6 +29,7 @@ import javax.inject.Provider;
 /** Module providing worker instruments that should only be present when running on the JVM. */
 @Module
 abstract class JvmWorkerInstrumentModule {
+  private JvmWorkerInstrumentModule() {}
 
   @Binds
   @IntoMap

@@ -33,6 +33,7 @@ import dagger.Provides;
  */
 @Module
 public abstract class WorkerModule {
+  private WorkerModule() {}
 
   @WorkerScoped
   @Provides

@@ -31,6 +31,7 @@ import dagger.multibindings.IntoMap;
  */
 @Module
 public abstract class RequestHandlerModule {
+  private RequestHandlerModule() {}
 
   @Binds
   @IntoMap

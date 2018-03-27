@@ -38,6 +38,7 @@ import java.util.TreeMap;
  */
 @Module
 abstract class HostModule {
+  private HostModule() {}
 
   @Provides
   @RunScoped

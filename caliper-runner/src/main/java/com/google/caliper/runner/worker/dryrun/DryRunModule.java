@@ -39,6 +39,7 @@ import java.util.Set;
  */
 @Module(includes = WorkerModule.class)
 abstract class DryRunModule {
+  private DryRunModule() {}
 
   @Provides
   @Reusable

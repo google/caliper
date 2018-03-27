@@ -38,6 +38,7 @@ import javax.inject.Singleton;
  */
 @Module(includes = {WorkerOptionsModule.class, RequestHandlerModule.class})
 abstract class WorkerModule {
+  private WorkerModule() {}
 
   @Provides
   @Singleton

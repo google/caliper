@@ -28,6 +28,7 @@ import dagger.Provides;
 /** Configures the {@link CaliperRun}. */
 @Module(subcomponents = {DryRunComponent.class, TrialComponent.class})
 abstract class CaliperRunModule {
+  private CaliperRunModule() {}
 
   @Provides
   static CaliperRun provideCaliperRun(ExperimentingCaliperRun experimentingCaliperRun) {

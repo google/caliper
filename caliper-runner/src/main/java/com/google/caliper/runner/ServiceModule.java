@@ -26,6 +26,8 @@ import javax.inject.Singleton;
 /** Configures the {@link ServiceManager}. */
 @Module
 abstract class ServiceModule {
+  private ServiceModule() {}
+
   @Provides
   @Singleton
   static ServiceManager provideServiceManager(Set<Service> services) {

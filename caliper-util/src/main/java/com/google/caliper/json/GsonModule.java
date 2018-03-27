@@ -34,6 +34,7 @@ import org.joda.time.Instant;
  */
 @Module
 public abstract class GsonModule {
+  private GsonModule() {}
 
   @Binds
   @IntoSet

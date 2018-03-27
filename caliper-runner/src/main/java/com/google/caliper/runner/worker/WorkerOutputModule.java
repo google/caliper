@@ -24,6 +24,8 @@ import dagger.multibindings.IntoSet;
 /** Configures the {@link WorkerOutputFactory}. */
 @Module
 public abstract class WorkerOutputModule {
+  private WorkerOutputModule() {}
+
   @Binds
   @IntoSet
   abstract Service bindWorkerOutputFactoryService(WorkerOutputFactoryService impl);
