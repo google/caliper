@@ -50,6 +50,7 @@ import javax.inject.Provider;
  */
 @Module
 public abstract class WorkerInstrumentModule {
+  private WorkerInstrumentModule() {}
 
   @Provides
   static BenchmarkSpec provideBenchmarkSpec(ExperimentSpec experiment) {

@@ -27,6 +27,8 @@ import dagger.Module;
  */
 @Module(subcomponents = AndroidWorkerInstrumentComponent.class)
 abstract class AndroidWorkerModule {
+  private AndroidWorkerModule() {}
+
   @Binds
   abstract WorkerInstrumentComponent.Builder bindInstrumentComponentBuilder(
       AndroidWorkerInstrumentComponent.Builder builder);

@@ -34,6 +34,8 @@ import dagger.Provides;
  */
 @Module
 public abstract class NanoTimeGranularityModule {
+  private NanoTimeGranularityModule() {}
+
   private static final int TRIALS = 1000;
 
   @Provides

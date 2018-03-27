@@ -28,6 +28,7 @@ import dagger.multibindings.IntoMap;
  */
 @Module
 abstract class JvmRunnerModule {
+  private JvmRunnerModule() {}
 
   @Provides
   @IntoMap

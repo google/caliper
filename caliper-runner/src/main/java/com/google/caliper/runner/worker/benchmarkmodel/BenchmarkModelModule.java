@@ -26,6 +26,8 @@ import dagger.Module;
 /** Module with bindings needed for getting a benchmark model from a worker. */
 @Module(includes = WorkerModule.class)
 abstract class BenchmarkModelModule {
+  private BenchmarkModelModule() {}
+
   @Binds
   abstract WorkerProcessor<BenchmarkClassModel> bindWorkerProcessor(
       BenchmarkModelWorkerProcessor processor);

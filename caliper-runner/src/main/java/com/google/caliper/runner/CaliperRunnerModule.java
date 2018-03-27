@@ -59,6 +59,7 @@ import org.joda.time.Instant;
   subcomponents = {BenchmarkModelComponent.class, CaliperRunComponent.class}
 )
 abstract class CaliperRunnerModule {
+  private CaliperRunnerModule() {}
 
   private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
 

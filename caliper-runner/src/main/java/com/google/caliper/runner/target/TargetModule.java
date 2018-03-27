@@ -28,7 +28,6 @@ import dagger.Provides;
  */
 @Module
 public abstract class TargetModule {
-
   private TargetModule() {}
 
   @Provides

@@ -47,6 +47,7 @@ import javax.inject.Provider;
 /** Configures the {@link Instrument}s for a Caliper run. */
 @Module(includes = NanoTimeGranularityModule.class)
 public abstract class InstrumentModule {
+  private InstrumentModule() {}
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available {@link Instrument

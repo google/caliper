@@ -30,6 +30,7 @@ import javax.inject.Provider;
 /** Configures the {@link ResultProcessor}s for a Caliper run. */
 @Module
 public abstract class ResultProcessorModule {
+  private ResultProcessorModule() {}
 
   /**
    * Specifies the {@link Class} object to use as a key in the map of available {@link

@@ -35,6 +35,7 @@ import javax.inject.Singleton;
 /** Provides {@link CaliperConfig}. */
 @Module
 public abstract class CaliperConfigModule {
+  private CaliperConfigModule() {}
 
   @Provides
   @Singleton

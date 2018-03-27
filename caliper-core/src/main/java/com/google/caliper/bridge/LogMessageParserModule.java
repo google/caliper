@@ -23,6 +23,8 @@ import dagger.Module;
 /** Binds {@link Parser Parser&lt;LogMessage&gt;} to {@link LogMessageParser}. */
 @Module
 public abstract class LogMessageParserModule {
+  private LogMessageParserModule() {}
+
   @Binds
   abstract Parser<LogMessage> provideLogMessageParser(LogMessageParser parser);
 }

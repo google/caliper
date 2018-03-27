@@ -25,6 +25,7 @@ import dagger.multibindings.IntoSet;
 /** Configures the {@link ServerSocketService}. */
 @Module
 public abstract class ServerModule {
+  private ServerModule() {}
 
   @Binds
   @IntoSet

@@ -29,6 +29,7 @@ import javax.inject.Singleton;
 /** Module for providing the {@link Device}. */
 @Module
 public abstract class DeviceModule {
+  private DeviceModule() {}
 
   @Provides
   static DeviceConfig provideDeviceConfig(CaliperOptions options, CaliperConfig config) {

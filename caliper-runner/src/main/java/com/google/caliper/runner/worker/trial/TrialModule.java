@@ -39,6 +39,7 @@ import java.util.UUID;
 /** Configuration for running a trial. */
 @ProducerModule(includes = WorkerModule.class)
 abstract class TrialModule {
+  private TrialModule() {}
 
   @Produces
   static TrialResult trialResult(WorkerRunner<TrialResult> trialResultWorkerRunner) {
