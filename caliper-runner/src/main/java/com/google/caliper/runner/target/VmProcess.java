@@ -16,7 +16,6 @@
 
 package com.google.caliper.runner.target;
 
-import com.google.caliper.runner.config.VmConfig;
 import com.google.common.collect.ImmutableList;
 import java.io.InputStream;
 import java.util.HashSet;
@@ -86,8 +85,8 @@ public abstract class VmProcess {
     /** Returns a unique ID associated with the process. */
     UUID id();
 
-    /** Returns the config for the VM that should run the process. */
-    VmConfig vm();
+    /** Returns the target that should run the process. */
+    Target target();
 
     /** Returns a list of VM options to use for the process. */
     ImmutableList<String> vmOptions();

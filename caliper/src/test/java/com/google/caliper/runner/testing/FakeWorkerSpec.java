@@ -30,7 +30,7 @@ public final class FakeWorkerSpec extends WorkerSpec {
   private final ImmutableList<String> vmOptions;
 
   private FakeWorkerSpec(Class<?> mainClass, Iterable<String> vmOptions, Iterable<String> args) {
-    super(FakeWorkers.getTarget().vm(), UUID.randomUUID(), args);
+    super(FakeWorkers.getTarget(), UUID.randomUUID(), args);
     this.mainClass = mainClass.getName();
     this.vmOptions = ImmutableList.copyOf(vmOptions);
   }

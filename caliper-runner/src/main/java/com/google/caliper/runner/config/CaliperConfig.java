@@ -22,8 +22,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.api.ResultProcessor;
-import com.google.caliper.runner.platform.Platform;
-import com.google.caliper.runner.platform.VirtualMachineException;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -123,31 +121,18 @@ public final class CaliperConfig {
     return getArgs(subgroupMap(properties, "vm"));
   }
 
-  /**
-   * Returns the configuration of the current host VM (including the flags used to create it). Any
-   * args specified using {@code vm.args} will also be applied
-   */
-  public VmConfig getDefaultVmConfig(Platform platform) {
-    return VmConfig.builder()
-        .name("default")
-        .platform(platform)
-        .type(platform.vmType())
-        .home(platform.defaultVmHomeDir().getPath())
-        .addAllArgs(platform.inputArguments())
-        .addAllArgs(getVmArgs())
-        .build();
-  }
-
-  public VmConfig getVmConfig(Platform platform, String name) {
+  public VmConfig getVmConfig(String name) {
     checkNotNull(name);
     ImmutableMap<String, String> vmGroupMap = subgroupMap(properties, "vm");
     ImmutableMap<String, String> vmMap = subgroupMap(vmGroupMap, name);
-    VmConfig.Builder builder =
-        VmConfig.builder().name(name).platform(platform).type(platform.vmType());
-    try {
-      builder.home(platform.customVmHomeDir(vmGroupMap, name).getPath());
-    } catch (VirtualMachineException e) {
-      throw new InvalidConfigurationException(e);
+    VmConfig.Builder builder = VmConfig.builder().name(name);
+    String type = vmMap.get("type");
+    if (type != null) {
+      builder.type(VmType.of(type));
+    }
+    String home = vmMap.get("home");
+    if (home != null) {
+      builder.home(home);
     }
     String executable = vmMap.get("executable");
     if (executable != null) {

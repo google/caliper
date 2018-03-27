@@ -27,7 +27,6 @@ import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.OpenedSocket;
 import com.google.caliper.runner.target.Device;
 import com.google.caliper.runner.target.LocalDevice;
-import com.google.caliper.runner.target.RuntimeShutdownHookRegistrar;
 import com.google.caliper.runner.testing.FakeWorkerSpec;
 import com.google.caliper.runner.testing.FakeWorkers;
 import com.google.caliper.runner.testing.FakeWorkers.DummyLogMessage;
@@ -72,7 +71,7 @@ public class WorkerTest {
           return new DummyLogMessage(text.toString());
         }
       };
-  private final Device device = new LocalDevice(new RuntimeShutdownHookRegistrar());
+  private final Device device = LocalDevice.builder().build();
 
   private Worker worker;
   private final CountDownLatch terminalLatch = new CountDownLatch(1);

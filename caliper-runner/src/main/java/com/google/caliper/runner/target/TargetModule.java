@@ -15,9 +15,8 @@
 package com.google.caliper.runner.target;
 
 import com.google.caliper.runner.config.CaliperConfig;
-import com.google.caliper.runner.config.VmConfig;
+import com.google.caliper.runner.config.VmType;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.platform.Platform;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
@@ -30,18 +29,28 @@ import dagger.Provides;
 @Module
 public abstract class TargetModule {
 
+  private TargetModule() {}
+
   @Provides
   static ImmutableSet<Target> provideTargets(
-      CaliperOptions options, CaliperConfig config, Platform platform) {
+      Device device, CaliperOptions options, CaliperConfig config) {
     ImmutableSet<String> vmNames = options.vmNames();
-    ImmutableSet.Builder<Target> builder = ImmutableSet.builder();
     if (vmNames.isEmpty()) {
-      builder.add(Target.create("default", config.getDefaultVmConfig(platform)));
-    } else {
-      for (String vmName : vmNames) {
-        VmConfig vmConfig = config.getVmConfig(platform, vmName);
-        builder.add(Target.create(vmName, vmConfig));
-      }
+      return ImmutableSet.of(device.createDefaultTarget());
+    }
+
+    ImmutableSet.Builder<Target> builder = ImmutableSet.builder();
+    for (String vmName : vmNames) {
+      builder.add(device.createTarget(config.getVmConfig(vmName)));
+    }
+    return builder.build();
+  }
+
+  @Provides
+  static ImmutableSet<VmType> vmTypes(ImmutableSet<Target> targets) {
+    ImmutableSet.Builder<VmType> builder = ImmutableSet.builder();
+    for (Target target : targets) {
+      builder.add(target.vm().type());
     }
     return builder.build();
   }

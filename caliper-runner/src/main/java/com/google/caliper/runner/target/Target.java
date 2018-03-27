@@ -17,33 +17,30 @@
 package com.google.caliper.runner.target;
 
 import com.google.auto.value.AutoValue;
-import com.google.caliper.runner.config.VmConfig;
-import com.google.caliper.runner.platform.Platform;
 
-/** A target VM for running benchmarks. */
+/** A specific VM on a specific device on which benchmarks may be run. */
 @AutoValue
 public abstract class Target {
 
-  // In the future this will also include device.
-
-  /** Creates a new {@link Target}. */
-  public static Target create(String name, VmConfig vm) {
-    return new AutoValue_Target(name, vm);
+  /**
+   * Creates a new target for the given {@code vm} on the given {@code device}. @ if the VM is
+   * invalid or doesn't exist on the device.
+   */
+  static Target create(Device device, Vm vm) {
+    return new AutoValue_Target(device, vm, device.vmExecutablePath(vm));
   }
 
-  /** Returns the name of this target. */
-  public abstract String name();
-
-  // Note: Platform is *currently* not actually target specific, but rather global to the VM
-  // the runner is running on. However, this serves as a decent proxy for device until that
-  // abstraction exists and lets us change code to get platform-specific things from the target
-  // itself.
-
-  /** Returns the platform this target is on. */
-  public final Platform platform() {
-    return vm().platform();
+  /** Returns a name for this target. */
+  public final String name() {
+    return vm().name() + '@' + device().name();
   }
 
-  /** Returns the VM configuration for this target. */
-  public abstract VmConfig vm();
+  /** Returns the target device. */
+  public abstract Device device();
+
+  /** Returns the target VM. */
+  public abstract Vm vm();
+
+  /** Returns the absolute path to the VM executable on the target device. */
+  public abstract String vmExecutablePath();
 }

@@ -21,11 +21,9 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 import com.google.caliper.Benchmark;
 import com.google.caliper.core.BenchmarkClassModel.MethodModel;
-import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.instrument.RuntimeInstrument;
-import com.google.caliper.runner.platform.VmType;
-import com.google.caliper.runner.target.Target;
-import com.google.caliper.runner.testing.FakePlatform;
+import com.google.caliper.runner.target.Device;
+import com.google.caliper.runner.target.LocalDevice;
 import com.google.caliper.util.ShortDuration;
 import com.google.common.collect.ImmutableMap;
 import org.junit.Test;
@@ -36,6 +34,7 @@ import org.junit.runners.JUnit4;
 @RunWith(JUnit4.class)
 public class ExperimentTest {
 
+
   @Test
   public void testToString() throws Exception {
     // The toString() of an instrument is used in console output to the user, so test it to prevent
@@ -43,20 +42,20 @@ public class ExperimentTest {
     Experiment experiment = createFakeExperiment();
     assertThat(experiment.toString())
         .isEqualTo(
-            "{instrument=runtime, benchmarkMethod=myBenchmark, target=foo, parameters={baz=qux}}");
+            "{instrument=runtime, benchmarkMethod=myBenchmark, "
+                + "target=default@local, parameters={baz=qux}}");
   }
 
   private static Experiment createFakeExperiment() throws Exception {
     RuntimeInstrument instrument = new RuntimeInstrument(ShortDuration.of(100, NANOSECONDS));
     MethodModel method =
         MethodModel.of(FooBenchmark.class.getDeclaredMethod("myBenchmark", long.class));
-    VmConfig vm =
-        VmConfig.builder().name("foo").platform(new FakePlatform()).type(VmType.JVM).build();
+    Device device = LocalDevice.builder().build();
     return Experiment.create(
         1,
         instrument.createInstrumentedMethod(method),
         ImmutableMap.of("baz", "qux"),
-        Target.create("foo", vm));
+        device.createDefaultTarget());
   }
 
   static class FooBenchmark {

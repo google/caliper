@@ -17,9 +17,7 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.runner.options.OptionsModule;
-import com.google.caliper.runner.platform.Platform;
 import com.google.caliper.util.OutputModule;
-import dagger.BindsInstance;
 import dagger.Component;
 import javax.inject.Singleton;
 
@@ -38,9 +36,6 @@ interface JvmCaliperRunnerComponent extends CaliperRunnerFactory {
     abstract Builder optionsModule(OptionsModule optionsModule);
 
     abstract Builder outputModule(OutputModule outputModule);
-
-    @BindsInstance
-    abstract Builder platform(Platform platform);
 
     abstract JvmCaliperRunnerComponent build();
   }
