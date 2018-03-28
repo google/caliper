@@ -56,7 +56,7 @@ final class BenchmarkModelWorkerSpec extends WorkerSpec {
   public ImmutableList<String> additionalVmOptions() {
     // Use a relatively low heap size since nothing the worker does should require much memory.
     // These go after the default options, so they'll override them.
-    return ImmutableList.of("-Xms32m", "-Xmx128m");
+    return ImmutableList.of("-Xms32m", "-Xmx512m");
   }
 
   @Override
