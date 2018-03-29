@@ -145,7 +145,7 @@ public class LocalDeviceTest {
             .type(VmType.JVM)
             .home(System.getProperty("java.home"))
             .build();
-    Vm vm = new Jvm(config, "classpath");
+    Vm vm = Jvm.create(config, "classpath");
     String path = device.vmExecutablePath(vm);
     File javaExecutable = new File(path);
     assertTrue("Could not find: " + javaExecutable, javaExecutable.exists());

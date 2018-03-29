@@ -14,24 +14,23 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
+package com.google.caliper.runner.worker.targetinfo;
 
-import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.bridge.TargetInfoLogMessage;
 import com.google.caliper.runner.worker.WorkerModule;
 import com.google.caliper.runner.worker.WorkerProcessor;
 import com.google.caliper.runner.worker.WorkerSpec;
 import dagger.Binds;
 import dagger.Module;
 
-/** Module with bindings needed for getting a benchmark model from a worker. */
+/** Module with bindings needed for getting target info from a worker. */
 @Module(includes = WorkerModule.class)
-abstract class BenchmarkModelModule {
-  private BenchmarkModelModule() {}
+abstract class TargetInfoModule {
+  private TargetInfoModule() {}
 
   @Binds
-  abstract WorkerProcessor<BenchmarkClassModel> bindWorkerProcessor(
-      BenchmarkModelWorkerProcessor processor);
+  abstract WorkerProcessor<TargetInfoLogMessage> bindWorkerProcessor(TargetInfoProcessor processor);
 
   @Binds
-  abstract WorkerSpec bindWorkerSpec(BenchmarkModelWorkerSpec spec);
+  abstract WorkerSpec bindWorkerSpec(TargetInfoSpec spec);
 }

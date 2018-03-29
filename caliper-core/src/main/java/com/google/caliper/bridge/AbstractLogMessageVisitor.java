@@ -43,7 +43,7 @@ public abstract class AbstractLogMessageVisitor implements LogMessageVisitor {
   public void visit(VmPropertiesLogMessage logMessage) {}
 
   @Override
-  public void visit(BenchmarkModelLogMessage logMessage) {}
+  public void visit(TargetInfoLogMessage logMessage) {}
 
   @Override
   public void visit(DryRunSuccessLogMessage logMessage) {}

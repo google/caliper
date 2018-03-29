@@ -16,12 +16,12 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
+import com.google.caliper.runner.worker.targetinfo.TargetInfo;
+import com.google.caliper.runner.worker.targetinfo.TargetInfoFactory;
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Stderr;
@@ -54,7 +54,11 @@ public final class CaliperRunner {
   private final Lazy<CaliperConfig> config;
 
   private final Lazy<ServiceManager> serviceManager;
-  private final Lazy<BenchmarkModelFactory> modelFactory;
+
+  // TODO(cgdecker): This shouldn't need to be lazy, but it causes problems, weirdly enough, with
+  // if the user passes --help on the command line if it isn't lazy. Would be nice to fix that.
+  private final Lazy<TargetInfoFactory> targetInfoFactory;
+
   private final PrintWriter stdout;
   private final PrintWriter stderr;
 
@@ -65,14 +69,14 @@ public final class CaliperRunner {
       Lazy<CaliperOptions> options,
       Lazy<CaliperConfig> config,
       Lazy<ServiceManager> serviceManager,
-      Lazy<BenchmarkModelFactory> modelFactory,
+      Lazy<TargetInfoFactory> targetInfoFactory,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
       Provider<CaliperRunComponent.Builder> runComponentBuilder) {
     this.options = options;
     this.config = config;
     this.serviceManager = serviceManager;
-    this.modelFactory = modelFactory;
+    this.targetInfoFactory = targetInfoFactory;
     this.stdout = stdout;
     this.stderr = stderr;
     this.runComponentBuilder = runComponentBuilder;
@@ -142,11 +146,8 @@ public final class CaliperRunner {
               });
       serviceManager.get().startAsync().awaitHealthy();
       try {
-        BenchmarkClassModel benchmarkClassModel = modelFactory.get().createBenchmarkClassModel();
-        CaliperRun run = runComponentBuilder.get()
-            .benchmarkClassModel(benchmarkClassModel)
-            .build()
-            .getCaliperRun();
+        TargetInfo targetInfo = targetInfoFactory.get().getTargetInfo();
+        CaliperRun run = runComponentBuilder.get().targetInfo(targetInfo).build().getCaliperRun();
         run.run(); // throws IBE
       } finally {
         try {

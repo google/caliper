@@ -16,8 +16,6 @@
 
 package com.google.caliper.runner.target;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
 import com.google.common.base.Optional;
@@ -28,30 +26,23 @@ import com.google.common.collect.ImmutableSet;
 /** Abstraction of a VM of a specific type with a specific configuration. */
 public abstract class Vm {
 
-  private final VmConfig config;
-  private final String classpath;
-
-  Vm(VmConfig config, String classpath) {
-    this.config = checkNotNull(config);
-    this.classpath = checkNotNull(classpath);
-  }
-
-  /** Returns the configuration for this VM. */
-  public VmConfig config() {
-    return config;
-  }
-
-  /** Returns the name of this VM. */
-  public final String name() {
-    return config.name();
-  }
-
   /** Returns the type of this VM. */
   public abstract VmType type();
 
+  /** Returns the configuration for this VM. */
+  public abstract VmConfig config();
+
+  /** Returns the classpath that should be used for workers on this VM. */
+  public abstract String classpath();
+
+  /** Returns the name of this VM. */
+  public final String name() {
+    return config().name();
+  }
+
   /** Returns the (optional) configured home directory path for this VM. */
   public final Optional<String> home() {
-    return config.home();
+    return config().home();
   }
 
   /** Returns the name of or relative path to the VM executable file. */
@@ -65,7 +56,7 @@ public abstract class Vm {
    */
   public final ImmutableList<String> args(Iterable<String>... additionalArgs) {
     ImmutableList.Builder<String> builder = ImmutableList.builder();
-    builder.addAll(config.args());
+    builder.addAll(config().args());
     for (Iterable<String> args : additionalArgs) {
       builder.addAll(args);
     }
@@ -83,11 +74,6 @@ public abstract class Vm {
   // TODO(cgdecker): Should this go in TrialSpec?
   // But in TrialSpec it would need to be in the form "if VM is JVM ... else ...", which isn't great
   public abstract ImmutableSet<String> trialArgs();
-
-  /** Returns the classpath that should be used for workers on this VM. */
-  public final String classpath() {
-    return classpath;
-  }
 
   /** Returns the VM arguments to use for specifying the given classpath for the VM. */
   // NOTE: This mainly just exists because app_process is weird; all other supported VM executables
@@ -107,4 +93,9 @@ public abstract class Vm {
    * VmSpec} for a run.
    */
   public abstract Predicate<String> vmPropertiesToRetain();
+
+  @Override
+  public final String toString() {
+    return name();
+  }
 }

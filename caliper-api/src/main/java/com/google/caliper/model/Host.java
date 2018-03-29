@@ -110,7 +110,7 @@ public final class Host {
       return this;
     }
 
-    public Builder addAllProperies(Map<String, String> properties) {
+    public Builder addAllProperties(Map<String, String> properties) {
       this.properties.putAll(properties);
       return this;
     }

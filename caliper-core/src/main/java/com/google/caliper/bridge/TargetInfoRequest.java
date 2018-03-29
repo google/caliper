@@ -16,35 +16,29 @@
 
 package com.google.caliper.bridge;
 
-import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * {@link WorkerRequest} for telling a worker to send the runner a model of the benchmark class.
+ * {@link WorkerRequest} for telling a worker to send the runner information on the target it's
+ * running on, including a model of the benchmark class it produced.
  *
  * @author Colin Decker
  */
 @AutoValue
-public abstract class BenchmarkModelRequest implements WorkerRequest {
+public abstract class TargetInfoRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 
-  public static BenchmarkModelRequest create(
-      String benchmarkClass, Multimap<String, String> userParameters) {
-    checkArgument(!benchmarkClass.isEmpty());
-    return new AutoValue_BenchmarkModelRequest(
-        benchmarkClass, ImmutableSetMultimap.copyOf(userParameters));
+  public static TargetInfoRequest create(Multimap<String, String> userParameters) {
+    return new AutoValue_TargetInfoRequest(ImmutableSetMultimap.copyOf(userParameters));
   }
 
   @Override
   public final Class<? extends WorkerRequest> type() {
-    return BenchmarkModelRequest.class;
+    return TargetInfoRequest.class;
   }
-
-  /** Returns the name of the benchmark class to get the model of. */
-  public abstract String benchmarkClass();
 
   /**
    * Returns the parameters and their values that user provided for the benchmark, to be validated.

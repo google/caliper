@@ -20,6 +20,7 @@ import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.collect.ImmutableSet;
 import dagger.Module;
 import dagger.Provides;
+import javax.inject.Singleton;
 
 /**
  * Module for binding the targets that Caliper should run the benchmark on.
@@ -30,6 +31,7 @@ import dagger.Provides;
 public abstract class TargetModule {
   private TargetModule() {}
 
+  @Singleton
   @Provides
   static ImmutableSet<Target> provideTargets(
       Device device, CaliperOptions options, CaliperConfig config) {

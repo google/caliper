@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner;
+package com.google.caliper.worker.handler;
 
-import com.google.caliper.model.Host;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
-import dagger.Module;
-import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -33,20 +30,14 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Module that creates and binds a {@link Host} object that describes the host environment: JVM
- * version, OS details, etc.
+ * Handles getting a map of device properties to send back to the runner for use as the {@code Host}
+ * model data for the run.
  */
-@Module
-abstract class HostModule {
-  private HostModule() {}
+abstract class HostDevice {
+  private HostDevice() {}
 
-  @Provides
-  @RunScoped
-  static Host provideHost() {
-    return new Host.Builder().addAllProperies(getProperties()).build();
-  }
-
-  private static Map<String, String> getProperties() {
+  /** Gets a selection of properties about the device this worker is running on. */
+  static Map<String, String> getProperties() {
     TreeMap<String, String> propertyMap = Maps.newTreeMap();
 
     Map<String, String> sysProps = Maps.fromProperties(System.getProperties());

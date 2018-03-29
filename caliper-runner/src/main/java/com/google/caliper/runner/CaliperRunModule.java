@@ -17,10 +17,14 @@
 package com.google.caliper.runner;
 
 import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.model.Host;
 import com.google.caliper.runner.experiment.BenchmarkParameters;
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.dryrun.DryRunComponent;
+import com.google.caliper.runner.worker.targetinfo.TargetInfo;
 import com.google.caliper.runner.worker.trial.TrialComponent;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSetMultimap;
 import dagger.Module;
 import dagger.Provides;
@@ -40,5 +44,15 @@ abstract class CaliperRunModule {
   static ImmutableSetMultimap<String, String> provideBenchmarkParameters(
       BenchmarkClassModel benchmarkClass, CaliperOptions options) {
     return benchmarkClass.fillInDefaultParameterValues(options.userParameters());
+  }
+
+  @Provides
+  static BenchmarkClassModel provideBenchmarkClassModel(TargetInfo targetInfo) {
+    return targetInfo.benchmarkClassModel();
+  }
+
+  @Provides
+  static ImmutableMap<Target, Host> provideTargetHosts(TargetInfo targetInfo) {
+    return targetInfo.hosts();
   }
 }

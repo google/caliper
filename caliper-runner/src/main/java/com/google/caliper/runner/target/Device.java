@@ -69,9 +69,9 @@ public abstract class Device extends AbstractIdleService {
     String classpath = workerClasspath(type);
     switch (type) {
       case JVM:
-        return new Jvm(vmConfig, classpath);
+        return Jvm.create(vmConfig, classpath);
       case ANDROID:
-        return new AndroidVm(vmConfig, classpath);
+        return AndroidVm.create(vmConfig, classpath);
     }
     throw new AssertionError(type);
   }
@@ -112,4 +112,9 @@ public abstract class Device extends AbstractIdleService {
   /** Implements {@link #startVm}. */
   protected abstract VmProcess doStartVm(VmProcess.Spec spec, VmProcess.Logger logger)
       throws Exception;
+
+  @Override
+  public String toString() {
+    return name();
+  }
 }

@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
+package com.google.caliper.runner.worker.targetinfo;
 
-import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.bridge.TargetInfoLogMessage;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerRunner;
 import com.google.caliper.runner.worker.WorkerScoped;
 import dagger.BindsInstance;
 import dagger.Subcomponent;
 
-/**
- * Component for creating a {@link WorkerRunner} for getting the class model from a specific target.
- */
+/** Component for creating a {@link WorkerRunner} for getting the info from a specific target. */
 @WorkerScoped
-@Subcomponent(modules = BenchmarkModelModule.class)
-public interface BenchmarkModelComponent {
-  WorkerRunner<BenchmarkClassModel> workerRunner();
+@Subcomponent(modules = TargetInfoModule.class)
+public interface TargetInfoComponent {
+  WorkerRunner<TargetInfoLogMessage> workerRunner();
 
   /** Builder for the component. */
   @Subcomponent.Builder
@@ -39,6 +37,6 @@ public interface BenchmarkModelComponent {
     Builder target(Target target);
 
     /** Builds a new component. */
-    BenchmarkModelComponent build();
+    TargetInfoComponent build();
   }
 }
