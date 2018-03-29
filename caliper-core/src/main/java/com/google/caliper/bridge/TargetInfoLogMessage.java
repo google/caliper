@@ -18,24 +18,35 @@ package com.google.caliper.bridge;
 
 import com.google.auto.value.AutoValue;
 import com.google.caliper.core.BenchmarkClassModel;
+import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
- * A log message containing a {@link BenchmarkClassModel}.
+ * A log message containing the response to a {@link TargetInfoRequest}.
  *
  * @author Colin Decker
  */
 @AutoValue
-public abstract class BenchmarkModelLogMessage extends LogMessage implements Serializable {
+public abstract class TargetInfoLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
 
-  /** Creates a new log message containing the given benchmark model. */
-  public static BenchmarkModelLogMessage create(BenchmarkClassModel model) {
-    return new AutoValue_BenchmarkModelLogMessage(model);
+  /** Creates a new log message containing the given benchmark model and device properties. */
+  public static TargetInfoLogMessage create(
+      BenchmarkClassModel model, Map<String, String> deviceProperties) {
+    return new AutoValue_TargetInfoLogMessage(model, ImmutableMap.copyOf(deviceProperties));
   }
 
   /** Returns the benchmark class model. */
   public abstract BenchmarkClassModel model();
+
+  /**
+   * Returns the properties of the target device that will be used to populate the {@code Host}
+   * associated with this target. The data included here will be available in the webapp for viewing
+   * and comparison (when viewing data taken from multiple devices, such as when comparing multiple
+   * runs).
+   */
+  public abstract ImmutableMap<String, String> deviceProperties();
 
   @Override
   public void accept(LogMessageVisitor visitor) {

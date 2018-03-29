@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner.target;
 
+import com.google.auto.value.AutoValue;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
 import com.google.common.annotations.VisibleForTesting;
@@ -24,7 +25,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /** A standard Java Virtual Machine. */
-public final class Jvm extends Vm {
+@AutoValue
+public abstract class Jvm extends Vm {
 
   @VisibleForTesting
   public static final ImmutableSet<String> TRIAL_VM_ARGS =
@@ -58,14 +60,11 @@ public final class Jvm extends Vm {
       };
 
   /** Creates a new {@link Jvm} for the given configuration. */
-  public Jvm(VmConfig config, String classpath) {
-    super(config, classpath);
+  public static Jvm create(VmConfig config, String classpath) {
+    return new AutoValue_Jvm(VmType.JVM, config, classpath);
   }
 
-  @Override
-  public VmType type() {
-    return VmType.JVM;
-  }
+  Jvm() {}
 
   @Override
   public String executable() {

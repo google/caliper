@@ -14,29 +14,28 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
+package com.google.caliper.runner.worker.targetinfo;
 
-import com.google.caliper.bridge.BenchmarkModelRequest;
+import com.google.caliper.bridge.TargetInfoRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.server.LocalPort;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.caliper.runner.worker.WorkerSpec;
-import com.google.common.collect.ImmutableList;
 import java.io.PrintWriter;
 import java.util.UUID;
 import javax.inject.Inject;
 
-/** A {@link WorkerSpec} for getting a benchmark class model from a target. */
+/** A {@link WorkerSpec} for getting target info from a target. */
 @WorkerScoped
-final class BenchmarkModelWorkerSpec extends WorkerSpec {
+final class TargetInfoSpec extends WorkerSpec {
 
   private final Target target;
   private final CaliperOptions options;
 
   @Inject
-  BenchmarkModelWorkerSpec(Target target, UUID id, @LocalPort int port, CaliperOptions options) {
+  TargetInfoSpec(Target target, UUID id, @LocalPort int port, CaliperOptions options) {
     super(target, id, id, port, options.benchmarkClassName());
     this.target = target;
     this.options = options;
@@ -44,19 +43,12 @@ final class BenchmarkModelWorkerSpec extends WorkerSpec {
 
   @Override
   public String name() {
-    return "benchmark-model-" + target.name();
+    return "target-info-" + target.name();
   }
 
   @Override
   public WorkerRequest request() {
-    return BenchmarkModelRequest.create(options.benchmarkClassName(), options.userParameters());
-  }
-
-  @Override
-  public ImmutableList<String> additionalVmOptions() {
-    // Use a relatively low heap size since nothing the worker does should require much memory.
-    // These go after the default options, so they'll override them.
-    return ImmutableList.of("-Xms32m", "-Xmx512m");
+    return TargetInfoRequest.create(options.userParameters());
   }
 
   @Override

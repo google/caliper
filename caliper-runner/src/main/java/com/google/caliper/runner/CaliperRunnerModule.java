@@ -28,9 +28,9 @@ import com.google.caliper.runner.server.ServerModule;
 import com.google.caliper.runner.target.DeviceModule;
 import com.google.caliper.runner.target.TargetModule;
 import com.google.caliper.runner.worker.WorkerOutputModule;
-import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelComponent;
-import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFactory;
-import com.google.caliper.runner.worker.benchmarkmodel.BenchmarkModelFromWorkerFactory;
+import com.google.caliper.runner.worker.targetinfo.TargetInfoComponent;
+import com.google.caliper.runner.worker.targetinfo.TargetInfoFactory;
+import com.google.caliper.runner.worker.targetinfo.TargetInfoFromWorkerFactory;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -56,7 +56,7 @@ import org.joda.time.Instant;
     TargetModule.class,
     WorkerOutputModule.class
   },
-  subcomponents = {BenchmarkModelComponent.class, CaliperRunComponent.class}
+  subcomponents = {TargetInfoComponent.class, CaliperRunComponent.class}
 )
 abstract class CaliperRunnerModule {
   private CaliperRunnerModule() {}
@@ -87,7 +87,7 @@ abstract class CaliperRunnerModule {
   }
 
   @Binds
-  abstract BenchmarkModelFactory bindModelFactory(BenchmarkModelFromWorkerFactory factory);
+  abstract TargetInfoFactory bindTargetInfoFactory(TargetInfoFromWorkerFactory factory);
 
   @Provides
   @BenchmarkClass

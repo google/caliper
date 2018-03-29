@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
-
-import com.google.caliper.core.BenchmarkClassModel;
+package com.google.caliper.runner.worker.targetinfo;
 
 /**
- * Factory for creating model of the benchmark class for the rest of the runner to use.
+ * Factory for getting information, including a model of the benchmark class, from the run's targets
+ * for the rest of the run to use.
  *
  * @author Colin Decker
  */
-public interface BenchmarkModelFactory {
+public interface TargetInfoFactory {
 
-  /**
-   * Creates a new {@link BenchmarkClassModel} of the benchmark class.
-   */
-  BenchmarkClassModel createBenchmarkClassModel();
+  /** Gets information on the targets for this benchmark run. */
+  TargetInfo getTargetInfo();
 }

@@ -14,11 +14,13 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
+package com.google.caliper.runner.worker.targetinfo;
 
+import com.google.caliper.bridge.TargetInfoLogMessage;
 import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.UserCodeException;
+import com.google.caliper.model.Host;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.target.Target;
 import com.google.caliper.runner.worker.ProxyWorkerException;
@@ -26,31 +28,33 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.SetMultimap;
+import java.util.HashMap;
+import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
 /**
- * {@link BenchmarkModelFactory} implementation that creates a worker for each target and queries it
- * for the benchmark class model.
+ * {@link TargetInfoFactory} implementation that creates a worker for each target and queries it for
+ * its info.
  *
- * <p>The expectation is that all targets should produce identical models of the class. If they do
- * not, that means different targets are seeing different definitions of the class that can't be
- * compared directly, so {@link InvalidConfigurationException} is thrown. If all models are the
- * same, that single model is returned.
+ * <p>The expectation is that all targets should produce identical models of the benchmark class. If
+ * they do not, that means different targets are seeing different definitions of the class that
+ * can't be compared directly, so {@link InvalidConfigurationException} is thrown. If all models are
+ * the same, that single model is returned.
  *
  * @author Colin Decker
  */
-public final class BenchmarkModelFromWorkerFactory implements BenchmarkModelFactory {
+public final class TargetInfoFromWorkerFactory implements TargetInfoFactory {
 
   private final ImmutableSet<Target> targets;
-  private final Provider<BenchmarkModelComponent.Builder> modelComponentBuilder;
+  private final Provider<TargetInfoComponent.Builder> targetInfoComponentBuilder;
 
   @Inject
-  BenchmarkModelFromWorkerFactory(
+  TargetInfoFromWorkerFactory(
       ImmutableSet<Target> targets,
-      Provider<BenchmarkModelComponent.Builder> modelComponentBuilder) {
+      Provider<TargetInfoComponent.Builder> targetInfoComponentBuilder) {
     this.targets = targets;
-    this.modelComponentBuilder = modelComponentBuilder;
+    this.targetInfoComponentBuilder = targetInfoComponentBuilder;
   }
 
   // TODO(cgdecker): What we may actually want to do once different types of targets (e.g. JVM
@@ -58,13 +62,16 @@ public final class BenchmarkModelFromWorkerFactory implements BenchmarkModelFact
   // classpaths should only differ by type, not individual target.
 
   @Override
-  public BenchmarkClassModel createBenchmarkClassModel() {
+  public TargetInfo getTargetInfo() {
     SetMultimap<BenchmarkClassModel, Target> models = HashMultimap.create();
+    Map<Target, Host> hosts = new HashMap<>();
     try {
       for (Target target : targets) {
-        BenchmarkClassModel model =
-            modelComponentBuilder.get().target(target).build().workerRunner().runWorker();
-        models.put(model, target);
+        TargetInfoLogMessage logMessage =
+            targetInfoComponentBuilder.get().target(target).build().workerRunner().runWorker();
+        models.put(logMessage.model(), target);
+        hosts.put(
+            target, new Host.Builder().addAllProperties(logMessage.deviceProperties()).build());
       }
     } catch (ProxyWorkerException e) {
       if (e.exceptionType().equals(UserCodeException.class.getName())) {
@@ -82,6 +89,6 @@ public final class BenchmarkModelFromWorkerFactory implements BenchmarkModelFact
               + "the benchmark class.");
     }
 
-    return Iterables.getOnlyElement(models.keySet());
+    return TargetInfo.create(Iterables.getOnlyElement(models.keySet()), hosts);
   }
 }

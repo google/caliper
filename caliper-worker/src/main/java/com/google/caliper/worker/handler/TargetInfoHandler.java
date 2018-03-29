@@ -16,8 +16,8 @@
 
 package com.google.caliper.worker.handler;
 
-import com.google.caliper.bridge.BenchmarkModelLogMessage;
-import com.google.caliper.bridge.BenchmarkModelRequest;
+import com.google.caliper.bridge.TargetInfoLogMessage;
+import com.google.caliper.bridge.TargetInfoRequest;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.Running.BenchmarkClass;
@@ -26,17 +26,17 @@ import java.io.IOException;
 import javax.inject.Inject;
 
 /**
- * Handler for a {@link BenchmarkModelRequest}.
+ * Handler for a {@link TargetInfoRequest}.
  *
  * @author Colin Decker
  */
-final class BenchmarkModelHandler implements RequestHandler {
+final class TargetInfoHandler implements RequestHandler {
 
   private final ClientConnectionService clientConnection;
   private final Class<?> benchmarkClass;
 
   @Inject
-  BenchmarkModelHandler(
+  TargetInfoHandler(
       ClientConnectionService clientConnection, @BenchmarkClass Class<?> benchmarkClass) {
     this.clientConnection = clientConnection;
     this.benchmarkClass = benchmarkClass;
@@ -44,9 +44,9 @@ final class BenchmarkModelHandler implements RequestHandler {
 
   @Override
   public void handleRequest(WorkerRequest request) throws IOException {
-    BenchmarkModelRequest modelRequest = (BenchmarkModelRequest) request;
+    TargetInfoRequest targetInfoRequest = (TargetInfoRequest) request;
     BenchmarkClassModel model = BenchmarkClassModel.create(benchmarkClass);
-    BenchmarkClassModel.validateUserParameters(benchmarkClass, modelRequest.userParameters());
-    clientConnection.send(BenchmarkModelLogMessage.create(model));
+    BenchmarkClassModel.validateUserParameters(benchmarkClass, targetInfoRequest.userParameters());
+    clientConnection.send(TargetInfoLogMessage.create(model, HostDevice.getProperties()));
   }
 }

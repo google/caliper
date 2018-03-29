@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package com.google.caliper.runner.worker.benchmarkmodel;
+package com.google.caliper.runner.worker.targetinfo;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 import com.google.caliper.bridge.AbstractLogMessageVisitor;
-import com.google.caliper.bridge.BenchmarkModelLogMessage;
 import com.google.caliper.bridge.LogMessage;
 import com.google.caliper.bridge.LogMessageVisitor;
-import com.google.caliper.core.BenchmarkClassModel;
+import com.google.caliper.bridge.TargetInfoLogMessage;
 import com.google.caliper.runner.worker.FailureLogMessageVisitor;
 import com.google.caliper.runner.worker.Worker;
 import com.google.caliper.runner.worker.WorkerProcessor;
@@ -30,21 +29,21 @@ import com.google.caliper.util.ShortDuration;
 import javax.annotation.Nullable;
 import javax.inject.Inject;
 
-/** {@link WorkerProcessor} for receiving a {@link BenchmarkClassModel} from the worker. */
-final class BenchmarkModelWorkerProcessor extends WorkerProcessor<BenchmarkClassModel> {
+/** {@link WorkerProcessor} for receiving a target info from the worker. */
+final class TargetInfoProcessor extends WorkerProcessor<TargetInfoLogMessage> {
 
-  @Nullable private volatile BenchmarkClassModel result = null;
+  @Nullable private volatile TargetInfoLogMessage result = null;
 
   private final LogMessageVisitor successVisitor =
       new AbstractLogMessageVisitor() {
         @Override
-        public void visit(BenchmarkModelLogMessage logMessage) {
-          BenchmarkModelWorkerProcessor.this.result = logMessage.model();
+        public void visit(TargetInfoLogMessage logMessage) {
+          TargetInfoProcessor.this.result = logMessage;
         }
       };
 
   @Inject
-  BenchmarkModelWorkerProcessor() {}
+  TargetInfoProcessor() {}
 
   @Override
   public ShortDuration timeLimit() {
@@ -60,7 +59,7 @@ final class BenchmarkModelWorkerProcessor extends WorkerProcessor<BenchmarkClass
   }
 
   @Override
-  public BenchmarkClassModel getResult() {
+  public TargetInfoLogMessage getResult() {
     return result;
   }
 }

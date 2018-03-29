@@ -16,8 +16,7 @@
 
 package com.google.caliper.runner.target;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+import com.google.auto.value.AutoValue;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
 import com.google.common.base.Predicate;
@@ -26,17 +25,15 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /** An Android VM, e.g. Dalvik or ART. */
-public final class AndroidVm extends Vm {
+@AutoValue
+public abstract class AndroidVm extends Vm {
 
-  AndroidVm(VmConfig config, String classpath) {
-    super(config, classpath);
-    checkArgument(config.type().get().equals(VmType.ANDROID), "config must have type android");
+  /** Creates a new {@link AndroidVm} for the given configuration. */
+  public static AndroidVm create(VmConfig config, String classpath) {
+    return new AutoValue_AndroidVm(VmType.ANDROID, config, classpath);
   }
 
-  @Override
-  public VmType type() {
-    return VmType.ANDROID;
-  }
+  AndroidVm() {}
 
   @Override
   public String executable() {

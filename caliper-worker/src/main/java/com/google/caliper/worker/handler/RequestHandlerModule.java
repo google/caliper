@@ -16,8 +16,8 @@
 
 package com.google.caliper.worker.handler;
 
-import com.google.caliper.bridge.BenchmarkModelRequest;
 import com.google.caliper.bridge.DryRunRequest;
+import com.google.caliper.bridge.TargetInfoRequest;
 import com.google.caliper.bridge.TrialRequest;
 import dagger.Binds;
 import dagger.Module;
@@ -35,8 +35,8 @@ public abstract class RequestHandlerModule {
 
   @Binds
   @IntoMap
-  @RequestTypeKey(BenchmarkModelRequest.class)
-  abstract RequestHandler bindModelHandler(BenchmarkModelHandler handler);
+  @RequestTypeKey(TargetInfoRequest.class)
+  abstract RequestHandler bindTargetInfoHandler(TargetInfoHandler handler);
 
   @Binds
   @IntoMap

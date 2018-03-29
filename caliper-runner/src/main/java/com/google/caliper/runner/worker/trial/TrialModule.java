@@ -30,6 +30,7 @@ import com.google.caliper.runner.worker.WorkerProcessor;
 import com.google.caliper.runner.worker.WorkerRunner;
 import com.google.caliper.runner.worker.WorkerScoped;
 import com.google.caliper.runner.worker.WorkerSpec;
+import com.google.common.collect.ImmutableMap;
 import dagger.Binds;
 import dagger.Provides;
 import dagger.producers.ProducerModule;
@@ -67,6 +68,11 @@ abstract class TrialModule {
   @Provides
   static MeasurementCollectingVisitor provideMeasurementCollectingVisitor(Experiment experiment) {
     return experiment.instrumentedMethod().getMeasurementCollectingVisitor();
+  }
+
+  @Provides
+  static Host provideHost(Target target, ImmutableMap<Target, Host> hostsByTarget) {
+    return hostsByTarget.get(target);
   }
 
   @Provides

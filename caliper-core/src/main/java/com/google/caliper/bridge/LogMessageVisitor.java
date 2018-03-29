@@ -32,7 +32,7 @@ public interface LogMessageVisitor {
 
   void visit(VmPropertiesLogMessage logMessage);
 
-  void visit(BenchmarkModelLogMessage logMessage);
+  void visit(TargetInfoLogMessage logMessage);
 
   void visit(DryRunSuccessLogMessage logMessage);
 }

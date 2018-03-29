@@ -16,9 +16,9 @@
 
 package com.google.caliper.runner;
 
-import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.runner.instrument.InstrumentModule;
 import com.google.caliper.runner.resultprocessor.ResultProcessorModule;
+import com.google.caliper.runner.worker.targetinfo.TargetInfo;
 import dagger.BindsInstance;
 import dagger.Subcomponent;
 
@@ -27,7 +27,6 @@ import dagger.Subcomponent;
 @Subcomponent(
   modules = {
     CaliperRunModule.class,
-    HostModule.class,
     InstrumentModule.class,
     ResultProcessorModule.class
   }
@@ -41,7 +40,7 @@ interface CaliperRunComponent {
   @Subcomponent.Builder
   interface Builder {
     @BindsInstance
-    Builder benchmarkClassModel(BenchmarkClassModel model);
+    Builder targetInfo(TargetInfo info);
 
     /**  Builds a new {@link CaliperRunComponent}. */
     CaliperRunComponent build();
