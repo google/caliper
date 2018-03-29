@@ -14,6 +14,7 @@
 
 package com.google.caliper.runner.options;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.NANOSECONDS;
@@ -22,6 +23,7 @@ import com.google.caliper.runner.options.CommandLineParser.Leftovers;
 import com.google.caliper.runner.options.CommandLineParser.Option;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.ShortDuration;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
@@ -41,7 +43,8 @@ import java.util.Map;
  * Implementation of {@link CaliperOptions} that uses {@link CommandLineParser} to parse command
  * line arguments.
  */
-final class ParsedOptions implements CaliperOptions {
+@VisibleForTesting
+public final class ParsedOptions implements CaliperOptions {
 
   // TODO(cgdecker): Consider making this a @Module itself
 
@@ -310,6 +313,45 @@ final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // Worker classpath(s)
+  // --------------------------------------------------------------------------
+
+  private final Map<String, String> workerClasspaths = Maps.newHashMap();
+
+  @Option("--worker-classpath")
+  private void setDefaultWorkerClasspath(String classpath) {
+    putWorkerClasspath("android", classpath);
+    putWorkerClasspath("jvm", classpath);
+  }
+
+  @Option("--worker-classpath-android")
+  private void setAndroidWorkerClasspath(String classpath) {
+    putWorkerClasspath("android", classpath);
+  }
+
+  @Option("--worker-classpath-jvm")
+  private void setJvmWorkerClasspath(String classpath) {
+    putWorkerClasspath("jvm", classpath);
+  }
+
+  private void putWorkerClasspath(String key, String classpath) {
+    if (workerClasspaths.containsKey(key)) {
+      throw new InvalidCommandException(
+          "Provide either --worker-classpath or --worker-classpath-<vmtype>; not both");
+    }
+    workerClasspaths.put(key, classpath);
+  }
+
+  private static final ImmutableSet<String> VALID_VM_TYPES = ImmutableSet.of("jvm", "android");
+
+  @Override
+  public Optional<String> workerClasspath(String vmType) {
+    vmType = vmType.toLowerCase(); // so passing VmType.name() works
+    checkArgument(VALID_VM_TYPES.contains(vmType), "invalid VM type: %s", vmType);
+    return Optional.fromNullable(workerClasspaths.get(vmType));
+  }
+
+  // --------------------------------------------------------------------------
   // Location of .caliper
   // --------------------------------------------------------------------------
 
@@ -461,6 +503,15 @@ final class ParsedOptions implements CaliperOptions {
           "                    $HOME/.caliper/config.properties)",
           " --directory        location of Caliper's configuration and data directory ",
           "                    (default: $HOME/.caliper)",
+          " --worker-classpath[-<vmtype>]",
+          "                    the classpath to use for benchmark workers with the specified",
+          "                    <vmtype> (e.g. --worker-classpath-jvm). The worker classpath must ",
+          "                    include the benchmark class to be run, its dependencies, and the ",
+          "                    Caliper worker code. If the run only targets a single VM type, the ",
+          "                    '-<vmtype>' can be dropped. For now, if no worker classpath is ",
+          "                    provided and the benchmark is running on the local device, the ",
+          "                    classpath of the runner process may be used as a default. This is ",
+          "                    for compatibility reasons and may not be supported in the future.",
           " --print-worker-log if an error occurs in a worker, print the log for that worker ",
           "                    rather than the path to the log file; primarily for use in tests ",
           "                    when running in a CI environment where the log files may not be ",

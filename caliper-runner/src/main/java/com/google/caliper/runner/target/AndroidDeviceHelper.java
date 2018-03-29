@@ -18,10 +18,10 @@ package com.google.caliper.runner.target;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
+import com.google.caliper.runner.options.CaliperOptions;
 import java.io.File;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -29,12 +29,12 @@ import javax.annotation.Nullable;
 /** Helper for when the local device is an Android device. */
 final class AndroidDeviceHelper implements LocalDevice.Helper {
 
-  private final CaliperConfig caliperConfig;
+  private final CaliperOptions options;
 
   @Nullable private volatile String androidDataDir = null;
 
-  AndroidDeviceHelper(CaliperConfig caliperConfig) {
-    this.caliperConfig = checkNotNull(caliperConfig);
+  AndroidDeviceHelper(CaliperOptions options) {
+    this.options = checkNotNull(options);
   }
 
   @Override
@@ -74,7 +74,8 @@ final class AndroidDeviceHelper implements LocalDevice.Helper {
     if (type.equals(VmType.JVM)) {
       throw new InvalidConfigurationException("can't run a JVM on Android");
     }
-    return caliperConfig.properties().get("android.worker.classpath");
+    // Guaranteed to be present since we explicitly set this in CaliperActivity
+    return options.workerClasspath(type.toString()).get();
   }
 
   @Override
