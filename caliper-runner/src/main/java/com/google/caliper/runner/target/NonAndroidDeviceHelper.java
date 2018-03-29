@@ -21,6 +21,8 @@ import static java.lang.Thread.currentThread;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
 import java.io.File;
@@ -30,6 +32,12 @@ import java.util.Map;
 
 /** Helper for when the local device is <i>not</i> an Android device. */
 final class NonAndroidDeviceHelper implements LocalDevice.Helper {
+
+  private final CaliperOptions options;
+
+  NonAndroidDeviceHelper(CaliperOptions options) {
+    this.options = options;
+  }
 
   @Override
   public void setUp() {}
@@ -77,11 +85,27 @@ final class NonAndroidDeviceHelper implements LocalDevice.Helper {
 
   @Override
   public String getWorkerClasspath(VmType type) {
-    if (type.equals(VmType.ANDROID)) {
-      throw new InvalidConfigurationException(
-          "android VMs not supported on non-android devices yet");
+    Optional<String> explicitClasspath = options.workerClasspath(type.toString());
+    if (explicitClasspath.isPresent()) {
+      return explicitClasspath.get();
     }
 
+    if (type.equals(VmType.ANDROID)) {
+      throw new InvalidConfigurationException(
+          "Running an Android VM on a non-Android device requires either --worker-classpath or "
+              + "--worker-classpath-android, specifying a classpath containing files valid for an "
+              + "Android VM (e.g. dex files)");
+    }
+
+    if (jvmClasspath == null) {
+      jvmClasspath = getJvmClasspath();
+    }
+    return jvmClasspath;
+  }
+
+  private volatile String jvmClasspath = null;
+
+  private String getJvmClasspath() {
     // Use the effective class path in case this is being invoked in an isolated class loader
     String classpath =
         EffectiveClassPath.getClassPathForClassLoader(currentThread().getContextClassLoader());

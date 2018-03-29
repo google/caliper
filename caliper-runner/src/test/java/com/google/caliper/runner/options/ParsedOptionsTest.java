@@ -14,6 +14,7 @@
 
 package com.google.caliper.runner.options;
 
+import static com.google.common.truth.Truth.assertThat;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -116,6 +117,60 @@ public class ParsedOptionsTest {
 
     assertNull(options.benchmarkClassName());
     checkDefaults(options);
+  }
+
+  @Test
+  public void testWorkerClasspaths() {
+    CaliperOptions options = ParsedOptions.from(new String[] {
+        "--worker-classpath-jvm=jvmclasspath",
+        "--worker-classpath-android=androidclasspath"},
+        false);
+    assertThat(options.workerClasspath("jvm")).hasValue("jvmclasspath");
+    assertThat(options.workerClasspath("android")).hasValue("androidclasspath");
+  }
+
+  @Test
+  public void testWorkerClasspaths_justOne() {
+    CaliperOptions options = ParsedOptions.from(new String[] {
+            "--worker-classpath-jvm=classpath"},
+        false);
+    assertThat(options.workerClasspath("jvm")).hasValue("classpath");
+    assertThat(options.workerClasspath("android")).isAbsent();
+  }
+
+  @Test
+  public void testWorkerClasspaths_default() {
+    CaliperOptions options = ParsedOptions.from(new String[] {
+            "--worker-classpath=classpath"},
+        false);
+    assertThat(options.workerClasspath("jvm")).hasValue("classpath");
+    assertThat(options.workerClasspath("android")).hasValue("classpath");
+  }
+
+  @Test
+  public void testWorkerClasspaths_invalidArgs() {
+    CaliperOptions options = ParsedOptions.from(new String[] {
+            "--worker-classpath=classpath"},
+        false);
+    try {
+      options.workerClasspath("foo");
+      fail();
+    } catch (IllegalArgumentException expected) {}
+
+    try {
+      options.workerClasspath("");
+      fail();
+    } catch (IllegalArgumentException expected) {}
+  }
+
+  @Test
+  public void testWorkerClasspaths_bothDefaultAndSpecificIllegal() {
+    try {
+      ParsedOptions.from(
+          new String[] {"--worker-classpath=classpath", "--worker-classpath-jvm=classpath"}, false);
+      fail();
+    } catch (InvalidCommandException expected) {
+    }
   }
 
   private void checkDefaults(CaliperOptions options) {

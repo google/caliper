@@ -22,6 +22,8 @@ import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.DeviceConfig;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.options.ParsedOptions;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
@@ -58,20 +60,24 @@ public final class LocalDevice extends Device {
   LocalDevice(
       DeviceConfig config,
       CaliperConfig caliperConfig,
+      CaliperOptions caliperOptions,
       ShutdownHookRegistrar shutdownHookRegistrar) {
-    this(config, caliperConfig, shutdownHookRegistrar, false);
+    this(config, caliperConfig, caliperOptions, shutdownHookRegistrar, false);
   }
 
   private LocalDevice(
       DeviceConfig config,
       CaliperConfig caliperConfig,
+      CaliperOptions caliperOptions,
       ShutdownHookRegistrar shutdownHookRegistrar,
       boolean redirectErrorStream) {
     super(config, shutdownHookRegistrar);
     this.caliperConfig = caliperConfig;
     this.redirectErrorStream = redirectErrorStream;
     this.helper =
-        isAndroidDevice() ? new AndroidDeviceHelper(caliperConfig) : new NonAndroidDeviceHelper();
+        isAndroidDevice()
+            ? new AndroidDeviceHelper(caliperOptions)
+            : new NonAndroidDeviceHelper(caliperOptions);
   }
 
   @Override
@@ -265,6 +271,7 @@ public final class LocalDevice extends Device {
   public static final class Builder {
     private DeviceConfig deviceConfig;
     private CaliperConfig caliperConfig;
+    private CaliperOptions caliperOptions;
     private ShutdownHookRegistrar shutdownHookRegistrar;
     private boolean redirectErrorStream = false;
 
@@ -277,6 +284,12 @@ public final class LocalDevice extends Device {
     /** Sets the {@link CaliperConfig} to use. */
     public Builder caliperConfig(CaliperConfig caliperConfig) {
       this.caliperConfig = checkNotNull(caliperConfig);
+      return this;
+    }
+
+    /** Sets the {@link CaliperOptions} to use. */
+    public Builder caliperOptions(CaliperOptions caliperOptions) {
+      this.caliperOptions = checkNotNull(caliperOptions);
       return this;
     }
 
@@ -300,11 +313,14 @@ public final class LocalDevice extends Device {
       if (deviceConfig == null) {
         deviceConfig = caliperConfig.getDeviceConfig("local");
       }
+      if (caliperOptions == null) {
+        caliperOptions = ParsedOptions.from(new String[] {}, false);
+      }
       if (shutdownHookRegistrar == null) {
         shutdownHookRegistrar = new RuntimeShutdownHookRegistrar();
       }
       return new LocalDevice(
-          deviceConfig, caliperConfig, shutdownHookRegistrar, redirectErrorStream);
+          deviceConfig, caliperConfig, caliperOptions, shutdownHookRegistrar, redirectErrorStream);
     }
   }
 }

@@ -15,6 +15,7 @@
 package com.google.caliper.runner.options;
 
 import com.google.caliper.util.ShortDuration;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -65,6 +66,9 @@ public interface CaliperOptions {
    */
   // TODO(cgdecker): Either remove this or make it work
   ImmutableSetMultimap<String, String> vmArguments();
+
+  /** Returns the worker classpath to use for the given VM type. */
+  Optional<String> workerClasspath(String vmType);
 
   /**
    * Returns additional Caliper configuration properties to be merged with the properties in the

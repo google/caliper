@@ -149,7 +149,7 @@ public final class CaliperActivity extends Activity {
   }
 
   private CaliperRunner createCaliperRunner(String[] args) throws IOException {
-    String classpathConfig = "-Candroid.worker.classpath=" + getClasspath();
+    String classpathConfig = "--worker-classpath-android=" + getClasspath();
     args = ObjectArrays.concat(args, classpathConfig);
     return DaggerAndroidCaliperRunnerComponent.builder()
         .optionsModule(OptionsModule.withBenchmarkClass(args))
