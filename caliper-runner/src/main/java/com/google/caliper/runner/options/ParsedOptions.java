@@ -212,6 +212,9 @@ public final class ParsedOptions implements CaliperOptions {
 
   @Option({"-e", "--device"})
   private void setDeviceName(String deviceName) {
+    if (deviceName.indexOf('@') != -1) {
+      throw new InvalidCommandException("device names may not contain '@': %s", deviceName);
+    }
     this.deviceName = deviceName;
   }
 
@@ -230,6 +233,11 @@ public final class ParsedOptions implements CaliperOptions {
   private void setVms(String vmsString) throws InvalidCommandException {
     dryRunIncompatible("vm");
     vmNames = split(vmsString);
+    for (String name : vmNames) {
+      if (name.indexOf('@') != -1) {
+        throw new InvalidCommandException("VM names may not contain '@': %s", name);
+      }
+    }
   }
 
   @Override

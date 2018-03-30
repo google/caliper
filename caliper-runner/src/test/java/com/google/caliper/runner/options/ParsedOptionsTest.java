@@ -104,6 +104,26 @@ public class ParsedOptionsTest {
   }
 
   @Test
+  public void testVmNames_doNotAllowAt() {
+    try {
+      ParsedOptions.from(new String[] {"-m", "foo@bar"}, false);
+      fail();
+    } catch (InvalidCommandException expected) {
+      assertThat(expected).hasMessageThat().contains("'@'");
+    }
+  }
+
+  @Test
+  public void testDeviceName_doNotAllowAt() {
+    try {
+      ParsedOptions.from(new String[] {"-e", "foo@bar"}, false);
+      fail();
+    } catch (InvalidCommandException expected) {
+      assertThat(expected).hasMessageThat().contains("'@'");
+    }
+  }
+
+  @Test
   public void testDefaults_RequireBenchmarkClassName() throws InvalidCommandException {
     CaliperOptions options = ParsedOptions.from(new String[] {CLASS_NAME}, true);
 
