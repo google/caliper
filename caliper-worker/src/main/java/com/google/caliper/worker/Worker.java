@@ -17,12 +17,10 @@
 package com.google.caliper.worker;
 
 import com.google.caliper.bridge.FailureLogMessage;
-import com.google.caliper.bridge.StartupAnnounceMessage;
 import com.google.caliper.bridge.WorkerRequest;
 import com.google.caliper.worker.connection.ClientConnectionService;
 import com.google.caliper.worker.handler.RequestDispatcher;
 import java.io.IOException;
-import java.util.UUID;
 import javax.inject.Inject;
 
 /**
@@ -32,13 +30,11 @@ import javax.inject.Inject;
  */
 final class Worker {
 
-  private final UUID id;
   private final ClientConnectionService clientConnection;
   private final RequestDispatcher requestDispatcher;
 
   @Inject
-  Worker(UUID id, ClientConnectionService clientConnection, RequestDispatcher requestDispatcher) {
-    this.id = id;
+  Worker(ClientConnectionService clientConnection, RequestDispatcher requestDispatcher) {
     this.clientConnection = clientConnection;
     this.requestDispatcher = requestDispatcher;
   }
@@ -47,7 +43,6 @@ final class Worker {
   public void run() throws IOException {
     clientConnection.startAsync().awaitRunning();
     try {
-      clientConnection.send(new StartupAnnounceMessage(id));
       WorkerRequest request = (WorkerRequest) clientConnection.receive();
       requestDispatcher.dispatch(request);
     } catch (IOException e) {

@@ -14,19 +14,26 @@
 
 package com.google.caliper.runner.server;
 
+import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.bridge.StartupAnnounceMessage;
+import com.google.caliper.util.Uuids;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,15 +48,19 @@ public class ServerSocketServiceTest {
   private final ServerSocketService service = new ServerSocketService();
   private int port;
 
+  private ExecutorService executor;
+
   @Before
-  public void startService() {
+  public void before() {
     service.startAsync().awaitRunning();
     port = service.getPort();
+    executor = Executors.newSingleThreadExecutor();
   }
 
   @After
-  public void stopService() {
+  public void after() {
     service.stopAsync().awaitTerminated();
+    executor.shutdownNow();
   }
 
   @Test
@@ -57,18 +68,17 @@ public class ServerSocketServiceTest {
     UUID id = UUID.randomUUID();
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
     assertFalse(pendingServerConnection.isDone());
-    OpenedSocket clientSocket = openConnectionAndIdentify(id);
+    Future<OpenedSocket> clientSocketFuture = createOpenedSocket(openConnectionAndIdentify(id));
     // Assert that the ends are hooked up to each other
-    assertEndsConnected(clientSocket, pendingServerConnection.get());
+    assertEndsConnected(clientSocketFuture.get(), pendingServerConnection.get());
   }
 
   @Test
   public void getConnectionIdTwice_acceptComesFirst() throws Exception {
     UUID id = UUID.randomUUID();
-    OpenedSocket clientSocket = openConnectionAndIdentify(id);
-
+    Future<OpenedSocket> clientSocketFuture = createOpenedSocket(openConnectionAndIdentify(id));
     ListenableFuture<OpenedSocket> pendingServerConnection = service.getConnection(id);
-    // wait for the service to fully initialize the connection
+    OpenedSocket clientSocket = clientSocketFuture.get();
     OpenedSocket serverSocket = pendingServerConnection.get();
     assertEndsConnected(clientSocket, serverSocket);
     try {
@@ -101,17 +111,60 @@ public class ServerSocketServiceTest {
     }
   }
 
-  private OpenedSocket openClientConnection() throws IOException {
-    return OpenedSocket.fromSocket(new Socket(InetAddress.getLoopbackAddress(), port));
+  @Test
+  public void getInputStream() throws Exception {
+    UUID id = UUID.randomUUID();
+    ListenableFuture<InputStream> pendingServerConnection = service.getInputStream(id);
+    assertFalse(pendingServerConnection.isDone());
+
+    Socket clientSocket = openConnectionAndIdentify(id);
+    // This should work now that the client has connected and sent its ID
+    InputStream serverInputStream = pendingServerConnection.get();
+
+    OutputStream clientOutputStream = clientSocket.getOutputStream();
+    byte[] bytes = new byte[] {1, 2, 3, 4};
+    clientOutputStream.write(bytes);
+
+    byte[] buf = new byte[bytes.length];
+    int bytesRead = 0;
+    int r;
+    while (bytesRead < buf.length
+        && (r = serverInputStream.read(buf, bytesRead, buf.length - bytesRead)) != -1) {
+      bytesRead += r;
+    }
+    assertThat(buf).isEqualTo(bytes);
+
+    clientOutputStream.close();
+    serverInputStream.close();
+  }
+
+  private Socket openClientConnection() throws IOException {
+    return new Socket(InetAddress.getLoopbackAddress(), port);
   }
 
   /** Opens a connection to the service and identifies itself using the id. */
-  private OpenedSocket openConnectionAndIdentify(UUID id) throws IOException {
-    OpenedSocket clientSocket = openClientConnection();
-    OpenedSocket.Writer writer = clientSocket.writer();
-    writer.write(new StartupAnnounceMessage(id));
-    writer.flush();
-    return clientSocket;
+  private Socket openConnectionAndIdentify(UUID id) throws IOException {
+    Socket socket = openClientConnection();
+    socket.getOutputStream().write(Uuids.toBytes(id).array());
+    socket.getOutputStream().flush();
+    return socket;
+  }
+
+  /**
+   * Creates an {@code OpenedSocket} wrapped for the given socket. This needs to be done on a
+   * separate thread to prevent some dumb stuff with {@code OpenedSocket}'s initialization of {@code
+   * ObjectInput/OutputStream}s that only happens when two {@code OpenedSocket}s connected to each
+   * other are being created on the same thread. The two ends won't even be in the same process,
+   * much less the same thread, in real use.
+   */
+  private Future<OpenedSocket> createOpenedSocket(Socket socket) {
+    return executor.submit(
+        new Callable<OpenedSocket>() {
+          @Override
+          public OpenedSocket call() throws IOException {
+            return OpenedSocket.fromSocket(socket);
+          }
+        });
   }
 
   private void assertEndsConnected(OpenedSocket clientSocket, OpenedSocket serverSocket)

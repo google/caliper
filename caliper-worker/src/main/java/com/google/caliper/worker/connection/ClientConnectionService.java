@@ -19,11 +19,14 @@ package com.google.caliper.worker.connection;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.util.Uuids;
 import com.google.common.util.concurrent.AbstractIdleService;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.UUID;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -36,14 +39,16 @@ import javax.inject.Singleton;
 @Singleton
 public final class ClientConnectionService extends AbstractIdleService {
 
+  private final UUID id;
   private final InetSocketAddress clientAddress;
 
   private volatile SocketChannel channel;
-  private volatile OpenedSocket.Writer writer;
   private volatile OpenedSocket.Reader reader;
+  private volatile OpenedSocket.Writer writer;
 
   @Inject
-  ClientConnectionService(InetSocketAddress clientAddress) {
+  ClientConnectionService(UUID id, InetSocketAddress clientAddress) {
+    this.id = id;
     this.clientAddress = clientAddress;
   }
 
@@ -51,10 +56,18 @@ public final class ClientConnectionService extends AbstractIdleService {
   protected void startUp() throws IOException {
     channel = SocketChannel.open();
     channel.connect(clientAddress);
+    sendId();
 
     OpenedSocket openedSocket = OpenedSocket.fromSocket(channel);
     writer = openedSocket.writer();
     reader = openedSocket.reader();
+  }
+
+  private void sendId() throws IOException {
+    ByteBuffer buf = Uuids.toBytes(id);
+    while (buf.hasRemaining()) {
+      channel.write(buf);
+    }
   }
 
   @Override

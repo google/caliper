@@ -15,22 +15,30 @@
 package com.google.caliper.runner.server;
 
 import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.google.caliper.bridge.OpenedSocket;
-import com.google.caliper.bridge.StartupAnnounceMessage;
+import com.google.caliper.util.Uuids;
+import com.google.common.base.Function;
 import com.google.common.base.Supplier;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.SettableFuture;
+import java.io.EOFException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -48,8 +56,7 @@ import javax.inject.Singleton;
  *
  * <ol>
  *   <li>It adapts {@link ServerSocket#accept()} to a {@link ListenableFuture} of an opened socket.
- *   <li>It demultiplexes incoming connections based on a {@link StartupAnnounceMessage} that is
- *       sent over the socket.
+ *   <li>It demultiplexes incoming connections based on a UUID that is sent over the socket.
  * </ol>
  *
  * <p>The {@linkplain State states} of this service are as follows:
@@ -101,7 +108,7 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
    * removed from this map.
    */
   @GuardedBy("lock")
-  private final Map<UUID, SettableFuture<OpenedSocket>> halfFinishedConnections = Maps.newHashMap();
+  private final Map<UUID, SettableFuture<Socket>> halfFinishedConnections = Maps.newHashMap();
 
   /**
    * Contains the history of connections so we can ensure that each id is only accepted once and
@@ -130,15 +137,32 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
   }
 
   /**
-   * Returns a {@link ListenableFuture} for an open connection corresponding to the given id.
+   * Returns a {@link ListenableFuture} for an {@link OpenedSocket} corresponding to the given id.
    *
-   * <p>N.B. calling this method 'consumes' the connection and as such calling it twice with the
-   * same id will not work, the second future returned will never complete. Similarly calling it
-   * with an id that does not correspond to a worker trying to connect will also fail.
+   * <p>N.B. calling this method 'consumes' the connection and as such calling it or {@link
+   * #getInputStream} twice with the same id will not work; the second future returned will never
+   * complete. Similarly calling it with an id that does not correspond to a worker trying to
+   * connect will also fail.
    */
   public ListenableFuture<OpenedSocket> getConnection(UUID id) {
+    return Futures.transform(getSocket(id), OPENED_SOCKET_FUNCTION, directExecutor());
+  }
+
+  /**
+   * Returns a {@link ListenableFuture} for an {@link InputStream} corresponding to the given id.
+   *
+   * <p>N.B. calling this method 'consumes' the connection and as such calling it or {@link
+   * #getConnection} twice with the same id will not work; the second future returned will never
+   * complete. Similarly calling it with an id that does not correspond to a worker trying to
+   * connect will also fail.
+   */
+  public ListenableFuture<InputStream> getInputStream(UUID id) {
+    return Futures.transform(getSocket(id), INPUT_STREAM_FUNCTION, directExecutor());
+  }
+
+  private ListenableFuture<Socket> getSocket(UUID id) {
     checkState(isRunning(), "You can only get connections from a running service: %s", this);
-    return getConnectionImpl(id, Source.REQUEST);
+    return getSocketImpl(id, Source.REQUEST);
   }
 
   @Override
@@ -156,13 +180,26 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
         // we were closed
         return;
       }
-      OpenedSocket openedSocket = OpenedSocket.fromSocket(socket);
 
-      UUID id = ((StartupAnnounceMessage) openedSocket.reader().read()).trialId();
+      UUID id = getId(socket);
       // N.B. you should not call set with the lock held, to prevent same thread executors from
       // running with the lock.
-      getConnectionImpl(id, Source.ACCEPT).set(openedSocket);
+      getSocketImpl(id, Source.ACCEPT).set(socket);
     }
+  }
+
+  private UUID getId(Socket socket) throws IOException {
+    ReadableByteChannel channel = Channels.newChannel(socket.getInputStream());
+
+    ByteBuffer uuidBuf = ByteBuffer.allocate(Uuids.UUID_BYTES);
+    while (uuidBuf.hasRemaining()) {
+      if (channel.read(uuidBuf) == -1) {
+        throw new EOFException("unexpected EOF while reading socket connection ID");
+      }
+    }
+
+    uuidBuf.flip();
+    return Uuids.fromBytes(uuidBuf);
   }
 
   /**
@@ -171,22 +208,22 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
    * <p>This method has the following properties:
    *
    * <ul>
-   * <li>If the id is present in {@link #connectionState}, this will throw an {@link
-   *     IllegalStateException}.
-   * <li>The id and source are recorded in {@link #connectionState}
-   * <li>If the future is already in {@link #halfFinishedConnections}, it is removed and returned.
-   * <li>If the future is not in {@link #halfFinishedConnections}, a new {@link SettableFuture} is
-   *     added and then returned.
-   *     <p>These features together ensure that each connection can only be accepted once, only
-   *     requested once and once both have happened it will be removed from {@link
-   *     #halfFinishedConnections}.
+   *   <li>If the id is present in {@link #connectionState}, this will throw an {@link
+   *       IllegalStateException}.
+   *   <li>The id and source are recorded in {@link #connectionState}
+   *   <li>If the future is already in {@link #halfFinishedConnections}, it is removed and returned.
+   *   <li>If the future is not in {@link #halfFinishedConnections}, a new {@link SettableFuture} is
+   *       added and then returned.
+   *       <p>These features together ensure that each connection can only be accepted once, only
+   *       requested once and once both have happened it will be removed from {@link
+   *       #halfFinishedConnections}.
    */
-  private SettableFuture<OpenedSocket> getConnectionImpl(UUID id, Source source) {
+  private SettableFuture<Socket> getSocketImpl(UUID id, Source source) {
     lock.lock();
     try {
       checkState(
           connectionState.put(source, id), "Connection for %s has already been %s", id, source);
-      SettableFuture<OpenedSocket> future = halfFinishedConnections.get(id);
+      SettableFuture<Socket> future = halfFinishedConnections.get(id);
       if (future == null) {
         future = SettableFuture.create();
         halfFinishedConnections.put(id, future);
@@ -216,7 +253,7 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
     // notice.
     lock.lock();
     try {
-      for (SettableFuture<OpenedSocket> future : halfFinishedConnections.values()) {
+      for (SettableFuture<Socket> future : halfFinishedConnections.values()) {
         future.setException(new Exception("The socket has been closed"));
       }
       halfFinishedConnections.clear();
@@ -225,4 +262,28 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
       lock.unlock();
     }
   }
+
+  private static final Function<Socket, OpenedSocket> OPENED_SOCKET_FUNCTION =
+      new Function<Socket, OpenedSocket>() {
+        @Override
+        public OpenedSocket apply(Socket socket) {
+          try {
+            return OpenedSocket.fromSocket(socket);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      };
+
+  private static final Function<Socket, InputStream> INPUT_STREAM_FUNCTION =
+      new Function<Socket, InputStream>() {
+        @Override
+        public InputStream apply(Socket socket) {
+          try {
+            return socket.getInputStream();
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        }
+      };
 }
