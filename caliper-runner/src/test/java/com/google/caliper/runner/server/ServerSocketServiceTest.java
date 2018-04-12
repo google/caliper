@@ -170,11 +170,9 @@ public class ServerSocketServiceTest {
   private void assertEndsConnected(OpenedSocket clientSocket, OpenedSocket serverSocket)
       throws IOException {
     serverSocket.writer().write("hello client!");
-    serverSocket.writer().flush(); // necessary to prevent deadlock
     assertEquals("hello client!", clientSocket.reader().read());
 
     clientSocket.writer().write("hello server!");
-    clientSocket.writer().flush(); // ditto
     assertEquals("hello server!", serverSocket.reader().read());
   }
 }
