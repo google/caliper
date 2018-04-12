@@ -273,9 +273,6 @@ public final class Worker extends AbstractService {
     checkState(socketWriter != null, "Attempted to write to the socket before it was opened.");
     try {
       socketWriter.write(message);
-      // We need to flush since this is a back and forth lockstep protocol, buffering can cause
-      // deadlock!
-      socketWriter.flush();
     } catch (IOException e) {
       Closeables.close(socketWriter, true);
       notifyFailed(e);

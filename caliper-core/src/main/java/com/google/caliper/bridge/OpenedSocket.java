@@ -18,7 +18,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.Closeable;
 import java.io.EOFException;
-import java.io.Flushable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -98,20 +97,21 @@ public final class OpenedSocket {
   }
 
   /** Writes objects to the socket. */
-  public static final class Writer implements Closeable, Flushable {
+  public static final class Writer implements Closeable {
     private final ObjectOutputStream output;
 
     Writer(ObjectOutputStream output) {
       this.output = output;
     }
 
-    /** Returns the next object, or {@code null} if we are at EOF. */
-    public void write(Serializable serializable) throws IOException {
-      output.writeObject(serializable);
-    }
-
-    @Override
-    public void flush() throws IOException {
+    /**
+     * Writes the given objects and then flushes to ensure they're fully sent to the other side of
+     * the connection.
+     */
+    public void write(Serializable... objects) throws IOException {
+      for (Serializable object : objects) {
+        output.writeObject(object);
+      }
       output.flush();
     }
 

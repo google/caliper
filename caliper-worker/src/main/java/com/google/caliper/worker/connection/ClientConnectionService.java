@@ -86,10 +86,7 @@ public final class ClientConnectionService extends AbstractIdleService {
   /** Sends the given messages to the client. */
   public void send(Serializable... messages) throws IOException {
     checkState(isRunning(), "send() may only be called when the service is running");
-    for (Serializable message : messages) {
-      writer.write(message);
-    }
-    writer.flush();
+    writer.write(messages);
   }
 
   /** Blocks to receive a message sent by the client. */

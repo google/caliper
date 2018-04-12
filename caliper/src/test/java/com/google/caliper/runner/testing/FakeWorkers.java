@@ -144,11 +144,9 @@ public final class FakeWorkers {
       OpenedSocket.Reader reader = openedSocket.reader();
       OpenedSocket.Writer writer = openedSocket.writer();
       writer.write(new DummyLogMessage("start"));
-      writer.flush();
       Serializable obj;
       while ((obj = reader.read()) != null) {
         writer.write(obj);
-        writer.flush();
       }
       writer.close();
       reader.close();
