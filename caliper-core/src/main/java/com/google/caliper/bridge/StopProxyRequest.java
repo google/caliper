@@ -16,24 +16,7 @@
 
 package com.google.caliper.bridge;
 
-import com.google.auto.value.AutoValue;
 import java.io.Serializable;
-import java.util.UUID;
 
-/** A message sent from a device to the runner to tell it that a VM stopped. */
-@AutoValue
-public abstract class VmStoppedMessage implements Serializable {
-
-  VmStoppedMessage() {}
-
-  /** Creates a new {@link VmStoppedMessage}. */
-  public static VmStoppedMessage create(UUID vmId, int exitCode) {
-    return new AutoValue_VmStoppedMessage(vmId, exitCode);
-  }
-
-  /** Returns the UUID identifying the VM that stopped. */
-  public abstract UUID vmId();
-
-  /** Returns the exit code of the process. */
-  public abstract int exitCode();
-}
+/** Request to send to a runner proxy on a remote device to tell it to stop. */
+public final class StopProxyRequest implements Serializable {}
