@@ -24,7 +24,6 @@ import com.google.common.util.concurrent.AbstractIdleService;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.UUID;
 import javax.inject.Inject;
@@ -54,20 +53,12 @@ public final class ClientConnectionService extends AbstractIdleService {
 
   @Override
   protected void startUp() throws IOException {
-    channel = SocketChannel.open();
-    channel.connect(clientAddress);
-    sendId();
+    channel = SocketChannel.open(clientAddress);
+    Uuids.writeToChannel(id, channel);
 
     OpenedSocket openedSocket = OpenedSocket.fromSocket(channel);
     writer = openedSocket.writer();
     reader = openedSocket.reader();
-  }
-
-  private void sendId() throws IOException {
-    ByteBuffer buf = Uuids.toBytes(id);
-    while (buf.hasRemaining()) {
-      channel.write(buf);
-    }
   }
 
   @Override
