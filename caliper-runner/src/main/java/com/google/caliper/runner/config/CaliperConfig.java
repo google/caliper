@@ -103,15 +103,21 @@ public final class CaliperConfig {
     ImmutableMap<String, String> devices = subgroupMap(properties, "device");
     ImmutableMap<String, String> device = subgroupMap(devices, deviceName);
 
-    String deviceType = device.get("type");
-    if (deviceType == null) {
+    String deviceTypeField = device.get("type");
+    if (deviceTypeField == null) {
       throw new InvalidConfigurationException(
           "Missing configuration field: device." + deviceName + ".type");
     }
 
+    DeviceType deviceType = DeviceType.of(deviceTypeField);
+    if (deviceType.equals(DeviceType.ADB)) {
+      // Ok, technically nothing wrong with the configuration, but this is super-temporary anyway
+      throw new InvalidConfigurationException("adb devices are not supported yet");
+    }
+
     return DeviceConfig.builder()
         .name(deviceName)
-        .type(DeviceType.of(deviceType))
+        .type(deviceType)
         .options(subgroupMap(device, "options"))
         .build();
   }
