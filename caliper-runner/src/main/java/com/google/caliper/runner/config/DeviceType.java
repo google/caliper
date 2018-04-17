@@ -21,13 +21,18 @@ import com.google.common.base.Joiner;
 /** Enumeration of types of devices supported by Caliper. */
 public enum DeviceType {
   /** The device on which Caliper itself is running. */
-  LOCAL;
+  LOCAL,
+
+  /** An Android device/emulator connected via ADB. */
+  ADB;
 
   /** Gets the {@link DeviceType} for the given {@code type} field string. */
   public static DeviceType of(String type) {
     switch (type) {
       case "local":
         return LOCAL;
+      case "adb":
+        return ADB;
       default:
         throw new InvalidConfigurationException(
             String.format(
