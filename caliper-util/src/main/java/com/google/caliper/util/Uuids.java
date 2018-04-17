@@ -18,14 +18,18 @@ package com.google.caliper.util;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.io.EOFException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.UUID;
 
 /** Utility for converting {@code UUID}s to bytes and back. */
 public final class Uuids {
 
   /** The number of bytes in a {@code UUID}. */
-  public static final int UUID_BYTES = 16;
+  private static final int UUID_BYTES = 16;
 
   private Uuids() {}
 
@@ -38,9 +42,29 @@ public final class Uuids {
     return buf;
   }
 
+  /** Writes the bytes of the given UUID to the given channel. */
+  public static void writeToChannel(UUID uuid, WritableByteChannel channel) throws IOException {
+    ByteBuffer buf = toBytes(uuid);
+    while (buf.hasRemaining()) {
+      channel.write(buf);
+    }
+  }
+
   /** Returns a UUID created from the first 16 bytes of the given buffer. */
   public static UUID fromBytes(ByteBuffer buf) {
     checkArgument(buf.remaining() >= UUID_BYTES);
     return new UUID(buf.getLong(), buf.getLong());
+  }
+
+  /** Reads the next 16 bytes from the given channel as a UUID. */
+  public static UUID readFromChannel(ReadableByteChannel channel) throws IOException {
+    ByteBuffer buf = ByteBuffer.allocate(UUID_BYTES);
+    while (buf.hasRemaining()) {
+      if (channel.read(buf) == -1) {
+        throw new EOFException("unexpected EOF while reading UUID");
+      }
+    }
+    buf.flip();
+    return fromBytes(buf);
   }
 }

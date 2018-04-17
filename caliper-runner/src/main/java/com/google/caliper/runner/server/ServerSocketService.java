@@ -30,15 +30,12 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.SettableFuture;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
-import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
-import java.nio.channels.ReadableByteChannel;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -189,17 +186,7 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
   }
 
   private UUID getId(Socket socket) throws IOException {
-    ReadableByteChannel channel = Channels.newChannel(socket.getInputStream());
-
-    ByteBuffer uuidBuf = ByteBuffer.allocate(Uuids.UUID_BYTES);
-    while (uuidBuf.hasRemaining()) {
-      if (channel.read(uuidBuf) == -1) {
-        throw new EOFException("unexpected EOF while reading socket connection ID");
-      }
-    }
-
-    uuidBuf.flip();
-    return Uuids.fromBytes(uuidBuf);
+    return Uuids.readFromChannel(Channels.newChannel(socket.getInputStream()));
   }
 
   /**
