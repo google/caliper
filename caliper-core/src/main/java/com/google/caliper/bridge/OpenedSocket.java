@@ -78,7 +78,7 @@ public final class OpenedSocket {
     }
 
     /** Returns the next object, or {@code null} if we are at EOF. */
-    public Serializable read() throws IOException {
+    public synchronized Serializable read() throws IOException {
       try {
         return (Serializable) checkNotNull(input.readObject());
       } catch (EOFException eof) {
@@ -108,7 +108,7 @@ public final class OpenedSocket {
      * Writes the given objects and then flushes to ensure they're fully sent to the other side of
      * the connection.
      */
-    public void write(Serializable... objects) throws IOException {
+    public synchronized void write(Serializable... objects) throws IOException {
       for (Serializable object : objects) {
         output.writeObject(object);
       }
