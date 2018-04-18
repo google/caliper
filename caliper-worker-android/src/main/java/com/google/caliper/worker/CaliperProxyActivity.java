@@ -98,7 +98,7 @@ public final class CaliperProxyActivity extends Activity {
     // TODO(dpb): Maybe some of this could go in a Dagger module (but we probably don't want
     // to be creating files as a side effect in @Provides methods)
     InetSocketAddress runnerAddress =
-        new InetSocketAddress(InetAddress.getLoopbackAddress(), getRunnerPort());
+        new InetSocketAddress(InetAddress.getLocalHost(), getRunnerPort());
     String classpath = AndroidClasspath.getClasspath(getApplicationInfo());
 
     String androidDataDir = System.getProperty("java.io.tmpdir") + "/data";

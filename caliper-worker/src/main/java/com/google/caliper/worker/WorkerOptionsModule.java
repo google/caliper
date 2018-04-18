@@ -25,6 +25,7 @@ import com.google.caliper.util.Util;
 import dagger.Module;
 import dagger.Provides;
 import dagger.Reusable;
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
@@ -40,11 +41,11 @@ import java.util.UUID;
 final class WorkerOptionsModule {
 
   /** Parses the given command line args to a {@link WorkerOptionsModule}. */
-  public static WorkerOptionsModule fromArgs(String[] args) {
+  public static WorkerOptionsModule fromArgs(String[] args) throws IOException {
     Iterator<String> iter = Arrays.asList(args).iterator();
     return new WorkerOptionsModule(
         UUID.fromString(iter.next()),
-        new InetSocketAddress(InetAddress.getLoopbackAddress(), Integer.parseInt(iter.next())),
+        new InetSocketAddress(InetAddress.getLocalHost(), Integer.parseInt(iter.next())),
         iter.next());
   }
 
