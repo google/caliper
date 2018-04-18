@@ -31,6 +31,7 @@ import com.google.caliper.runner.worker.WorkerOutputModule;
 import com.google.caliper.runner.worker.targetinfo.TargetInfoComponent;
 import com.google.caliper.runner.worker.targetinfo.TargetInfoFactory;
 import com.google.caliper.runner.worker.targetinfo.TargetInfoFromWorkerFactory;
+import com.google.caliper.runner.worker.trial.TrialExecutor;
 import com.google.caliper.util.OutputModule;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
@@ -38,6 +39,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.inject.Singleton;
 import org.joda.time.Instant;
@@ -81,7 +83,17 @@ abstract class CaliperRunnerModule {
 
   @Provides
   @Singleton
-  static ListeningExecutorService provideExecutorService(CaliperConfig config) {
+  static ListeningExecutorService provideListeningExecutorService() {
+    return MoreExecutors.listeningDecorator(Executors.newCachedThreadPool());
+  }
+
+  @Binds
+  abstract ExecutorService bindExecutorService(ListeningExecutorService executor);
+
+  @Provides
+  @Singleton
+  @TrialExecutor
+  static ListeningExecutorService provideTrialExecutorService(CaliperConfig config) {
     int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
     return MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
   }
