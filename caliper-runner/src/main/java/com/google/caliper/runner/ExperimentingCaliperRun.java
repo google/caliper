@@ -36,6 +36,7 @@ import com.google.caliper.runner.worker.WorkerRunner;
 import com.google.caliper.runner.worker.dryrun.DryRunComponent;
 import com.google.caliper.runner.worker.trial.TrialComponent;
 import com.google.caliper.runner.worker.trial.TrialComponent.TrialRunner;
+import com.google.caliper.runner.worker.trial.TrialExecutor;
 import com.google.caliper.runner.worker.trial.TrialFailureException;
 import com.google.caliper.runner.worker.trial.TrialResult;
 import com.google.caliper.util.Stdout;
@@ -95,7 +96,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   private final ImmutableSet<Instrument> instruments;
   private final ImmutableSet<ResultProcessor> resultProcessors;
   private final ExperimentSelector selector;
-  private final ListeningExecutorService executor;
+  private final ListeningExecutorService trialExecutor;
   private final Provider<DryRunComponent.Builder> dryRunComponentBuilder;
   private final TrialRunner trialRunner;
 
@@ -108,7 +109,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
       ImmutableSet<Instrument> instruments,
       ImmutableSet<ResultProcessor> resultProcessors,
       ExperimentSelector selector,
-      ListeningExecutorService executor,
+      @TrialExecutor ListeningExecutorService trialExecutor,
       Provider<DryRunComponent.Builder> dryRunComponentBuilder,
       TrialComponent.Builder trialComponentBuilder) {
     this.options = options;
@@ -117,9 +118,9 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     this.instruments = instruments;
     this.resultProcessors = resultProcessors;
     this.selector = selector;
-    this.executor = executor;
+    this.trialExecutor = trialExecutor;
     this.dryRunComponentBuilder = dryRunComponentBuilder;
-    this.trialRunner = trialComponentBuilder.trialRunner(executor);
+    this.trialRunner = trialComponentBuilder.trialRunner(trialExecutor);
   }
 
   @Override
@@ -198,7 +199,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       }
     } finally {
-      executor.shutdown();
+      trialExecutor.shutdown();
       output.close();
     }
 
@@ -267,7 +268,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
   /**
    * Schedule all the trials.
    *
-   * <p>This method arranges all the trials to run according to their scheduling criteria. The
+   * <p>This method arranges all the trials to run according to their scheduling criteria. The trial
    * executor instance is responsible for enforcing max parallelism.
    */
   private List<ListenableFuture<TrialResult>> scheduleTrials(

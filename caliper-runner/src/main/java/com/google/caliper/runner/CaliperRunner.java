@@ -33,6 +33,7 @@ import com.google.common.util.concurrent.ServiceManager;
 import dagger.Lazy;
 import java.io.PrintWriter;
 import java.util.Map.Entry;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import javax.inject.Inject;
@@ -64,6 +65,8 @@ public final class CaliperRunner {
 
   private final Provider<CaliperRunComponent.Builder> runComponentBuilder;
 
+  private final ExecutorService executor;
+
   @Inject
   CaliperRunner(
       Lazy<CaliperOptions> options,
@@ -72,7 +75,8 @@ public final class CaliperRunner {
       Lazy<TargetInfoFactory> targetInfoFactory,
       @Stdout PrintWriter stdout,
       @Stderr PrintWriter stderr,
-      Provider<CaliperRunComponent.Builder> runComponentBuilder) {
+      Provider<CaliperRunComponent.Builder> runComponentBuilder,
+      ExecutorService executor) {
     this.options = options;
     this.config = config;
     this.serviceManager = serviceManager;
@@ -80,6 +84,7 @@ public final class CaliperRunner {
     this.stdout = stdout;
     this.stderr = stderr;
     this.runComponentBuilder = runComponentBuilder;
+    this.executor = executor;
   }
 
   /** Runs Caliper, handles any exceptions and returns an exit code. */
@@ -139,8 +144,7 @@ public final class CaliperRunner {
               new ServiceManager.Listener() {
                 @Override
                 public void failure(Service service) {
-                  stderr.println(
-                      "Service " + service + " failed to start with the following exception:");
+                  stderr.println("Service " + service + " failed with the following exception:");
                   service.failureCause().printStackTrace(stderr);
                 }
               });
@@ -159,6 +163,7 @@ public final class CaliperRunner {
         }
       }
     } finally {
+      executor.shutdown();
       // courtesy flush
       stderr.flush();
       stdout.flush();
