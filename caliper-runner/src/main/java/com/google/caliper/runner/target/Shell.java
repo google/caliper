@@ -39,7 +39,7 @@ import javax.inject.Inject;
 final class Shell {
 
   private static final Joiner COMMAND_JOINER = Joiner.on(' ');
-  private static final Splitter COMMAND_SPLITTER = Splitter.on(' ');
+  private static final Splitter COMMAND_SPLITTER = Splitter.on(' ').omitEmptyStrings();
 
   private final ExecutorService executor;
   private final ImmutableMap<String, String> env;

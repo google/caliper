@@ -31,7 +31,6 @@ import com.google.common.util.concurrent.AbstractExecutionThreadService;
 import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.InterruptedException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -92,6 +91,8 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
         classpathFuture.set(((RemoteClasspathMessage) message).classpath());
       }
     }
+
+    writer.write(new StopProxyRequest());
   }
 
   /** Returns the classpath to use for processes on the remote device. */
@@ -118,15 +119,7 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
 
   @Override
   public void shutDown() throws IOException {
-    try {
-      if (writer != null) {
-        writer.write(new StopProxyRequest());
-      }
-    } catch (Throwable e) {
-      throw closer.rethrow(e);
-    } finally {
-      closer.close();
-    }
+    closer.close();
   }
 
   /** Proxy for a VM process running on the remote device. */

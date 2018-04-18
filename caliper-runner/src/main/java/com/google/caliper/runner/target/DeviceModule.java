@@ -24,7 +24,7 @@ import dagger.Binds;
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
-import javax.inject.Singleton;
+import javax.inject.Provider;
 
 /** Module for providing the {@link Device}. */
 @Module
@@ -39,10 +39,19 @@ public abstract class DeviceModule {
   @Binds
   abstract ShutdownHookRegistrar bindShutdownHookRegistrar(RuntimeShutdownHookRegistrar registrar);
 
-  // only local device supported at the moment
-  @Binds
-  @Singleton
-  abstract Device bindLocalDevice(LocalDevice localDevice);
+  @Provides
+  static Device provideDevice(
+      DeviceConfig config,
+      Provider<LocalDevice> localDeviceProvider,
+      Provider<AdbDevice> adbDeviceProvider) {
+    switch (config.type()) {
+      case LOCAL:
+        return localDeviceProvider.get();
+      case ADB:
+        return adbDeviceProvider.get();
+    }
+    throw new AssertionError(config);
+  }
 
   @Binds
   @IntoSet

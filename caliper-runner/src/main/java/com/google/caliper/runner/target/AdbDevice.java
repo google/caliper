@@ -28,7 +28,7 @@ import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
 import com.google.caliper.runner.options.CaliperOptions;
-import com.google.caliper.runner.server.LocalPort;
+import com.google.caliper.runner.server.ServerSocketService;
 import com.google.caliper.runner.target.Shell.Result;
 import com.google.caliper.runner.target.VmProcess.Logger;
 import com.google.caliper.util.InvalidCommandException;
@@ -41,12 +41,14 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * An ADB-connected Android device or emulator.
  *
  * @author Colin Decker
  */
+@Singleton
 final class AdbDevice extends Device {
 
   /** L; required for adb reverse. */
@@ -62,9 +64,11 @@ final class AdbDevice extends Device {
   private Shell shell;
   private final String adb = "adb"; // TODO(cgdecker): Make this configurable?
 
-  private final int port;
+  private final ServerSocketService server;
   private final ProxyConnectionService proxyConnection;
   private String remoteClasspath;
+
+  private int port;
 
   @Inject
   AdbDevice(
@@ -72,13 +76,13 @@ final class AdbDevice extends Device {
       ShutdownHookRegistrar shutdownHookRegistrar,
       CaliperOptions caliperOptions,
       Shell shell,
-      ProxyConnectionService proxyConnection,
-      @LocalPort int port) {
+      ServerSocketService server,
+      ProxyConnectionService proxyConnection) {
     super(config, shutdownHookRegistrar);
     this.caliperOptions = caliperOptions;
     this.shell = shell;
+    this.server = server;
     this.proxyConnection = proxyConnection;
-    this.port = port;
   }
 
   @Override
@@ -94,9 +98,14 @@ final class AdbDevice extends Device {
         .stdout();
 
     selectDevice(deviceSerialNumber);
+    install(getWorkerApk());
+
+    // This method waits for the server to be running. We need to get it here rather than injecting
+    // the port since both the AdbDevice and the ServerSocketService need to be started up by the
+    // same ServiceManager and we'd deadlock trying to get the port if we tried to inject it.
+    this.port = server.getPort();
     setReversePortForwarding();
 
-    install(getWorkerApk());
     startActivity(
         "com.google.caliper/.worker.CaliperProxyActivity",
         ImmutableMap.of(
@@ -104,6 +113,7 @@ final class AdbDevice extends Device {
             "com.google.caliper.proxy_id", proxyConnection.proxyId().toString()));
 
     proxyConnection.startAsync().awaitRunning();
+
     this.remoteClasspath = proxyConnection.getRemoteClasspath();
   }
 

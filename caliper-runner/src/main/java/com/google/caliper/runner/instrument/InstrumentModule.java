@@ -20,6 +20,7 @@ import com.google.caliper.core.BenchmarkClassModel;
 import com.google.caliper.core.BenchmarkClassModel.MethodModel;
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.core.InvalidInstrumentException;
+import com.google.caliper.runner.RunScoped;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InstrumentConfig;
 import com.google.caliper.runner.config.VmType;
@@ -73,6 +74,7 @@ public abstract class InstrumentModule {
     return new RuntimeInstrument(nanoTimeGranularity);
   }
 
+  @RunScoped
   @Provides
   static ImmutableSet<Instrument> provideInstruments(
       CaliperOptions options,

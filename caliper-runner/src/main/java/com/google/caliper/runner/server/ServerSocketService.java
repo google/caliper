@@ -127,7 +127,8 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
   @Inject
   ServerSocketService() {}
 
-  int getPort() {
+  /** Gets the port this server is using. */
+  public int getPort() {
     awaitRunning();
     checkState(serverSocket != null, "Socket has not been opened yet");
     return serverSocket.getLocalPort();
