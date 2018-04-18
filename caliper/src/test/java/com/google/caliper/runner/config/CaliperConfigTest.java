@@ -63,11 +63,11 @@ public class CaliperConfigTest {
 
   @Test
   public void testGetDeviceConfig_nonLocalDevice() {
-    try {
-      DEVICE_TEST_CONFIG.getDeviceConfig("android");
-      fail();
-    } catch (InvalidConfigurationException expected) {
-    }
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("android");
+    assertThat(deviceConfig.name()).isEqualTo("android");
+    assertThat(deviceConfig.type()).isEqualTo(DeviceType.ADB);
+    assertThat(deviceConfig.options()).containsEntry("defaultVmType", "android");
+    assertThat(deviceConfig.options()).doesNotContainKey("vmBaseDirectory");
   }
 
   @Test
