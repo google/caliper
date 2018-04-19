@@ -41,15 +41,37 @@ public abstract class CaliperConfigModule {
   @Singleton
   static CaliperConfig caliperConfig(
       CaliperOptions caliperOptions, LoggingConfigLoader loggingConfigLoader) {
-    // TODO(kevinb): deal with migration issue from old-style .caliperrc
     loggingConfigLoader.loadLoggingConfig();
 
-    ImmutableMap<String, String> defaults = loadDefaults();
-    ImmutableMap<String, String> configProperties = caliperOptions.configProperties();
+    // First get the non-device-specific global config (global-config.properties), user config
+    // (~/.caliper/config.properties or whatever the user specified on the command line) and
+    // command line config (supplied with "-Cproperty.key=value").
+    ImmutableMap<String, String> globalConfig = loadGlobalConfig();
+    ImmutableMap<String, String> userConfig = getUserConfig(caliperOptions);
+    ImmutableMap<String, String> commandLineConfig = caliperOptions.configProperties();
+
+    // Create a CaliperConfig using just those options. They should contain all the information we
+    // need to get get the type of device this run is targeting.
+    CaliperConfig config = merge(globalConfig, userConfig, commandLineConfig);
+    DeviceType deviceType = config.getDeviceConfig(caliperOptions.deviceName()).type();
+
+    // Get the global config for the device type (e.g. "global-config-adb.properties").
+    ImmutableMap<String, String> globalDeviceTypeConfig = loadGlobalConfig("-" + deviceType);
+
+    // Return the CaliperConfig using that global config to override the base global config.
+    // TODO(cgdecker): It's possible there should be be device-type-specific user configs as well,
+    // particularly since the default user config sets -Xms3g -Xmx3g, which really isn't going to
+    // work for adb devices in general. But it's not clear what we should do in the case where the
+    // user supplied a config file on the command line rather than using the default. Assume that
+    // config file has everything they want specified?
+    return merge(globalConfig, globalDeviceTypeConfig, userConfig, commandLineConfig);
+  }
+
+  private static ImmutableMap<String, String> getUserConfig(CaliperOptions caliperOptions) {
     File configFile = caliperOptions.caliperConfigFile();
     if (configFile.exists()) {
       try {
-        return loadCaliperConfig(Files.asByteSource(configFile), configProperties, defaults);
+        return Util.loadProperties(Files.asByteSource(configFile));
       } catch (IOException keepGoing) {
       }
     }
@@ -58,37 +80,33 @@ public abstract class CaliperConfigModule {
     tryCopyIfNeeded(supplier, configFile);
 
     try {
-      return loadCaliperConfig(supplier, configProperties, defaults);
+      return Util.loadProperties(supplier);
     } catch (IOException e) {
-      throw new AssertionError(e); // class path must be messed up
+      throw new AssertionError(e);
     }
   }
 
-  private static ImmutableMap<String, String> loadDefaults() {
+  private static CaliperConfig merge(ImmutableMap<String, String>... maps) {
+    Map<String, String> result = Maps.newHashMap();
+    for (Map<String, String> map : maps) {
+      result.putAll(map);
+    }
+    Iterables.removeIf(result.values(), Predicates.equalTo(""));
+    return new CaliperConfig(ImmutableMap.copyOf(result));
+  }
+
+  private static ImmutableMap<String, String> loadGlobalConfig() {
+    return loadGlobalConfig("");
+  }
+
+  private static ImmutableMap<String, String> loadGlobalConfig(String suffix) {
     try {
       return Util.loadProperties(
-          Util.resourceSupplier(CaliperConfig.class, "global-config.properties"));
+          Util.resourceSupplier(
+              CaliperConfig.class, "global-config" + suffix + ".properties"));
     } catch (IOException impossible) {
       throw new AssertionError(impossible);
     }
-  }
-
-  private static CaliperConfig loadCaliperConfig(
-      ByteSource source,
-      ImmutableMap<String, String> configProperties,
-      ImmutableMap<String, String> defaults)
-      throws IOException {
-    return new CaliperConfig(
-        mergeProperties(configProperties, Util.loadProperties(source), defaults));
-  }
-
-  private static ImmutableMap<String, String> mergeProperties(
-      Map<String, String> commandLine, Map<String, String> user, Map<String, String> defaults) {
-    Map<String, String> map = Maps.newHashMap(defaults);
-    map.putAll(user); // overwrite and augment
-    map.putAll(commandLine); // overwrite and augment
-    Iterables.removeIf(map.values(), Predicates.equalTo(""));
-    return ImmutableMap.copyOf(map);
   }
 
   private static void tryCopyIfNeeded(ByteSource supplier, File rcFile) {

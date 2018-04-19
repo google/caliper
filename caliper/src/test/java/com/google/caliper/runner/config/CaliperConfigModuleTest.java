@@ -59,6 +59,7 @@ public class CaliperConfigModuleTest {
 
   @Test
   public void loadOrCreate_configFileExistsNoOverride() throws Exception {
+    when(optionsMock.deviceName()).thenReturn("local");
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.<String, String>of());
     CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
@@ -67,6 +68,7 @@ public class CaliperConfigModuleTest {
 
   @Test
   public void loadOrCreate_configFileExistsWithOverride() throws Exception {
+    when(optionsMock.deviceName()).thenReturn("local");
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.of("some.property", "tacos"));
     CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
