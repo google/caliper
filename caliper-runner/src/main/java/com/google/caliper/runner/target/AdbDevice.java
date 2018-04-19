@@ -23,6 +23,7 @@ import static com.google.common.base.StandardSystemProperty.PATH_SEPARATOR;
 import static com.google.common.base.Strings.nullToEmpty;
 
 import com.google.caliper.bridge.StartVmRequest;
+import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.DeviceConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.VmConfig;
@@ -60,6 +61,7 @@ final class AdbDevice extends Device {
   private static final String CALIPER_PACKAGE_NAME = "com.google.caliper";
 
   private final CaliperOptions caliperOptions;
+  private final CaliperConfig caliperConfig;
 
   private Shell shell;
   private final String adb = "adb"; // TODO(cgdecker): Make this configurable?
@@ -75,11 +77,13 @@ final class AdbDevice extends Device {
       DeviceConfig config,
       ShutdownHookRegistrar shutdownHookRegistrar,
       CaliperOptions caliperOptions,
+      CaliperConfig caliperConfig,
       Shell shell,
       ServerSocketService server,
       ProxyConnectionService proxyConnection) {
     super(config, shutdownHookRegistrar);
     this.caliperOptions = caliperOptions;
+    this.caliperConfig = caliperConfig;
     this.shell = shell;
     this.server = server;
     this.proxyConnection = proxyConnection;
@@ -239,7 +243,12 @@ final class AdbDevice extends Device {
 
   @Override
   public VmConfig defaultVmConfig() {
-    return VmConfig.builder().name("default").type(ANDROID).executable("dalvikvm").build();
+    return VmConfig.builder()
+        .name("default")
+        .type(ANDROID)
+        .executable("dalvikvm")
+        .addAllArgs(caliperConfig.getVmArgs())
+        .build();
   }
 
   @Override
