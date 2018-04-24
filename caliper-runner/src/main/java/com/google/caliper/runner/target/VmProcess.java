@@ -59,7 +59,6 @@ public abstract class VmProcess {
   /** Attempts to kill the process. */
   public final void kill() {
     doKill();
-    stopped();
   }
 
   /** Attempts to kill the process. */

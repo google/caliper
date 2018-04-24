@@ -17,7 +17,6 @@
 package com.google.caliper.runner.target;
 
 import static com.google.common.truth.Truth.assertThat;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -123,17 +122,6 @@ public class LocalDeviceTest {
     assertEquals(
         "worker-shutdown-hook-" + spec.id(), Iterables.getOnlyElement(registrar.hooks).getName());
     worker.awaitExit();
-    assertTrue(registrar.hooks.isEmpty());
-  }
-
-  @Test
-  public void shutdownHook_kill() throws Exception {
-    WorkerSpec spec =
-        FakeWorkerSpec.builder(FakeWorkers.Sleeper.class)
-            .setArgs(Long.toString(MINUTES.toMillis(1)))
-            .build();
-    VmProcess worker = device.startVm(spec, new NullLogger());
-    worker.kill();
     assertTrue(registrar.hooks.isEmpty());
   }
 
