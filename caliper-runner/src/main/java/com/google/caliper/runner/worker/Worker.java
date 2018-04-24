@@ -169,9 +169,20 @@ public final class Worker extends AbstractService {
           void cleanup() {
             streamExecutor.shutdown();
             process.kill();
+
+            boolean interrupt = false;
+            try {
+              process.awaitExit();
+            } catch (InterruptedException e) {
+              interrupt = true;
+            }
             try {
               streamExecutor.awaitTermination(10, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
+              interrupt = true;
+            }
+
+            if (interrupt) {
               Thread.currentThread().interrupt();
             }
             streamExecutor.shutdownNow();
