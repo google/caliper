@@ -208,7 +208,7 @@ public final class ParsedOptions implements CaliperOptions {
   // Device
   // --------------------------------------------------------------------------
 
-  private String deviceName = "local";
+  private String deviceName = "default";
 
   @Option({"-e", "--device"})
   private void setDeviceName(String deviceName) {

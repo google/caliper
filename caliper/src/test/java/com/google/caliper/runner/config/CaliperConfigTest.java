@@ -22,6 +22,8 @@ import static org.junit.Assert.fail;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.model.Trial;
+import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.options.ParsedOptions;
 import com.google.caliper.runner.target.Device;
 import com.google.caliper.runner.target.LocalDevice;
 import com.google.common.collect.ImmutableList;
@@ -47,15 +49,34 @@ public class CaliperConfigTest {
   private static final CaliperConfig DEVICE_TEST_CONFIG =
       new CaliperConfig(
           ImmutableMap.of(
-              "device.default.type", "local",
-              "device.default.options.defaultVmType", "jvm",
+              "device.local.type", "local",
+              "device.local.options.defaultVmType", "jvm",
               "device.android.type", "adb",
               "device.android.options.defaultVmType", "android"));
 
+  private static CaliperOptions options(String... args) {
+    return ParsedOptions.from(args, false);
+  }
+
+  @Test
+  public void getDefaultDeviceConfig_noAndroidWorkerClasspath() {
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig(options());
+    assertThat(deviceConfig.name()).isEqualTo("local");
+    assertThat(deviceConfig.type()).isEqualTo(DeviceType.LOCAL);
+  }
+
+  @Test
+  public void getDefaultDeviceConfig_androidWorkerClasspath() {
+    CaliperOptions options = options("--worker-classpath-android=foo");
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig(options);
+    assertThat(deviceConfig.name()).isEqualTo("android");
+    assertThat(deviceConfig.type()).isEqualTo(DeviceType.ADB);
+  }
+
   @Test
   public void getDeviceConfig() {
-    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("default");
-    assertThat(deviceConfig.name()).isEqualTo("default");
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig(options("-e", "local"));
+    assertThat(deviceConfig.name()).isEqualTo("local");
     assertThat(deviceConfig.type()).isEqualTo(DeviceType.LOCAL);
     assertThat(deviceConfig.options()).containsEntry("defaultVmType", "jvm");
     assertThat(deviceConfig.options()).doesNotContainKey("vmBaseDirectory");
@@ -63,7 +84,7 @@ public class CaliperConfigTest {
 
   @Test
   public void testGetDeviceConfig_nonLocalDevice() {
-    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig("android");
+    DeviceConfig deviceConfig = DEVICE_TEST_CONFIG.getDeviceConfig(options("-e", "android"));
     assertThat(deviceConfig.name()).isEqualTo("android");
     assertThat(deviceConfig.type()).isEqualTo(DeviceType.ADB);
     assertThat(deviceConfig.options()).containsEntry("defaultVmType", "android");
@@ -78,7 +99,7 @@ public class CaliperConfigTest {
                 "device.local.typo", "local",
                 "device.local.options.defaultVmType", "jvm"));
     try {
-      config.getDeviceConfig("local");
+      config.getDeviceConfig(options("-e", "local"));
       fail();
     } catch (InvalidConfigurationException expected) {
     }

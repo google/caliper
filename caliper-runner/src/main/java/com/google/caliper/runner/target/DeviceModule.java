@@ -33,7 +33,7 @@ public abstract class DeviceModule {
 
   @Provides
   static DeviceConfig provideDeviceConfig(CaliperOptions options, CaliperConfig config) {
-    return config.getDeviceConfig(options.deviceName());
+    return config.getDeviceConfig(options);
   }
 
   @Binds

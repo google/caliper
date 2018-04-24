@@ -22,6 +22,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkState;
 
 import com.google.caliper.api.ResultProcessor;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Util;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.MoreObjects;
@@ -99,6 +100,37 @@ public final class CaliperConfig {
     return properties;
   }
 
+  /**
+   * Gets the device configuration for the device specified on the command line, if any. If no
+   * device was specified on the command line, the special name "default" will be present in the
+   * options, and we'll choose a default device based on whether or not --worker-classpath-android
+   * was provided on the command line.
+   */
+  public DeviceConfig getDeviceConfig(CaliperOptions options) {
+    String deviceName = options.deviceName();
+    ImmutableMap<String, String> devices = subgroupMap(properties, "device");
+
+    if (deviceName.equals("default")) {
+      if (!subgroupMap(devices, deviceName).isEmpty()) {
+        // User had explicit configuration for a device named "default"
+        throw new InvalidConfigurationException(
+            "device name 'default' is reserved; please use a different device name");
+      }
+
+      boolean hasAndroidClasspath = options.workerClasspath("android").isPresent();
+      boolean hasJvmClasspath = options.workerClasspath("jvm").isPresent();
+
+      if (hasAndroidClasspath && !hasJvmClasspath) {
+        return getDeviceConfig("android");
+      } else {
+        return getDeviceConfig("local");
+      }
+    } else {
+      return getDeviceConfig(deviceName);
+    }
+  }
+
+  /** Returns the configuration for the device with the given name. */
   public DeviceConfig getDeviceConfig(String deviceName) {
     ImmutableMap<String, String> devices = subgroupMap(properties, "device");
     ImmutableMap<String, String> device = subgroupMap(devices, deviceName);
