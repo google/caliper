@@ -53,7 +53,7 @@ public abstract class CaliperConfigModule {
     // Create a CaliperConfig using just those options. They should contain all the information we
     // need to get get the type of device this run is targeting.
     CaliperConfig config = merge(globalConfig, userConfig, commandLineConfig);
-    DeviceType deviceType = config.getDeviceConfig(caliperOptions.deviceName()).type();
+    DeviceType deviceType = config.getDeviceConfig(caliperOptions).type();
 
     // Get the global config for the device type (e.g. "global-config-adb.properties").
     ImmutableMap<String, String> globalDeviceTypeConfig = loadGlobalConfig("-" + deviceType);
