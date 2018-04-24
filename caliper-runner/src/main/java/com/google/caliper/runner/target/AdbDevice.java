@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.StandardSystemProperty.PATH_SEPARATOR;
 import static com.google.common.base.Strings.nullToEmpty;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.caliper.bridge.StartVmRequest;
 import com.google.caliper.runner.config.CaliperConfig;
@@ -41,6 +42,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeoutException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -116,7 +118,14 @@ final class AdbDevice extends Device {
             "com.google.caliper.runner_port", "" + port,
             "com.google.caliper.proxy_id", proxyConnection.proxyId().toString()));
 
-    proxyConnection.startAsync().awaitRunning();
+    try {
+      proxyConnection.startAsync().awaitRunning(30, SECONDS);
+    } catch (TimeoutException e) {
+      throw new DeviceException(
+          "Timed out waiting for a connection from the Caliper proxy app on the device. It may "
+              + "have failed to start.",
+          e);
+    }
 
     this.remoteClasspath = proxyConnection.getRemoteClasspath();
   }
