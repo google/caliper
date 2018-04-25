@@ -101,7 +101,7 @@ final class CaliperProxy extends AbstractExecutionThreadService {
 
     while (isRunning()) {
       final Object request = clientConnection.receive();
-      if (request instanceof StopProxyRequest) {
+      if (request == null || request instanceof StopProxyRequest) {
         return;
       }
 

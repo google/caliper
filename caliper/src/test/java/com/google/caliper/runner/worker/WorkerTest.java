@@ -199,7 +199,7 @@ public class WorkerTest {
 
   /** Wait for the worker to reach a terminal state without calling stop. */
   private void awaitStopped() throws InterruptedException {
-    assertTrue(terminalLatch.await(2, SECONDS));
+    assertTrue(terminalLatch.await(10, SECONDS));
   }
 
   private void assertTerminated() {

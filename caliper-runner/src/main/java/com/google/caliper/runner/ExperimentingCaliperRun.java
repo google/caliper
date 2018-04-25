@@ -17,6 +17,8 @@ package com.google.caliper.runner;
 import static com.google.common.util.concurrent.Futures.catchingAsync;
 import static com.google.common.util.concurrent.Futures.transformAsync;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
+import static com.google.common.util.concurrent.MoreExecutors.shutdownAndAwaitTermination;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.api.ResultProcessor;
@@ -199,7 +201,7 @@ public final class ExperimentingCaliperRun implements CaliperRun {
         }
       }
     } finally {
-      trialExecutor.shutdown();
+      shutdownAndAwaitTermination(trialExecutor, 5, SECONDS);
       output.close();
     }
 

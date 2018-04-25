@@ -219,11 +219,13 @@ final class AdbDevice extends Device {
   @Override
   protected void shutDown() throws Exception {
     try {
-      proxyConnection.stopAsync();
-      uninstall(CALIPER_PACKAGE_NAME);
+      proxyConnection.stopAsync().awaitTerminated();
     } finally {
-      removeReversePortForwarding();
-      proxyConnection.awaitTerminated();
+      try {
+        uninstall(CALIPER_PACKAGE_NAME);
+      } finally {
+        removeReversePortForwarding();
+      }
     }
   }
 

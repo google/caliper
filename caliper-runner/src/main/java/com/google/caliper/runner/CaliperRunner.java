@@ -16,6 +16,9 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.util.concurrent.MoreExecutors.shutdownAndAwaitTermination;
+import static java.util.concurrent.TimeUnit.SECONDS;
+
 import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
@@ -163,7 +166,7 @@ public final class CaliperRunner {
         }
       }
     } finally {
-      executor.shutdown();
+      shutdownAndAwaitTermination(executor, 5, SECONDS);
       // courtesy flush
       stderr.flush();
       stdout.flush();

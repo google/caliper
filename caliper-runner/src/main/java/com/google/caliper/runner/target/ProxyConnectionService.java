@@ -18,6 +18,7 @@ package com.google.caliper.runner.target;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.util.concurrent.Uninterruptibles.getUninterruptibly;
+import static java.util.concurrent.TimeUnit.SECONDS;
 
 import com.google.caliper.bridge.KillVmRequest;
 import com.google.caliper.bridge.OpenedSocket;
@@ -28,13 +29,18 @@ import com.google.caliper.bridge.VmStoppedMessage;
 import com.google.caliper.runner.server.ServerSocketService;
 import com.google.common.io.Closer;
 import com.google.common.util.concurrent.AbstractExecutionThreadService;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 
 /**
@@ -91,8 +97,6 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
         classpathFuture.set(((RemoteClasspathMessage) message).classpath());
       }
     }
-
-    writer.write(new StopProxyRequest());
   }
 
   /** Returns the classpath to use for processes on the remote device. */
@@ -117,8 +121,47 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
     return vm;
   }
 
+  private void waitForAllVmsToExit(long timeout, TimeUnit unit) {
+    if (vms.isEmpty()) {
+      return;
+    }
+
+    List<ListenableFuture<?>> exitFutures = new ArrayList<>();
+    for (VmProxy vm : vms.values()) {
+      exitFutures.add(vm.exitCode);
+    }
+
+    ListenableFuture<?> allExited = Futures.allAsList(exitFutures);
+    try {
+      allExited.get(timeout, unit);
+    } catch (Exception ignore) {
+      // oh well
+      return;
+    }
+
+    // ensure the shutdown hooks are removed
+    for (VmProxy vm : vms.values()) {
+      try {
+        vm.awaitExit();
+      } catch (InterruptedException e) {
+        throw new AssertionError(e);
+      }
+    }
+  }
+
+  @Override
+  protected void triggerShutdown() {
+    try {
+      writer.write(new StopProxyRequest());
+    } catch (IOException ignore) {
+      // well, we'll exit anyway
+    }
+  }
+
   @Override
   public void shutDown() throws IOException {
+    // they should probably have already exited, but just to be safe
+    waitForAllVmsToExit(5, SECONDS);
     closer.close();
   }
 
@@ -176,6 +219,11 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
+    }
+
+    @Override
+    public String toString() {
+      return "VmProxy{vmId=" + vmId + "}";
     }
   }
 }
