@@ -47,7 +47,7 @@ public abstract class CaliperConfigModule {
     // (~/.caliper/config.properties or whatever the user specified on the command line) and
     // command line config (supplied with "-Cproperty.key=value").
     ImmutableMap<String, String> globalConfig = loadGlobalConfig();
-    ImmutableMap<String, String> userConfig = getUserConfig(caliperOptions);
+    ImmutableMap<String, String> userConfig = loadUserConfig(caliperOptions);
     ImmutableMap<String, String> commandLineConfig = caliperOptions.configProperties();
 
     // Create a CaliperConfig using just those options. They should contain all the information we
@@ -55,19 +55,20 @@ public abstract class CaliperConfigModule {
     CaliperConfig config = merge(globalConfig, userConfig, commandLineConfig);
     DeviceType deviceType = config.getDeviceConfig(caliperOptions).type();
 
-    // Get the global config for the device type (e.g. "global-config-adb.properties").
+    // Get the global and user configs for the device type
     ImmutableMap<String, String> globalDeviceTypeConfig = loadGlobalConfig("-" + deviceType);
+    ImmutableMap<String, String> userDeviceTypeConfig = loadUserConfig(
+        caliperOptions, "-" + deviceType);
 
-    // Return the CaliperConfig using that global config to override the base global config.
-    // TODO(cgdecker): It's possible there should be be device-type-specific user configs as well,
-    // particularly since the default user config sets -Xms3g -Xmx3g, which really isn't going to
-    // work for adb devices in general. But it's not clear what we should do in the case where the
-    // user supplied a config file on the command line rather than using the default. Assume that
-    // config file has everything they want specified?
-    return merge(globalConfig, globalDeviceTypeConfig, userConfig, commandLineConfig);
+    return merge(
+        globalConfig,
+        globalDeviceTypeConfig,
+        userConfig,
+        userDeviceTypeConfig,
+        commandLineConfig);
   }
 
-  private static ImmutableMap<String, String> getUserConfig(CaliperOptions caliperOptions) {
+  private static ImmutableMap<String, String> loadUserConfig(CaliperOptions caliperOptions) {
     File configFile = caliperOptions.caliperConfigFile();
     if (configFile.exists()) {
       try {
@@ -84,6 +85,34 @@ public abstract class CaliperConfigModule {
     } catch (IOException e) {
       throw new AssertionError(e);
     }
+  }
+
+  private static ImmutableMap<String, String> loadUserConfig(
+      CaliperOptions caliperOptions, String suffix) {
+    File mainConfigFile = caliperOptions.caliperConfigFile().getAbsoluteFile();
+
+    String mainConfigFileBaseName = Files.getNameWithoutExtension(mainConfigFile.getName());
+    String configFileName = mainConfigFileBaseName + suffix + ".properties";
+
+    File parentDir = mainConfigFile.getParentFile();
+    File configFile;
+    if (parentDir == null) {
+      // unlikely since we got an absolute path, but try using just the file name
+      configFile = new File(configFileName);
+    } else {
+      configFile = new File(parentDir, configFileName);
+    }
+
+    if (configFile.exists()) {
+      try {
+        return Util.loadProperties(Files.asByteSource(configFile));
+      } catch (IOException e) {
+        throw new InvalidConfigurationException("Couldn't load config file: " + configFile, e);
+      }
+    }
+
+    // For device-type specific user config, don't create the file automatically if it doesn't exist
+    return ImmutableMap.of();
   }
 
   private static CaliperConfig merge(ImmutableMap<String, String>... maps) {
