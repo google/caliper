@@ -254,12 +254,7 @@ final class AdbDevice extends Device {
 
   @Override
   public VmConfig defaultVmConfig() {
-    return VmConfig.builder()
-        .name("default")
-        .type(ANDROID)
-        .executable("dalvikvm")
-        .addAllArgs(caliperConfig.getVmArgs())
-        .build();
+    return caliperConfig.getVmConfig("dalvikvm");
   }
 
   @Override
