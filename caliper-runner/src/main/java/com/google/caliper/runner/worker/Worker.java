@@ -81,7 +81,7 @@ import javax.inject.Inject;
 @WorkerScoped
 public final class Worker extends AbstractService {
   /** How long to wait for a process that should be exiting to actually exit. */
-  private static final int SHUTDOWN_WAIT_MILLIS = 10;
+  private static final int SHUTDOWN_WAIT_MILLIS = 5000;
 
   private static final Logger logger = Logger.getLogger(Worker.class.getName());
   private static final StreamItem TIMEOUT_ITEM = new StreamItem(Kind.TIMEOUT, null);
