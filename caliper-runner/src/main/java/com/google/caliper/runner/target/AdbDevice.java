@@ -34,12 +34,14 @@ import com.google.caliper.runner.server.ServerSocketService;
 import com.google.caliper.runner.target.Shell.Result;
 import com.google.caliper.runner.target.VmProcess.Logger;
 import com.google.caliper.util.InvalidCommandException;
+import com.google.caliper.util.Stdout;
 import com.google.common.base.CharMatcher;
 import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.File;
+import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -65,6 +67,8 @@ final class AdbDevice extends Device {
   private final CaliperOptions caliperOptions;
   private final CaliperConfig caliperConfig;
 
+  private final PrintWriter stdout;
+
   private Shell shell;
   private final String adb = "adb"; // TODO(cgdecker): Make this configurable?
 
@@ -82,13 +86,15 @@ final class AdbDevice extends Device {
       CaliperConfig caliperConfig,
       Shell shell,
       ServerSocketService server,
-      ProxyConnectionService proxyConnection) {
+      ProxyConnectionService proxyConnection,
+      @Stdout PrintWriter stdout) {
     super(config, shutdownHookRegistrar);
     this.caliperOptions = caliperOptions;
     this.caliperConfig = caliperConfig;
     this.shell = shell;
     this.server = server;
     this.proxyConnection = proxyConnection;
+    this.stdout = stdout;
   }
 
   @Override
@@ -132,17 +138,24 @@ final class AdbDevice extends Device {
 
   private void selectDevice(String serialNumber) {
     shell = shell.withEnv(ImmutableMap.of("ANDROID_SERIAL", serialNumber));
-    checkDeviceApiLevel();
+
+    int apiLevel = getApiLevel();
+    checkDeviceApiLevel(apiLevel);
+
+    String model = shell.execute(adb + " shell getprop ro.product.model").orThrow().stdout();
+    stdout.printf("adb: using %s device %s at API level %s%n", model, serialNumber, apiLevel);
   }
 
-  private void checkDeviceApiLevel() {
+  private int getApiLevel() {
     String out = shell.execute(adb + " shell getprop ro.build.version.sdk").orThrow().stdout();
     if (!DIGITS.matchesAllOf(out)) {
       throw new ShellException(
           "unexpected output from command 'adb shell getprop ro.build.version.sdk': " + out);
     }
-    int apiLevel = Integer.parseInt(out);
+    return Integer.parseInt(out);
+  }
 
+  private void checkDeviceApiLevel(int apiLevel) {
     if (apiLevel < MIN_API_LEVEL) {
       throw new InvalidConfigurationException(
           String.format(
@@ -168,11 +181,13 @@ final class AdbDevice extends Device {
 
   /** Installs the given apk file to the device. */
   private void install(File apk) {
+    stdout.println("adb: installing " + apk);
     shell.execute(adb, "install", "-r", apk.getAbsolutePath()).orThrow();
   }
 
   /** Uninstalls the package with the given name from the device. */
   private void uninstall(String packageName) {
+    stdout.println("adb: uninstalling package " + packageName);
     shell.execute(adb, "uninstall", packageName);
   }
 
@@ -181,6 +196,7 @@ final class AdbDevice extends Device {
    * activity.
    */
   private void startActivity(String intent, Map<String, String> extras) {
+    stdout.println("adb: starting proxy activity");
     ImmutableList.Builder<String> builder =
         ImmutableList.<String>builder()
             .add(adb)
