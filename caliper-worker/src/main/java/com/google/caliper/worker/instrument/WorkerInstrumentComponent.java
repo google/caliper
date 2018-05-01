@@ -19,11 +19,7 @@ package com.google.caliper.worker.instrument;
 import com.google.caliper.bridge.ExperimentSpec;
 import dagger.BindsInstance;
 
-/**
- * Base interface for components that configure {@link WorkerInstrument}s.
- *
- * @author Colin Decker
- */
+/** Base interface for components that configure {@link WorkerInstrument}s. */
 public interface WorkerInstrumentComponent {
 
   /** Returns the {@link WorkerInstrument} configured by this component. */

@@ -57,15 +57,11 @@ public abstract class CaliperConfigModule {
 
     // Get the global and user configs for the device type
     ImmutableMap<String, String> globalDeviceTypeConfig = loadGlobalConfig("-" + deviceType);
-    ImmutableMap<String, String> userDeviceTypeConfig = loadUserConfig(
-        caliperOptions, "-" + deviceType);
+    ImmutableMap<String, String> userDeviceTypeConfig =
+        loadUserConfig(caliperOptions, "-" + deviceType);
 
     return merge(
-        globalConfig,
-        globalDeviceTypeConfig,
-        userConfig,
-        userDeviceTypeConfig,
-        commandLineConfig);
+        globalConfig, globalDeviceTypeConfig, userConfig, userDeviceTypeConfig, commandLineConfig);
   }
 
   private static ImmutableMap<String, String> loadUserConfig(CaliperOptions caliperOptions) {
@@ -131,8 +127,7 @@ public abstract class CaliperConfigModule {
   private static ImmutableMap<String, String> loadGlobalConfig(String suffix) {
     try {
       return Util.loadProperties(
-          Util.resourceSupplier(
-              CaliperConfig.class, "global-config" + suffix + ".properties"));
+          Util.resourceSupplier(CaliperConfig.class, "global-config" + suffix + ".properties"));
     } catch (IOException impossible) {
       throw new AssertionError(impossible);
     }

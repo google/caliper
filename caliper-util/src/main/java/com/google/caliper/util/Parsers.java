@@ -39,10 +39,10 @@ public class Parsers {
    * Parser that tries, in this order:
    *
    * <ul>
-   * <li>ResultType.fromString(String)
-   * <li>ResultType.decode(String)
-   * <li>ResultType.valueOf(String)
-   * <li>new ResultType(String)
+   *   <li>ResultType.fromString(String)
+   *   <li>ResultType.decode(String)
+   *   <li>ResultType.valueOf(String)
+   *   <li>new ResultType(String)
    * </ul>
    */
   public static <T> Parser<T> conventionalParser(Class<T> resultType) throws NoSuchMethodException {

@@ -31,11 +31,7 @@ import java.lang.reflect.Method;
 import java.util.Random;
 import javax.inject.Singleton;
 
-/**
- * Module providing bindings needed by the {@link Worker}.
- *
- * @author Colin Decker
- */
+/** Module providing bindings needed by the {@link Worker}. */
 @Module(includes = {WorkerOptionsModule.class, RequestHandlerModule.class})
 abstract class WorkerModule {
   private WorkerModule() {}

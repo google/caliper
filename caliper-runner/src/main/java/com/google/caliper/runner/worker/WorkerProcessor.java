@@ -21,11 +21,7 @@ import com.google.caliper.util.ShortDuration;
 import java.io.IOException;
 import javax.annotation.Nullable;
 
-/**
- * Processor for interacting with a {@link Worker}.
- *
- * @author Colin Decker
- */
+/** Processor for interacting with a {@link Worker}. */
 public abstract class WorkerProcessor<R> {
 
   /** Returns the amount of time that the worker being processed should be allowed to run. */

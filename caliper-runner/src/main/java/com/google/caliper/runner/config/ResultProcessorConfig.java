@@ -26,8 +26,6 @@ import java.util.Map;
 /**
  * This is the configuration passed to the {@link com.google.caliper.api.ResultProcessor} by the
  * user.
- *
- * @author gak@google.com (Gregory Kick)
  */
 public class ResultProcessorConfig {
   private final String className;

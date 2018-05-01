@@ -28,8 +28,6 @@ import com.google.common.base.MoreObjects;
 /**
  * The combination of properties whose combination, when measured with a particular instrument,
  * should produce a repeatable result
- *
- * @author gak@google.com (Gregory Kick)
  */
 public final class Scenario {
   static final Scenario DEFAULT = new Scenario();

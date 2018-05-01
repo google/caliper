@@ -24,11 +24,7 @@ import com.google.common.base.Objects;
 import java.util.UUID;
 import org.joda.time.Instant;
 
-/**
- * A single invocation of caliper.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A single invocation of caliper. */
 public final class Run {
   static final Run DEFAULT = new Run();
 

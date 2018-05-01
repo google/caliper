@@ -48,8 +48,7 @@ public class DemoBenchmark {
     QUX;
   }
 
-  DemoBenchmark() {
-  }
+  DemoBenchmark() {}
 
   @BeforeExperiment
   void setUp() throws Exception {
@@ -77,6 +76,5 @@ public class DemoBenchmark {
   }
 
   @AfterExperiment
-  void tearDown() throws Exception {
-  }
+  void tearDown() throws Exception {}
 }

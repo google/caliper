@@ -48,11 +48,7 @@ import java.util.concurrent.TimeoutException;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/**
- * An ADB-connected Android device or emulator.
- *
- * @author Colin Decker
- */
+/** An ADB-connected Android device or emulator. */
 @Singleton
 final class AdbDevice extends Device {
 
@@ -105,9 +101,8 @@ final class AdbDevice extends Device {
 
     // selector string may consist of multiple arguments or be an empty string, so write this
     // command as a single string to let shell handle splitting it
-    String deviceSerialNumber = shell.execute(adb + " " + selector + " get-serialno")
-        .orThrow()
-        .stdout();
+    String deviceSerialNumber =
+        shell.execute(adb + " " + selector + " get-serialno").orThrow().stdout();
 
     selectDevice(deviceSerialNumber);
     install(getWorkerApk());
@@ -121,8 +116,10 @@ final class AdbDevice extends Device {
     startActivity(
         "com.google.caliper/.worker.CaliperProxyActivity",
         ImmutableMap.of(
-            "com.google.caliper.runner_port", "" + port,
-            "com.google.caliper.proxy_id", proxyConnection.proxyId().toString()));
+            "com.google.caliper.runner_port",
+            "" + port,
+            "com.google.caliper.proxy_id",
+            proxyConnection.proxyId().toString()));
 
     try {
       proxyConnection.startAsync().awaitRunning(30, SECONDS);

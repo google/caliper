@@ -26,11 +26,7 @@ import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Multimaps;
 import java.io.Serializable;
 
-/**
- * A single, weighted measurement.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A single, weighted measurement. */
 public class Measurement implements Serializable {
   private static final long serialVersionUID = 1L;
 

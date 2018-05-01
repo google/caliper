@@ -36,11 +36,11 @@ import java.util.Random;
  * <p>Recent (2011) measurements with OpenJDK 7 on Linux are less clear. Results suggests that:
  *
  * <ul>
- * <li>The different methods of copying have indistinguishable performance with hotspot server for
- *     all nine types, except that the naive LOOP is slower. With the "client" compiler, LOOP beats
- *     CLONE, which is the slowest.
- * <li>As array sizes get large, the runtime is indeed proportional to the size of the array in
- *     memory (boolean arrays count as byte arrays!).
+ *   <li>The different methods of copying have indistinguishable performance with hotspot server for
+ *       all nine types, except that the naive LOOP is slower. With the "client" compiler, LOOP
+ *       beats CLONE, which is the slowest.
+ *   <li>As array sizes get large, the runtime is indeed proportional to the size of the array in
+ *       memory (boolean arrays count as byte arrays!).
  * </ul>
  */
 public class CopyArrayBenchmark {

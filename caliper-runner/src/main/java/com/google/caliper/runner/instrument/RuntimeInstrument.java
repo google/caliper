@@ -240,9 +240,7 @@ public class RuntimeInstrument extends Instrument {
     final List<String> messages = Lists.newArrayList();
 
     RuntimeMeasurementCollector(
-        int targetMeasurements,
-        ShortDuration warmup,
-        ShortDuration maxWarmupWallTime) {
+        int targetMeasurements, ShortDuration warmup, ShortDuration maxWarmupWallTime) {
       this.targetMeasurements = targetMeasurements;
       this.warmup = warmup;
       this.maxWarmupWallTime = maxWarmupWallTime;
@@ -350,9 +348,7 @@ public class RuntimeInstrument extends Instrument {
 
   private static final class RepBasedMeasurementCollector extends RuntimeMeasurementCollector {
     RepBasedMeasurementCollector(
-        int measurementsPerTrial,
-        ShortDuration warmup,
-        ShortDuration maxWarmupWallTime) {
+        int measurementsPerTrial, ShortDuration warmup, ShortDuration maxWarmupWallTime) {
       super(measurementsPerTrial, warmup, maxWarmupWallTime);
     }
 
@@ -382,9 +378,7 @@ public class RuntimeInstrument extends Instrument {
       extends RuntimeMeasurementCollector {
 
     SingleInvocationMeasurementCollector(
-        int measurementsPerTrial,
-        ShortDuration warmup,
-        ShortDuration maxWarmupWallTime) {
+        int measurementsPerTrial, ShortDuration warmup, ShortDuration maxWarmupWallTime) {
       super(measurementsPerTrial, warmup, maxWarmupWallTime);
     }
 

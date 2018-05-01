@@ -18,11 +18,7 @@ package com.google.caliper.runner.config;
 
 import java.io.PrintWriter;
 
-/**
- * Thrown when an invalid configuration has been specified by the user.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** Thrown when an invalid configuration has been specified by the user. */
 public final class InvalidConfigurationException extends RuntimeException {
   public InvalidConfigurationException() {
     super();

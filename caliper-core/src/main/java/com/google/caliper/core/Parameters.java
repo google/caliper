@@ -17,7 +17,6 @@
 package com.google.caliper.core;
 
 import com.google.caliper.Param;
-import com.google.caliper.core.InvalidBenchmarkException;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
 import com.google.caliper.util.Util;

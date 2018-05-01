@@ -16,12 +16,7 @@
 
 package com.google.caliper.bridge;
 
-
-/**
- * {@link WorkerRequest} for telling the worker to run a trial of the benchmark.
- *
- * @author Colin Decker
- */
+/** {@link WorkerRequest} for telling the worker to run a trial of the benchmark. */
 public final class TrialRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 

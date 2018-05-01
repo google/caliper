@@ -30,8 +30,6 @@ import javax.annotation.concurrent.Immutable;
  * This is the configuration passed to the instrument by the user. This differs from the {@link
  * InstrumentSpec} in that any number of configurations can yield the same spec (due to default
  * option values).
- *
- * @author gak@google.com (Gregory Kick)
  */
 @Immutable
 public final class InstrumentConfig {

@@ -18,11 +18,7 @@ package com.google.caliper.runner.worker;
 
 import javax.annotation.Nullable;
 
-/**
- * An exception indicating an error with a worker.
- *
- * @author Colin Decker
- */
+/** An exception indicating an error with a worker. */
 public class WorkerException extends RuntimeException {
 
   public WorkerException(String message, @Nullable Throwable cause) {

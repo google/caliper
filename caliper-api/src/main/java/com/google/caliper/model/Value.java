@@ -21,11 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.common.base.Objects;
 import java.io.Serializable;
 
-/**
- * A magnitude with units.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A magnitude with units. */
 public class Value implements Serializable {
   private static final long serialVersionUID = 1L;
 

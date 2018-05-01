@@ -22,11 +22,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
 
-/**
- * Specification of an experiment to be run as a dry-run or a trial on a worker.
- *
- * @author Colin Decker
- */
+/** Specification of an experiment to be run as a dry-run or a trial on a worker. */
 public final class ExperimentSpec implements Serializable {
   private static final long serialVersionUID = 1L;
 

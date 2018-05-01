@@ -19,8 +19,6 @@ package com.google.caliper.runner.worker.targetinfo;
 /**
  * Factory for getting information, including a model of the benchmark class, from the run's targets
  * for the rest of the run to use.
- *
- * @author Colin Decker
  */
 public interface TargetInfoFactory {
 

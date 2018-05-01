@@ -35,8 +35,6 @@ import javax.inject.Inject;
 /**
  * {@link WorkerProcessor} for receiving a set of experiment IDs from a dry-run worker and
  * converting them to a set of experiments.
- *
- * @author Colin Decker
  */
 final class DryRunProcessor extends WorkerProcessor<ImmutableSet<Experiment>> {
 

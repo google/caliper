@@ -20,11 +20,7 @@ import com.google.caliper.bridge.ExperimentSpec;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-/**
- * Factory for creating {@link WorkerInstrument}s for running experiments.
- *
- * @author Colin Decker
- */
+/** Factory for creating {@link WorkerInstrument}s for running experiments. */
 public final class WorkerInstrumentFactory {
 
   private final Provider<WorkerInstrumentComponent.Builder> builderProvider;

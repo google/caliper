@@ -51,11 +51,7 @@ import java.util.concurrent.Executors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/**
- * {@link Activity} that runs Caliper on Android.
- *
- * @author Colin Decker
- */
+/** {@link Activity} that runs Caliper on Android. */
 public final class CaliperActivity extends Activity {
 
   private static final String TAG = "Caliper";

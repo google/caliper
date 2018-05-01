@@ -22,11 +22,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/**
- * Simple representation of a VM process running on a device.
- *
- * @author Colin Decker
- */
+/** Simple representation of a VM process running on a device. */
 public abstract class VmProcess {
 
   private final Set<StopListener> listeners = new HashSet<>();

@@ -41,8 +41,6 @@ import java.lang.reflect.Modifier;
  * A simplified model of a benchmark class, containing no reflective references to the class and
  * only those things that the runner needs to know about the class in order to determine the
  * scenarios to be run.
- *
- * @author Colin Decker
  */
 @AutoValue
 public abstract class BenchmarkClassModel implements Serializable {

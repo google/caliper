@@ -23,17 +23,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import java.util.Map;
 
-/**
- * A simple representation of a command that can be run to start a process on a device.
- *
- * @author Colin Decker
- */
+/** A simple representation of a command that can be run to start a process on a device. */
 @AutoValue
 public abstract class Command {
 
-  /**
-   * Returns a new builder for creating {@link Command} objects.
-   */
+  /** Returns a new builder for creating {@link Command} objects. */
   public static Builder builder() {
     return new AutoValue_Command.Builder();
   }
@@ -44,9 +38,7 @@ public abstract class Command {
    */
   public abstract ImmutableMap<String, String> environment();
 
-  /**
-   * Returns the full list of arguments that make up this command, including the binary to run.
-   */
+  /** Returns the full list of arguments that make up this command, including the binary to run. */
   public abstract ImmutableList<String> arguments();
 
   private static final Joiner SPACE_JOINER = Joiner.on(' ');
@@ -67,11 +59,9 @@ public abstract class Command {
         .toString();
   }
 
-  /**
-   * Builder for creating {@link Command} objects.
-   */
+  /** Builder for creating {@link Command} objects. */
   @AutoValue.Builder
-  public static abstract class Builder {
+  public abstract static class Builder {
 
     /** Adds the given argument to the command. */
     public final Builder addArgument(Object arg) {
@@ -87,35 +77,25 @@ public abstract class Command {
       return this;
     }
 
-    /**
-     * Returns a builder that can be used for adding arguments to the command.
-     */
+    /** Returns a builder that can be used for adding arguments to the command. */
     abstract ImmutableList.Builder<String> argumentsBuilder();
 
-    /**
-     * Puts the given environment variable into the environment for the command.
-     */
+    /** Puts the given environment variable into the environment for the command. */
     public final Builder putEnvironmentVariable(String key, String value) {
       environmentBuilder().put(key, value);
       return this;
     }
 
-    /**
-     * Puts the given variables into the environment for the command.
-     */
+    /** Puts the given variables into the environment for the command. */
     public final Builder putAllEnvironmentVariables(Map<String, String> variables) {
       environmentBuilder().putAll(variables);
       return this;
     }
 
-    /**
-     * Returns a builder that can be used for adding entries to the environment for the command.
-     */
+    /** Returns a builder that can be used for adding entries to the environment for the command. */
     abstract ImmutableMap.Builder<String, String> environmentBuilder();
 
-    /**
-     * Builds a new {@link Command}.
-     */
+    /** Builds a new {@link Command}. */
     abstract Command build();
   }
 }

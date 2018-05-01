@@ -44,8 +44,6 @@ import javax.annotation.Nullable;
 /**
  * Represents caliper configuration. By default, {@code ~/.caliper/config.properties} and {@code
  * global-config.properties}.
- *
- * @author gak@google.com (Gregory Kick)
  */
 public final class CaliperConfig {
   @VisibleForTesting final ImmutableMap<String, String> properties;

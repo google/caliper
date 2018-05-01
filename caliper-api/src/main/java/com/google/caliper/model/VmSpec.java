@@ -26,11 +26,7 @@ import com.google.common.hash.PrimitiveSink;
 import java.util.Map;
 import java.util.SortedMap;
 
-/**
- * A configuration of a virtual machine.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A configuration of a virtual machine. */
 public final class VmSpec {
   static final VmSpec DEFAULT = new VmSpec();
 

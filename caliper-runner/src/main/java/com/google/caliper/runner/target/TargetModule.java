@@ -22,11 +22,7 @@ import dagger.Module;
 import dagger.Provides;
 import javax.inject.Singleton;
 
-/**
- * Module for binding the targets that Caliper should run the benchmark on.
- *
- * @author Colin Decker
- */
+/** Module for binding the targets that Caliper should run the benchmark on. */
 @Module
 public abstract class TargetModule {
   private TargetModule() {}

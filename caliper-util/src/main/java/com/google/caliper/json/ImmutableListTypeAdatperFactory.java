@@ -39,7 +39,7 @@ final class ImmutableListTypeAdatperFactory implements TypeAdapterFactory {
 
   @Inject
   ImmutableListTypeAdatperFactory() {}
-  
+
   @SuppressWarnings("unchecked")
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {

@@ -16,7 +16,6 @@
 
 package com.google.caliper.bridge;
 
-
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSetMultimap;
 import com.google.common.collect.Multimap;
@@ -24,8 +23,6 @@ import com.google.common.collect.Multimap;
 /**
  * {@link WorkerRequest} for telling a worker to send the runner information on the target it's
  * running on, including a model of the benchmark class it produced.
- *
- * @author Colin Decker
  */
 @AutoValue
 public abstract class TargetInfoRequest implements WorkerRequest {

@@ -33,11 +33,7 @@ import java.util.Set;
 import java.util.UUID;
 import javax.inject.Inject;
 
-/**
- * A {@link WorkerSpec} for a dry-run of an experiment.
- *
- * @author Colin Decker
- */
+/** A {@link WorkerSpec} for a dry-run of an experiment. */
 @WorkerScoped
 final class DryRunSpec extends WorkerSpec {
 

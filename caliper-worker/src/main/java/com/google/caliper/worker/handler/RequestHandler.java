@@ -18,11 +18,7 @@ package com.google.caliper.worker.handler;
 
 import com.google.caliper.bridge.WorkerRequest;
 
-/**
- * Handler for a specific type of {@link WorkerRequest}.
- *
- * @author Colin Decker
- */
+/** Handler for a specific type of {@link WorkerRequest}. */
 interface RequestHandler {
 
   /** Handles the given request. */

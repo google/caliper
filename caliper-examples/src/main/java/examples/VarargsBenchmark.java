@@ -22,11 +22,7 @@ import com.google.caliper.Param;
 import com.google.caliper.api.SkipThisScenarioException;
 import java.util.Random;
 
-/**
- * Benchmarks the overhead created by using varargs instead of parameter expansion.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** Benchmarks the overhead created by using varargs instead of parameter expansion. */
 public final class VarargsBenchmark {
   enum Strategy {
     VARARGS {

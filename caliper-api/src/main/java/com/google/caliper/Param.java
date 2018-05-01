@@ -27,11 +27,11 @@ import java.lang.annotation.Target;
  * field to each instance it creates. These values come from
  *
  * <ul>
- * <li>The command line, if specified using {@code -Dname=value1,value2,value3}
- * <li>Otherwise, the {@link #value()} list given in the annotation
- * <li>Otherwise, if the parameter type is either {@code boolean} or an {@code enum} type, Caliper
- *     assumes you want all possible values.
- * <li>Finally, if none of the above match, Caliper will display an error and exit.
+ *   <li>The command line, if specified using {@code -Dname=value1,value2,value3}
+ *   <li>Otherwise, the {@link #value()} list given in the annotation
+ *   <li>Otherwise, if the parameter type is either {@code boolean} or an {@code enum} type, Caliper
+ *       assumes you want all possible values.
+ *   <li>Finally, if none of the above match, Caliper will display an error and exit.
  * </ul>
  *
  * <p>Caliper parameters are always strings, but can be converted to other types at the point of

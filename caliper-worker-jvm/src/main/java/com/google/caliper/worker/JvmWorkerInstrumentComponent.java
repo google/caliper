@@ -21,11 +21,7 @@ import com.google.caliper.worker.instrument.WorkerInstrumentComponent;
 import com.google.caliper.worker.instrument.WorkerInstrumentModule;
 import dagger.Subcomponent;
 
-/**
- * Component that configures {@link WorkerInstrument}s for JVMs.
- *
- * @author Colin Decker
- */
+/** Component that configures {@link WorkerInstrument}s for JVMs. */
 @Subcomponent(modules = {WorkerInstrumentModule.class, JvmWorkerInstrumentModule.class})
 interface JvmWorkerInstrumentComponent extends WorkerInstrumentComponent {
   /** Builder for {@link JvmWorkerInstrumentComponent}. */

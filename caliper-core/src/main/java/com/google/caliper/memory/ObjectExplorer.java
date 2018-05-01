@@ -71,10 +71,10 @@ public final class ObjectExplorer {
    * <p>The {@code features} further customizes the exploration behavior. In particular:
    *
    * <ul>
-   * <li>If {@link Feature#VISIT_PRIMITIVES} is contained in features, the visitor will also be
-   *     notified about exploration of primitive values.
-   * <li>If {@link Feature#VISIT_NULL} is contained in features, the visitor will also be notified
-   *     about exploration of {@code null} values.
+   *   <li>If {@link Feature#VISIT_PRIMITIVES} is contained in features, the visitor will also be
+   *       notified about exploration of primitive values.
+   *   <li>If {@link Feature#VISIT_NULL} is contained in features, the visitor will also be notified
+   *       about exploration of {@code null} values.
    * </ul>
    *
    * In both cases above, the return value of {@link ObjectVisitor#visit(Chain)} is ignored, since
@@ -96,7 +96,7 @@ public final class ObjectExplorer {
 
     while (!stack.isEmpty()) {
       Chain chain = stack.pop();
-      //the only place where the return value of visit() is considered
+      // the only place where the return value of visit() is considered
       ObjectVisitor.Traversal traversal = visitor.visit(chain);
       switch (traversal) {
         case SKIP:
@@ -107,7 +107,7 @@ public final class ObjectExplorer {
           throw new AssertionError();
       }
 
-      //only nonnull values pushed in the stack
+      // only nonnull values pushed in the stack
       @Nonnull Object value = chain.getValue();
       Class<?> valueClass = value.getClass();
       if (valueClass.isArray()) {

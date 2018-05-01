@@ -20,11 +20,7 @@ import com.google.caliper.worker.instrument.WorkerInstrumentComponent;
 import dagger.Binds;
 import dagger.Module;
 
-/**
- * Module with additional bindings needed by an Android VM worker.
- *
- * @author Colin Decker
- */
+/** Module with additional bindings needed by an Android VM worker. */
 @Module(subcomponents = AndroidWorkerInstrumentComponent.class)
 abstract class AndroidWorkerModule {
   private AndroidWorkerModule() {}

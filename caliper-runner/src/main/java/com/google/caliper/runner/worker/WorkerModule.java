@@ -28,8 +28,6 @@ import dagger.Provides;
 /**
  * Module for creating a {@link Worker}. A {@link Target} and {@link WorkerSpec} must both be bound
  * in the same context.
- *
- * @author Colin Decker
  */
 @Module
 public abstract class WorkerModule {

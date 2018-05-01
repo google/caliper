@@ -25,8 +25,6 @@ import javax.inject.Inject;
 
 /**
  * Main injectable class that {@code WorkerMain} classes delegate to to handle the full worker run.
- *
- * @author Colin Decker
  */
 final class Worker {
 

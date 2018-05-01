@@ -26,11 +26,7 @@ import com.google.common.collect.Maps;
 import java.util.Map;
 import java.util.SortedMap;
 
-/**
- * A specification by which the application of an instrument can be uniquely identified.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A specification by which the application of an instrument can be uniquely identified. */
 public final class InstrumentSpec {
   static final InstrumentSpec DEFAULT = new InstrumentSpec();
 

@@ -18,11 +18,7 @@ package com.google.caliper.bridge;
 
 import com.google.common.collect.ImmutableSet;
 
-/**
- * {@link WorkerRequest} for telling the worker to do a dry-run of multiple experiments.
- *
- * @author Colin Decker
- */
+/** {@link WorkerRequest} for telling the worker to do a dry-run of multiple experiments. */
 public final class DryRunRequest implements WorkerRequest {
   private static final long serialVersionUID = 1L;
 

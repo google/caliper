@@ -26,8 +26,6 @@ import dagger.multibindings.IntoMap;
 /**
  * Module that binds the available {@link RequestHandler} implementations and maps them by the type
  * of request they handle.
- *
- * @author Colin Decker
  */
 @Module
 public abstract class RequestHandlerModule {

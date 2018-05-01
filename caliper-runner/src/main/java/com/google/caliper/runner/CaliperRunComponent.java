@@ -25,11 +25,7 @@ import dagger.Subcomponent;
 /** The component for a {@link CaliperRun}. */
 @RunScoped
 @Subcomponent(
-  modules = {
-    CaliperRunModule.class,
-    InstrumentModule.class,
-    ResultProcessorModule.class
-  }
+  modules = {CaliperRunModule.class, InstrumentModule.class, ResultProcessorModule.class}
 )
 interface CaliperRunComponent {
 
@@ -42,7 +38,7 @@ interface CaliperRunComponent {
     @BindsInstance
     Builder targetInfo(TargetInfo info);
 
-    /**  Builds a new {@link CaliperRunComponent}. */
+    /** Builds a new {@link CaliperRunComponent}. */
     CaliperRunComponent build();
   }
 }

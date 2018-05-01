@@ -30,11 +30,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.logging.Logger;
 
-/**
- * The performance-informing properties of the host on which a benchmark is run.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** The performance-informing properties of the host on which a benchmark is run. */
 public final class Host {
   static final Host DEFAULT = new Host();
   private static final Logger logger = Logger.getLogger(Host.class.getName());

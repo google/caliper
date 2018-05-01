@@ -22,11 +22,7 @@ import com.google.common.collect.ImmutableMap;
 import java.io.Serializable;
 import java.util.Map;
 
-/**
- * A log message containing the response to a {@link TargetInfoRequest}.
- *
- * @author Colin Decker
- */
+/** A log message containing the response to a {@link TargetInfoRequest}. */
 @AutoValue
 public abstract class TargetInfoLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;

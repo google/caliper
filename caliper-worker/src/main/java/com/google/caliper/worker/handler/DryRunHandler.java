@@ -29,11 +29,7 @@ import com.google.common.collect.ImmutableSet;
 import java.lang.reflect.InvocationTargetException;
 import javax.inject.Inject;
 
-/**
- * Handler for a {@link DryRunRequest}.
- *
- * @author Colin Decker
- */
+/** Handler for a {@link DryRunRequest}. */
 final class DryRunHandler implements RequestHandler {
 
   private final ClientConnectionService clientConnection;

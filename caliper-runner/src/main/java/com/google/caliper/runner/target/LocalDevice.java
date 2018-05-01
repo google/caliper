@@ -35,11 +35,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-/**
- * {@link Device} for the local machine.
- *
- * @author Colin Decker
- */
+/** {@link Device} for the local machine. */
 @Singleton
 public final class LocalDevice extends Device {
 

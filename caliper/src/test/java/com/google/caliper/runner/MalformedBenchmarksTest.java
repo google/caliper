@@ -196,8 +196,7 @@ public class MalformedBenchmarksTest {
       fail("no exception thrown");
     } catch (InvalidBenchmarkException e) {
       try {
-        String expectedMessageText =
-            String.format(expectedMessageFmt, benchmarkClass.getName());
+        String expectedMessageText = String.format(expectedMessageFmt, benchmarkClass.getName());
         assertEquals(expectedMessageText, e.getMessage());
 
         // don't swallow our real stack trace

@@ -37,11 +37,7 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * Tests {@link CaliperConfig}.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** Tests {@link CaliperConfig}. */
 @RunWith(JUnit4.class)
 public class CaliperConfigTest {
   @Rule public TemporaryFolder folder = new TemporaryFolder();

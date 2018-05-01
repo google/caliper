@@ -30,7 +30,7 @@ final class AnnotationExclusionStrategy implements ExclusionStrategy {
 
   @Inject
   AnnotationExclusionStrategy() {}
-  
+
   @Override
   public boolean shouldSkipField(FieldAttributes f) {
     return excludeFromJson(f.getAnnotations());

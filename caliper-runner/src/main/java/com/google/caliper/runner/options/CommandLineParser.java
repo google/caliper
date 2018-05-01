@@ -103,12 +103,12 @@ import java.util.List;
  * <p>See also:
  *
  * <ul>
- * <li>the getopt(1) man page
- * <li>Python's "optparse" module (http://docs.python.org/library/optparse.html)
- * <li>the POSIX "Utility Syntax Guidelines"
- *     (http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap12.html#tag_12_02)
- * <li>the GNU "Standards for Command Line Interfaces"
- *     (http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces)
+ *   <li>the getopt(1) man page
+ *   <li>Python's "optparse" module (http://docs.python.org/library/optparse.html)
+ *   <li>the POSIX "Utility Syntax Guidelines"
+ *       (http://www.opengroup.org/onlinepubs/000095399/basedefs/xbd_chap12.html#tag_12_02)
+ *   <li>the GNU "Standards for Command Line Interfaces"
+ *       (http://www.gnu.org/prep/standards/standards.html#Command_002dLine-Interfaces)
  * </ul>
  */
 final class CommandLineParser<T> {

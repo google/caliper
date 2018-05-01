@@ -20,11 +20,7 @@ import com.google.caliper.worker.instrument.WorkerInstrumentComponent;
 import dagger.Binds;
 import dagger.Module;
 
-/**
- * Module with additional bindings needed by a JVM worker.
- *
- * @author Colin Decker
- */
+/** Module with additional bindings needed by a JVM worker. */
 @Module(subcomponents = JvmWorkerInstrumentComponent.class)
 abstract class JvmWorkerModule {
   private JvmWorkerModule() {}

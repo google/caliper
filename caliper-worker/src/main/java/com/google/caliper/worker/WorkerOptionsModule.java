@@ -32,11 +32,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.UUID;
 
-/**
- * Module for options for a Caliper worker that are passed to it on the command line.
- *
- * @author Colin Decker
- */
+/** Module for options for a Caliper worker that are passed to it on the command line. */
 @Module
 final class WorkerOptionsModule {
 

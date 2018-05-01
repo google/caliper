@@ -29,11 +29,7 @@ import java.io.PrintWriter;
 import java.util.UUID;
 import javax.inject.Inject;
 
-/**
- * A {@link WorkerSpec} for running a trial of an experiment.
- *
- * @author Colin Decker
- */
+/** A {@link WorkerSpec} for running a trial of an experiment. */
 public final class TrialSpec extends WorkerSpec {
 
   private final Experiment experiment;

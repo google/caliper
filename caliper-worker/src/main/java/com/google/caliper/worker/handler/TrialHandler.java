@@ -29,11 +29,7 @@ import com.google.caliper.worker.instrument.WorkerInstrumentFactory;
 import java.io.IOException;
 import javax.inject.Inject;
 
-/**
- * Handler for a {@link TrialRequest}.
- *
- * @author Colin Decker
- */
+/** Handler for a {@link TrialRequest}. */
 final class TrialHandler implements RequestHandler {
 
   private final ClientConnectionService clientConnection;

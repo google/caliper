@@ -32,8 +32,6 @@ import javax.inject.Singleton;
 /**
  * A service that opens and maintains a socket connection to the another process and provides the
  * worker's interface for communicating with the that process.
- *
- * @author Colin Decker
  */
 @Singleton
 public final class ClientConnectionService extends AbstractIdleService {

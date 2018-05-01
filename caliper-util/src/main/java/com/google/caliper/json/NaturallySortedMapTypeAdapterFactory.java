@@ -41,7 +41,7 @@ final class NaturallySortedMapTypeAdapterFactory implements TypeAdapterFactory {
   @SuppressWarnings("rawtypes")
   private static final ImmutableSet<Class<? extends SortedMap>> CLASSES =
       ImmutableSet.of(SortedMap.class, TreeMap.class);
-  
+
   @Inject
   NaturallySortedMapTypeAdapterFactory() {}
 

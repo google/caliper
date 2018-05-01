@@ -25,11 +25,7 @@ import com.google.caliper.worker.connection.ClientConnectionService;
 import java.io.IOException;
 import javax.inject.Inject;
 
-/**
- * Handler for a {@link TargetInfoRequest}.
- *
- * @author Colin Decker
- */
+/** Handler for a {@link TargetInfoRequest}. */
 final class TargetInfoHandler implements RequestHandler {
 
   private final ClientConnectionService clientConnection;

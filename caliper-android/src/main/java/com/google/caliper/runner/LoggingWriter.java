@@ -24,23 +24,22 @@ import java.io.Writer;
  * A {@code Writer} implementation that logs to an Android log.
  *
  * <p>This class is used as a replacement for the stdout and stderr streams that Caliper prints
- * messages it wants to appear to the user to. On Android, writes to {@code System.out} or
- * {@code System.err} just get discarded by default. This causes each line of text written to be
- * logged using Android's {@link Log} class with a specific tag and priority. The logged messages
- * can then be read using {@code adb logcat}.
- *
- * @author Colin Decker
+ * messages it wants to appear to the user to. On Android, writes to {@code System.out} or {@code
+ * System.err} just get discarded by default. This causes each line of text written to be logged
+ * using Android's {@link Log} class with a specific tag and priority. The logged messages can then
+ * be read using {@code adb logcat}.
  */
 final class LoggingWriter extends Writer {
   private final LineBuffer lineBuffer;
 
   LoggingWriter(final int priority, final String tag, final String runId) {
-    this.lineBuffer = new LineBuffer() {
-      @Override
-      protected void handleLine(String line, String end) {
-        Log.println(priority, tag, "<" + runId + "> " + line);
-      }
-    };
+    this.lineBuffer =
+        new LineBuffer() {
+          @Override
+          protected void handleLine(String line, String end) {
+            Log.println(priority, tag, "<" + runId + "> " + line);
+          }
+        };
   }
 
   @Override
@@ -69,8 +68,7 @@ final class LoggingWriter extends Writer {
   }
 
   @Override
-  public void flush() {
-  }
+  public void flush() {}
 
   @Override
   public void close() {

@@ -47,8 +47,6 @@ import javax.inject.Provider;
  *
  * <p>This is the entry point class for the Caliper runner process which controls a full benchmark
  * run.
- *
- * @author Colin Decker
  */
 public final class CaliperRunner {
 

@@ -39,7 +39,7 @@ final class ImmutableMapTypeAdapterFactory implements TypeAdapterFactory {
 
   @Inject
   ImmutableMapTypeAdapterFactory() {}
-  
+
   @SuppressWarnings("unchecked")
   @Override
   public <T> TypeAdapter<T> create(Gson gson, TypeToken<T> typeToken) {

@@ -34,8 +34,6 @@ import org.joda.time.Duration;
 /**
  * An object that starts a worker, reads data from it, processes that data with a {@link
  * WorkerProcessor}, and finally returns a result.
- *
- * @author Colin Decker
  */
 @WorkerScoped
 public final class WorkerRunner<R> {
@@ -134,7 +132,8 @@ public final class WorkerRunner<R> {
             }
             logger.log(
                 Level.WARNING,
-                formatError("Worker [%s] failed to exit cleanly within the allotted time.", worker));
+                formatError(
+                    "Worker [%s] failed to exit cleanly within the allotted time.", worker));
             done = true;
             break;
           default:

@@ -29,11 +29,7 @@ import java.io.Serializable;
 import java.util.Map;
 import java.util.SortedMap;
 
-/**
- * A specification by which a benchmark method invocation can be uniquely identified.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** A specification by which a benchmark method invocation can be uniquely identified. */
 public final class BenchmarkSpec implements Serializable {
   private static final long serialVersionUID = 1L;
 

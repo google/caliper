@@ -122,9 +122,8 @@ final class ConsoleOutput implements Closeable {
         weightedValues[i] = measurement.value().magnitude() / measurement.weight();
         i++;
       }
-      Map<Integer, Double> quartiles = Quantiles.quartiles()
-          .indexes(1, 2, 3)
-          .computeInPlace(weightedValues);
+      Map<Integer, Double> quartiles =
+          Quantiles.quartiles().indexes(1, 2, 3).computeInPlace(weightedValues);
       Stats stats = Stats.of(weightedValues);
       String unit = Iterables.getOnlyElement(units);
       stdout.printf(

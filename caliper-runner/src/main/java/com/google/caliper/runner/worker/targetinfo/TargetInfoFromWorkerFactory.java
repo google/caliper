@@ -41,8 +41,6 @@ import javax.inject.Provider;
  * they do not, that means different targets are seeing different definitions of the class that
  * can't be compared directly, so {@link InvalidConfigurationException} is thrown. If all models are
  * the same, that single model is returned.
- *
- * @author Colin Decker
  */
 public final class TargetInfoFromWorkerFactory implements TargetInfoFactory {
 

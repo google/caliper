@@ -22,8 +22,6 @@ import com.google.caliper.bridge.FailureLogMessage;
 /**
  * A {@link AbstractLogMessageVisitor} that handles {@link FailureLogMessage}s by throwing a {@link
  * ProxyWorkerException}.
- *
- * @author Colin Decker
  */
 public final class FailureLogMessageVisitor extends AbstractLogMessageVisitor {
   public static final FailureLogMessageVisitor INSTANCE = new FailureLogMessageVisitor();

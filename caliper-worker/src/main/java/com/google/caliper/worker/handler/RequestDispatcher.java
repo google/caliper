@@ -8,11 +8,7 @@ import java.util.Map;
 import javax.inject.Inject;
 import javax.inject.Provider;
 
-/**
- * Dispatches {@link WorkerRequest}s to the appropriate handler.
- *
- * @author Colin Decker
- */
+/** Dispatches {@link WorkerRequest}s to the appropriate handler. */
 public final class RequestDispatcher {
 
   private final ImmutableMap<Class<? extends WorkerRequest>, Provider<RequestHandler>>

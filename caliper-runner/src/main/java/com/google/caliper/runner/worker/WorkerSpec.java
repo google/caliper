@@ -27,11 +27,7 @@ import com.google.common.collect.ImmutableList;
 import java.io.PrintWriter;
 import java.util.UUID;
 
-/**
- * Spec for a worker to run, not including the target VM to run it on.
- *
- * @author Colin Decker
- */
+/** Spec for a worker to run, not including the target VM to run it on. */
 public abstract class WorkerSpec implements VmProcess.Spec {
 
   private final Target target;

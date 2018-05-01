@@ -19,11 +19,7 @@ import com.google.caliper.runner.worker.WorkerSpec;
 import com.google.common.collect.ImmutableList;
 import java.util.UUID;
 
-/**
- * Spec for a fake worker; just specifies a main class and some VM options.
- *
- * @author Colin Decker
- */
+/** Spec for a fake worker; just specifies a main class and some VM options. */
 public final class FakeWorkerSpec extends WorkerSpec {
 
   private final String mainClass;

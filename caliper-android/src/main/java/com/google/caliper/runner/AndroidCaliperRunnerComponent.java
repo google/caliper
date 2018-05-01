@@ -21,11 +21,7 @@ import com.google.caliper.util.OutputModule;
 import dagger.Component;
 import javax.inject.Singleton;
 
-/**
- * Android implementation of {@link CaliperRunnerFactory}.
- *
- * @author Colin Decker
- */
+/** Android implementation of {@link CaliperRunnerFactory}. */
 @Singleton
 @Component(modules = CaliperRunnerModule.class)
 interface AndroidCaliperRunnerComponent extends CaliperRunnerFactory {

@@ -71,9 +71,6 @@ public final class GcLogMessage extends LogMessage {
 
   @Override
   public String toString() {
-    return MoreObjects.toStringHelper(this)
-        .addValue(type)
-        .add("duration", duration)
-        .toString();
+    return MoreObjects.toStringHelper(this).addValue(type).add("duration", duration).toString();
   }
 }

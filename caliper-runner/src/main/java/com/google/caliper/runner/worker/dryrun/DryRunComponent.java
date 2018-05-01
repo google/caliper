@@ -29,8 +29,6 @@ import java.util.Set;
  *
  * <p>Dry-runs for all experiments that are to be run on a single target are done in a single worker
  * process so as to avoid the overhead of creating potentially hundreds of worker processes.
- *
- * @author Colin Decker
  */
 @WorkerScoped
 @Subcomponent(modules = DryRunModule.class)

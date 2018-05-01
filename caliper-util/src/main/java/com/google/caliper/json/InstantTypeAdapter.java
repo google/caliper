@@ -29,7 +29,7 @@ final class InstantTypeAdapter extends TypeAdapter<Instant> {
 
   @Inject
   InstantTypeAdapter() {}
-  
+
   @Override
   public void write(JsonWriter out, Instant value) throws IOException {
     out.value(ISODateTimeFormat.dateTime().print(value));

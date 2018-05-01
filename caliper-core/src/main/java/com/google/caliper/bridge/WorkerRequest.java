@@ -18,11 +18,7 @@ package com.google.caliper.bridge;
 
 import java.io.Serializable;
 
-/**
- * Marker interface for classes the runner sends to the worker to tell it what to do.
- *
- * @author Colin Decker
- */
+/** Marker interface for classes the runner sends to the worker to tell it what to do. */
 public interface WorkerRequest extends Serializable {
   /** Returns the type of the request. */
   // this is slightly weird, but with AutoValue, getClass() doesn't return quite what we want

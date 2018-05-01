@@ -32,11 +32,7 @@ import dagger.Reusable;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * Configuration for a dry-run of an experiment.
- *
- * @author Colin Decker
- */
+/** Configuration for a dry-run of an experiment. */
 @Module(includes = WorkerModule.class)
 abstract class DryRunModule {
   private DryRunModule() {}

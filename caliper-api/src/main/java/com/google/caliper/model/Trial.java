@@ -27,11 +27,7 @@ import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * An invocation of a single scenario measured with a single instrument and the results thereof.
- *
- * @author gak@google.com (Gregory Kick)
- */
+/** An invocation of a single scenario measured with a single instrument and the results thereof. */
 public final class Trial { // used to be Result
   public static final Trial DEFAULT = new Trial();
 

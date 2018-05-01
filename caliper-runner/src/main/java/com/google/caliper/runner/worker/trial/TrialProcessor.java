@@ -31,8 +31,6 @@ import javax.inject.Inject;
 /**
  * {@link WorkerProcessor} for building a {@link TrialResult} from data received from a worker
  * running a trial.
- *
- * @author Colin Decker
  */
 final class TrialProcessor extends WorkerProcessor<TrialResult> {
 

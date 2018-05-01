@@ -37,11 +37,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
-/**
- * {@link Activity} that acts as a proxy the Caliper runner can use to manage worker processes.
- *
- * @author Colin Decker
- */
+/** {@link Activity} that acts as a proxy the Caliper runner can use to manage worker processes. */
 public final class CaliperProxyActivity extends Activity {
 
   private static final String TAG = "CaliperProxy";

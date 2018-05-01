@@ -20,11 +20,7 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableSet;
 import java.io.Serializable;
 
-/**
- * A log message listing the IDs of successful dry-run experiments.
- *
- * @author Colin Decker
- */
+/** A log message listing the IDs of successful dry-run experiments. */
 @AutoValue
 public abstract class DryRunSuccessLogMessage extends LogMessage implements Serializable {
   private static final long serialVersionUID = 1L;
