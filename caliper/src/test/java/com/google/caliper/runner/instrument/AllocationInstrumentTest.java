@@ -83,16 +83,13 @@ public class AllocationInstrumentTest {
   }
 
   public static class TestBenchmark {
-    List<Object> list = Lists.newLinkedList();
-
     @Benchmark
     public int compressionSize(int reps) {
+      int result = 0;
       for (int i = 0; i < reps; i++) {
-        list.add(new Object());
+        result ^= new Object().hashCode();
       }
-      int hashCode = list.hashCode();
-      list.clear();
-      return hashCode;
+      return result;
     }
   }
 
