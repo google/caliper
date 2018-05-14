@@ -40,8 +40,10 @@ import com.google.common.base.Optional;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeoutException;
@@ -68,6 +70,9 @@ final class AdbDevice extends Device {
   private Shell shell;
   private final String adb = "adb"; // TODO(cgdecker): Make this configurable?
 
+  /** Additional args to use for each adb command. */
+  private final ImmutableList<String> adbArgs;
+
   private final ServerSocketService server;
   private final ProxyConnectionService proxyConnection;
   private String remoteClasspath;
@@ -91,18 +96,33 @@ final class AdbDevice extends Device {
     this.server = server;
     this.proxyConnection = proxyConnection;
     this.stdout = stdout;
+    this.adbArgs = caliperOptions.adbArgs();
+  }
+
+  private ImmutableList<String> adbCommand(String... args) {
+    return adbCommand(Arrays.asList(args));
+  }
+
+  private ImmutableList<String> adbCommand(Iterable<String> args) {
+    return ImmutableList.<String>builder()
+        .add(adb)
+        .addAll(adbArgs)
+        .addAll(args)
+        .build();
   }
 
   @Override
   protected void startUp() throws Exception {
-    shell.execute(adb, "start-server").orThrow();
+    shell.execute(adbCommand("start-server")).orThrow();
 
     String selector = nullToEmpty(config().options().get("selector"));
+    ImmutableList<String> getSerialNumber =
+        adbCommand(
+            Iterables.concat(
+                Splitter.on(' ').omitEmptyStrings().split(selector),
+                ImmutableList.of("get-serialno")));
 
-    // selector string may consist of multiple arguments or be an empty string, so write this
-    // command as a single string to let shell handle splitting it
-    String deviceSerialNumber =
-        shell.execute(adb + " " + selector + " get-serialno").orThrow().stdout();
+    String deviceSerialNumber = shell.execute(getSerialNumber).orThrow().stdout();
 
     selectDevice(deviceSerialNumber);
     install(getWorkerApk());
@@ -139,12 +159,14 @@ final class AdbDevice extends Device {
     int apiLevel = getApiLevel();
     checkDeviceApiLevel(apiLevel);
 
-    String model = shell.execute(adb + " shell getprop ro.product.model").orThrow().stdout();
+    String model =
+        shell.execute(adbCommand("shell", "getprop", "ro.product.model")).orThrow().stdout();
     stdout.printf("adb: using %s device %s at API level %s%n", model, serialNumber, apiLevel);
   }
 
   private int getApiLevel() {
-    String out = shell.execute(adb + " shell getprop ro.build.version.sdk").orThrow().stdout();
+    String out =
+        shell.execute(adbCommand("shell", "getprop", "ro.build.version.sdk")).orThrow().stdout();
     if (!DIGITS.matchesAllOf(out)) {
       throw new ShellException(
           "unexpected output from command 'adb shell getprop ro.build.version.sdk': " + out);
@@ -167,25 +189,25 @@ final class AdbDevice extends Device {
    */
   private void setReversePortForwarding() {
     String tcpPort = "tcp:" + port;
-    shell.execute(adb, "reverse", tcpPort, tcpPort).orThrow();
+    shell.execute(adbCommand("reverse", tcpPort, tcpPort)).orThrow();
   }
 
   /** Removes the reverse port forwarding for the given port. */
   private void removeReversePortForwarding() {
     String tcpPort = "tcp:" + port;
-    shell.execute(adb, "reverse", "--remove", tcpPort).orThrow();
+    shell.execute(adbCommand("reverse", "--remove", tcpPort)).orThrow();
   }
 
   /** Installs the given apk file to the device. */
   private void install(File apk) {
     stdout.println("adb: installing " + apk);
-    shell.execute(adb, "install", "-r", apk.getAbsolutePath()).orThrow();
+    shell.execute(adbCommand("install", "-r", apk.getAbsolutePath())).orThrow();
   }
 
   /** Uninstalls the package with the given name from the device. */
   private void uninstall(String packageName) {
     stdout.println("adb: uninstalling package " + packageName);
-    shell.execute(adb, "uninstall", packageName);
+    shell.execute(adbCommand("uninstall", packageName));
   }
 
   /**
@@ -196,7 +218,6 @@ final class AdbDevice extends Device {
     stdout.println("adb: starting proxy activity");
     ImmutableList.Builder<String> builder =
         ImmutableList.<String>builder()
-            .add(adb)
             .add("shell")
             .add("am", "start")
             .add("-n", intent)
@@ -205,7 +226,7 @@ final class AdbDevice extends Device {
     for (Map.Entry<String, String> entry : extras.entrySet()) {
       builder.add("-e", entry.getKey(), entry.getValue());
     }
-    shell.execute(builder.build()).orThrow("failed to start activity");
+    shell.execute(adbCommand(builder.build())).orThrow("failed to start activity");
   }
 
   private File getWorkerApk() {
@@ -277,7 +298,7 @@ final class AdbDevice extends Device {
   }
 
   private boolean fileExists(String path) {
-    Result result = shell.execute(adb, "shell", "[", "-f", path, "]");
+    Result result = shell.execute(adbCommand("shell", "[", "-f", path, "]"));
     if (!result.isSuccessful() && !result.stderr().isEmpty()) {
       // only throw if there was output to stderr in addition to not being successful; a non-zero
       // exit code is expected if the command "succeeds" but the file didn't exist

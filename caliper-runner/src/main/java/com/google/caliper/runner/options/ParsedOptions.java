@@ -392,6 +392,24 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // ADB args, for use by AdbDevice
+  // --------------------------------------------------------------------------
+
+  private ImmutableList<String> adbArgs = ImmutableList.of();
+
+  @Option("--adb-args")
+  private void setAdbArgs(String args) {
+    // Don't use the delimiter that's used for other options here; it's "," by default, which
+    // seems surprising for an option that is a series of command line args.
+    adbArgs = ImmutableList.copyOf(Splitter.on(' ').split(args));
+  }
+
+  @Override
+  public ImmutableList<String> adbArgs() {
+    return adbArgs;
+  }
+
+  // --------------------------------------------------------------------------
   // Miscellaneous
   // --------------------------------------------------------------------------
 
@@ -520,6 +538,11 @@ public final class ParsedOptions implements CaliperOptions {
           "                    provided and the benchmark is running on the local device, the ",
           "                    classpath of the runner process may be used as a default. This is ",
           "                    for compatibility reasons and may not be supported in the future.",
+          " --adb-args         additional arguments to pass to adb when using an adb-connected ",
+          "                    device. This is primarily intended for use with things like -P ",
+          "                    (setting the port to use for the adb instance); while it could ",
+          "                    also be used for args such as -d that select the device to use, ",
+          "                    prefer using --device for that.",
           " --print-worker-log if an error occurs in a worker, print the log for that worker ",
           "                    rather than the path to the log file; primarily for use in tests ",
           "                    when running in a CI environment where the log files may not be ",
