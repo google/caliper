@@ -100,6 +100,9 @@ public interface CaliperOptions {
   /** Returns the user's Caliper configuration file. */
   File caliperConfigFile();
 
+  /** Returns additional arguments to pass to ADB commands. */
+  ImmutableList<String> adbArgs();
+
   /**
    * Returns whether or not the worker log file content should be printed when a worker fails. By
    * default (false), just the path to the log file is printed.
