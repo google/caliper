@@ -288,7 +288,7 @@ final class AdbDevice extends Device {
 
   @Override
   public VmConfig defaultVmConfig() {
-    return caliperConfig.getVmConfig("dalvikvm");
+    return caliperConfig.getVmConfig("app_process");
   }
 
   @Override

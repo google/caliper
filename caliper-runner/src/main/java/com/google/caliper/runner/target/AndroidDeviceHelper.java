@@ -61,7 +61,7 @@ final class AndroidDeviceHelper implements LocalDevice.Helper {
     if (home == null) {
       home = System.getProperty("java.home");
     }
-    builder.home(home).executable("dalvikvm");
+    builder.home(home).executable("app_process");
   }
 
   @Override
