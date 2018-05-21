@@ -95,7 +95,8 @@ public final class CaliperProxyActivity extends Activity {
     // to be creating files as a side effect in @Provides methods)
     InetSocketAddress runnerAddress =
         new InetSocketAddress(InetAddress.getLocalHost(), getRunnerPort());
-    String classpath = AndroidClasspath.getClasspath(getApplicationInfo());
+    // getApplicationInfo().sourceDir should actually be the path to the apk
+    String classpath = getApplicationInfo().sourceDir;
 
     String androidDataDir = System.getProperty("java.io.tmpdir") + "/data";
     createWritableDalvikCache(androidDataDir);
