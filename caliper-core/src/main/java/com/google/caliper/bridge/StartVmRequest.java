@@ -27,6 +27,7 @@ import java.util.UUID;
  */
 @AutoValue
 public abstract class StartVmRequest implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   StartVmRequest() {}
 

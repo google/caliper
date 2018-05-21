@@ -22,6 +22,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
  * A message representing output produced by the JVM when {@code -XX:+PrintFlagsFinal} is enabled.
  */
 public final class VmOptionLogMessage extends LogMessage {
+  private static final long serialVersionUID = 1L;
+
   private final String name;
   private final String value;
 

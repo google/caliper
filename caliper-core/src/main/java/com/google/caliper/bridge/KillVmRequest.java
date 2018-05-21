@@ -23,6 +23,7 @@ import java.util.UUID;
 /** A request that's sent to a device to request that it kill a VM process. */
 @AutoValue
 public abstract class KillVmRequest implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   KillVmRequest() {}
 

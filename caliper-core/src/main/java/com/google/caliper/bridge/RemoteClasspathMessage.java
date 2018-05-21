@@ -22,6 +22,7 @@ import java.io.Serializable;
 /** Message sent by a remote device to provide the local worker classpath on that device. */
 @AutoValue
 public abstract class RemoteClasspathMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   RemoteClasspathMessage() {}
 

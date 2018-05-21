@@ -24,6 +24,7 @@ import com.google.common.base.Objects;
 
 /** A message representing output produced by the JVM when {@code -XX:+PrintGC} is enabled. */
 public final class GcLogMessage extends LogMessage {
+  private static final long serialVersionUID = 1L;
 
   /** The type of the garbage collection performed. */
   public static enum Type {

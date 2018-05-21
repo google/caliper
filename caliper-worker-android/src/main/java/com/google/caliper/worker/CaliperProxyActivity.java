@@ -40,7 +40,7 @@ import java.util.UUID;
 /** {@link Activity} that acts as a proxy the Caliper runner can use to manage worker processes. */
 public final class CaliperProxyActivity extends Activity {
 
-  private static final String TAG = "CaliperProxy";
+  static final String TAG = "CaliperProxy";
 
   @Override
   public void onCreate(Bundle savedInstanceState) {
