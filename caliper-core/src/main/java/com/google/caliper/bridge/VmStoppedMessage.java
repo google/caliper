@@ -23,6 +23,7 @@ import java.util.UUID;
 /** A message sent from a device to the runner to tell it that a VM stopped. */
 @AutoValue
 public abstract class VmStoppedMessage implements Serializable {
+  private static final long serialVersionUID = 1L;
 
   VmStoppedMessage() {}
 

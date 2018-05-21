@@ -179,6 +179,7 @@ public abstract class BenchmarkClassModel implements Serializable {
   /** Model of a method on a benchmark class. */
   @AutoValue
   public abstract static class MethodModel implements Serializable {
+    private static final long serialVersionUID = 1;
 
     /** Creates a new {@link MethodModel} representing the given method. */
     public static MethodModel of(Method method) {

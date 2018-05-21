@@ -20,6 +20,8 @@ package com.google.caliper.bridge;
  * A message representing output produced by the JVM when {@code -XX:+PrintCompliation} is enabled.
  */
 public final class HotspotLogMessage extends LogMessage {
+  private static final long serialVersionUID = 1L;
+
   HotspotLogMessage() {}
 
   @Override

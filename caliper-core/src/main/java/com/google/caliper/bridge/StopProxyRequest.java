@@ -19,4 +19,6 @@ package com.google.caliper.bridge;
 import java.io.Serializable;
 
 /** Request to send to a runner proxy on a remote device to tell it to stop. */
-public final class StopProxyRequest implements Serializable {}
+public final class StopProxyRequest implements Serializable {
+  private static final long serialVersionUID = 1L;
+}

@@ -16,6 +16,9 @@
 
 package com.google.caliper.worker;
 
+import static com.google.caliper.worker.CaliperProxyActivity.TAG;
+
+import android.util.Log;
 import com.google.caliper.bridge.FailureLogMessage;
 import com.google.caliper.bridge.KillVmRequest;
 import com.google.caliper.bridge.RemoteClasspathMessage;
@@ -222,6 +225,7 @@ final class CaliperProxy extends AbstractExecutionThreadService {
   }
 
   private void notifyError(Throwable e) {
+    Log.e(TAG, e.getMessage(), e);
     if (clientConnection.isRunning()) {
       try {
         clientConnection.send(FailureLogMessage.create(e));
