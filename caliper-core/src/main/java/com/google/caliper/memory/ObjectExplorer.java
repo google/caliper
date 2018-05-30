@@ -20,7 +20,6 @@ import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Lists;
 import java.lang.ref.Reference;
-import java.lang.reflect.AccessibleObject;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -235,10 +234,19 @@ public final class ObjectExplorer {
       clazz = clazz.getSuperclass();
     }
 
-    // all together so there is only one security check
-    Field[] afields = fields.toArray(new Field[fields.size()]);
-    AccessibleObject.setAccessible(afields, true);
-    return afields;
+    List<Field> accessibleFields = Lists.newArrayListWithCapacity(fields.size());
+    for (Field f : fields) {
+      try {
+        f.setAccessible(true);
+        accessibleFields.add(f);
+      } catch (RuntimeException e) {
+        // JDK9 can throw InaccessibleObjectException when internal modules are accessed.
+        // This exception isn't available in JDK8, so catch RuntimeException
+        // We can use a JVM arg --add_opens to suppress that, but that involves every
+        // test adding every JVM module to the target.
+      }
+    }
+    return accessibleFields.toArray(new Field[0]);
   }
 
   /**
