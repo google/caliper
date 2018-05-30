@@ -23,6 +23,9 @@ import java.lang.ref.Reference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
+import java.security.PrivilegedExceptionAction;
 import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.Deque;
@@ -144,7 +147,7 @@ public final class ObjectExplorer {
           }
           Object childValue = null;
           try {
-            childValue = field.get(value);
+            childValue = fieldGetHelper(value, field);
           } catch (Exception e) {
             throw new AssertionError(e);
           }
@@ -233,20 +236,7 @@ public final class ObjectExplorer {
       }
       clazz = clazz.getSuperclass();
     }
-
-    List<Field> accessibleFields = Lists.newArrayListWithCapacity(fields.size());
-    for (Field f : fields) {
-      try {
-        f.setAccessible(true);
-        accessibleFields.add(f);
-      } catch (RuntimeException e) {
-        // JDK9 can throw InaccessibleObjectException when internal modules are accessed.
-        // This exception isn't available in JDK8, so catch RuntimeException
-        // We can use a JVM arg --add_opens to suppress that, but that involves every
-        // test adding every JVM module to the target.
-      }
-    }
-    return accessibleFields.toArray(new Field[0]);
+    return fields.toArray(new Field[0]);
   }
 
   /**
@@ -260,5 +250,74 @@ public final class ObjectExplorer {
 
     /** Primitive values should be visited. */
     VISIT_PRIMITIVES
+  }
+
+  private static final sun.misc.Unsafe UNSAFE;
+
+  static {
+    sun.misc.Unsafe unsafe = null;
+    try {
+      unsafe = sun.misc.Unsafe.getUnsafe();
+    } catch (SecurityException tryReflectionInstead) {
+      try {
+        unsafe =
+            AccessController.doPrivileged(
+                new PrivilegedExceptionAction<sun.misc.Unsafe>() {
+                  @Override
+                  public sun.misc.Unsafe run() throws Exception {
+                    Class<sun.misc.Unsafe> k = sun.misc.Unsafe.class;
+                    for (java.lang.reflect.Field f : k.getDeclaredFields()) {
+                      f.setAccessible(true);
+                      Object x = f.get(null);
+                      if (k.isInstance(x)) {
+                        return k.cast(x);
+                      }
+                    }
+                    throw new NoSuchFieldError("the Unsafe");
+                  }
+                });
+      } catch (PrivilegedActionException e) {
+        throw new RuntimeException("Could not initialize Unsafe", e.getCause());
+      }
+    }
+    UNSAFE = unsafe;
+  }
+
+  // We use sun.misc.Unsafe to get the contents of a field because,
+  // unlike reflective access, it can cross module boundaries
+  private static Object fieldGetHelper(Object obj, Field field) {
+    Object fieldBase;
+    long fieldOffset;
+    if ((field.getModifiers() & Modifier.STATIC) == 0) {
+      fieldBase = obj;
+      fieldOffset = UNSAFE.objectFieldOffset(field);
+    } else {
+      fieldBase = UNSAFE.staticFieldBase(field);
+      fieldOffset = UNSAFE.staticFieldOffset(field);
+    }
+    Class<?> type = field.getType();
+    if (!type.isPrimitive()) {
+      return UNSAFE.getObject(fieldBase, fieldOffset);
+    } else {
+      if (type.equals(int.class)) {
+        return UNSAFE.getInt(fieldBase, fieldOffset);
+      } else if (type.equals(float.class)) {
+        return UNSAFE.getFloat(fieldBase, fieldOffset);
+      } else if (type.equals(long.class)) {
+        return UNSAFE.getLong(fieldBase, fieldOffset);
+      } else if (type.equals(byte.class)) {
+        return UNSAFE.getByte(fieldBase, fieldOffset);
+      } else if (type.equals(boolean.class)) {
+        return UNSAFE.getBoolean(fieldBase, fieldOffset);
+      } else if (type.equals(double.class)) {
+        return UNSAFE.getDouble(fieldBase, fieldOffset);
+      } else if (type.equals(short.class)) {
+        return UNSAFE.getShort(fieldBase, fieldOffset);
+      } else if (type.equals(char.class)) {
+        return UNSAFE.getChar(fieldBase, fieldOffset);
+      } else {
+        throw new IllegalStateException("Unknown class " + type);
+      }
+    }
   }
 }
