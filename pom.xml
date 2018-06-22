@@ -83,7 +83,6 @@
 
   <modules>
     <module>caliper</module>
-    <module>caliper-android</module>
     <module>caliper-api</module>
     <module>caliper-core</module>
     <module>caliper-examples</module>
