@@ -84,12 +84,28 @@ public class AllocationInstrumentTest {
 
   public static class TestBenchmark {
     @Benchmark
-    public int compressionSize(int reps) {
+    public Integer compressionSize(int reps) {
       int result = 0;
       for (int i = 0; i < reps; i++) {
         result ^= new Object().hashCode();
       }
-      return result;
+      /*
+       * Force a new Integer instance to be allocated, since our call to this method is going to
+       * require boxing even if our return type is int (because we call it reflectively). If we
+       * don't call `new Integer`, Java will automatically call `Integer.valueOf`, which might
+       * return a cached instance or might not. Caching depends on the values of the hash codes,
+       * which may vary from JVM version to JVM version or even from run to run (especially given
+       * that the number of reps is random).
+       *
+       * We could instead just return a boolean, since all of those are cached. But we're sweeping a
+       * problem under the rug, so I'd rather be explicit about it.
+       *
+       * But... somehow this allocation is not visible to Caliper :( But at least it's consistently
+       * not visible under both JDK8 and JDK9. That's an improvement over the old behavior, in which
+       * the `Integer.valueOf` allocation (which I believe *was* always happening in practice) was
+       * visible to JDK9 but not JDK8.
+       */
+      return new Integer(result);
     }
   }
 
