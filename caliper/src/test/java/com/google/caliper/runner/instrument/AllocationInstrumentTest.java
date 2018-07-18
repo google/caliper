@@ -90,20 +90,26 @@ public class AllocationInstrumentTest {
         result ^= new Object().hashCode();
       }
       /*
-       * Force a new Integer instance to be allocated, since our call to this method is going to
-       * require boxing even if our return type is int (because we call it reflectively). If we
-       * don't call `new Integer`, Java will automatically call `Integer.valueOf`, which might
+       * Force a new Integer instance to be allocated, no matter the value and the JDK version.
+       *
+       * Because we call this method reflectively, our calls require boxing, even we make the return
+       * type `int`. To put ourselves in control of that boxing, we make the return type `Integer`,
+       * and we allocate the instance ourselves.
+       *
+       * If we don't call `new Integer`, Java will automatically call `Integer.valueOf`, which might
        * return a cached instance or might not. Caching depends on the values of the hash codes,
-       * which may vary from JVM version to JVM version or even from run to run (especially given
-       * that the number of reps is random).
+       * which may vary from run to run (especially given that the number of reps is random). Worse,
+       * it almost certainly varies between the zero-rep baseline run and the real run: The zero-rep
+       * baseline run is going to return 0, which is in the `Integer` cache and thus won't require
+       * an allocation, but the real run will return some "random" large number, which will require
+       * an allocation.
        *
-       * We could instead just return a boolean, since all of those are cached. But we're sweeping a
-       * problem under the rug, so I'd rather be explicit about it.
+       * To add to the confusion, if this method returns `int`, that leaves the boxing to the JDK's
+       * reflection implementation. That implementation differs for JDK9 (which calls
+       * `Integer.valueOf`) and JDK8 (which calls `new Integer`).
        *
-       * But... somehow this allocation is not visible to Caliper :( But at least it's consistently
-       * not visible under both JDK8 and JDK9. That's an improvement over the old behavior, in which
-       * the `Integer.valueOf` allocation (which I believe *was* always happening in practice) was
-       * visible to JDK9 but not JDK8.
+       * Another way to work around this would be to just return a boolean, since all of those are
+       * cached. But we're sweeping a problem under the rug, so I'd rather be explicit about it.
        */
       return new Integer(result);
     }
