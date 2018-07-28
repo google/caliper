@@ -1,33 +1,33 @@
-# Caliper
+# gson-utils
 
-Caliper is a tool for measuring Java code performance, primarily focused on
-microbenchmarks.
+Gson-utils makes it easier to serialize and deserialize certain immutable types
+provided by Google Guava.
 
-## Building
+## Why?
 
-To build the JVM version of Caliper (the only supported version at the moment),
-run:
+Serializing and deserializing immutable value classes full of simple fields
+is pretty straightforward with Gson, but it doesn't take much more complication
+in contained data to suddenly demand more fiddliness to deal with.
 
-```shell
-mvn clean install -am -pl caliper
-```
+Various other GitHub users have made projects to help with this, but each of the
+ones I found in searches either had room for improvement or a quirk that made
+them less usable to me:
+Maybe they didn't guarantee the sort order of the deserialized data would match
+the original.  Or maybe they didn't support a basic, important collection type
+such as Set.  Or maybe they didn't "deeply" serialize Collections of objects.
+Or maybe a project I wanted to contribute to has its own particular restrictions
+on dependencies or language features (reflection, injection, annotations, etc.)
+If you do want to look into the projects I browsed through, they are:
+* acebaggins/gson-serializers
+* dampcake/gson-immutable
+* rharter/gson-autovalue
+* google/caliper's com.google.caliper.json package
 
-### Android
+## How?
 
-Caliper currently has a number of artifacts related to Android. These are in
-a transitional state and no easy way to run Caliper benchmarks on Android is
-currently available.
-
-If you are interested in building the Android artifacts for any reason, you can
-run:
-
-```shell
-mvn clean install -am -pl caliper-android
-```
-
-Note that for these artifacts to build, you must have an `ANDROID_HOME`
-environment variable set to the location of an Android SDK containing the file
-`platforms/android-25/android.jar`. Alternatively, you can pass
-`-Dandroid.home=<path>` to your `mvn` command to set the Android SDK directory
-that way, and/or `-Dandroid.sdk.version=<version>` to specify a version other
-than `25` (but note that the build may not work with a version lower than `25`).
+Given that this project's code is meant to be used in conjunction with both
+Google Guava's collections and Google Gson, the package contained in Google
+Caliper seemed like the most approprite starting point.
+This project then strips away some of that package's less essential-looking
+dependencies, resolves the sort order guarantees issue, and adds support for
+ImmutableSet.
