@@ -25,6 +25,8 @@ import android.content.pm.ActivityInfo;
 import android.os.Build.VERSION;
 import android.os.Build.VERSION_CODES;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 import android.view.Window;
 import com.google.common.collect.ImmutableMap;
@@ -42,9 +44,13 @@ public final class CaliperProxyActivity extends Activity {
 
   static final String TAG = "CaliperProxy";
 
+  private final HandlerThread proxyInitThread = new HandlerThread("Caliper proxy initialization");
+
   @Override
   public void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
+
+    proxyInitThread.start();
 
     setTitle("Caliper Proxy");
 
@@ -54,11 +60,13 @@ public final class CaliperProxyActivity extends Activity {
     setPerformanceOptions();
 
     UUID id = getProxyId();
-    try {
-      startProxy(id);
-    } catch (Throwable e) {
-      logErrorAndExit(id, "failed to start proxy service", e);
-    }
+    startProxy(id, new Handler(proxyInitThread.getLooper()));
+  }
+
+  @Override
+  protected void onDestroy() {
+    proxyInitThread.quit();
+    super.onDestroy();
   }
 
   private void logErrorAndExit(UUID id, String message, Throwable e) {
@@ -90,7 +98,17 @@ public final class CaliperProxyActivity extends Activity {
    * Sets up and starts the Caliper proxy service, adding a listener to it that will exit this
    * process when it exits.
    */
-  private void startProxy(final UUID id) throws IOException {
+  private void startProxy(final UUID id, Handler handler) {
+    handler.post(() -> {
+      try {
+        startProxyAsync(id);
+      } catch (Throwable e) {
+        logErrorAndExit(id, "failed to start proxy service", e);
+      }
+    });
+  }
+
+  private void startProxyAsync(final UUID id) throws IOException {
     // TODO(dpb): Maybe some of this could go in a Dagger module (but we probably don't want
     // to be creating files as a side effect in @Provides methods)
     InetSocketAddress runnerAddress =
