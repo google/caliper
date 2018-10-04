@@ -69,7 +69,7 @@ public class ResultProcessorConfig {
         .toString();
   }
 
-  static final class Builder {
+  public static final class Builder {
     private String className;
     private ImmutableMap.Builder<String, String> optionsBuilder = ImmutableMap.builder();
 

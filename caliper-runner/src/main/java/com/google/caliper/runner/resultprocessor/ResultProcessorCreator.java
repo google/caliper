@@ -18,33 +18,56 @@ package com.google.caliper.runner.resultprocessor;
 
 import com.google.caliper.api.ResultProcessor;
 import com.google.caliper.core.UserCodeException;
+import com.google.caliper.runner.config.ResultProcessorConfig;
+import com.google.common.base.Optional;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /** Responsible for creating instances of configured {@link ResultProcessor}. */
 final class ResultProcessorCreator {
 
-  public static final String NO_PUBLIC_DEFAULT_CONSTRUCTOR =
-      "ResultProcessor %s not supported as it does not have a public default constructor";
+  public static final String NO_VALID_CONSTRUCTOR =
+      "ResultProcessor %s not supported: it needs a public constructor with either no parameters or"
+          + " one ResultProcessorConfig parameter";
 
   private ResultProcessorCreator() {}
 
-  static ResultProcessor createResultProcessor(Class<? extends ResultProcessor> processorClass) {
-    ResultProcessor resultProcessor;
-
+  static ResultProcessor createResultProcessor(
+      Class<? extends ResultProcessor> processorClass, ResultProcessorConfig config) {
     try {
-      Constructor<? extends ResultProcessor> constructor = processorClass.getConstructor();
-      resultProcessor = constructor.newInstance();
-    } catch (NoSuchMethodException e) {
-      throw new UserCodeException(String.format(NO_PUBLIC_DEFAULT_CONSTRUCTOR, processorClass), e);
+      Optional<ResultProcessor> result = tryInstantiate(processorClass, config);
+      if (!result.isPresent()) {
+        result = tryInstantiate(processorClass);
+        if (!result.isPresent()) {
+          throw new UserCodeException(String.format(NO_VALID_CONSTRUCTOR, processorClass));
+        }
+      }
+      return result.get();
     } catch (InvocationTargetException e) {
-      throw new UserCodeException("ResultProcessor %s could not be instantiated", e.getCause());
-    } catch (InstantiationException e) {
-      throw new UserCodeException("ResultProcessor %s could not be instantiated", e);
-    } catch (IllegalAccessException e) {
-      throw new UserCodeException("ResultProcessor %s could not be instantiated", e);
+      throw new UserCodeException(
+          String.format("ResultProcessor %s could not be instantiated", processorClass),
+          e.getCause());
+    } catch (InstantiationException | IllegalAccessException e) {
+      throw new UserCodeException(
+          String.format("ResultProcessor %s could not be instantiated", processorClass), e);
+    }
+  }
+
+  private static Optional<ResultProcessor> tryInstantiate(
+      Class<? extends ResultProcessor> processorClass, Object... args)
+      throws InvocationTargetException, InstantiationException, IllegalAccessException {
+    Class<?>[] argClasses = new Class<?>[args.length];
+    for (int i = 0; i < args.length; i++) {
+      argClasses[i] = args[i].getClass();
     }
 
-    return resultProcessor;
+    try {
+      // relies on the fact that we're only doing this for no-arg and ResultProcessorConfig args
+      Constructor<? extends ResultProcessor> constructor =
+          processorClass.getConstructor(argClasses);
+      return Optional.of(constructor.newInstance(args));
+    } catch (NoSuchMethodException e) {
+      return Optional.absent();
+    }
   }
 }

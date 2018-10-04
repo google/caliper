@@ -61,7 +61,8 @@ public abstract class ResultProcessorModule {
       Provider<ResultProcessor> resultProcessorProvider = availableProcessors.get(processorClass);
       ResultProcessor resultProcessor =
           resultProcessorProvider == null
-              ? ResultProcessorCreator.createResultProcessor(processorClass)
+              ? ResultProcessorCreator.createResultProcessor(
+                  processorClass, config.getResultProcessorConfig(processorClass))
               : resultProcessorProvider.get();
       builder.add(resultProcessor);
     }
