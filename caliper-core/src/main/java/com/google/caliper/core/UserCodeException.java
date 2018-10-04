@@ -19,6 +19,10 @@ import java.io.PrintWriter;
 /** Signifies that the user's benchmark code threw an exception. */
 @SuppressWarnings("serial")
 public class UserCodeException extends InvalidBenchmarkException {
+  public UserCodeException(String message) {
+    super(message);
+  }
+
   public UserCodeException(String message, Throwable cause) {
     super(message);
     initCause(cause);
