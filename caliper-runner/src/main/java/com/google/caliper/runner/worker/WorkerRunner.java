@@ -168,7 +168,7 @@ public final class WorkerRunner<R> {
     if (printWorkerLog) {
       try {
         worker.outputLogger().flush();
-        String logContent = Files.toString(outputFile, UTF_8);
+        String logContent = Files.asCharSource(outputFile, UTF_8).read();
         return baseMessage + " Worker log follows:\n\n" + logContent;
       } catch (IOException ignore) {
         // fall through to printing the path

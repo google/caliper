@@ -84,6 +84,6 @@ public class LoggingConfigLoaderTest {
             new File(caliperDirectory, "log"),
             ISODateTimeFormat.basicDateTimeNoMillis().print(startTime) + "." + runId + ".log");
     assertTrue(logFile.isFile());
-    assertTrue(Files.toString(logFile, UTF_8).contains("some message"));
+    assertTrue(Files.asCharSource(logFile, UTF_8).read().contains("some message"));
   }
 }
