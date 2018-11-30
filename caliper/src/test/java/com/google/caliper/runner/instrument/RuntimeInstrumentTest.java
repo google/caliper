@@ -42,6 +42,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.math.LinearTransformation;
 import com.google.common.math.PairedStatsAccumulator;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.testing.testsize.Flaky;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
@@ -188,6 +189,7 @@ public class RuntimeInstrumentTest {
 
   @Test
 
+  @Flaky
   public void success() throws Exception {
     runner
         .forBenchmark(TestBenchmark.class)
