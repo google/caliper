@@ -23,7 +23,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.List;
@@ -119,8 +118,8 @@ abstract class HostDevice {
       Class<?> androidOsBuildClass =
           ClassLoader.getSystemClassLoader().loadClass("android.os.Build");
       if (androidOsBuildClass != null) {
-        Field fingerprint = androidOsBuildClass.getDeclaredField("FINGERPRINT");
-        propertyMap.put("host.android.buildFingerprint", (String) fingerprint.get(null));
+        String fingerprint = (String) androidOsBuildClass.getDeclaredField("FINGERPRINT").get(null);
+        propertyMap.put("host.android.buildFingerprint", fingerprint != null ? fingerprint : "");
       }
     } catch (ReflectiveOperationException e) {
       // Not Android; ignore.
