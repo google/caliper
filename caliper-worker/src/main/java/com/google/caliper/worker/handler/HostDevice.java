@@ -23,6 +23,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.io.Files;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.charset.Charset;
 import java.util.Collection;
 import java.util.List;
@@ -59,6 +60,7 @@ abstract class HostDevice {
     if (osName.equals("Linux")) {
       getLinuxEnvironment(propertyMap);
     }
+    getAndroidEnvironment(propertyMap);
 
     return propertyMap;
   }
@@ -108,6 +110,20 @@ abstract class HostDevice {
     } catch (IOException e) {
       // If there's any problem reading the file, just return an empty multimap.
       return ImmutableMultimap.of();
+    }
+  }
+
+  /** Populates {@code propertyMap} with Android properties, if applicable. */
+  private static void getAndroidEnvironment(Map<String, String> propertyMap) {
+    try {
+      Class<?> androidOsBuildClass =
+          ClassLoader.getSystemClassLoader().loadClass("android.os.Build");
+      if (androidOsBuildClass != null) {
+        Field fingerprint = androidOsBuildClass.getDeclaredField("FINGERPRINT");
+        propertyMap.put("host.android.buildFingerprint", (String) fingerprint.get(null));
+      }
+    } catch (ReflectiveOperationException e) {
+      // Not Android; ignore.
     }
   }
 }
