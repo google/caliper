@@ -107,8 +107,9 @@ public class LocalDeviceTest {
     assertThat(commandLine.get(0)).startsWith(System.getProperty("java.home") + "/bin/java");
     assertThat(commandLine).contains("--doTheHustle");
     assertThat(commandLine).contains("-cp");
-    assertThat(commandLine).containsAllIn(target.vm().trialArgs());
-    assertThat(commandLine).containsAllIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
+    assertThat(commandLine).containsAtLeastElementsIn(target.vm().trialArgs());
+    assertThat(commandLine)
+        .containsAtLeastElementsIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
     assertThat(commandLine)
         .containsAllOf("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
     // main class should be fourth to last, followed worker options
