@@ -111,7 +111,7 @@ public class LocalDeviceTest {
     assertThat(commandLine)
         .containsAtLeastElementsIn(allocationInstrument.getExtraCommandLineArgs(vmConfig));
     assertThat(commandLine)
-        .containsAllOf("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
+        .containsAtLeast("-XX:+PrintFlagsFinal", "-XX:+PrintCompilation", "-XX:+PrintGC");
     // main class should be fourth to last, followed worker options
     assertEquals("com.google.caliper.worker.WorkerMain", commandLine.get(commandLine.size() - 4));
   }
