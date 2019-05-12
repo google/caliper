@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.inject.Singleton;
 
-/** Modlue with bindings for creating a {@link CaliperProxy}. */
+/** Module with bindings for creating a {@link CaliperProxy}. */
 @Module
 abstract class CaliperProxyModule {
   private CaliperProxyModule() {}
