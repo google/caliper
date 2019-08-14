@@ -27,7 +27,7 @@ public final class DisplayUsageException extends InvalidCommandException {
   }
 
   @Override
-  public void display(PrintWriter writer) {
+  public void printUsage(PrintWriter writer) {
     displayUsage(writer);
   }
 

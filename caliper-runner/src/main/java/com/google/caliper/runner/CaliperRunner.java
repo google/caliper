@@ -95,10 +95,10 @@ public final class CaliperRunner {
       runInternal();
       code = 0;
     } catch (DisplayUsageException e) {
-      e.display(stdout);
+      e.printUsage(stdout);
       code = e.exitCode();
     } catch (InvalidCommandException e) {
-      e.display(stderr);
+      e.printUsage(stderr);
       code = e.exitCode();
     } catch (InvalidBenchmarkException e) {
       e.display(stderr);

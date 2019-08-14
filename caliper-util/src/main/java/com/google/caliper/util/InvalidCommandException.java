@@ -31,7 +31,7 @@ public class InvalidCommandException extends RuntimeException {
     this.usage = ImmutableList.copyOf(usage);
   }
 
-  public void display(PrintWriter writer) {
+  public void printUsage(PrintWriter writer) {
     writer.println(getMessage());
     if (usage != null) {
       writer.println();
