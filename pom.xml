@@ -132,7 +132,7 @@
       </dependency>
       <dependency>
         <groupId>com.google.auto.value</groupId>
-        <artifactId>auto-value</artifactId>
+        <artifactId>auto-value-annotations</artifactId>
         <version>${autovalue.version}</version>
       </dependency>
       <dependency>
@@ -176,7 +176,7 @@
             <source>1.8</source>
             <target>1.8</target>
             <annotationProcessorPaths>
-               <path>
+              <path>
                 <groupId>com.google.auto.value</groupId>
                 <artifactId>auto-value</artifactId>
                 <version>${autovalue.version}</version>
@@ -185,6 +185,12 @@
                 <groupId>com.google.dagger</groupId>
                 <artifactId>dagger-compiler</artifactId>
                 <version>${dagger.version}</version>
+              </path>
+              <!-- TODO(cpovirk): Remove this after updating AutoValue's dep. -->
+              <path>
+                <groupId>com.squareup</groupId>
+                <artifactId>javapoet</artifactId>
+                <version>1.11.1</version>
               </path>
             </annotationProcessorPaths>
           </configuration>

@@ -72,7 +72,7 @@
     </dependency>
     <dependency>
       <groupId>com.google.auto.value</groupId>
-      <artifactId>auto-value</artifactId>
+      <artifactId>auto-value-annotations</artifactId>
       <scope>provided</scope>
     </dependency>
     <dependency>
