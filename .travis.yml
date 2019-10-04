@@ -3,7 +3,8 @@ sudo: false
 language: java
 
 jdk:
-  - oraclejdk8
+  - openjdk8
+  - openjdk11
 
 before_install:
   # Travis sets this and it causes issues with workers.
