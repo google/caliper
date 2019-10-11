@@ -70,8 +70,10 @@ public abstract class ResultsUploader implements ResultProcessor {
       } catch (IllegalArgumentException e) {
         throw new InvalidConfigurationException(
             String.format(
-                "The specified API key (%s) is not valid. API keys are UUIDs and should look like %s.",
-                apiKeyString, new UUID(0L, 0L)));
+                "The specified API key (%s) is not valid. "
+                    + "API keys are UUIDs and should look like %s.",
+                apiKeyString, new UUID(0L, 0L)),
+            e);
       }
     }
     this.apiKey = apiKey;
