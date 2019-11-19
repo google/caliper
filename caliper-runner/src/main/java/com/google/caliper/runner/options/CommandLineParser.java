@@ -297,7 +297,7 @@ final class CommandLineParser<T> {
       try {
         this.parser = Parsers.conventionalParser(Primitives.wrap(c));
       } catch (NoSuchMethodException e) {
-        throw new IllegalArgumentException("No suitable String-conversion method");
+        throw new IllegalArgumentException("No suitable String-conversion method", e);
       }
     }
 
@@ -335,7 +335,7 @@ final class CommandLineParser<T> {
       try {
         this.parser = Parsers.conventionalParser(Primitives.wrap(c));
       } catch (NoSuchMethodException e) {
-        throw new IllegalArgumentException("No suitable String-conversion method");
+        throw new IllegalArgumentException("No suitable String-conversion method", e);
       }
 
       method.setAccessible(true);
