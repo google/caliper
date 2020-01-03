@@ -272,7 +272,7 @@ public class EnumSetContainsBenchmark {
   @Benchmark
   void contains(int reps) {
     for (int i = 0; i < reps; i++) {
-      set.contains(testValues[i % testValues.length]);
+      boolean unused = set.contains(testValues[i % testValues.length]);
     }
   }
 }
