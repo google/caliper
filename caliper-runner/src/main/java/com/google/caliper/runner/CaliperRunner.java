@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner;
 
+import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 import static com.google.common.util.concurrent.MoreExecutors.shutdownAndAwaitTermination;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
@@ -148,7 +149,8 @@ public final class CaliperRunner {
                   stderr.println("Service " + service + " failed with the following exception:");
                   service.failureCause().printStackTrace(stderr);
                 }
-              });
+              },
+              directExecutor());
       serviceManager.get().startAsync().awaitHealthy();
       try {
         TargetInfo targetInfo = targetInfoFactory.get().getTargetInfo();
