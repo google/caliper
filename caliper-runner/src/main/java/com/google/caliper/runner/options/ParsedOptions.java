@@ -107,6 +107,25 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // Local port
+  // --------------------------------------------------------------------------
+
+  private int localPort = 0;  /* bind to any available port */
+
+  @Option({"-L", "--local_port"})
+  private void setLocalPort(int localPort) {
+    if (localPort < 1) {
+      throw new InvalidCommandException("local_port must be at least 1: " + localPort);
+    }
+    this.localPort = localPort;
+  }
+
+  @Override
+  public int localPort() {
+    return localPort;
+  }
+
+  // --------------------------------------------------------------------------
   // Delimiter -- injected early so methods can use it
   // --------------------------------------------------------------------------
 

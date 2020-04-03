@@ -94,6 +94,9 @@ public interface CaliperOptions {
   /** Returns whether or not to only do a dry run of the benchmark. */
   boolean dryRun();
 
+  /** Returns the local port that should be used for reverse proxy. */
+  int localPort();
+
   /** Returns the directory where Caliper configuration, logs, etc. are found. */
   File caliperDirectory();
 

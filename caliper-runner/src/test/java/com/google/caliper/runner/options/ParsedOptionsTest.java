@@ -212,6 +212,7 @@ public class ParsedOptionsTest {
       "--benchmark=foo;bar;qux",
       "--instrument=testInstrument",
       "--directory=/path/to/some/dir",
+      "--local_port=4321",
       "--trials=2",
       "--time-limit=15s",
       "-Dx=a;b;c",
@@ -229,6 +230,7 @@ public class ParsedOptionsTest {
     assertEquals(CLASS_NAME, options.benchmarkClassName());
     assertEquals(ImmutableSet.of("foo", "bar", "qux"), options.benchmarkMethodNames());
     assertFalse(options.dryRun());
+    assertEquals(4321, options.localPort());
     assertEquals(ImmutableSet.of("testInstrument"), options.instrumentNames());
     assertEquals(new File("/path/to/some/dir"), options.caliperDirectory());
     assertEquals(2, options.trialsPerScenario());
