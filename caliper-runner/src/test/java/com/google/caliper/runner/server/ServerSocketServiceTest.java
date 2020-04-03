@@ -19,8 +19,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.when;
 
 import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Uuids;
 import com.google.common.util.concurrent.ListenableFuture;
 import java.io.IOException;
@@ -38,20 +40,25 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 /** Tests for {@link ServerSocketService}. */
-@RunWith(JUnit4.class)
+@RunWith(MockitoJUnitRunner.class)
 
 public class ServerSocketServiceTest {
 
-  private final ServerSocketService service = new ServerSocketService();
+  @Mock CaliperOptions options;
+
+  private ServerSocketService service;
   private int port;
 
   private ExecutorService executor;
 
   @Before
   public void before() {
+    when(options.localPort()).thenReturn(0);
+    service = new ServerSocketService(options);
     service.startAsync().awaitRunning();
     port = service.getPort();
     executor = Executors.newSingleThreadExecutor();
@@ -136,6 +143,19 @@ public class ServerSocketServiceTest {
 
     clientOutputStream.close();
     serverInputStream.close();
+  }
+
+  @Test
+  public void getPort() {
+    int localPort = 54321;
+    when(options.localPort()).thenReturn(localPort);
+    ServerSocketService service = new ServerSocketService(options);
+    service.startAsync().awaitRunning();
+
+    int port = service.getPort();
+    service.stopAsync().awaitTerminated();
+
+    assertEquals(localPort, port);
   }
 
   private Socket openClientConnection() throws IOException {

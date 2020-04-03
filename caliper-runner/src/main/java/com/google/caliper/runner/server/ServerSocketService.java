@@ -18,6 +18,7 @@ import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.util.concurrent.MoreExecutors.directExecutor;
 
 import com.google.caliper.bridge.OpenedSocket;
+import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Uuids;
 import com.google.common.base.Function;
 import com.google.common.base.Supplier;
@@ -122,10 +123,13 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
             }
           });
 
+  private final CaliperOptions caliperOptions;
   private ServerSocket serverSocket;
 
   @Inject
-  ServerSocketService() {}
+  ServerSocketService(CaliperOptions caliperOptions) {
+    this.caliperOptions = caliperOptions;
+  }
 
   /** Gets the port this server is using. */
   public int getPort() {
@@ -165,7 +169,7 @@ public final class ServerSocketService extends AbstractExecutionThreadService {
 
   @Override
   protected void startUp() throws Exception {
-    serverSocket = new ServerSocket(0 /* bind to any available port */);
+    serverSocket = new ServerSocket(caliperOptions.localPort());
   }
 
   @Override
