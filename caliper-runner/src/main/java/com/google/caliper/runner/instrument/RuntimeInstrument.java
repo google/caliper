@@ -254,8 +254,6 @@ public class RuntimeInstrument extends Instrument {
       }
     }
 
-    abstract void gcWhileMeasuring();
-
     @Override
     public void visit(HotspotLogMessage logMessage) {
       if (isWarmupComplete()) {
@@ -268,10 +266,6 @@ public class RuntimeInstrument extends Instrument {
         }
       }
     }
-
-    abstract void hotspotWhileMeasuring();
-
-    abstract void hotspotWhileNotMeasuring();
 
     @Override
     public void visit(StartMeasurementLogMessage logMessage) {
@@ -314,6 +308,12 @@ public class RuntimeInstrument extends Instrument {
       invalidateMeasurements = false;
       measuring = false;
     }
+
+    abstract void gcWhileMeasuring();
+
+    abstract void hotspotWhileMeasuring();
+
+    abstract void hotspotWhileNotMeasuring();
 
     @Override
     public ImmutableList<Measurement> getMeasurements() {
