@@ -143,7 +143,7 @@
       <dependency>
         <groupId>com.google.code.java-allocation-instrumenter</groupId>
         <artifactId>java-allocation-instrumenter</artifactId>
-        <version>3.1.0</version>
+        <version>3.3.0</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
