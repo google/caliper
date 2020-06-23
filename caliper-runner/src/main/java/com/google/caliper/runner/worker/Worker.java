@@ -211,7 +211,7 @@ public final class Worker extends AbstractService {
 
   private void startStreamReader(String name, InputStream inputStream) {
     runningReadStreams.incrementAndGet();
-    @SuppressWarnings("unused") // go/futurereturn-lsc
+    @SuppressWarnings("unused") // https://errorprone.info/bugpattern/FutureReturnValueIgnored
     Future<?> possiblyIgnoredError =
         streamExecutor.submit(
             threadRenaming(
@@ -231,7 +231,7 @@ public final class Worker extends AbstractService {
       socketWriter = openedSocket.writer();
       runningReadStreams.incrementAndGet();
       openStreams.incrementAndGet();
-      @SuppressWarnings("unused") // go/futurereturn-lsc
+      @SuppressWarnings("unused") // https://errorprone.info/bugpattern/FutureReturnValueIgnored
       Future<?> possiblyIgnoredError =
           streamExecutor.submit(
               threadRenaming("worker-socket", new SocketStreamReader(openedSocket.reader())));
@@ -322,7 +322,7 @@ public final class Worker extends AbstractService {
     // Experimentally, even with well behaved processes there is some time between when all streams
     // are closed as part of process shutdown and when the process has exited. So to not fail
     // flakily when shutting down normally we need to do a timed wait
-    @SuppressWarnings("unused") // go/futurereturn-lsc
+    @SuppressWarnings("unused") // https://errorprone.info/bugpattern/FutureReturnValueIgnored
     Future<?> possiblyIgnoredError =
         streamExecutor.submit(
             new Callable<Void>() {

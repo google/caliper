@@ -440,7 +440,6 @@ public final class ParsedOptions implements CaliperOptions {
     return printWorkerLog;
   }
 
-
   // --------------------------------------------------------------------------
   // Leftover - benchmark class name
   // --------------------------------------------------------------------------
