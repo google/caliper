@@ -16,6 +16,7 @@
 
 package com.google.caliper.runner.resultprocessor;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.SEVERE;
 
 import com.google.caliper.api.ResultProcessor;
@@ -26,7 +27,6 @@ import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.ResultProcessorConfig;
 import com.google.caliper.runner.options.CaliperDirectory;
-import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -100,7 +100,7 @@ public final class OutputFileDumper implements ResultProcessor {
       try {
         Files.createParentDirs(workFile);
         JsonWriter writer =
-            new JsonWriter(new OutputStreamWriter(new FileOutputStream(workFile), Charsets.UTF_8));
+            new JsonWriter(new OutputStreamWriter(new FileOutputStream(workFile), UTF_8));
         writer.setIndent("  "); // always pretty print
         writer.beginArray();
         this.writer = Optional.of(writer);

@@ -16,13 +16,13 @@
 
 package com.google.caliper.runner.config;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.SEVERE;
 import static java.util.logging.Level.WARNING;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.runner.options.CaliperDirectory;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Charsets;
 import com.google.common.io.Closer;
 import java.io.File;
 import java.io.FileInputStream;
@@ -94,7 +94,7 @@ class LoggingConfigLoader {
                 File.separatorChar,
                 ISODateTimeFormat.basicDateTimeNoMillis().print(run.startTime()),
                 run.id()));
-    fileHandler.setEncoding(Charsets.UTF_8.name());
+    fileHandler.setEncoding(UTF_8.name());
     fileHandler.setFormatter(new SimpleFormatter());
     Logger globalLogger = logManager.getLogger("");
     globalLogger.addHandler(fileHandler);
