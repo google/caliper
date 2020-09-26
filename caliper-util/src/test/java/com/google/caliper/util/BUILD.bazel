@@ -1,0 +1,19 @@
+java_test(
+    name = "ShortDurationTest",
+    srcs = ["ShortDurationTest.java"],
+    deps = [
+      "//caliper-util",
+      "@maven//com/google/truth",
+      "@maven//junit",
+    ],
+)
+
+java_test(
+    name = "UuidsTest",
+    srcs = ["UuidsTest.java"],
+    deps = [
+      "//caliper-util",
+      "@maven//com/google/truth",
+      "@maven//junit",
+    ],
+)

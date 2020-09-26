@@ -1,0 +1,9 @@
+java_library(
+    name = "caliper-api",
+    srcs = glob(["src/main/**/*.java"]),
+    deps = [
+        "@maven//com/google/guava",
+        "@maven//joda-time",
+    ],
+    visibility = ["//:__subpackages__"],
+)

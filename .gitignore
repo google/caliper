@@ -18,3 +18,8 @@ out/
 .factorypath
 .project
 .settings/
+
+# Bazel
+bazel-*
+.aswb
+.ijwb

@@ -1,0 +1,16 @@
+java_library(
+    name = "caliper-worker-jvm",
+    srcs = glob(["src/main/**/*.java"]),
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-util",
+        "//caliper-worker",
+        "@maven//com/google/code/findbugs:jsr305",
+        "@maven//com/google/code/java-allocation-instrumenter:java-allocation-instrumenter",
+        "@maven//com/sun/jersey:jersey-client",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+    ],
+    visibility = ["//:__subpackages__"]
+)

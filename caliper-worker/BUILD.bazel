@@ -1,0 +1,15 @@
+java_library(
+    name = "caliper-worker",
+    srcs = glob(["src/main/**/*.java"]),
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-util",
+        "@maven//com/google/code/findbugs:jsr305",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+        "@maven//com/squareup/okhttp",
+        "@maven//joda-time",
+    ],
+    visibility = ["//:__subpackages__"]
+)
