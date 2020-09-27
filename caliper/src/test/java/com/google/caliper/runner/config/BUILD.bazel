@@ -1,0 +1,23 @@
+java_test(
+    name = "CaliperConfigModuleTest",
+    srcs = ["CaliperConfigModuleTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-runner",
+        "@maven//com/google/truth",
+        "@maven//junit",
+        "@maven//org/mockito:mockito-all",
+    ],
+)
+
+java_test(
+    name = "CaliperConfigTest",
+    srcs = ["CaliperConfigTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper-runner",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

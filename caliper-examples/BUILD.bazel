@@ -1,0 +1,10 @@
+java_library(
+    name = "caliper-examples",
+    srcs = glob(["src/main/**/*.java"]),
+    visibility = ["//:__subpackages__"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper-util",
+    ],
+)

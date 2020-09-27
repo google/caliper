@@ -1,0 +1,11 @@
+java_test(
+    name = "ResultProcessorCreatorTest",
+    srcs = ["ResultProcessorCreatorTest.java"],
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-runner",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

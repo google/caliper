@@ -1,0 +1,13 @@
+java_test(
+    name = "WorkerTest",
+    srcs = ["WorkerTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-core",
+        "//caliper-runner",
+        "//caliper-util",
+        "//caliper/src/test/java/com/google/caliper/runner/testing",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

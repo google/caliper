@@ -1,0 +1,9 @@
+java_test(
+    name = "ObjectGraphMeasurerTest",
+    srcs = ["ObjectGraphMeasurerTest.java"],
+    deps = [
+      "//caliper-core",
+      "@maven//com/google/truth",
+      "@maven//junit",
+    ],
+)

@@ -1,0 +1,14 @@
+java_test(
+    name = "LogMessageParserTest",
+    srcs = [
+        "GcLogMessageGenerator.java",
+        "LogMessageParserTest.java"
+    ],
+    deps = [
+        "//caliper-core",
+        "//caliper-util",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+    resources = ["//caliper-core:test_resources"],
+)

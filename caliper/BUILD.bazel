@@ -1,6 +1,7 @@
 java_library(
     name = "caliper-lib",
-    srcs = glob(["src/main/**/*.java"]),
+    srcs = glob(["src/main/java/**/*.java"]),
+    visibility = ["//:__subpackages__"],
     deps = [
         "//caliper-api",
         "//caliper-core",
@@ -8,16 +9,26 @@ java_library(
         "//caliper-util",
         "//caliper-worker-jvm",
         "@maven//com/google/code/findbugs:jsr305",
-        "@maven//com/sun/jersey:jersey-client",
+        "@maven//com/google/code/java-allocation-instrumenter",
         "@maven//com/google/dagger",
         "@maven//com/google/guava",
-        "@maven//com/google/code/java-allocation-instrumenter",
+        "@maven//com/sun/jersey:jersey-client",
     ],
-    visibility = ["//:__subpackages__"]
+    resources = glob(["src/main/resources/**"]),
 )
 
 java_binary(
-    name = "caliper",
+    name = "caliper-bin",
+    main_class = "com.google.caliper.runner.CaliperMain",
     runtime_deps = [":caliper-lib"],
-    main_class = "com.google.caliper.runner.CaliperMain"
+)
+
+genrule(
+    name = "caliper",
+    srcs = [
+        "//tools:java-exec-prefix",
+        "//caliper:caliper-bin_deploy.jar",
+    ],
+    outs = ["caliper"],
+    cmd_bash = "cat $(location //tools:java-exec-prefix) $(location //caliper:caliper-bin_deploy.jar) > $@",
 )

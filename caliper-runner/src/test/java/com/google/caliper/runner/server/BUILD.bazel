@@ -1,0 +1,12 @@
+java_test(
+    name = "ServerSocketServiceTest",
+    srcs = ["ServerSocketServiceTest.java"],
+    deps = [
+        "//caliper-core",
+        "//caliper-runner",
+        "//caliper-util",
+        "@maven//com/google/truth",
+        "@maven//junit",
+        "@maven//org/mockito:mockito-all",
+    ],
+)

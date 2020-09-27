@@ -1,0 +1,39 @@
+java_test(
+    name = "AllocationInstrumentTest",
+    srcs = ["AllocationInstrumentTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper-runner",
+        "//caliper/src/test/java/com/google/caliper/runner/testing",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)
+
+java_test(
+    name = "ArbitraryMeasurmentInstrumentTest",
+    srcs = ["ArbitraryMeasurmentInstrumentTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper/src/test/java/com/google/caliper/runner/testing",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)
+
+java_test(
+    name = "RuntimeInstrumentTest",
+    srcs = ["RuntimeInstrumentTest.java"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-runner",
+        "//caliper-util",
+        "//caliper/src/test/java/com/google/caliper/runner/testing",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

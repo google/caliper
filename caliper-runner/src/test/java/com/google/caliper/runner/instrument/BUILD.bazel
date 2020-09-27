@@ -1,0 +1,12 @@
+java_test(
+    name = "InstrumentModuleTest",
+    srcs = ["InstrumentModuleTest.java"],
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-runner",
+        "@maven//com/google/truth",
+        "@maven//junit",
+        "@maven//org/mockito:mockito-all",
+    ],
+)
