@@ -1,24 +1,31 @@
 sudo: false
 
-language: java
-
+language: android
+android:
+  components:
+    - build-tools-26.0.2
+    - android-26
 jdk:
   - openjdk8
 
 before_install:
   # Travis sets this and it causes issues with workers.
   - unset _JAVA_OPTIONS
-  # Not actually used since we aren't building/testing the Android version, but
-  # Maven still needs an absolute path or it complains.
-  - export ANDROID_HOME=/
 
-install: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install -U -DskipTests=true -am -pl caliper
+install:
+  - wget https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64
+  - install bazelisk-linux-amd64 ${HOME}/bin/bazel
+  - mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install -U -DskipTests=true -am -pl caliper
 
-script: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn clean verify -U -Dmaven.javadoc.skip=true -am -pl caliper
+script:
+  - mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn clean verify -U -Dmaven.javadoc.skip=true -am -pl caliper
+  - ${HOME}/bin/bazel build //...
+  - ${HOME}/bin/bazel test //...
 
 cache:
   directories:
   - $HOME/.m2
+  - $HOME/.cache/bazel
 
 branches:
   only:
