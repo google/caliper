@@ -21,6 +21,11 @@ java_binary(
     name = "caliper-bin",
     main_class = "com.google.caliper.runner.CaliperMain",
     runtime_deps = [":caliper-lib"],
+    deploy_manifest_lines = [
+        "Premain-Class: com.google.monitoring.runtime.instrumentation.AllocationInstrumenter",
+        "Can-Redefine-Classes: true",
+        "Can-Retransform-Classes: true",
+    ]
 )
 
 genrule(
