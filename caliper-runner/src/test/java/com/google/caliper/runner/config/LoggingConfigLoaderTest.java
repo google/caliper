@@ -56,7 +56,7 @@ public class LoggingConfigLoaderTest {
 
   private LoggingConfigLoader loader;
   private UUID runId = UUID.randomUUID();
-  private Instant startTime = new Instant();
+  private Instant startTime = Instant.now();
   private File caliperDirectory;
 
   @Before
