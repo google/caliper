@@ -217,6 +217,10 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
       try {
         writer.write(KillVmRequest.create(vmId));
       } catch (IOException e) {
+        if (e.getMessage().equals("Socket closed")) {
+          // Disconnect is expected.
+          return;
+        }
         throw new RuntimeException(e);
       }
     }
