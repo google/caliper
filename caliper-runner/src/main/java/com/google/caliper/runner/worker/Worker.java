@@ -29,7 +29,6 @@ import com.google.common.base.MoreObjects;
 import com.google.common.base.MoreObjects.ToStringHelper;
 import com.google.common.collect.Queues;
 import com.google.common.io.Closeables;
-import com.google.common.io.LineReader;
 import com.google.common.util.concurrent.AbstractService;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
@@ -37,6 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Service;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -444,7 +444,7 @@ public final class Worker extends AbstractService {
 
     @Override
     public Void call() throws IOException, InterruptedException, ParseException {
-      LineReader lineReader = new LineReader(reader);
+      BufferedReader lineReader = new BufferedReader(reader);
       boolean threw = true;
       try {
         String line;
