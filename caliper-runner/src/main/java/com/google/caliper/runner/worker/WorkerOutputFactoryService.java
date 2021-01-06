@@ -19,7 +19,7 @@ package com.google.caliper.runner.worker;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.caliper.model.Run;
-import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.runner.config.CaliperConfig;
 import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractIdleService;
@@ -47,11 +47,11 @@ import javax.inject.Singleton;
 final class WorkerOutputFactoryService extends AbstractIdleService implements WorkerOutputFactory {
   private static final String LOG_DIRECTORY_PROPERTY = "worker.output";
 
-  private final CaliperOptions options;
+  private final CaliperConfig config;
   private final Run run;
 
   @GuardedBy("this")
-  private final Set<String> toDelete = new LinkedHashSet<String>();
+  private final Set<String> toDelete = new LinkedHashSet<>();
 
   @GuardedBy("this")
   private File directory;
@@ -60,9 +60,9 @@ final class WorkerOutputFactoryService extends AbstractIdleService implements Wo
   private boolean persistFiles;
 
   @Inject
-  WorkerOutputFactoryService(Run run, CaliperOptions options) {
+  WorkerOutputFactoryService(Run run, CaliperConfig config) {
     this.run = run;
-    this.options = options;
+    this.config = config;
   }
 
   @Override
@@ -102,7 +102,7 @@ final class WorkerOutputFactoryService extends AbstractIdleService implements Wo
   @Override
   protected synchronized void startUp() throws Exception {
     File directory;
-    String dirName = options.configProperties().get(LOG_DIRECTORY_PROPERTY);
+    String dirName = config.properties().get(LOG_DIRECTORY_PROPERTY);
     boolean persistFiles = true;
     if (dirName != null) {
       directory = new File(dirName);
