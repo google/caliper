@@ -18,9 +18,7 @@ package com.google.caliper.worker;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Interner;
-import com.google.common.collect.Interners;
-import java.util.Collection;
+import com.google.common.collect.Multiset;
 import java.util.List;
 
 /**
@@ -30,32 +28,30 @@ import java.util.List;
  * the allocation.
  */
 final class Allocation {
-  // While particular lists of STEs can have a lot of variety within a benchmark there don't tend
-  // to be many individually unique STEs.  This can save a lot of memory.
-  // Within a benchmark the code paths should be fairly uniform so it should be safe to just store
-  // these forever.
-  private static final Interner<StackTraceElement> steInterner = Interners.newWeakInterner();
-  private static final Interner<String> descriptionInterner = Interners.newWeakInterner();
 
   /** Returns the sum of the {@link #size sizes} of the allocations. */
-  static long getTotalSize(Collection<Allocation> allocations) {
+  static long getTotalSize(Multiset<Allocation> allocations) {
     long totalSize = 0;
-    for (Allocation allocation : allocations) {
-      totalSize += allocation.size;
+    for (Multiset.Entry<Allocation> allocation : allocations.entrySet()) {
+      totalSize += allocation.getElement().size * allocation.getCount();
     }
     return totalSize;
   }
 
   private final String description;
   private final long size;
-  private final ImmutableList<StackTraceElement> location;
+  private final ImmutableList<String> location;
 
   Allocation(String description, long size, List<StackTraceElement> location) {
-    this.description = descriptionInterner.intern(description);
+    this.description = description.intern();
     this.size = size;
-    ImmutableList.Builder<StackTraceElement> locationBuilder = ImmutableList.builder();
+    // While particular lists of STEs can have a lot of variety within a benchmark there don't tend
+    // to be many individually unique STEs.  This can save a lot of memory.
+    // Within a benchmark the code paths should be fairly uniform so it should be safe to just store
+    // these forever.
+    ImmutableList.Builder<String> locationBuilder = ImmutableList.builder();
     for (StackTraceElement ste : location) {
-      locationBuilder.add(steInterner.intern(ste));
+      locationBuilder.add(ste.toString().intern());
     }
     this.location = locationBuilder.build();
   }
@@ -77,6 +73,10 @@ final class Allocation {
 
   public long getSize() {
     return size;
+  }
+
+  public ImmutableList<String> getLocation() {
+    return location;
   }
 
   @Override

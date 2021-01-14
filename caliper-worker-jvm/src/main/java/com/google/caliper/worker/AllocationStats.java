@@ -16,6 +16,7 @@
 package com.google.caliper.worker;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.Comparator.comparing;
 
 import com.google.caliper.model.Measurement;
 import com.google.caliper.model.Value;
@@ -24,9 +25,8 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
-import com.google.common.collect.Multiset.Entry;
 import com.google.common.collect.Multisets;
-import java.util.Collection;
+import com.google.common.collect.Ordering;
 
 /** A set of statistics about the allocations performed by a benchmark method. */
 final class AllocationStats {
@@ -48,12 +48,8 @@ final class AllocationStats {
    * Constructs a new {@link AllocationStats} with the given allocations and the number of {@code
    * reps} passed to the benchmark method.
    */
-  AllocationStats(Collection<Allocation> allocations, int reps) {
-    this(
-        allocations.size(),
-        Allocation.getTotalSize(allocations),
-        reps,
-        ImmutableMultiset.copyOf(allocations));
+  AllocationStats(Multiset<Allocation> allocations, int reps) {
+    this(allocations.size(), Allocation.getTotalSize(allocations), reps, allocations);
   }
 
   private AllocationStats(
@@ -64,7 +60,7 @@ final class AllocationStats {
     this.allocationSize = allocationSize;
     checkArgument(reps >= 0, "reps (%s) was negative", reps);
     this.reps = reps;
-    this.allocations = Multisets.copyHighestCountFirst(allocations);
+    this.allocations = ImmutableMultiset.copyOf(allocations);
   }
 
   int getAllocationCount() {
@@ -81,7 +77,7 @@ final class AllocationStats {
    * measurement.
    */
   AllocationStats minus(AllocationStats baseline) {
-    for (Entry<Allocation> entry : baseline.allocations.entrySet()) {
+    for (Multiset.Entry<Allocation> entry : baseline.allocations.entrySet()) {
       int superCount = allocations.count(entry.getElement());
       if (superCount < entry.getCount()) {
         throw new IllegalStateException(
@@ -101,9 +97,10 @@ final class AllocationStats {
     } catch (IllegalArgumentException e) {
       throw new IllegalStateException(
           String.format(
-              "Your benchmark appears to have non-deterministic allocation behavior. The difference "
-                  + "between the baseline %s and the measurement %s is invalid. Consider enabling "
-                  + "instrument.allocation.options.trackAllocations to get a more specific error message.",
+              "Your benchmark appears to have non-deterministic allocation behavior. The"
+                  + " difference between the baseline %s and the measurement %s is invalid."
+                  + " Consider enabling instrument.allocation.options.trackAllocations to get a"
+                  + " more specific error message.",
               baseline, this),
           e);
     }
@@ -125,10 +122,25 @@ final class AllocationStats {
 
   /** Returns a list of {@link Measurement measurements} based on this collection of stats. */
   ImmutableList<Measurement> toMeasurements() {
-    for (Entry<Allocation> entry : allocations.entrySet()) {
-      double allocsPerRep = ((double) entry.getCount()) / reps;
-      System.out.printf("Allocated %f allocs per rep of %s%n", allocsPerRep, entry.getElement());
-    }
+    // Sort allocations before printing by count, then size, then break ties deterministically by
+    // description and then location.
+    allocations.entrySet().stream()
+        .sorted(
+            comparing((Multiset.Entry<Allocation> e) -> e.getCount())
+                .reversed()
+                .thenComparing(
+                    Multiset.Entry::getElement,
+                    comparing(Allocation::getSize)
+                        .reversed()
+                        .thenComparing(Allocation::getDescription)
+                        .thenComparing(
+                            Allocation::getLocation, Ordering.natural().lexicographical())))
+        .forEach(
+            entry -> {
+              double allocsPerRep = ((double) entry.getCount()) / reps;
+              System.out.printf(
+                  "Allocated %f allocs per rep of %s%n", allocsPerRep, entry.getElement());
+            });
     return ImmutableList.of(
         new Measurement.Builder()
             .value(Value.create(allocationCount, ""))
