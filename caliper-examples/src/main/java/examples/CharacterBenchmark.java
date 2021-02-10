@@ -24,6 +24,7 @@ import com.google.caliper.Param;
  * Tests various Character methods, intended for testing multiple implementations against each
  * other.
  */
+@SuppressWarnings("CheckReturnValue")
 public class CharacterBenchmark {
 
   @Param private CharacterSet characterSet;
