@@ -143,8 +143,11 @@ public final class ExperimentingCaliperRun implements CaliperRun {
     // always dry run first.
     ImmutableSet<Experiment> experimentsToRun = dryRun(allExperiments);
     if (experimentsToRun.size() != allExperiments.size()) {
-      stdout.format(
-          "%d experiments were skipped.%n", allExperiments.size() - experimentsToRun.size());
+      int numSkipped = allExperiments.size() - experimentsToRun.size();
+      stdout.println(
+          numSkipped == 1
+              ? "1 experiment was skipped."
+              : String.format("%d experiments were skipped.", numSkipped));
     }
 
     if (experimentsToRun.isEmpty()) {
