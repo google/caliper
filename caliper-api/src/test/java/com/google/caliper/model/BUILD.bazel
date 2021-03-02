@@ -1,0 +1,12 @@
+java_test(
+    name = "HostTest",
+    srcs = ["HostTest.java"],
+    deps = [
+      "//caliper-api",
+      "//caliper-util",
+      "@maven//com/google/code/gson",
+      "@maven//com/google/dagger",
+      "@maven//com/google/truth",
+      "@maven//junit",
+    ],
+)

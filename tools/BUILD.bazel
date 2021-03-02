@@ -1,0 +1,8 @@
+exports_files(["java-exec-prefix"])
+
+java_binary(
+    name = "jarjar_runner",
+    main_class = "org.pantsbuild.jarjar.Main",
+    visibility = ["//:__subpackages__"],
+    runtime_deps = ["@maven//org/pantsbuild:jarjar"],
+)

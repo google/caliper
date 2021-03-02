@@ -1,0 +1,12 @@
+java_test(
+    name = "LoggingConfigLoaderTest",
+    srcs = ["LoggingConfigLoaderTest.java"],
+    deps = [
+        "//caliper-api",
+        "//caliper-runner",
+        "@maven//com/google/truth",
+        "@maven//joda-time",
+        "@maven//junit",
+        "@maven//org/mockito:mockito-all",
+    ],
+)

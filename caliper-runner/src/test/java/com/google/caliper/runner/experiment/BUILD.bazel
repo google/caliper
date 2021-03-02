@@ -1,0 +1,12 @@
+java_test(
+    name = "ExperimentTest",
+    srcs = ["ExperimentTest.java"],
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-runner",
+        "//caliper-util",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

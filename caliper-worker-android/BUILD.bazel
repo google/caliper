@@ -1,0 +1,18 @@
+java_library(
+    name = "caliper-worker-android",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        ":androidsdk",
+        "//caliper-core",
+        "//caliper-util",
+        "//caliper-worker",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+    ],
+)
+
+java_import(
+    name = "androidsdk",
+    jars = ["@bazel_tools//tools/android:android_jar"],
+    neverlink = True,
+)

@@ -1,0 +1,22 @@
+java_test(
+    name = "BenchmarkCreatorTest",
+    srcs = ["BenchmarkCreatorTest.java"],
+    deps = [
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-worker",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)
+
+java_test(
+    name = "RuntimeWorkerInstrumentTest",
+    srcs = ["RuntimeWorkerInstrumentTest.java"],
+    deps = [
+        "//caliper-util",
+        "//caliper-worker",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

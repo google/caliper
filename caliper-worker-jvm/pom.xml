@@ -62,21 +62,5 @@
       <groupId>com.google.code.java-allocation-instrumenter</groupId>
       <artifactId>java-allocation-instrumenter</artifactId>
     </dependency>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>com.google.truth</groupId>
-      <artifactId>truth</artifactId>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.mockito</groupId>
-      <artifactId>mockito-all</artifactId>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
-
 </project>

@@ -1,0 +1,17 @@
+java_library(
+    name = "testing",
+    testonly = True,
+    srcs = glob(["*.java"]),
+    visibility = ["//caliper/src/test/java:__subpackages__"],
+    deps = [
+        "//caliper:caliper-lib",
+        "//caliper-api",
+        "//caliper-core",
+        "//caliper-runner",
+        "//caliper-util",
+        "@maven//com/google/code/findbugs:jsr305",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+        "@maven//junit",
+    ],
+)

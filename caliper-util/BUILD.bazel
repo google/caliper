@@ -1,0 +1,13 @@
+java_library(
+    name = "caliper-util",
+    srcs = glob(["src/main/**/*.java"]),
+    deps = [
+      "@maven//com/google/code/findbugs:jsr305", # provided
+      "@maven//com/google/guava",
+      "@maven//javax/inject:javax_inject",
+      "@maven//joda-time",
+      "@maven//com/google/dagger",
+      "@maven//com/google/code/gson",
+    ],
+    visibility = ["//:__subpackages__"],
+)

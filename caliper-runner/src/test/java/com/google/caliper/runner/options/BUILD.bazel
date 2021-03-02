@@ -1,0 +1,10 @@
+java_test(
+    name = "ParsedOptionsTest",
+    srcs = ["ParsedOptionsTest.java"],
+    deps = [
+        "//caliper-runner",
+        "//caliper-util",
+        "@maven//com/google/truth",
+        "@maven//junit",
+    ],
+)

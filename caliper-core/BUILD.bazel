@@ -1,0 +1,22 @@
+java_library(
+    name = "caliper-core",
+    srcs = glob(["src/main/java/**/*.java"]),
+    deps = [
+        "//caliper-api",
+        "//caliper-util",
+        "@maven//com/google/code/findbugs:jsr305",
+        "@maven//com/google/auto/value",
+        "@maven//com/google/dagger",
+        "@maven//com/google/guava",
+        "@maven//com/squareup/okhttp",
+        "@maven//joda-time",
+    ],
+    resources = glob(["src/main/resources/**"]),
+    visibility = ["//:__subpackages__"]
+)
+
+filegroup(
+    name = "test_resources",
+    srcs = glob(["src/test/resources/**"]),
+    visibility = ["//:__subpackages__"],
+)
