@@ -15,6 +15,10 @@ jobs:
       matrix:
         java: [ 8, 11 ]
     runs-on: ubuntu-latest
+    env:
+      # Not actually used since we aren't building/testing the Android version,
+      # but Maven still needs an absolute path or it complains.
+      ANDROID_HOME: /
     steps:
       - name: 'Check out repository'
         uses: actions/checkout@v2
@@ -34,4 +38,4 @@ jobs:
         run: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn install -U -DskipTests=true -am -pl caliper
       - name: 'Test'
         shell: bash
-        run: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn verify -U -Dmaven.javadoc.skip=true -am -pl caliper
+        run: mvn -B -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn clean verify -U -Dmaven.javadoc.skip=true -am -pl caliper
