@@ -182,11 +182,14 @@ public class WorkerTest {
   public void failsToAcceptConnection() throws Exception {
     serverSocket.close(); // This will force serverSocket.accept to throw a SocketException
     makeWorker(FakeWorkers.Sleeper.class, Long.toString(MINUTES.toMillis(10)));
-    try {
-      worker.startAsync().awaitRunning();
-      fail();
-    } catch (IllegalStateException expected) {
-    }
+
+    worker.startAsync();
+
+    // awaitRunning() may succeed depending on the timing of the thread that calls
+    // serverSocket.accept(), but the service should fail shortly after regardless. So here we just
+    // wait for the service to stop.
+    awaitStopped();
+
     assertEquals(SocketException.class, worker.failureCause().getClass());
   }
 
