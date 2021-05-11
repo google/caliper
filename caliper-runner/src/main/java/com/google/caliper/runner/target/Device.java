@@ -21,6 +21,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import com.google.caliper.runner.config.DeviceConfig;
 import com.google.caliper.runner.config.VmConfig;
 import com.google.caliper.runner.config.VmType;
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.AbstractIdleService;
 import com.google.common.util.concurrent.Service;
 
@@ -71,7 +72,7 @@ public abstract class Device extends AbstractIdleService {
       case JVM:
         return Jvm.create(vmConfig, classpath);
       case ANDROID:
-        return AndroidVm.create(vmConfig, classpath);
+        return AndroidVm.create(vmConfig, classpath, workerNativeLibraryDir(type).get());
     }
     throw new AssertionError(type);
   }
@@ -81,6 +82,9 @@ public abstract class Device extends AbstractIdleService {
 
   /** Returns the classpath to use with the given VM. */
   public abstract String workerClasspath(VmType type);
+
+  /** Returns the native library path to use with the given VM. */
+  public abstract Optional<String> workerNativeLibraryDir(VmType type);
 
   /** Returns the default type for VMs on this device that don't specify a type. */
   public abstract VmType defaultVmType();

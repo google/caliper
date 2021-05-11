@@ -57,6 +57,7 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
   private OpenedSocket.Writer writer;
 
   private final SettableFuture<String> classpathFuture = SettableFuture.create();
+  private final SettableFuture<String> nativeLibraryDirFuture = SettableFuture.create();
   private final ConcurrentMap<UUID, VmProxy> vms = new ConcurrentHashMap<>();
 
   @Inject
@@ -95,6 +96,7 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
         }
       } else if (message instanceof RemoteClasspathMessage) {
         classpathFuture.set(((RemoteClasspathMessage) message).classpath());
+        nativeLibraryDirFuture.set(((RemoteClasspathMessage) message).nativeLibraryDir());
       }
     }
   }
@@ -102,6 +104,11 @@ final class ProxyConnectionService extends AbstractExecutionThreadService {
   /** Returns the classpath to use for processes on the remote device. */
   public String getRemoteClasspath() throws ExecutionException {
     return getUninterruptibly(classpathFuture);
+  }
+
+  /** Returns the path to native libraries to use for processes on the remote device. */
+  public String getRemoteNativeLibraryDir() throws ExecutionException {
+    return getUninterruptibly(nativeLibraryDirFuture);
   }
 
   /**

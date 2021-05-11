@@ -76,6 +76,7 @@ final class AdbDevice extends Device {
   private final ServerSocketService server;
   private final ProxyConnectionService proxyConnection;
   private String remoteClasspath;
+  private String remoteNativeLibraryDir;
 
   private int port;
 
@@ -151,6 +152,7 @@ final class AdbDevice extends Device {
     }
 
     this.remoteClasspath = proxyConnection.getRemoteClasspath();
+    this.remoteNativeLibraryDir = proxyConnection.getRemoteNativeLibraryDir();
   }
 
   private void selectDevice(String serialNumber) {
@@ -279,6 +281,13 @@ final class AdbDevice extends Device {
     checkArgument(type.equals(ANDROID), "type must be ANDROID, not %s", type);
     checkState(isRunning(), "AdbDevice service must be running to get worker classpath");
     return remoteClasspath;
+  }
+
+  @Override
+  public Optional<String> workerNativeLibraryDir(VmType type) {
+    checkArgument(type.equals(ANDROID), "type must be ANDROID, not %s", type);
+    checkState(isRunning(), "AdbDevice service must be running to get worker nativeLibraryDir");
+    return Optional.of(remoteNativeLibraryDir);
   }
 
   @Override

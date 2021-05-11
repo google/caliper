@@ -26,6 +26,7 @@ import com.google.caliper.bridge.StartVmRequest;
 import com.google.caliper.bridge.StopProxyRequest;
 import com.google.caliper.bridge.VmStoppedMessage;
 import com.google.caliper.util.Uuids;
+import com.google.caliper.worker.CaliperProxyModule.NativeLibraryDir;
 import com.google.caliper.worker.connection.ClientConnectionService;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
@@ -64,6 +65,11 @@ final class CaliperProxy extends AbstractExecutionThreadService {
    * RemoteClasspathMessage}.
    */
   private final String classpath;
+  /**
+   * The local path to native libraries on this device that should be used for workers. See {@link
+   * RemoteClasspathMessage}.
+   */
+  private final String nativeLibraryPath;
 
   /** Environment variables to add to the environment of VM processes we start. */
   private final ImmutableMap<String, String> processEnv;
@@ -76,11 +82,13 @@ final class CaliperProxy extends AbstractExecutionThreadService {
       ClientConnectionService clientConnection,
       ExecutorService executor,
       String classpath,
+      @NativeLibraryDir String nativeLibraryPath,
       ImmutableMap<String, String> processEnv) {
     this.clientAddress = clientAddress;
     this.clientConnection = clientConnection;
     this.executor = executor;
     this.classpath = classpath;
+    this.nativeLibraryPath = nativeLibraryPath;
     this.processEnv = processEnv;
   }
 
@@ -100,7 +108,7 @@ final class CaliperProxy extends AbstractExecutionThreadService {
 
   @Override
   public void run() throws Exception {
-    clientConnection.send(RemoteClasspathMessage.create(classpath));
+    clientConnection.send(RemoteClasspathMessage.create(classpath, nativeLibraryPath));
 
     while (isRunning()) {
       final Object request = clientConnection.receive();

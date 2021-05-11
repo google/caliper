@@ -29,8 +29,8 @@ import com.google.common.collect.ImmutableSet;
 public abstract class AndroidVm extends Vm {
 
   /** Creates a new {@link AndroidVm} for the given configuration. */
-  public static AndroidVm create(VmConfig config, String classpath) {
-    return new AutoValue_AndroidVm(VmType.ANDROID, config, classpath);
+  public static AndroidVm create(VmConfig config, String classpath, String nativeLibraryPath) {
+    return new AutoValue_AndroidVm(VmType.ANDROID, config, classpath, nativeLibraryPath);
   }
 
   AndroidVm() {}
@@ -53,10 +53,14 @@ public abstract class AndroidVm extends Vm {
         : ImmutableList.of();
   }
 
+  /** Returns the native library path that should be used for workers on this VM. */
+  public abstract String nativeLibraryPath();
+
   @Override
   public ImmutableList<String> classpathArgs() {
     // Unlike -cp <classpath>, this works for both dalvikvm and app_process
-    return ImmutableList.of("-Djava.class.path=" + classpath());
+    return ImmutableList.of(
+        "-Djava.class.path=" + classpath(), "-Djava.library.path=" + nativeLibraryPath());
   }
 
   @Override

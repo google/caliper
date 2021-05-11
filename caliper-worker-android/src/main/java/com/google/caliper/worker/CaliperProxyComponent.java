@@ -16,6 +16,7 @@
 
 package com.google.caliper.worker;
 
+import com.google.caliper.worker.CaliperProxyModule.NativeLibraryDir;
 import com.google.common.collect.ImmutableMap;
 import dagger.BindsInstance;
 import dagger.Component;
@@ -37,6 +38,9 @@ interface CaliperProxyComponent {
 
     @BindsInstance
     Builder classpath(String classpath);
+
+    @BindsInstance
+    Builder nativeLibraryDir(@NativeLibraryDir String nativeLibraryDir);
 
     @BindsInstance
     Builder processEnv(ImmutableMap<String, String> processEnv);

@@ -124,6 +124,11 @@ public final class LocalDevice extends Device {
     return helper.getWorkerClasspath(type);
   }
 
+  @Override
+  public Optional<String> workerNativeLibraryDir(VmType type) {
+    return Optional.absent();
+  }
+
   private File vmHomeDir(Vm vm) {
     if (!vm.home().isPresent()) {
       File homeDir = helper.getHomeDir(vm, vmBaseDirectory(vm));

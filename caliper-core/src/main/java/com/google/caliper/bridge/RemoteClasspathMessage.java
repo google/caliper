@@ -31,10 +31,13 @@ public abstract class RemoteClasspathMessage implements Serializable {
   // the remote classpath for that VM type... but for now it just needs one classpath.
 
   /** Creates a new {@link RemoteClasspathMessage}. */
-  public static RemoteClasspathMessage create(String classpath) {
-    return new AutoValue_RemoteClasspathMessage(classpath);
+  public static RemoteClasspathMessage create(String classpath, String nativeLibraryDir) {
+    return new AutoValue_RemoteClasspathMessage(classpath, nativeLibraryDir);
   }
 
   /** Returns the classpath. */
   public abstract String classpath();
+
+  /** Returns the path to native libraries. */
+  public abstract String nativeLibraryDir();
 }

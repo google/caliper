@@ -115,6 +115,9 @@ public final class CaliperProxyActivity extends Activity {
         new InetSocketAddress(InetAddress.getLocalHost(), getRunnerPort());
     // getApplicationInfo().sourceDir should actually be the path to the apk
     String classpath = getApplicationInfo().sourceDir;
+    // getApplicationInfo().nativeLibraryDir points to location of native libraries
+    // Additionally make system provided native libraries available from /system/lib
+    String nativeLibraryDir = getApplicationInfo().nativeLibraryDir + ":/system/lib";
 
     String androidDataDir = System.getProperty("java.io.tmpdir") + "/data";
     createWritableDalvikCache(androidDataDir);
@@ -125,6 +128,7 @@ public final class CaliperProxyActivity extends Activity {
             .id(id)
             .clientAddress(runnerAddress)
             .classpath(classpath)
+            .nativeLibraryDir(nativeLibraryDir)
             .processEnv(processEnv)
             .build()
             .caliperProxy();
