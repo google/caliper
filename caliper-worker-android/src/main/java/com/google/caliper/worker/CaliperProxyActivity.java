@@ -117,7 +117,7 @@ public final class CaliperProxyActivity extends Activity {
     String classpath = getApplicationInfo().sourceDir;
     // getApplicationInfo().nativeLibraryDir points to location of native libraries
     // Additionally make system provided native libraries available from /system/lib
-    String nativeLibraryDir = getApplicationInfo().nativeLibraryDir + ":/system/lib";
+    String nativeLibraryDir = getApplicationInfo().nativeLibraryDir + ":/system/lib:/system/lib64";
 
     String androidDataDir = System.getProperty("java.io.tmpdir") + "/data";
     createWritableDalvikCache(androidDataDir);
