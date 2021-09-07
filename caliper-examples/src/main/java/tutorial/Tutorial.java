@@ -32,9 +32,9 @@ public class Tutorial {
    *
    * Notice:
    *
-   *  - We write a class that extends com.google.caliper.Benchmark.
-   *  - It contains a public instance method whose name begins with 'time' and
-   *    which accepts a single 'int reps' parameter.
+   *  - We write a class which contains a public instance method which accepts
+   *    a single 'int reps' parameter.
+   *  - Annotate the method with '@Benchmark'.
    *  - The body of the method simply executes the code we wish to measure,
    *    'reps' times.
    *
