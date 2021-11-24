@@ -34,11 +34,12 @@ public final class Uuids {
   private Uuids() {}
 
   /** Returns a buffer containing the 16 bytes of the given UUID. */
+  @SuppressWarnings("RedundantCast")
   public static ByteBuffer toBytes(UUID uuid) {
     ByteBuffer buf = ByteBuffer.allocate(UUID_BYTES);
     buf.putLong(uuid.getMostSignificantBits());
     buf.putLong(uuid.getLeastSignificantBits());
-    buf.flip();
+    ((java.nio.Buffer) buf).flip();  // for Java 1.8 compatibility
     return buf;
   }
 
@@ -57,6 +58,7 @@ public final class Uuids {
   }
 
   /** Reads the next 16 bytes from the given channel as a UUID. */
+  @SuppressWarnings("RedundantCast")
   public static UUID readFromChannel(ReadableByteChannel channel) throws IOException {
     ByteBuffer buf = ByteBuffer.allocate(UUID_BYTES);
     while (buf.hasRemaining()) {
@@ -64,7 +66,7 @@ public final class Uuids {
         throw new EOFException("unexpected EOF while reading UUID");
       }
     }
-    buf.flip();
+    ((java.nio.Buffer) buf).flip();  // for Java 1.8 compatibility
     return fromBytes(buf);
   }
 }
