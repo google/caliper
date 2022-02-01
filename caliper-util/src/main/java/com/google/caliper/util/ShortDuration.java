@@ -348,7 +348,7 @@ public abstract class ShortDuration implements Comparable<ShortDuration> {
     for (Map.Entry<TimeUnit, String> entry : ABBREVIATIONS.entries()) {
       builder.put(entry.getValue(), entry.getKey());
     }
-    return builder.build();
+    return builder.buildOrThrow();
   }
 
   private static final Map<TimeUnit, BigDecimal> ONE_IN_PICOS = createUnitToPicosMap();

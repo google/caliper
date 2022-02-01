@@ -110,6 +110,6 @@ public final class ExperimentSelector {
     if (keyIterator.hasNext() || valueIterator.hasNext()) {
       throw new AssertionError(); // I really screwed up, then.
     }
-    return builder.build();
+    return builder.buildOrThrow();
   }
 }

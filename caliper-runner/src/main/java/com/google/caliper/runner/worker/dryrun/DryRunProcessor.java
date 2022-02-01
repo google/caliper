@@ -75,7 +75,7 @@ final class DryRunProcessor extends WorkerProcessor<ImmutableSet<Experiment>> {
       for (Experiment experiment : experiments) {
         builder.put(experiment.id(), experiment);
       }
-      this.experiments = builder.build();
+      this.experiments = builder.buildOrThrow();
     }
 
     @Override

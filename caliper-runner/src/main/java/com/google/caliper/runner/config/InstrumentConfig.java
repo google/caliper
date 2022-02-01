@@ -38,7 +38,7 @@ public final class InstrumentConfig {
 
   private InstrumentConfig(Builder builder) {
     this.className = builder.className;
-    this.options = builder.optionsBuilder.build();
+    this.options = builder.optionsBuilder.buildOrThrow();
   }
 
   public String className() {

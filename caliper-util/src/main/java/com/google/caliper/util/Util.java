@@ -89,7 +89,7 @@ public final class Util {
         submapBuilder.put(name.substring(prefix.length()), entry.getValue());
       }
     }
-    return submapBuilder.build();
+    return submapBuilder.buildOrThrow();
   }
 
   /**

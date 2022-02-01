@@ -45,7 +45,7 @@ final class VmDataCollectingVisitor extends AbstractLogMessageVisitor {
    * @throws IllegalStateException if not all the data has been gathered.
    */
   VmSpec vmSpec() {
-    ImmutableMap<String, String> options = vmOptionsBuilder.build();
+    ImmutableMap<String, String> options = vmOptionsBuilder.buildOrThrow();
     return new VmSpec.Builder().addAllProperties(vmProperties.get()).addAllOptions(options).build();
   }
 

@@ -91,7 +91,7 @@ public final class CaliperConfig {
     for (Entry<String, Class<? extends ResultProcessor>> entry : processorToClass.entrySet()) {
       builder.put(entry.getValue(), getResultProcessorConfig(resultsProperties, entry.getKey()));
     }
-    return builder.build();
+    return builder.buildOrThrow();
   }
 
   public ImmutableMap<String, String> properties() {

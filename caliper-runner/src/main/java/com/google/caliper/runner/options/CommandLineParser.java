@@ -255,7 +255,7 @@ final class CommandLineParser<T> {
         }
       }
 
-      ImmutableMap<String, InjectableOption> optionMap = builder.build();
+      ImmutableMap<String, InjectableOption> optionMap = builder.buildOrThrow();
       return new InjectionMap(optionMap, leftoverMethod);
     }
 
