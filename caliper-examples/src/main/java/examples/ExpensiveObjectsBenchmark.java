@@ -23,7 +23,7 @@ import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 /** Benchmarks creation and cloning various expensive objects. */
-@SuppressWarnings({"ResultOfObjectAllocationIgnored"}) // TODO: should fix!
+@SuppressWarnings({"ResultOfObjectAllocationIgnored", "ReturnValueIgnored"}) // TODO: should fix!
 public class ExpensiveObjectsBenchmark {
   @Benchmark
   void newDecimalFormatSymbols(int reps) {
