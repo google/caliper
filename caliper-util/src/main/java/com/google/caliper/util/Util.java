@@ -119,12 +119,17 @@ public final class Util {
     System.gc();
     System.runFinalization();
     final CountDownLatch latch = new CountDownLatch(1);
-    new Object() {
-      @Override
-      protected void finalize() {
-        latch.countDown();
-      }
-    };
+
+    // Create, then throw away, an object that will trigger the latch when finalized away.
+    Object unused =
+        new Object() {
+          @Override
+          protected void finalize() {
+            latch.countDown();
+          }
+        };
+    unused = null;
+
     System.gc();
     System.runFinalization();
     try {
