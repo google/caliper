@@ -16,8 +16,12 @@
 
 package com.google.caliper.runner.config;
 
+import static com.google.common.base.Predicates.contains;
+
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.util.Util;
+import com.google.common.base.Joiner;
+import com.google.common.base.Joiner.MapJoiner;
 import com.google.common.base.Predicates;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -29,13 +33,55 @@ import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import javax.inject.Singleton;
 
 /** Provides {@link CaliperConfig}. */
 @Module
 public abstract class CaliperConfigModule {
+
+  private static final Logger logger = Logger.getLogger(CaliperConfigModule.class.getName());
+
   private CaliperConfigModule() {}
+
+  private static final MapJoiner PROPERTIES_JOINER = Joiner.on("\n").withKeyValueSeparator("=");
+  private static final Pattern RESULTS_UPLOAD_PATTERN = Pattern.compile("^results\\.upload\\..+");
+
+  private static ImmutableMap<String, String> logAndRemoveUploadProperties(
+      String sourceDescription, ImmutableMap<String, String> properties) {
+    // Previously existing user configuration files may have results.upload entries for which the
+    // implementation class will no longer exist. Warn about this and suggest that the user remove
+    // those properties. Other things we could do include:
+    // - Throwing an exception, but that feels too heavy-handed perhaps.
+    // - Removing results.upload entries from the user's configuration for them, but that seems
+    //   overly invasive and likely that the user would miss the message.
+
+    ImmutableMap<String, String> uploadProperties =
+        ImmutableMap.copyOf(Maps.filterKeys(properties, contains(RESULTS_UPLOAD_PATTERN)));
+    if (uploadProperties.isEmpty()) {
+      return properties;
+    }
+
+    if (logger.isLoggable(Level.WARNING)) {
+      String message =
+          "The Caliper webapp is being shut down and results may no longer be uploaded to it."
+              + "\n\nThe following configuration options are being ignored:\n"
+              + PROPERTIES_JOINER.join(uploadProperties)
+              + "\n\n"
+              + "Please remove any configuration options starting with 'results.upload' from "
+              + sourceDescription
+              + ". If you want to use a custom ResultProcessor implementation "
+              + "to upload results to another location, please use a configuration key other than "
+              + "'upload' for it.";
+
+      logger.warning(message);
+    }
+
+    return ImmutableMap.copyOf(Maps.difference(properties, uploadProperties).entriesOnlyOnLeft());
+  }
 
   @Provides
   @Singleton
@@ -48,7 +94,8 @@ public abstract class CaliperConfigModule {
     // command line config (supplied with "-Cproperty.key=value").
     ImmutableMap<String, String> globalConfig = loadGlobalConfig();
     ImmutableMap<String, String> userConfig = loadUserConfig(caliperOptions);
-    ImmutableMap<String, String> commandLineConfig = caliperOptions.configProperties();
+    ImmutableMap<String, String> commandLineConfig =
+        logAndRemoveUploadProperties("command line options", caliperOptions.configProperties());
 
     // Create a CaliperConfig using just those options. They should contain all the information we
     // need to get get the type of device this run is targeting.
@@ -68,7 +115,8 @@ public abstract class CaliperConfigModule {
     File configFile = caliperOptions.caliperConfigFile();
     if (configFile.exists()) {
       try {
-        return Util.loadProperties(Files.asByteSource(configFile));
+        return logAndRemoveUploadProperties(
+            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)));
       } catch (IOException keepGoing) {
       }
     }
@@ -101,7 +149,8 @@ public abstract class CaliperConfigModule {
 
     if (configFile.exists()) {
       try {
-        return Util.loadProperties(Files.asByteSource(configFile));
+        return logAndRemoveUploadProperties(
+            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)));
       } catch (IOException e) {
         throw new InvalidConfigurationException("Couldn't load config file: " + configFile, e);
       }

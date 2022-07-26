@@ -78,8 +78,7 @@ public final class CaliperTestWatcher extends TestWatcher {
         Lists.newArrayList(
             "--print-worker-log",
             "-Cworker.output=" + workerOutput.getPath(),
-            "-Cresults.file.class=",
-            "-Cresults.upload.class=" + InMemoryResultsUploader.class.getName());
+            "-Cresults.file.class=" + InMemoryResultsUploader.class.getName());
     if (instrument != null) {
       options.add("-i");
       options.add(instrument);

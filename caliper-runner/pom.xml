@@ -59,10 +59,6 @@
       <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.squareup.okhttp</groupId>
-      <artifactId>okhttp</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.google.dagger</groupId>
       <artifactId>dagger</artifactId>
     </dependency>

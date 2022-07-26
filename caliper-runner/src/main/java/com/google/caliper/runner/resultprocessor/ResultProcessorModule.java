@@ -47,11 +47,6 @@ public abstract class ResultProcessorModule {
   @ResultProcessorClassKey(OutputFileDumper.class)
   abstract ResultProcessor bindOutputFileDumper(OutputFileDumper impl);
 
-  @Binds
-  @IntoMap
-  @ResultProcessorClassKey(HttpUploader.class)
-  abstract ResultProcessor bindHttpUploader(HttpUploader impl);
-
   @Provides
   static ImmutableSet<ResultProcessor> provideResultProcessors(
       CaliperConfig config,
