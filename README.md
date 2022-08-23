@@ -1,13 +1,7 @@
 # Caliper
 
-> **NOTICE:** The [Caliper web application](microbenchmarks.appspot.com) will be
-> shut down on **August 15, 2022**. It will stop accepting new uploads from the
-> benchmarking tool on **July 15, 2022**.
->
-> Data for benchmark runs can be downloaded from the table view for each run as
-> well as from the Runs page if you have runs associated with your API key. If
-> you have any questions, please email us at
-> [caliper-web-shutdown@google.com](mailto:caliper-web-shutdown@google.com).
+> **NOTICE:** The Caliper web application that was at
+> microbenchmarks.appspot.com was shut down on August 15, 2022.
 
 Caliper is a tool for measuring Java code performance, primarily focused on
 microbenchmarks.

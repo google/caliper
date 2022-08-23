@@ -21,9 +21,11 @@ import static org.mockito.Mockito.when;
 
 import com.google.caliper.runner.options.CaliperOptions;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.io.CharStreams;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Properties;
 import org.junit.After;
 import org.junit.Before;
@@ -62,7 +64,9 @@ public class CaliperConfigModuleTest {
     when(optionsMock.deviceName()).thenReturn("local");
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.<String, String>of());
-    CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
+    CaliperConfig config =
+        CaliperConfigModule.caliperConfig(
+            optionsMock, loggingConfigLoader, new PrintWriter(CharStreams.nullWriter()));
     assertEquals("franklin", config.properties.get("some.property"));
   }
 
@@ -71,7 +75,9 @@ public class CaliperConfigModuleTest {
     when(optionsMock.deviceName()).thenReturn("local");
     when(optionsMock.caliperConfigFile()).thenReturn(tempConfigFile);
     when(optionsMock.configProperties()).thenReturn(ImmutableMap.of("some.property", "tacos"));
-    CaliperConfig config = CaliperConfigModule.caliperConfig(optionsMock, loggingConfigLoader);
+    CaliperConfig config =
+        CaliperConfigModule.caliperConfig(
+            optionsMock, loggingConfigLoader, new PrintWriter(CharStreams.nullWriter()));
     assertEquals("tacos", config.properties.get("some.property"));
   }
 }

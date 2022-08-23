@@ -27,6 +27,7 @@ import com.google.caliper.runner.config.CaliperConfig;
 import com.google.caliper.runner.config.InvalidConfigurationException;
 import com.google.caliper.runner.config.ResultProcessorConfig;
 import com.google.caliper.runner.options.CaliperDirectory;
+import com.google.caliper.util.Stdout;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
@@ -35,6 +36,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.util.logging.Logger;
 import javax.inject.Inject;
 import org.joda.time.format.ISODateTimeFormat;
@@ -53,6 +55,7 @@ public final class OutputFileDumper implements ResultProcessor {
   private final Gson gson;
   private final File resultFile;
   private final File workFile;
+  private final PrintWriter stdout;
 
   private Optional<JsonWriter> writer = Optional.absent();
 
@@ -62,8 +65,8 @@ public final class OutputFileDumper implements ResultProcessor {
       BenchmarkClassModel benchmarkClass,
       Gson gson,
       CaliperConfig caliperConfig,
-      @CaliperDirectory File caliperDirectory)
-      throws InvalidConfigurationException {
+      @CaliperDirectory File caliperDirectory,
+      @Stdout PrintWriter stdout) {
     this.run = run;
     ResultProcessorConfig config = caliperConfig.getResultProcessorConfig(OutputFileDumper.class);
     if (config.options().containsKey("file")) {
@@ -84,6 +87,7 @@ public final class OutputFileDumper implements ResultProcessor {
     logger.fine(String.format("using %s for results", resultFile));
     this.gson = gson;
     this.workFile = new File(resultFile.getPath() + ".tmp");
+    this.stdout = stdout;
   }
 
   private String createFileName(String benchmarkName) {
@@ -125,6 +129,7 @@ public final class OutputFileDumper implements ResultProcessor {
     }
     if (workFile.exists()) {
       Files.move(workFile, resultFile);
+      stdout.printf("Results have been written to %s%n", resultFile);
     }
   }
 }

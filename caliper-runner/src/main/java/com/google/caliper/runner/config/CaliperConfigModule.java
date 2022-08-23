@@ -19,6 +19,7 @@ package com.google.caliper.runner.config;
 import static com.google.common.base.Predicates.contains;
 
 import com.google.caliper.runner.options.CaliperOptions;
+import com.google.caliper.util.Stdout;
 import com.google.caliper.util.Util;
 import com.google.common.base.Joiner;
 import com.google.common.base.Joiner.MapJoiner;
@@ -32,10 +33,9 @@ import dagger.Module;
 import dagger.Provides;
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.Map;
-import java.util.logging.Level;
 import java.util.logging.LogManager;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.inject.Singleton;
 
@@ -43,15 +43,18 @@ import javax.inject.Singleton;
 @Module
 public abstract class CaliperConfigModule {
 
-  private static final Logger logger = Logger.getLogger(CaliperConfigModule.class.getName());
-
   private CaliperConfigModule() {}
 
   private static final MapJoiner PROPERTIES_JOINER = Joiner.on("\n").withKeyValueSeparator("=");
   private static final Pattern RESULTS_UPLOAD_PATTERN = Pattern.compile("^results\\.upload\\..+");
 
+  private static ImmutableMap<String, String> filterProperties(
+      String sourceDescription, ImmutableMap<String, String> properties, PrintWriter stdout) {
+    return logAndRemoveUploadProperties(sourceDescription, properties, stdout);
+  }
+
   private static ImmutableMap<String, String> logAndRemoveUploadProperties(
-      String sourceDescription, ImmutableMap<String, String> properties) {
+      String sourceDescription, ImmutableMap<String, String> properties, PrintWriter stdout) {
     // Previously existing user configuration files may have results.upload entries for which the
     // implementation class will no longer exist. Warn about this and suggest that the user remove
     // those properties. Other things we could do include:
@@ -65,20 +68,16 @@ public abstract class CaliperConfigModule {
       return properties;
     }
 
-    if (logger.isLoggable(Level.WARNING)) {
-      String message =
-          "The Caliper webapp is being shut down and results may no longer be uploaded to it."
-              + "\n\nThe following configuration options are being ignored:\n"
-              + PROPERTIES_JOINER.join(uploadProperties)
-              + "\n\n"
-              + "Please remove any configuration options starting with 'results.upload' from "
-              + sourceDescription
-              + ". If you want to use a custom ResultProcessor implementation "
-              + "to upload results to another location, please use a configuration key other than "
-              + "'upload' for it.";
-
-      logger.warning(message);
-    }
+    stdout.printf(
+        "The Caliper webapp has been shut down and results may no longer be uploaded to it."
+            + "%n%n"
+            + "The following configuration options are being ignored:%n"
+            + "%s"
+            + "%n%n"
+            + "Please remove any configuration options starting with 'results.upload' from %s. "
+            + "If you want to use a custom ResultProcessor implementation to upload results to "
+            + "another location, please use a configuration key other than 'upload' for it.%n%n",
+        PROPERTIES_JOINER.join(uploadProperties), sourceDescription);
 
     return ImmutableMap.copyOf(Maps.difference(properties, uploadProperties).entriesOnlyOnLeft());
   }
@@ -86,16 +85,18 @@ public abstract class CaliperConfigModule {
   @Provides
   @Singleton
   static CaliperConfig caliperConfig(
-      CaliperOptions caliperOptions, LoggingConfigLoader loggingConfigLoader) {
+      CaliperOptions caliperOptions,
+      LoggingConfigLoader loggingConfigLoader,
+      @Stdout PrintWriter stdout) {
     loggingConfigLoader.loadLoggingConfig();
 
     // First get the non-device-specific global config (global-config.properties), user config
     // (~/.caliper/config.properties or whatever the user specified on the command line) and
     // command line config (supplied with "-Cproperty.key=value").
     ImmutableMap<String, String> globalConfig = loadGlobalConfig();
-    ImmutableMap<String, String> userConfig = loadUserConfig(caliperOptions);
+    ImmutableMap<String, String> userConfig = loadUserConfig(caliperOptions, stdout);
     ImmutableMap<String, String> commandLineConfig =
-        logAndRemoveUploadProperties("command line options", caliperOptions.configProperties());
+        filterProperties("command line options", caliperOptions.configProperties(), stdout);
 
     // Create a CaliperConfig using just those options. They should contain all the information we
     // need to get get the type of device this run is targeting.
@@ -105,18 +106,19 @@ public abstract class CaliperConfigModule {
     // Get the global and user configs for the device type
     ImmutableMap<String, String> globalDeviceTypeConfig = loadGlobalConfig("-" + deviceType);
     ImmutableMap<String, String> userDeviceTypeConfig =
-        loadUserConfig(caliperOptions, "-" + deviceType);
+        loadUserConfig(caliperOptions, "-" + deviceType, stdout);
 
     return merge(
         globalConfig, globalDeviceTypeConfig, userConfig, userDeviceTypeConfig, commandLineConfig);
   }
 
-  private static ImmutableMap<String, String> loadUserConfig(CaliperOptions caliperOptions) {
+  private static ImmutableMap<String, String> loadUserConfig(
+      CaliperOptions caliperOptions, PrintWriter stdout) {
     File configFile = caliperOptions.caliperConfigFile();
     if (configFile.exists()) {
       try {
-        return logAndRemoveUploadProperties(
-            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)));
+        return filterProperties(
+            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)), stdout);
       } catch (IOException keepGoing) {
       }
     }
@@ -132,7 +134,7 @@ public abstract class CaliperConfigModule {
   }
 
   private static ImmutableMap<String, String> loadUserConfig(
-      CaliperOptions caliperOptions, String suffix) {
+      CaliperOptions caliperOptions, String suffix, PrintWriter stdout) {
     File mainConfigFile = caliperOptions.caliperConfigFile().getAbsoluteFile();
 
     String mainConfigFileBaseName = Files.getNameWithoutExtension(mainConfigFile.getName());
@@ -149,8 +151,8 @@ public abstract class CaliperConfigModule {
 
     if (configFile.exists()) {
       try {
-        return logAndRemoveUploadProperties(
-            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)));
+        return filterProperties(
+            "file " + configFile, Util.loadProperties(Files.asByteSource(configFile)), stdout);
       } catch (IOException e) {
         throw new InvalidConfigurationException("Couldn't load config file: " + configFile, e);
       }
