@@ -25,7 +25,7 @@ import org.joda.time.Instant;
  */
 final class Defaults {
   static final UUID UUID = new UUID(0L, 0L);
-  static final Instant INSTANT = new Instant(0L);
+  static final Instant INSTANT = Instant.EPOCH;
 
   private Defaults() {}
 }
