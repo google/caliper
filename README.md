@@ -6,6 +6,15 @@
 Caliper is a tool for measuring Java code performance, primarily focused on
 microbenchmarks.
 
+## Prefer [JMH] or [Jetpack Microbenchmark]
+
+For new benchmarks, we recommend using a tool other than Caliper:
+
+- For JVM benchmarks, use [JMH], which generally provides
+[more accurate results](https://groups.google.com/g/mechanical-sympathy/c/m4opvy4xq3U/m/7lY8x8SvHgwJ)
+than Caliper.
+- For Android benchmarks, use the [Jetpack Microbenchmark] library.
+
 ## Building
 
 To build the JVM version of Caliper (the only supported version at the moment),
@@ -34,3 +43,6 @@ environment variable set to the location of an Android SDK containing the file
 `-Dandroid.home=<path>` to your `mvn` command to set the Android SDK directory
 that way, and/or `-Dandroid.sdk.version=<version>` to specify a version other
 than `25` (but note that the build may not work with a version lower than `25`).
+
+[JMH]: https://openjdk.java.net/projects/code-tools/jmh/
+[Jetpack Microbenchmark]: https://developer.android.com/topic/performance/benchmarking/microbenchmark-overview
