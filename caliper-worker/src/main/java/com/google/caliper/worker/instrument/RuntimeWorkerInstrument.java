@@ -128,7 +128,7 @@ abstract class RuntimeWorkerInstrument extends WorkerInstrument {
         throw new InvalidBenchmarkException(
             "%s.%s takes an int for reps, "
                 + "but requires a greater number to fill the given timing interval (%s). "
-                + "If this is expected (the benchmarked code is very fast), use a long parameter."
+                + "If this is expected (the benchmarked code is very fast), use a long parameter. "
                 + "Otherwise, check your benchmark for errors.",
             benchmark.getClass(),
             benchmarkMethod.getName(),
