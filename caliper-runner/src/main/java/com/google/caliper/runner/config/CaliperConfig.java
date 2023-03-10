@@ -74,7 +74,7 @@ public final class CaliperConfig {
           namesToClasses.put(matcher.group(1), verifiedClass);
         } catch (ClassNotFoundException e) {
           throw new InvalidConfigurationException(
-              "Cannot find result processor class: " + entry.getValue());
+              "Cannot find result processor class: " + entry.getValue(), e);
         }
       }
     }
