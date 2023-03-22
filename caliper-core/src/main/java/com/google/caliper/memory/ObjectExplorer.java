@@ -94,7 +94,9 @@ public final class ObjectExplorer {
   public static <T> T exploreObject(
       Object rootObject, ObjectVisitor<T> visitor, EnumSet<Feature> features) {
     Deque<Chain> stack = new ArrayDeque<Chain>(32);
-    if (rootObject != null) stack.push(Chain.root(rootObject));
+    if (rootObject != null) {
+      stack.push(Chain.root(rootObject));
+    }
 
     while (!stack.isEmpty()) {
       Chain chain = stack.pop();
