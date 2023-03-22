@@ -62,7 +62,7 @@ public class Utf8Benchmark {
           // Mostly 4-byte UTF-8 sequences - "rare exotic" text
           return Character.MAX_CODE_POINT;
         } else {
-          throw new IllegalArgumentException("Can't decode codepoint " + userFriendly);
+          throw new IllegalArgumentException("Can't decode codepoint " + userFriendly, ignored);
         }
       }
     }

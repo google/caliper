@@ -161,7 +161,9 @@ public class StringBuilderBenchmark {
       for (int j = 0; j < 4; j++) {
         sb.reverse();
       }
-      if (sb.codePointAt(0) > MIN_SURROGATE) throw new Error();
+      if (sb.codePointAt(0) > MIN_SURROGATE) {
+        throw new Error();
+      }
     }
   }
 
@@ -176,7 +178,9 @@ public class StringBuilderBenchmark {
     for (int i = 0; i < reps; i++) {
       for (int j = 0; j < 4; j++) {
         for (int k = 0; k < length - 1; k++) {
-          if (sb.codePointAt(k) > MIN_SURROGATE) throw new Error();
+          if (sb.codePointAt(k) > MIN_SURROGATE) {
+            throw new Error();
+          }
         }
       }
     }
@@ -193,7 +197,9 @@ public class StringBuilderBenchmark {
     for (int i = 0; i < reps; i++) {
       for (int j = 0; j < 4; j++) {
         for (int k = 1; k < length; k++) {
-          if (sb.codePointBefore(k) > MIN_SURROGATE) throw new Error();
+          if (sb.codePointBefore(k) > MIN_SURROGATE) {
+            throw new Error();
+          }
         }
       }
     }
