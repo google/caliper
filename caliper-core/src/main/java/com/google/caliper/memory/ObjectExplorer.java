@@ -22,6 +22,8 @@ import com.google.common.collect.Lists;
 import java.lang.ref.Reference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.security.AccessController;
 import java.security.PrivilegedActionException;
@@ -34,6 +36,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 /**
@@ -147,6 +150,9 @@ public final class ObjectExplorer {
               && !field.getName().equals("referent")) {
             continue;
           }
+          if (isHiddenOrRecord(field.getDeclaringClass())) {
+            continue;
+          }
           Object childValue = null;
           try {
             childValue = fieldGetHelper(value, field);
@@ -172,6 +178,28 @@ public final class ObjectExplorer {
       }
     }
     return visitor.result();
+  }
+
+  private static boolean isHiddenOrRecord(Class<?> clazz) {
+    try {
+      return (IS_HIDDEN != null && (boolean) IS_HIDDEN.invoke(clazz))
+          || (IS_RECORD != null && (boolean) IS_RECORD.invoke(clazz));
+    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+      throw new AssertionError(e);
+    }
+  }
+
+  private static final Method IS_HIDDEN = maybeGetMethod(Class.class, "isHidden");
+
+  private static final Method IS_RECORD = maybeGetMethod(Class.class, "isRecord");
+
+  @CheckForNull
+  private static Method maybeGetMethod(Class<?> clazz, String name) {
+    try {
+      return clazz.getMethod(name);
+    } catch (NoSuchMethodException e) {
+      return null;
+    }
   }
 
   /** A stateful predicate that allows exploring an object (the tail of the chain) only once. */
