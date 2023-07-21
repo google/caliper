@@ -212,6 +212,11 @@ final class AdbDevice extends Device {
     shell.execute(adbCommand("uninstall", packageName));
   }
 
+  private void forceStop(String packageName) {
+    stdout.println("adb: stopping package " + packageName);
+    shell.execute(adbCommand("shell", "am", "force-stop", packageName));
+  }
+
   /**
    * Starts the activity with the given intent, adding the given extras to the parameters for the
    * activity.
@@ -258,7 +263,11 @@ final class AdbDevice extends Device {
       proxyConnection.stopAsync().awaitTerminated();
     } finally {
       try {
-        uninstall(CALIPER_PACKAGE_NAME);
+        if (caliperOptions.keepAndroidApp()) {
+          forceStop(CALIPER_PACKAGE_NAME);
+        } else {
+          uninstall(CALIPER_PACKAGE_NAME);
+        }
       } finally {
         removeReversePortForwarding();
       }

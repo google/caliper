@@ -429,6 +429,22 @@ public final class ParsedOptions implements CaliperOptions {
   }
 
   // --------------------------------------------------------------------------
+  // Whether to keep the Android app installed after a run
+  // --------------------------------------------------------------------------
+
+  private boolean keepAndroidApp = false;
+
+  @Option("--keep-android-app")
+  private void setKeepAndroidApp(boolean keepAndroidApp) {
+    this.keepAndroidApp = keepAndroidApp;
+  }
+
+  @Override
+  public boolean keepAndroidApp() {
+    return keepAndroidApp;
+  }
+
+  // --------------------------------------------------------------------------
   // Miscellaneous
   // --------------------------------------------------------------------------
 
@@ -561,6 +577,7 @@ public final class ParsedOptions implements CaliperOptions {
           "                    (setting the port to use for the adb instance); while it could ",
           "                    also be used for args such as -d that select the device to use, ",
           "                    prefer using --device for that.",
+          " --keep-android-app whether to keep the Android app installed after a run.",
           " --print-worker-log if an error occurs in a worker, print the log for that worker ",
           "                    rather than the path to the log file; primarily for use in tests ",
           "                    when running in a CI environment where the log files may not be ",

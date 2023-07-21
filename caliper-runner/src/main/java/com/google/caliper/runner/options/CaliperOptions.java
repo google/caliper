@@ -106,6 +106,9 @@ public interface CaliperOptions {
   /** Returns additional arguments to pass to ADB commands. */
   ImmutableList<String> adbArgs();
 
+  /** Returns whether to keep the Android app installed after a run. */
+  boolean keepAndroidApp();
+
   /**
    * Returns whether or not the worker log file content should be printed when a worker fails. By
    * default (false), just the path to the log file is printed.
