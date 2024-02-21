@@ -146,7 +146,7 @@ public class LocalDeviceTest {
     long thing(long reps) {
       long dummy = 0;
       for (long i = 0; i < reps; i++) {
-        dummy += new Long(dummy).hashCode();
+        dummy += Long.hashCode(dummy);
       }
       return dummy;
     }
