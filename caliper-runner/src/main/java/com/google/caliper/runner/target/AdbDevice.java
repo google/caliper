@@ -127,6 +127,7 @@ final class AdbDevice extends Device {
 
     selectDevice(deviceSerialNumber);
     install(getWorkerApk());
+    compile(CALIPER_PACKAGE_NAME);
 
     // This method waits for the server to be running. We need to get it here rather than injecting
     // the port since both the AdbDevice and the ServerSocketService need to be started up by the
@@ -135,7 +136,7 @@ final class AdbDevice extends Device {
     setReversePortForwarding();
 
     startActivity(
-        "com.google.caliper/.worker.CaliperProxyActivity",
+        CALIPER_PACKAGE_NAME + "/.worker.CaliperProxyActivity",
         ImmutableMap.of(
             "com.google.caliper.runner_port",
             "" + port,
@@ -204,6 +205,13 @@ final class AdbDevice extends Device {
   private void install(File apk) {
     stdout.println("adb: installing " + apk);
     shell.execute(adbCommand("install", "-r", apk.getAbsolutePath())).orThrow();
+  }
+
+  private void compile(String packageName) {
+    stdout.println("adb: compiling package " + packageName);
+    shell
+        .execute(adbCommand("shell", "cmd", "package", "compile", "-m", "speed", "-f", packageName))
+        .orThrow();
   }
 
   /** Uninstalls the package with the given name from the device. */
