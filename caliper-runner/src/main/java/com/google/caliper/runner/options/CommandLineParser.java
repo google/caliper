@@ -15,12 +15,13 @@
 package com.google.caliper.runner.options;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Throwables.throwIfInstanceOf;
+import static com.google.common.base.Throwables.throwIfUnchecked;
 
 import com.google.caliper.util.DisplayUsageException;
 import com.google.caliper.util.InvalidCommandException;
 import com.google.caliper.util.Parser;
 import com.google.caliper.util.Parsers;
-import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterators;
@@ -445,7 +446,8 @@ final class CommandLineParser<T> {
       throw new AssertionError(impossible);
     } catch (InvocationTargetException e) {
       Throwable cause = e.getCause();
-      Throwables.propagateIfPossible(cause, InvalidCommandException.class);
+      throwIfInstanceOf(cause, InvalidCommandException.class);
+      throwIfUnchecked(cause);
       throw new RuntimeException(e);
     }
   }
