@@ -143,6 +143,7 @@ final class AdbDevice extends Device {
             "com.google.caliper.proxy_id",
             proxyConnection.proxyId().toString()));
 
+    stdout.println("waiting for proxy on port " + port);
     try {
       proxyConnection.startAsync().awaitRunning(30, SECONDS);
     } catch (TimeoutException e) {
@@ -191,6 +192,7 @@ final class AdbDevice extends Device {
    * computer.
    */
   private void setReversePortForwarding() {
+    stdout.println("adb: reverse forwarding port " + port);
     String tcpPort = "tcp:" + port;
     shell.execute(adbCommand("reverse", tcpPort, tcpPort)).orThrow();
   }
@@ -230,7 +232,6 @@ final class AdbDevice extends Device {
    * activity.
    */
   private void startActivity(String intent, Map<String, String> extras) {
-    stdout.println("adb: starting proxy activity");
     ImmutableList.Builder<String> builder =
         ImmutableList.<String>builder()
             .add("shell")
@@ -241,7 +242,9 @@ final class AdbDevice extends Device {
     for (Map.Entry<String, String> entry : extras.entrySet()) {
       builder.add("-e", entry.getKey(), entry.getValue());
     }
-    shell.execute(adbCommand(builder.build())).orThrow("failed to start activity");
+    ImmutableList<String> args = builder.build();
+    stdout.println("adb: starting proxy activity: " + String.join(" ", args));
+    shell.execute(adbCommand(args)).orThrow("failed to start activity");
   }
 
   private File getWorkerApk() {
