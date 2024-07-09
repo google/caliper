@@ -16,8 +16,11 @@
 
 package com.google.caliper.worker.handler;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import com.google.caliper.bridge.WorkerRequest;
 import dagger.MapKey;
+import java.lang.annotation.Retention;
 
 /**
  * Specifies the type of request a {@link RequestHandler} handles.
@@ -25,6 +28,7 @@ import dagger.MapKey;
  * @autor Colin Decker
  */
 @MapKey
+@Retention(RUNTIME)
 @interface RequestTypeKey {
   Class<? extends WorkerRequest> value();
 }

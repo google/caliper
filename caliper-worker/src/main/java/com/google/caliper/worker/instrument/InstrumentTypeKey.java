@@ -16,14 +16,18 @@
 
 package com.google.caliper.worker.instrument;
 
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 import com.google.caliper.model.InstrumentType;
 import dagger.MapKey;
+import java.lang.annotation.Retention;
 
 /**
  * Specifies the type of instrument to use as a key in the map of available {@link Worker workers}
  * passed to {@link #provideWorker(Map)}.
  */
 @MapKey
+@Retention(RUNTIME)
 public @interface InstrumentTypeKey {
   InstrumentType value();
 }
