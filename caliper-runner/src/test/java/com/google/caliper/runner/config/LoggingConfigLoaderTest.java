@@ -14,7 +14,7 @@
 
 package com.google.caliper.runner.config;
 
-import static com.google.common.base.Charsets.UTF_8;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.logging.Level.INFO;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
