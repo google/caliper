@@ -17,10 +17,10 @@
 package com.google.caliper.runner.worker;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.caliper.model.Run;
 import com.google.caliper.runner.config.CaliperConfig;
-import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import com.google.common.util.concurrent.AbstractIdleService;
 import java.io.BufferedWriter;
@@ -84,8 +84,7 @@ final class WorkerOutputFactoryService extends AbstractIdleService implements Wo
     return new FileAndWriter(
         file,
         new PrintWriter(
-            new BufferedWriter(
-                new OutputStreamWriter(new FileOutputStream(file), Charsets.UTF_8))));
+            new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), UTF_8))));
   }
 
   /**
