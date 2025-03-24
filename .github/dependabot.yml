@@ -9,6 +9,11 @@ updates:
         applies-to: version-updates
         patterns:
           - "*"
+    ignore:
+      - dependency-name: "com.google.dagger:dagger"
+      - dependency-name: "com.google.dagger:dagger-producers"
+      - dependency-name: "com.google.dagger:dagger-compiler"
+      - dependency-name: "org.mockito:mockito-core"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
