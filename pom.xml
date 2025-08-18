@@ -82,7 +82,7 @@
     <dagger.version>2.50</dagger.version>
     <autovalue.version>1.11.0</autovalue.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
+    <maven-javadoc-plugin.version>3.11.3</maven-javadoc-plugin.version>
   </properties>
 
   <modules>
