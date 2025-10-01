@@ -31,7 +31,7 @@ jobs:
         uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165
         with:
           java-version: ${{ matrix.java }}
-          distribution: 'zulu'
+          distribution: 'temurin'
           cache: 'maven'
       - name: 'Install'
         shell: bash
