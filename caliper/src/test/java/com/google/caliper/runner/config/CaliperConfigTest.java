@@ -26,11 +26,14 @@ import com.google.caliper.runner.options.CaliperOptions;
 import com.google.caliper.runner.options.ParsedOptions;
 import com.google.caliper.runner.target.Device;
 import com.google.caliper.runner.target.LocalDevice;
+import com.google.common.base.Predicate;
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import java.io.File;
 import java.lang.management.ManagementFactory;
+import java.util.Collection;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
@@ -101,6 +104,33 @@ public class CaliperConfigTest {
     }
   }
 
+  /**
+   * Predicate for filtering out JVM flags (from those used to start the runner JVM) that we don't
+   * want to pass on to worker VMs.
+   */
+  private static final Predicate<String> JVM_FLAGS_TO_RETAIN =
+      new Predicate<String>() {
+        @Override
+        public boolean apply(String flag) {
+          // Exclude the -agentlib:jdwp param which configures the socket debugging protocol.
+          // If this is set in the parent VM we do not want it to be inherited by the child
+          // VM.  If it is, the child will die immediately on startup because it will fail to
+          // bind to the debug port (because the parent VM is already bound to it).
+          return !flag.startsWith("-agentlib:jdwp")
+          ;
+        }
+      };
+
+  /**
+   * Returns the set of VM args used when starting this process that we want to pass on to worker
+   * VMs.
+   */
+  private static Collection<String> jvmInputArguments() {
+    // TODO(cgdecker): Don't pass any input args to workers by default.
+    return Collections2.filter(
+        ManagementFactory.getRuntimeMXBean().getInputArguments(), JVM_FLAGS_TO_RETAIN);
+  }
+
   @Test
   public void getDefaultVmConfig() throws Exception {
     CaliperConfig configuration =
@@ -113,7 +143,7 @@ public class CaliperConfigTest {
     assertEquals(System.getProperty("java.home"), defaultVmConfig.home().get());
     ImmutableList<String> expectedArgs =
         new ImmutableList.Builder<String>()
-            .addAll(ManagementFactory.getRuntimeMXBean().getInputArguments())
+            .addAll(jvmInputArguments())
             .add("-very")
             .add("-special=args")
             .build();

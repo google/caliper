@@ -64,7 +64,8 @@ final class NonAndroidDeviceHelper implements LocalDevice.Helper {
           // If this is set in the parent VM we do not want it to be inherited by the child
           // VM.  If it is, the child will die immediately on startup because it will fail to
           // bind to the debug port (because the parent VM is already bound to it).
-          return !flag.startsWith("-agentlib:jdwp");
+          return !flag.startsWith("-agentlib:jdwp")
+          ;
         }
       };
 
