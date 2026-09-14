@@ -112,7 +112,7 @@ public final class OutputFileDumper implements ResultProcessor {
         logger.log(
             SEVERE,
             String.format(
-                "An error occured writing trial %s. Results in %s will be incomplete.",
+                "An error occurred writing trial %s. Results in %s will be incomplete.",
                 trial.id(), resultFile),
             e);
       }
