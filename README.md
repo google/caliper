@@ -10,10 +10,10 @@ microbenchmarks.
 
 For new benchmarks, we recommend using a tool other than Caliper:
 
-- For JVM benchmarks, use [JMH], which generally provides
-[more accurate results](https://groups.google.com/g/mechanical-sympathy/c/m4opvy4xq3U/m/7lY8x8SvHgwJ)
-than Caliper.
-- For Android benchmarks, use the [Jetpack Microbenchmark] library.
+-   For JVM benchmarks, use [JMH], which generally provides
+    [more accurate results](https://groups.google.com/g/mechanical-sympathy/c/m4opvy4xq3U/m/7lY8x8SvHgwJ)
+    than Caliper.
+-   For Android benchmarks, use the [Jetpack Microbenchmark] library.
 
 ## Building
 
@@ -26,8 +26,8 @@ mvn clean install -am -pl caliper
 
 ### Android
 
-Caliper currently has a number of artifacts related to Android. These are in
-a transitional state and no easy way to run Caliper benchmarks on Android is
+Caliper currently has a number of artifacts related to Android. These are in a
+transitional state and no easy way to run Caliper benchmarks on Android is
 currently available.
 
 If you are interested in building the Android artifacts for any reason, you can
