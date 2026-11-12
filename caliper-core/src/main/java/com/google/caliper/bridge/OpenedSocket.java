@@ -49,7 +49,7 @@ public final class OpenedSocket {
     // and constructing an ObjectInputStream requires reading that header.  So we always need to
     // construct the OOS first so we don't deadlock.
     ObjectOutputStream output = new ObjectOutputStream(getOutputStream(socket));
-    ObjectInputStream input = new ObjectInputStream(getInputStream(socket));
+    ObjectInputStream input = new SafeObjectInputStream(getInputStream(socket));
     return new OpenedSocket(new Reader(input), new Writer(output));
   }
 
@@ -95,6 +95,53 @@ public final class OpenedSocket {
       input.close();
     }
   }
+
+  private static final class SafeObjectInputStream extends ObjectInputStream {
+    private static final java.util.Set<String> ALLOWED_CLASSES = java.util.Collections.unmodifiableSet(
+        new java.util.HashSet<>(java.util.Arrays.asList(
+            "java.lang.String",
+            "java.lang.Integer",
+            "java.lang.Long",
+            "java.lang.Boolean",
+            "java.util.ArrayList",
+            "com.google.caliper.bridge.DryRunSuccessLogMessage",
+            "com.google.caliper.bridge.ExperimentSpec",
+            "com.google.caliper.bridge.FailureLogMessage",
+            "com.google.caliper.bridge.KillVmRequest",
+            "com.google.caliper.bridge.RemoteClasspathMessage",
+            "com.google.caliper.bridge.ShouldContinueMessage",
+            "com.google.caliper.bridge.StartMeasurementLogMessage",
+            "com.google.caliper.bridge.StartVmRequest",
+            "com.google.caliper.bridge.StopMeasurementLogMessage",
+            "com.google.caliper.bridge.StopProxyRequest",
+            "com.google.caliper.bridge.TargetInfoLogMessage",
+            "com.google.caliper.bridge.VmPropertiesLogMessage",
+            "com.google.caliper.bridge.VmStoppedMessage",
+            "com.google.caliper.bridge.LogMessage", 
+            "com.google.caliper.bridge.StopMessage",
+            "com.google.caliper.model.Trial",
+            "com.google.caliper.model.BenchmarkSpec",
+            "com.google.caliper.model.Host",
+            "com.google.caliper.model.Run",
+            "com.google.caliper.model.InstrumentSpec",
+            "com.google.caliper.bridge.LogMessage",
+            "com.google.caliper.bridge.StopMessage",
+            "com.google.caliper.bridge.StartupAnnouncement"
+        ))
+    );
+
+    SafeObjectInputStream(InputStream in) throws IOException {
+        super(in);
+    }
+
+    @Override
+    protected Class<?> resolveClass(java.io.ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+        if (!ALLOWED_CLASSES.contains(desc.getName())) {
+            throw new java.io.InvalidClassException("Unauthorized deserialization attempt", desc.getName());
+        }
+        return super.resolveClass(desc);
+    }
+}
 
   /** Writes objects to the socket. */
   public static final class Writer implements Closeable {
