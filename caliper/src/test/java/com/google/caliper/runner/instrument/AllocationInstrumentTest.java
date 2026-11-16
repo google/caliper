@@ -31,7 +31,9 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
+import com.sun.management.HotSpotDiagnosticMXBean;
 import java.io.File;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
@@ -72,13 +74,29 @@ public class AllocationInstrumentTest {
     Trial trial = Iterables.getOnlyElement(runner.trials());
     ImmutableListMultimap<String, Measurement> measurementsByDescription =
         Measurement.indexByDescription(trial.measurements());
-    // 14 objects and 1960 bytes are the known values for growing an ArrayList from 1 element to 100
-    // elements
+    // Growing an ArrayList from capacity 1 to 100 elements allocates 14 objects: the ArrayList
+    // itself (24 bytes) plus 13 Object[] backing arrays of capacities 1, 2, 3, 4, 6, 9, 13, 19,
+    // 28, 42, 63, 94, and 141. Those 14 objects total 1960 bytes with standard 12-byte object
+    // headers, or 1904 bytes with 8-byte compact object headers (-XX:+UseCompactObjectHeaders,
+    // which shrinks each of the 7 odd-capacity arrays by 8 bytes).
     for (Measurement objectMeasurement : measurementsByDescription.get("objects")) {
       assertEquals(14.0, objectMeasurement.value().magnitude() / objectMeasurement.weight(), 0.001);
     }
+    double expectedBytes = useCompactObjectHeaders() ? 1904.0 : 1960.0;
     for (Measurement byteMeasurement : measurementsByDescription.get("bytes")) {
-      assertEquals(1960.0, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
+      assertEquals(
+          expectedBytes, byteMeasurement.value().magnitude() / byteMeasurement.weight(), 0.001);
+    }
+  }
+
+  private static boolean useCompactObjectHeaders() {
+    try {
+      HotSpotDiagnosticMXBean diagnosticBean =
+          ManagementFactory.getPlatformMXBean(HotSpotDiagnosticMXBean.class);
+      return diagnosticBean != null
+          && Boolean.parseBoolean(diagnosticBean.getVMOption("UseCompactObjectHeaders").getValue());
+    } catch (IllegalArgumentException e) {
+      return false;
     }
   }
 
